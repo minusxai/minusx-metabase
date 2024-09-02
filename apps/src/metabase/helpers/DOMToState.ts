@@ -1,4 +1,4 @@
-import { RPCs } from 'web/src/package'
+import { RPCs } from 'web'
 import { getTop200TablesWithoutFieldsForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPage } from './dashboard/util';

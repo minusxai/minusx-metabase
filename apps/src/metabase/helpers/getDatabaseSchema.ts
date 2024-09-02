@@ -1,5 +1,5 @@
-import { memoize, RPCs } from 'web/src/package'
-import { FormattedTable } from 'src/common/utils';
+import { memoize, RPCs } from 'web'
+import { FormattedTable } from './types';
 import _ from 'lodash';
 
 const { getMetabaseState, fetchData } = RPCs;

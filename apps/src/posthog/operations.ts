@@ -1,4 +1,4 @@
-import { RPCs } from "web/src/package"; 
+import { RPCs } from "web"; 
 import { querySelectorMap } from "./querySelectorMap";
 import { sleep } from "../common/utils";
 export const waitForQueryExecution = async () => {

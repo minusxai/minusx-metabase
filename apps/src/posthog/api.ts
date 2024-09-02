@@ -1,7 +1,7 @@
-import { RPCs, memoize } from 'web/src/package'
+import { RPCs, memoize } from 'web'
 import { get } from 'lodash'
 import { getWithWarning } from '../common/utils'
-import { DatabaseSchemaQueryResponse } from 'src/posthog/types'
+import { DatabaseSchemaQueryResponse } from './types'
 
 const DEFAULT_TTL = 0
 // sample /api/projects response:

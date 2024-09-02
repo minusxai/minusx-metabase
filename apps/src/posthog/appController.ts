@@ -1,10 +1,10 @@
 import { AppController } from "../base/appController";
 import { memoizedGetCurrentProjectDatabaseSchema } from "./api";
 import { PosthogAppState } from "./types";
-import { BlankMessageContent } from "web"; 
+import { BlankMessageContent } from "web/types"; 
 import { waitForRunButton, getSqlErrorMessage, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
 import { querySelectorMap } from "./querySelectorMap";
-import { RPCs } from "web/src/package";
+import { RPCs } from "web";
 
 export class PosthogController extends AppController<PosthogAppState> {
   async getTableSchemasById({ ids }: { ids: string[] }) {
