@@ -1,0 +1,106 @@
+import { createListenerMiddleware, isAnyOf, TaskAbortError } from '@reduxjs/toolkit'
+import { addUserMessage, setActiveThreadStatus, abortPlan } from '../state/chat/reducer';
+import { simplePlan } from './simplePlan';
+import { cotPlan } from './cotPlan';
+import type { RootState, AppDispatch } from '../state/store';
+import { toast } from '../app/toast';
+import { isAxiosError } from 'axios';
+import { getApp } from '../helpers/app';
+import { ToolPlannerConfig } from 'apps/types';
+import { performActions } from './plannerActions';
+export const plannerListener = createListenerMiddleware();
+function shouldContinue(getState: () => RootState) {
+  const thread = getState().chat.activeThread
+  const activeThread = getState().chat.threads[thread]
+  const messageHistory = activeThread.messages
+  const lastMessage = messageHistory[messageHistory.length - 1]
+  // check if there are 0 tool calls in the last assistant message. if so, we don't continue
+  if (lastMessage.role == 'assistant' && lastMessage.content.toolCalls.length == 0) {
+    return false
+  }
+  // check if the last tool was respondToUser and check what its params were
+  if (lastMessage.role == 'tool' && lastMessage.action.function.name == 'markTaskDone') {
+    return false;
+  } else {
+    // if last tool was not respondToUser, we continue anyway. not sure if we should keep it this way? 
+    return true
+  }
+}
+
+async function plan(signal: AbortSignal, plannerConfig: ToolPlannerConfig) {
+  if (plannerConfig.type == 'simple') {
+    return simplePlan(signal, plannerConfig)
+  } else {
+    return cotPlan(signal, plannerConfig)
+  }
+}
+
+const startListening = plannerListener.startListening.withTypes<
+  RootState,
+  AppDispatch
+>();
+
+startListening({
+  matcher: isAnyOf(addUserMessage, abortPlan),
+  effect: async (action, listenerApi) => {
+    if (addUserMessage.match(action)) {
+      let getState = listenerApi.getState
+      let dispatch = listenerApi.dispatch
+      let signal = listenerApi.signal
+      const plannerConfig = await getApp().getPlannerConfig()
+      try {
+        dispatch(setActiveThreadStatus('PLANNING'));
+        // do planning
+        await listenerApi.pause(plan(signal, plannerConfig));
+        // do tool execution
+        dispatch(setActiveThreadStatus('EXECUTING'));
+        await listenerApi.pause(performActions(signal));
+        console.log("done with perform actions")
+        // check if we need to continue tool calls. maybe should have a counter
+        // here to limit the number of iterations?
+        let _steps = 0
+        const MAX_STEPS = 8
+        while (shouldContinue(getState)) {
+          _steps += 1
+          if (_steps > MAX_STEPS) {
+            break
+          }
+          dispatch(setActiveThreadStatus('PLANNING'));
+          await listenerApi.pause(plan(signal, plannerConfig));
+          dispatch(setActiveThreadStatus('EXECUTING'));
+          await listenerApi.pause(performActions(signal));
+        }
+      } catch (err) {
+        if (err instanceof TaskAbortError) {
+          // don't do toast stuff. this happens when the user aborts the planner so not really an error
+          return
+        }
+        let description = "Unknown error"
+        if (isAxiosError(err)) {
+          description = err.response?.data?.error || err.message
+        } else if (err instanceof Error) {
+          description = err.message
+        }
+        // shorten it if it's too long
+        description = description.length > 1000 ? description.substring(0, 1000) + '...' : description
+        // log it
+        console.warn("Planner error", description)
+        toast({
+          title: 'Planner Error',
+          description,
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'bottom-right',
+        })
+        // TODO(@arpit): fix state here in case of abort.
+        // eg. if tool uses are pending, set them to cancelled or something
+        // Vivek: Have handled in the respective tool call (sets it to failure for now)
+      } finally {
+        dispatch(setActiveThreadStatus('FINISHED'));
+      }
+    } else {
+      listenerApi.cancelActiveListeners();
+    }
+  }
+});

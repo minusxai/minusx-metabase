@@ -1,0 +1,85 @@
+.web-agent-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: web-agent-ripple 0.5s ease-out;
+  background-color: #2a9d8f;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@keyframes web-agent-ripple {
+  to {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+#minusx-root {
+  position: fixed;
+  right: 0;
+  border: 0;
+  height: 100%;
+  z-index: 1000;
+  background-color: transparent;
+}
+
+#minusx-iframe {
+  background-color: transparent;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  width: 100%;
+  border: none;
+}
+
+#minusx-toggle {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  width: 40px;
+  background-image: url('/logo_x.svg');
+}
+
+.mode-open-sidepanel {
+  width: 350px;
+}
+
+.mode-open-selection {
+  width: 100%;
+}
+
+.mode-open-sidepanel-devtools {
+  width: 850px;
+}
+
+.closed {
+  width: 0
+}
+
+.closed > #minusx-iframe {
+  width: 0;
+}
+
+#minusx-toggle {
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 60% 60%; 
+  border-radius: 5px 0px 0px 5px;
+  border-width: 1.5px 0px 1.5px 1.5px;
+  border-style: solid;
+  border-color: #d6d3d1;
+  background-color: #f5f5f4;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+}
+
+.invisible {
+  display: none;
+}
+
+/* .closed > #minusx-toggle{
+  left: -40px
+}

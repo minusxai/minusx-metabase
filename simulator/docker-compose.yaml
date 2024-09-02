@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  jupyter:
+    build:
+      context: ./src
+      dockerfile: ../docker/jupyter.Dockerfile
+    ports:
+      - "8888:8888"
+    environment:
+      JUPYTER_TOKEN: "jupyter_test_token"

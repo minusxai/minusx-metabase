@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  web-server:
+    build:
+      context: ..
+      dockerfile: ./web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3005:3005"

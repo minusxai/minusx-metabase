@@ -1,0 +1,1 @@
+export { getAppSetupConfigs } from "./appSetupConfigs";

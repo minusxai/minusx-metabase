@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "MinusX",
+  "description": "AI Data Scientist for all your Analytics Apps",
+  "version": "0.0.13",
+  "background": { "service_worker": "background.bundle.js" },
+  "permissions": [
+    "storage"
+  ],
+  "action": {
+    "default_icon": "icon-34.png",
+    "default_title": "Toggle minusx"
+  },
+  "icons": {
+    "128": "icon-128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": ["contentScript.bundle.js"],
+      "css": [],
+      "run_at": "document_start"
+    }
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content.styles.css", "icon-128.png", "icon-34.png", "*.svg", "metabase.bundle.js", "jupyter.bundle.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "commands": {
+    "open-chat": {
+      "suggested_key": {
+        "default": "Ctrl+K",
+        "mac": "Command+K"
+      },
+      "description": "Open Chat on the current page."
+    }
+  }
+}

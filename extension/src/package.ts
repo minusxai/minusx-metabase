@@ -1,0 +1,1 @@
+export { initWindowListener } from './content/RPCs/initListeners'

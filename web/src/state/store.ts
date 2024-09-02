@@ -1,0 +1,160 @@
+import { Action, combineReducers, configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
+import chat from './chat/reducer'
+import auth from './auth/reducer'
+import thumbnails from './thumbnails/reducer'
+import settings from './settings/reducer'
+import storage from 'redux-persist/lib/storage'
+import { persistReducer, createMigrate } from 'redux-persist'
+import logger from 'redux-logger'
+import { configs } from '../constants'
+import { plannerListener } from '../planner/planner'
+const combinedReducer = combineReducers({
+  chat,
+  auth,
+  settings,
+  thumbnails,
+});
+
+const rootReducer = (state: any, action: any) => {
+  let updatedState = state;
+
+  switch (action.type) {
+    case 'reset':
+      updatedState = {
+        auth: state.auth
+      };
+      break;
+    
+    case 'logout':
+      updatedState = {};
+      break;
+    case 'upload_thread':
+      const newThread = {
+        ...action.payload,
+        index: state.chat.threads.length,
+      }
+      updatedState = {
+        ...state,
+        chat: {
+          ...state.chat,
+          threads: [...state.chat.threads, newThread],
+          activeThread: state.chat.threads.length
+        }
+      };
+      break;
+    
+      case 'upload_state':
+        updatedState = {
+          ...action.payload
+        }
+        break;
+  }
+
+  return combinedReducer(updatedState, action);
+}
+const migrations = {
+  0: (state: any) => {
+    let newState = {...state}
+    newState = {
+      ...newState,
+      executor: {
+        status: 'FINISHED'
+      }
+    }
+    if (newState.plan) {
+      delete newState.plan
+    }
+    return newState;
+  },
+  // add the finishReason to the assistant messages
+  1: (state: any) => {
+    let newState = {...state} 
+    newState.chat.threads.forEach((thread: any) => {
+      thread.messages.forEach((message: any) => {
+        if (message.role == 'assistant') {
+          message.content.finishReason = message.content.finishReason || 'stop'
+        }
+      })
+    })
+    return newState;
+  },
+  2: (state: any) => {
+    let newState = {...state}
+    // #Hack, not sure if this is needed
+    // newState.toolConfig = toolConfigInitialState
+    return newState;
+  },
+  3: (state: any) => {
+    let newState = {...state}
+    newState.cache = {}
+    return newState;
+  },
+  // resetting the cache...
+  4: (state: any) => {
+    let newState = {...state}
+    newState.cache = {}
+    return newState;
+  },
+  // removing cache altogether...
+  5: (state: any) => {
+    let newState = {...state}
+    delete newState.cache
+    return newState;
+  },
+  // removing toolConfig.isToolEnabled and toolConfig.toolEnabledReason
+  6: (state: any) => {
+    let newState = {...state}
+    if (newState.toolConfig) {
+      delete newState.toolConfig.isToolEnabled
+      delete newState.toolConfig.toolEnabledReason
+    }
+    return newState;
+  },
+}
+
+
+const persistConfig = {
+  key: 'root',
+  version: 6,
+  storage,
+  blacklist: [],
+  migrate: createMigrate(migrations, { debug: false }),
+};
+
+export const eventListener = createListenerMiddleware();
+
+export const store = configureStore({
+  // TODO(@arpit): lack of migrations causes the whole typechecking thing to fail here :/
+  // maybe have an explicit typecheck here so that failures are identified early? how
+  // to even do that?
+  reducer: persistReducer(persistConfig, rootReducer),
+  middleware: (getDefaultMiddleware) => {
+    const defaults = getDefaultMiddleware()
+    const withPlanner = defaults.prepend(eventListener.middleware).prepend(plannerListener.middleware)
+    if (configs.IS_DEV) {
+      return withPlanner.concat(logger)
+    }
+    return withPlanner
+  }
+})
+
+export const getState = () => {
+  return store.getState()
+}
+
+window.__GET_STATE__ = () => {
+  if (window.IS_PLAYWRIGHT) {
+    return getState()
+  }
+}
+
+window.__DISPATCH__ = (action: Action) => {
+  if (window.IS_PLAYWRIGHT) {
+    return store.dispatch(action)
+  }
+}
+
+// Infer the `RootState` and `AppDispatch` types from the store itself
+export type RootState = ReturnType<typeof store.getState>
+// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
+export type AppDispatch = typeof store.dispatch

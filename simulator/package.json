@@ -1,0 +1,24 @@
+{
+  "name": "simulator",
+  "version": "0.0.1",
+  "description": "A simulator for MinusX",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com:minusxai/minusx.git"
+  },
+  "scripts": {
+    "base_test": "playwright test",
+    "test": "RETRIES=3 yarn base_test",
+    "ci_test": "RETRIES=3 HEADLESS=true REUSE_DOCKER=true yarn base_test",
+    "report": "playwright show-report"
+  },
+  "packageManager": "yarn@4.3.1",
+  "dependencies": {
+    "playwright": "^1.45.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.2",
+    "@types/node": "^20.14.11"
+  }
+}

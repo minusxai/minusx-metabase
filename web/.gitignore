@@ -1,0 +1,35 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# testing
+/coverage
+
+# production
+/build
+/web-build
+build.crx
+minusx.zip
+
+# misc
+.DS_Store
+.env
+.env.local
+.env.development
+.env.test.local
+.env.production
+.history
+
+# secrets
+secrets.*.js
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+yarn.lock

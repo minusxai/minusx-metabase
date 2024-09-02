@@ -1,0 +1,23 @@
+{
+  "name": "apps",
+  "version": "0.0.13",
+  "description": "An agent to help you use your data tools better",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com:minusxai/minusx.git"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/package.ts",
+    "./extension": "./src/package.extension.ts",
+    "./types": "./src/types.d.ts"
+  },
+  "types": "src/package.types.ts",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "react": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "packageManager": "yarn@4.3.1"
+}
