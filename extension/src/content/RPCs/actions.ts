@@ -2,6 +2,7 @@ import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event'
 import { fireEvent } from '@testing-library/dom';
 import { QuerySelector } from '../../helpers/pageParse/querySelectorTypes';
 import { getElementFromQuerySelector, getElementsFromQuerySelector } from '../../helpers/pageParse/getElements';
+import { sleep } from '../../helpers/utils';
 
 // #HACK to implement highlight
 type Style = Partial<HTMLEmbedElement["style"]>
@@ -11,6 +12,10 @@ type OldElements = {
 }
 const OLD_ELEMENTS: OldElements = {
   style: {}
+}
+
+if (process.env.NODE_ENV == 'development') {
+  (window as any).userEvent = userEvent
 }
 
 const highlightElement = (newElement: HTMLElement, newStyle: Style) => {
@@ -108,7 +113,9 @@ export const uClick = async (selector: QuerySelector, index: number = 0) => {
     return await user.click(element)
   }
 }
-
+if (process.env.NODE_ENV == 'development') {
+  (window as any).uClick = uClick
+}
 export const uDblClick = async (selector: QuerySelector, index: number = 0) => {
   const user = userEvent.setup({
     pointerEventsCheck: PointerEventsCheckLevel.EachTrigger
@@ -135,6 +142,18 @@ export const typeText = async (selector: QuerySelector, value: string = '', inde
     console.log('Setting value', element, selector, value, index)
     await user.keyboard(value)
   }
+}
+export const uSetValueSlow = async (selector: QuerySelector, value: string = '', index: number = 0) => {
+  console.log('Setting value', selector, value, index)
+  await userEvent.keyboard(value)
+  // const user = userEvent.setup({
+  //   pointerEventsCheck: PointerEventsCheckLevel.EachTrigger
+  // })
+  // const element = getElementFromQuerySelector(selector, index);
+  // if (element) {
+  //   // await userEvent.keyboard(value)
+  //   await user.keyboard("hello")
+  // }
 }
 
 export const dragAndDropText = async (selector: QuerySelector, value: string = '', index: number = 0) => {

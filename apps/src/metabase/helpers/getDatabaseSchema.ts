@@ -1,4 +1,5 @@
-import { memoize, RPCs } from 'web'
+import { memoize, RPCs } from 'web/src/package'
+import { FormattedTable } from 'src/common/utils';
 import _ from 'lodash';
 
 const { getMetabaseState, fetchData } = RPCs;
@@ -28,22 +29,6 @@ export async function getSelectedDbId(): Promise<number | undefined> {
     return undefined;
   }
   return  Number(dbId);
-}
-interface FormattedColumn {
-  description?: string;
-  name: string;
-  type: string;
-  // only populated for foreign keys
-  fk_table_id?: number;
-  foreign_key_target?: string | null;
-}
-
-interface FormattedTable {
-  description?: string;
-  name: string;
-  id: number;
-  schema: string;
-  columns?: { [key: number]: FormattedColumn };
 }
 
 const extractDbInfo = (db: any) => ({

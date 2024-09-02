@@ -2,6 +2,7 @@ import { once } from "lodash";
 import { AppSetup } from "./base/appSetup";
 import { JupyterSetup } from "./jupyter/appSetup";
 import { MetabaseSetup } from "./metabase/appSetup";
+import { PosthogSetup } from "./posthog/appSetup";
 
 interface AppSetupConfig {
     name: string;
@@ -20,4 +21,9 @@ export const getAppSetupConfigs = once(() : AppSetupConfig[] => [
         appSetup: new JupyterSetup(),
         inject: true,
     },
+    {
+        name: "posthog",
+        appSetup: new PosthogSetup(),
+        inject: true,
+    }
 ]);

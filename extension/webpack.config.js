@@ -45,6 +45,7 @@ var options = {
     // Same in manifest.json file
     metabase: path.join(__dirname, '..', 'apps', 'src', 'metabase', 'inject.ts'),
     jupyter: path.join(__dirname, '..', 'apps', 'src', 'jupyter', 'inject.ts'),
+    posthog: path.join(__dirname, '..', 'apps', 'src', 'posthog', 'inject.ts'),
   },
   chromeExtensionBoilerplate: {
     notHotReload: ['background', 'contentScript'],

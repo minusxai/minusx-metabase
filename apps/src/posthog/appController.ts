@@ -1,0 +1,61 @@
+import { AppController } from "../base/appController";
+import { memoizedGetCurrentProjectDatabaseSchema } from "./api";
+import { PosthogAppState } from "./types";
+import { BlankMessageContent } from "web"; 
+import { waitForRunButton, getSqlErrorMessage, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
+import { querySelectorMap } from "./querySelectorMap";
+import { RPCs } from "web/src/package";
+
+export class PosthogController extends AppController<PosthogAppState> {
+  async getTableSchemasById({ ids }: { ids: string[] }) {
+    const actionContent: BlankMessageContent = { type: "BLANK" };
+    // need to fetch schemas
+    const dbSchema = await memoizedGetCurrentProjectDatabaseSchema();
+    const tables = dbSchema
+      .filter((table) => ids.includes(table.id))
+      .map((table) => ({
+        id: table.id,
+        name: table.name,
+        ...(table.type == "data_warehouse" ? { schema: table.schema?.name } : {}),
+        columns: Object.values(table.fields).map((field) => ({
+          name: field.name,
+          type: field.type,
+        })),
+      }));
+    const tableSchemasContent = JSON.stringify(tables);
+    actionContent.content = tableSchemasContent;
+    return actionContent;
+  }
+
+  async updateSQLQueryAndExecute({ sql }: { sql: string }) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    // await this.uClick({ query: "sql_query" });
+    // // TODO: figure out a better way or some selector to wait on instead of 100 ms delays
+    // await this.wait({ time: 100})
+    // await RPCs.uSelectAllText(false);
+    // await this.wait({ time: 100})
+    // await RPCs.typeText(querySelectorMap["sql_query"], sql);
+
+    await RPCs.uDblClick(querySelectorMap["sql_query"]);
+    await this.wait({ time: 500})
+    await RPCs.uSelectAllText(false)
+    await this.wait({ time: 500})
+    // await RPCs.typeText(querySelectorMap["sql_query"], "{Backspace}{Backspace}{Backspace}{Backspace}")
+    await this.wait({ time: 500})
+    await RPCs.typeText(querySelectorMap["sql_query"], sql)
+    // await waitForRunButton();
+    // await this.uClick({ query: "run_button" });
+    // await waitForQueryExecution();
+    // const sqlErrorMessage = await getSqlErrorMessage();
+    // if (sqlErrorMessage) {
+    //   actionContent.content = sqlErrorMessage;
+    // } else {
+    //   // table output
+    //   const tableOutput = await getAndFormatOutputTable();
+    //   actionContent.content = tableOutput;
+    // }
+    return actionContent;
+  }
+}
