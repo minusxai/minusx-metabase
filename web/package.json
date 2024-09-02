@@ -55,6 +55,7 @@
     "react-textarea-autosize": "^8.5.3",
     "redux-logger": "^3.0.6",
     "redux-persist": "^6.0.0",
+    "reflect-metadata": "^0.2.2",
     "styled-components": "^6.1.11"
   },
   "devDependencies": {

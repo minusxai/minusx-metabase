@@ -1,10 +1,30 @@
 import type { QuerySelector, QuerySelectorMap, Base64Image } from "extension/types";
 import { get } from "lodash";
 import { DefaultMessageContent, RPCs, utils } from "web";
+import 'reflect-metadata';
 
 interface App<T> {
   getState: () => Promise<T>;
   getQuerySelectorMap: () => Promise<QuerySelectorMap>;
+}
+
+export interface ActionMetadata {
+  needsConfirmation: boolean;
+  exposedToModel: boolean;
+}
+
+export function AddActionMetadata(metadata: ActionMetadata) {
+  return function (
+    target: any,
+    propertyKey: string,
+    descriptor?: PropertyDescriptor
+  ) {
+    Reflect.defineMetadata(propertyKey, metadata, target);
+  };
+}
+
+export function getActionMetadata(target: any, propertyKey: string) {
+  return Reflect.getMetadata(propertyKey, target);
 }
 
 export abstract class AppController<T> {
@@ -70,6 +90,7 @@ export abstract class AppController<T> {
   }
 
   async runAction(fn: string, args: any) {
+    console.log("Action metadata", getActionMetadata(this, fn));
     // @ts-ignore: Check if controller has function and execute!
     return await this[fn](args);
   }

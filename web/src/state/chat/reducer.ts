@@ -10,7 +10,7 @@ import { BlankMessageContent, ChatMessageContentType, DefaultMessageContent } fr
 const MAX_THREADS = 10
 
 export type Role = Exclude<ChatCompletionRole, 'function'>
-export type ActionStatus = 'TODO' | 'DOING' | 'INTERRUPTED' | 'FAILURE' | 'SUCCESS'
+export type ActionStatus = 'TODO' | 'DOING' | 'PAUSED' | 'INTERRUPTED' | 'FAILURE' | 'SUCCESS'
 export type ToolID = string
 export type MessageIndex = number
 export type ToolCall = ChatCompletionMessageToolCall
@@ -32,7 +32,7 @@ export interface BaseAction extends ToolCall {
 }
 
 export interface OngoingAction extends BaseAction {
-  status: Subset<ActionStatus, "TODO" | "DOING">
+  status: Subset<ActionStatus, "TODO" | "DOING" | "PAUSED">
   finished: false
 }
 

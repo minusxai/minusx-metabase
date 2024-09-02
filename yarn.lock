@@ -12082,6 +12082,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"reflect-metadata@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "reflect-metadata@npm:0.2.2"
+  checksum: 10c0/1cd93a15ea291e420204955544637c264c216e7aac527470e393d54b4bb075f10a17e60d8168ec96600c7e0b9fcc0cb0bb6e91c3fbf5b0d8c9056f04e6ac1ec2
+  languageName: node
+  linkType: hard
+
 "regenerate-unicode-properties@npm:^10.1.0":
   version: 10.1.1
   resolution: "regenerate-unicode-properties@npm:10.1.1"
@@ -14038,6 +14045,7 @@ __metadata:
     react-textarea-autosize: "npm:^8.5.3"
     redux-logger: "npm:^3.0.6"
     redux-persist: "npm:^6.0.0"
+    reflect-metadata: "npm:^0.2.2"
     serve: "npm:^14.2.3"
     styled-components: "npm:^6.1.11"
     typescript: "npm:5"

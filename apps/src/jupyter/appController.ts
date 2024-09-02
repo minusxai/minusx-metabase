@@ -1,21 +1,24 @@
 import { clone, findIndex, isArray } from "lodash";
-import { AppController } from "../base/appController";
+import { AppController, AddActionMetadata } from "../base/appController";
 import { JupyterNotebookState } from "./helpers/DOMToState";
 import { BlankMessageContent, RPCs } from "web";
 
 export class JupyterController extends AppController<JupyterNotebookState> {
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async insertCellBelow({ cell_index }: { cell_index: number }) {
     await this.uClick({ query: "select_cell", index: cell_index });
     await this.uClick({ query: "insert_cell_below" });
     return;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async insertCellAbove({ cell_index }: { cell_index: number }) {
     await this.uClick({ query: "select_cell", index: cell_index });
     await this.uClick({ query: "insert_cell_above" });
     return;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async setCellValue({
     cell_index,
     source,
@@ -34,6 +37,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: true })
   async runCell({ cell_index }: { cell_index: number }) {
     cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
     await this.uClick({ query: "select_cell", index: cell_index });
@@ -44,6 +48,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async executeCell({ cell_index }: { cell_index: number }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
@@ -58,6 +63,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return actionContent;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async deleteCells({ cell_indexes }: { cell_indexes: number[] }) {
     const sortedIds = clone(cell_indexes);
     sortedIds.sort();
@@ -70,6 +76,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async insertSetValueExecuteCell({
     cell_index,
     source,
@@ -83,6 +90,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return;
   }
 
+  @AddActionMetadata({ needsConfirmation: true, exposedToModel: true })
   async addCodeAndRun({
     cell_index,
     source,
@@ -98,6 +106,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return cellOutput;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async setValueExecuteCell({
     cell_index,
     source,
@@ -110,6 +119,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return cellOutput;
   }
 
+  @AddActionMetadata({ needsConfirmation: true, exposedToModel: true })
   async replaceCodeAndRun({
     cell_index,
     source,
@@ -124,6 +134,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return cellOutput;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async getCurrentlySelectedCell() {
     const querySelectorMap = await this.app.getQuerySelectorMap();
     const queryResponse = await RPCs.queryDOMSingle({
@@ -135,6 +146,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return selectedCell;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async cellIndexOrCurrentlySelected(cell_index: number | undefined) {
     if (cell_index === undefined) {
       const selectedCell = await this.getCurrentlySelectedCell();
@@ -143,6 +155,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return cell_index;
   }
 
+  @AddActionMetadata({ needsConfirmation: false, exposedToModel: false })
   async waitForCellExecution({ index }) {
     while (true) {
       const state = await this.app.getState();
