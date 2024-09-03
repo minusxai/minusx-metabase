@@ -110,17 +110,18 @@ interface ChatState {
   activeThread: number,
 }
 
+export const initialUserConfirmationState: UserConfirmationState = {
+  show: false,
+  content: '',
+  userInput: 'NULL'
+}
 const initialState: ChatState = {
   threads: [{
     index: 0,
     debugChatIndex: -1,
     messages: [],
     status: 'FINISHED',
-    userConfirmation: {
-      show: false,
-      content: '',
-      userInput: 'NULL'
-    }
+    userConfirmation: initialUserConfirmationState,
   }],
   activeThread: 0,
 }
