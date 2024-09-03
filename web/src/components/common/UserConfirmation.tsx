@@ -5,6 +5,7 @@ import {
   Icon,
   IconButton,
   Text,
+  Code
 } from '@chakra-ui/react'
 import React from 'react-redux'
 import { BsX, BsCheck } from "react-icons/bs";
@@ -17,7 +18,9 @@ export const UserConfirmation = ({userConfirmation}: {userConfirmation: UserConf
   return (
     <VStack alignItems={"center"}>
       <Text fontWeight={"bold"}>Accept below code?</Text>
-      <Box>{userConfirmation.content}</Box>
+      <Box width={"100%"} p={2} bg={"minusxBW.300"} borderRadius={5}>
+        <Text>{userConfirmation.content}</Text>
+      </Box>
       {/*two buttons with yes and no*/}
       <HStack width={"80%"}>
         <IconButton
