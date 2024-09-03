@@ -1,6 +1,6 @@
 import { createSlice, createAction } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import _ from 'lodash'
+import _, { get } from 'lodash'
 
 import { ChatCompletionMessageToolCall, ChatCompletionRole, ChatCompletionToolMessageParam, ChatCompletion, Chat } from 'openai/resources';
 import { Subset } from '../../helpers/utils'
@@ -89,11 +89,20 @@ export type ChatMessage = UserChatMessage | ActionPlanChatMessage | ActionChatMe
 
 export type ChatThreadStatus = 'PLANNING' | 'EXECUTING' | 'FINISHED'
 
+export type UserConfirmationInput = 'NULL' | 'APPROVE' | 'REJECT'
+
+export interface UserConfirmationState {
+  show: boolean
+  content: string
+  userInput: UserConfirmationInput
+}
+
 interface ChatThread {
   index: number
   debugChatIndex: number
   messages: Array<ChatMessage>
   status: ChatThreadStatus
+  userConfirmation: UserConfirmationState
 }
 
 interface ChatState {
@@ -106,10 +115,19 @@ const initialState: ChatState = {
     index: 0,
     debugChatIndex: -1,
     messages: [],
-    status: 'FINISHED'
+    status: 'FINISHED',
+    userConfirmation: {
+      show: false,
+      content: '',
+      userInput: 'NULL'
+    }
   }],
   activeThread: 0,
 }
+
+const getActiveThread = (state: ChatState) => state.threads[state.activeThread]
+
+const getMessages = (state: ChatState) => getActiveThread(state).messages
 
 export const chatSlice = createSlice({
   name: 'chat',
@@ -119,9 +137,7 @@ export const chatSlice = createSlice({
       state,
       action: PayloadAction<Omit<UserChatMessage, "role" | "index" | "feedback">>
     ) => {
-      const thread = state.activeThread
-      const activeThread = state.threads[thread]
-      const messages = activeThread.messages
+      const messages = getMessages(state)
       const timestamp = Date.now()
       messages.push({
         ...action.payload,
@@ -139,8 +155,7 @@ export const chatSlice = createSlice({
       action: PayloadAction<MessageIndex>
     ) => {
       const messageIndex = action.payload
-      const thread = state.activeThread
-      const activeThread = state.threads[thread]
+      const activeThread = getActiveThread(state)
       if (activeThread.status != 'FINISHED') {
         return
       }
@@ -151,9 +166,7 @@ export const chatSlice = createSlice({
       action: PayloadAction<{llmResponse: LLMResponse, debug: any}>
     ) => {
       // const actions: Array<OngoingAction> = 
-      const thread = state.activeThread
-      const activeThread = state.threads[thread]
-      const messages = activeThread.messages
+      const messages = getMessages(state)
       const latestMessageIndex = messages.length
       const toolCalls = action.payload.llmResponse.tool_calls
       const messageContent = action.payload.llmResponse.content
@@ -207,10 +220,7 @@ export const chatSlice = createSlice({
       state,
       action: PayloadAction<MessageIndex>
     ) => {
-      const messageID = action.payload
-      const thread = state.activeThread
-      const messages = state.threads[thread].messages
-      const actionMessage = messages[messageID]
+      const actionMessage = getMessages(state)[action.payload]
       if (actionMessage.role == 'tool' && !actionMessage.action.finished) {
         actionMessage.action.status = "DOING"
         actionMessage.updatedAt = Date.now()
@@ -252,9 +262,7 @@ export const chatSlice = createSlice({
     },
     interruptPlan: (state, action: PayloadAction<{ planID: MessageIndex, actionStatus: InterruptedActionStatus }>) => {
       const { planID, actionStatus } = action.payload
-      const thread = state.activeThread
-      const activeThread = state.threads[thread]
-      const messages = activeThread.messages
+      const messages = getMessages(state)
       const planMessage = messages[planID]
       if (planMessage.content.type == 'ACTIONS' && !planMessage.content.finished) {
         planMessage.content.actionMessageIDs.forEach(messageID => {
@@ -294,7 +302,12 @@ export const chatSlice = createSlice({
         index: state.threads.length,
         messages: [],
         debugChatIndex: -1,
-        status: 'FINISHED'
+        status: 'FINISHED',
+        userConfirmation: {
+          show: false,
+          content: '',
+          userInput: 'NULL'
+        }
       })
     },
     addReaction: (
@@ -335,12 +348,28 @@ export const chatSlice = createSlice({
     },
     setActiveThreadStatus: (state, action: PayloadAction<ChatThreadStatus>) => {
       state.threads[state.activeThread].status = action.payload
-    }
+    },
+    toggleUserConfirmation: (state, action: PayloadAction<boolean>) => {
+      const userConfirmation = state.threads[state.activeThread].userConfirmation
+      if (action.payload) {
+        userConfirmation.show = true
+        userConfirmation.content = 'Is this ok?'
+      }
+      else {
+        userConfirmation.show = false
+        userConfirmation.content = ''
+      }
+      userConfirmation.userInput = 'NULL'
+    },
+    setUserConfirmationInput: (state, action: PayloadAction<UserConfirmationInput>) => {
+      const userConfirmation = state.threads[state.activeThread].userConfirmation
+      userConfirmation.userInput = action.payload
+    },
   },
 })
 
 export const abortPlan = createAction('chat/abortPlan')
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput } = chatSlice.actions
 
 export default chatSlice.reducer

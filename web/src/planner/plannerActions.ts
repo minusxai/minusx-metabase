@@ -3,6 +3,7 @@ import { dispatch } from '../state/dispatch'
 import { MessageIndex, finishAction, interruptPlan, FinishedActionStatus, ActionPlanChatMessage } from '../state/chat/reducer'
 import { getState } from '../state/store'
 import { getApp } from '../helpers/app'
+import { toast } from '../app/toast'
 
 export interface ExecutableAction {
   index: MessageIndex
@@ -39,6 +40,14 @@ export const executeAction = async (action: ExecutableAction): Promise<ActionRet
     return { index, returnValue, status: 'SUCCESS' }
   } catch (err) {
     console.log('Error in action', fn, 'with args', actionArgs, err)
+    toast({
+      title: 'Error',
+      description: `Error in action ${fn} with args ${actionArgs}`,
+      status: 'error',
+      duration: 9000,
+      isClosable: true,
+      position: 'bottom-right'
+    })
     return { index, returnValue: undefined, status: 'FAILURE' }
   }
 }
