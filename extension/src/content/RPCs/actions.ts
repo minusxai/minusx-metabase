@@ -156,8 +156,9 @@ export const uSetValueSlow = async (selector: QuerySelector, value: string = '',
     console.log('Setting value', selector, value, index)
     element.dispatchEvent(new Event('focus'));
     await user.keyboard(' {Backspace}')
-    const initVal = '{Backspace}'.repeat(value.length+2)
-    await user.keyboard(initVal)
+    // const initVal = '{Backspace}'.repeat(value.length+2)
+    // await user.keyboard(initVal)
+    await user.keyboard('{Control>}a{/Control}')
     await user.keyboard(value)
     // for (const char of value) {
     //   // await fireEvent(element, new KeyboardEvent('keydown', { key: char }))
