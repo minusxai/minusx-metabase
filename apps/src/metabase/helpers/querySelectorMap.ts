@@ -1,4 +1,4 @@
-import { QuerySelectorMap } from "extension";
+import { QuerySelectorMap } from "extension/types";
 
 
 export const visualizationTypes = ["Table", "Bar", "Line", "Pie", "Row", "Area", "Combo", "Trend", "Funnel", "Detail", "Scatter", "Waterfall", "Number", "Gauge", "Progress", "Map", "PivotTable"]
@@ -61,7 +61,7 @@ export const querySelectorMap: QuerySelectorMap = {
   },
   query_editor: {
     type: 'XPATH',
-    selector: "//div[@data-testid='native-query-editor']"
+    selector: "//div[@data-testid='native-query-editor']|//div[@id='id_sql']"
   },
   cell_headers: {
     type: 'CSS',
