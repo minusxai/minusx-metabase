@@ -184,6 +184,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       </VStack>
       <VStack alignItems={"stretch"}>
         <Divider borderColor={"minusxBW.500"}/>
+        { !taskInProgress && !userConfirmation.show &&
+        <>
         <ChatSuggestions
           suggestQueries={suggestQueries}
           toggleSuggestions={toggleSuggestions}
@@ -199,6 +201,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           }} 
         />
         <Divider borderColor={"minusxBW.500"}/>
+        </>
+         }
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation userConfirmation={userConfirmation}/>
         <HStack>
