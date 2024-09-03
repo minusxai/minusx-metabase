@@ -30,7 +30,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content.styles.css", "icon-128.png", "icon-34.png", "*.svg", "metabase.bundle.js", "jupyter.bundle.js", "posthog.bundle.js"],
+      "resources": ["content.styles.css", "icon-128.png", "icon-34.png", "*.svg", "metabase.bundle.js", "jupyter.bundle.js", "posthog.bundle.js", "debug.bundle.js"],
       "matches": ["<all_urls>"]
     }
   ],

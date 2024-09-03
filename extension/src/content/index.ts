@@ -26,6 +26,10 @@ async function _init(localConfigs: Promise<object>) {
   if (inject) {
     setupScript(`${tool}.bundle.js`)
   }
+  if (configs.IS_DEV) {
+    console.log('Injecting debug script')
+    setupScript(`debug.bundle.js`)
+  }
   if (!configs.IS_DEV) {
     console.log = () => {}
     console.error = () => {}

@@ -39,11 +39,17 @@ export class PosthogController extends AppController<PosthogAppState> {
     // await RPCs.typeText(querySelectorMap["sql_query"], sql);
 
     await RPCs.uDblClick(querySelectorMap["sql_query"]);
-    await this.wait({ time: 500})
-    await RPCs.uSelectAllText(false)
-    await this.wait({ time: 500})
+    await this.wait({ time: 100})
+    // await RPCs.typeText(querySelectorMap["sql_query"], "{Home}")
+    await RPCs.uSelectAllText(true, ['cut']);
+    // await this.wait({ time: 500})
     // await RPCs.typeText(querySelectorMap["sql_query"], "{Backspace}{Backspace}{Backspace}{Backspace}")
-    await this.wait({ time: 500})
+    // await this.wait({ time: 100})
+    // await RPCs.typeText(querySelectorMap["sql_query"], "{Backspace}")
+    // await RPCs.typeText(querySelectorMap["sql_query"], "{Home} ")
+
+    // Need some event to reset Monaco
+    await this.wait({ time: 1000})
     await RPCs.typeText(querySelectorMap["sql_query"], sql)
     // await waitForRunButton();
     // await this.uClick({ query: "run_button" });
