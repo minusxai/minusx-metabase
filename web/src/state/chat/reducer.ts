@@ -349,16 +349,14 @@ export const chatSlice = createSlice({
     setActiveThreadStatus: (state, action: PayloadAction<ChatThreadStatus>) => {
       state.threads[state.activeThread].status = action.payload
     },
-    toggleUserConfirmation: (state, action: PayloadAction<boolean>) => {
+    toggleUserConfirmation: (state, action: PayloadAction<{
+      show: boolean
+      content: string
+    }>) => {
       const userConfirmation = state.threads[state.activeThread].userConfirmation
-      if (action.payload) {
-        userConfirmation.show = true
-        userConfirmation.content = 'Is this ok?'
-      }
-      else {
-        userConfirmation.show = false
-        userConfirmation.content = ''
-      }
+      const { show, content } = action.payload
+      userConfirmation.show = show
+      userConfirmation.content = content
       userConfirmation.userInput = 'NULL'
     },
     setUserConfirmationInput: (state, action: PayloadAction<UserConfirmationInput>) => {
