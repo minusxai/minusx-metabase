@@ -19,6 +19,6 @@ export async function getUserConfirmation(){
       dispatch(toggleUserConfirmation(false))
       return userApproved
     }
-    await sleep(500)
+    await sleep(100)
   }
 }

@@ -39,12 +39,11 @@ export const executeAction = async (action: ExecutableAction): Promise<ActionRet
     console.log('Successfully completed action', fn, 'with args', args)
     return { index, returnValue, status: 'SUCCESS' }
   } catch (err) {
-    console.log('Error in action', fn, 'with args', actionArgs, err)
     toast({
-      title: 'Error',
-      description: `Error in action ${fn} with args ${actionArgs}`,
-      status: 'error',
-      duration: 9000,
+      title: 'User Confirmtion: Rejected',
+      description: `${err}`,
+      status: 'warning',
+      duration: 5000,
       isClosable: true,
       position: 'bottom-right'
     })

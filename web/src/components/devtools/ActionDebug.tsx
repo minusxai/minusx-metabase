@@ -10,21 +10,8 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { getApp } from '../../helpers/app'
 import { ActionDescription } from 'apps/types'
+import { executeAction, ExecutableAction } from '../../planner/plannerActions'
 
-interface ExecutableAction {
-  function: string
-  args: any
-}
-
-const executeAction = (action: ExecutableAction) => {
-  let args = action.args
-  if (typeof args == 'string') {
-    try {
-      args = JSON.parse(action.args)
-    } catch (e) {}
-  }
-  getApp().actionController.runAction(action.function, args)
-}
 
 export const ActionsView: React.FC<null> = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
@@ -38,6 +25,7 @@ export const ActionsView: React.FC<null> = () => {
     const actions: ExecutableAction[] = []
     actionPlan.content.toolCalls.forEach((tool, index) => {
       actions.push({
+        index: index,
         function: tool.function.name,
         args: tool.function.arguments,
       })
