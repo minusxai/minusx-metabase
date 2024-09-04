@@ -2,7 +2,7 @@ import { get, isEmpty } from "lodash"
 import { initWindowListener } from 'extension'
 
 const getMetabaseState = (path: Parameters<typeof get>[1]) => {
-    const store = get(window, 'Metabase.store')
+    const store: any = get(window, 'Metabase.store')
     if (store && store.getState) {
         if (isEmpty(path)) {
             return store.getState()

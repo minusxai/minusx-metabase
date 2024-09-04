@@ -44,7 +44,7 @@ function getDashcardInfoByIds(ids: number[], dashboardMetabaseState: DashboardMe
 }
 
 export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard | null> {
-  const dashboardMetabaseState: DashboardMetabaseState = await getMetabaseState('dashboard');
+  const dashboardMetabaseState: DashboardMetabaseState = await getMetabaseState('dashboard') as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
     console.warn('Could not get dashboard info');
     return null;
