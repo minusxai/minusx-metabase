@@ -1,8 +1,8 @@
 import { AppController } from "../base/appController";
-import { memoizedGetCurrentProjectDatabaseSchema } from "./api";
+import { getSqlQueryMetadata, memoizedGetCurrentProjectDatabaseSchema } from "./api";
 import { PosthogAppState } from "./types";
 import { BlankMessageContent } from "web/types"; 
-import { waitForRunButton, getSqlErrorMessage, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
+import { waitForRunButtonOrError, getSqlErrorMessageFromDOM, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
 import { querySelectorMap } from "./querySelectorMap";
 import { RPCs } from "web";
 
@@ -51,17 +51,25 @@ export class PosthogController extends AppController<PosthogAppState> {
     // Need some event to reset Monaco
     await this.wait({ time: 100})
     await RPCs.typeText(querySelectorMap["sql_query"], sql)
-    // await waitForRunButton();
-    // await this.uClick({ query: "run_button" });
-    // await waitForQueryExecution();
-    // const sqlErrorMessage = await getSqlErrorMessage();
-    // if (sqlErrorMessage) {
-    //   actionContent.content = sqlErrorMessage;
-    // } else {
-    //   // table output
-    //   const tableOutput = await getAndFormatOutputTable();
-    //   actionContent.content = tableOutput;
-    // }
+    // do metadata request and check for errors
+    const sqlQueryMetadata = await getSqlQueryMetadata(sql);
+    if (sqlQueryMetadata && sqlQueryMetadata.errors.length > 0) {
+      // stringify all the errors as is
+      const errorMessage = JSON.stringify(sqlQueryMetadata.errors);
+      actionContent.content = errorMessage;
+    } else {
+      // no error, can run
+      await this.uClick({ query: "run_button" });
+      await waitForQueryExecution();
+      const sqlErrorMessage = await getSqlErrorMessageFromDOM();
+      if (sqlErrorMessage) {
+        actionContent.content = "Error: " + sqlErrorMessage;
+      } else {
+        // table output
+        const tableOutput = await getAndFormatOutputTable();
+        actionContent.content = tableOutput;
+      }
+    }
     return actionContent;
   }
 }

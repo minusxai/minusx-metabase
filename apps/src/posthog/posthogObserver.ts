@@ -1,6 +1,7 @@
 const MAX_OBSERVER_TIME = 3000
 
-
+// TODO: this is a wip to find if we can actally access redux state. doesn't work right now.
+// can probably even remove the observer script entirely.
 // Observe the document for the addition of the script tag
 export const initObservePosthog = () => {
   const observer = new MutationObserver(function (mutations) {
@@ -11,7 +12,6 @@ export const initObservePosthog = () => {
           if (node.nodeName === 'SCRIPT' ) {
             let scriptNode: HTMLScriptElement = node as HTMLScriptElement
             if (scriptNode.src.includes(substrToCheck)) {
-              console.log('<><><>Found script! removing observer')
               observer.disconnect();  // Stop observing once we've found and processed the script
             }
           }

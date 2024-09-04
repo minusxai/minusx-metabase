@@ -78,6 +78,40 @@ const getDatabaseSchema = async (projectId: number) => {
   return extractedTables
 }
 
+// this is a subset
+interface SqlQueryMetadataQueryResponse {
+  errors: {
+    start: number;
+    end: number;
+    message: string;
+    fix: string | null;
+  }[]
+  isValid: boolean;
+  isValidView: boolean;
+}
+
+export const getSqlQueryMetadata = async (sqlQuery: string) => {
+  const projectId = await memoizedGetCurrentProjectId()
+  if (projectId) {
+    const response = await RPCs.fetchData(
+      `/api/projects/${projectId}/query/`, 
+      'POST', 
+      {
+        "query": {
+          "kind": "HogQLMetadata",
+          "language": "hogQL",
+          "query": sqlQuery
+        }
+      },
+      {},
+      {cookieKey: 'posthog_csrftoken', headerKey: 'X-Csrftoken'}
+    ) as SqlQueryMetadataQueryResponse
+    return response
+  } else {
+    console.warn("No current project found")
+  }
+}
+
 const getCurrentProjectDatabaseSchema = async () => {
   const projectId = await memoizedGetCurrentProjectId()
   if (projectId) {

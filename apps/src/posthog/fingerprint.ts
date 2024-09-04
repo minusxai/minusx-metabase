@@ -1,4 +1,4 @@
-import { ToolMatcher } from "extension";
+import { ToolMatcher } from "extension/types";
 
 export const posthogFingerprintMatcher: ToolMatcher = {
   default: {

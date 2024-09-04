@@ -14,8 +14,8 @@ const OLD_ELEMENTS: OldElements = {
   style: {}
 }
 
-if (process.env.NODE_ENV == 'development') {
-  (window as any).userEvent = userEvent
+if (process.env.NODE_ENV == 'development' || true) {
+  ;(window as any).userEvent = userEvent
 }
 
 const highlightElement = (newElement: HTMLElement, newStyle: Style) => {
@@ -113,7 +113,7 @@ export const uClick = async (selector: QuerySelector, index: number = 0) => {
     return await user.click(element)
   }
 }
-if (process.env.NODE_ENV == 'development') {
+if (process.env.NODE_ENV == 'development' || true) {
   (window as any).uClick = uClick
 }
 export const uDblClick = async (selector: QuerySelector, index: number = 0) => {
