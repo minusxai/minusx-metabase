@@ -14,6 +14,7 @@ export default ({ mode }) => {
   env.npm_package_version = process.env.npm_package_version || ''
   return defineConfig({
     plugins: [react()],
+    assetsInclude: ['**/*.md'],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

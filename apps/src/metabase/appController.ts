@@ -1,5 +1,5 @@
+import { BlankMessageContent } from "web/types";
 import { RPCs } from "web";
-import { BlankMessageContent} from "web/types"
 import { AppController } from "../base/appController";
 import {
   MetabaseAppState,
@@ -19,6 +19,7 @@ import {
   DashboardMetabaseState,
   DashcardDetails,
 } from "./helpers/dashboard/types";
+import _ from "lodash";
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   async toggleSQLEditor(mode: "open" | "close") {
@@ -138,7 +139,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   async getDashcardDetailsById({ ids }: { ids: number[] }) {
     let actionContent: BlankMessageContent = { type: "BLANK" };
     const dashboardMetabaseState: DashboardMetabaseState =
-      await RPCs.getMetabaseState("dashboard");
+      await RPCs.getMetabaseState("dashboard") as DashboardMetabaseState;
 
     if (
       !dashboardMetabaseState ||

@@ -1,7 +1,7 @@
 import { QuerySelectorMap, DOMQuery } from 'extension/types';
 
 export const querySelectorMap: QuerySelectorMap = {
-  "sql_query": {
+  "hogql_query": {
     type: "XPATH",
     selector:  `//div[contains(@class,"view-lines") and @role="presentation"]`
   },

@@ -1,0 +1,88 @@
+{
+  "count": 9,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "0190ed61-2ef1-0000-3659-c07803ad3fda",
+      "name": "$autocapture",
+      "created_at": "2024-07-26T04:51:27.602632Z",
+      "last_seen_at": "2024-09-04T21:20:40.326000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "01910020-2913-0000-b4cb-b266bffb26e2",
+      "name": "$$heatmap",
+      "created_at": "2024-07-29T20:13:13.365148Z",
+      "last_seen_at": "2024-09-04T16:50:15.808000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190fa92-ec71-0000-6284-71f504838b81",
+      "name": "$identify",
+      "created_at": "2024-07-28T18:20:51.187811Z",
+      "last_seen_at": "2024-09-04T20:12:55.937000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190ff21-e25b-0000-81de-d22d4158b4a8",
+      "name": "$opt_in",
+      "created_at": "2024-07-29T15:35:29.116927Z",
+      "last_seen_at": "2024-09-04T21:14:17.397000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190ed61-aed4-0000-cee6-3b534741967c",
+      "name": "$pageleave",
+      "created_at": "2024-07-26T04:52:00.342291Z",
+      "last_seen_at": "2024-09-04T21:16:15.238000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190ed61-0335-0000-bc4a-5102675e6a88",
+      "name": "$pageview",
+      "created_at": "2024-07-26T04:51:16.409854Z",
+      "last_seen_at": "2024-09-04T21:14:17.405000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190ed61-2f07-0000-752f-3d428b67e73e",
+      "name": "$rageclick",
+      "created_at": "2024-07-26T04:51:27.625439Z",
+      "last_seen_at": "2024-09-04T21:14:17.604000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190fa92-f4d1-0000-176c-9b975142f7be",
+      "name": "$set",
+      "created_at": "2024-07-28T18:20:53.330296Z",
+      "last_seen_at": "2024-09-04T21:14:17.749000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    },
+    {
+      "id": "0190ed61-2ee1-0000-77fd-7df5d5b221ec",
+      "name": "$web_vitals",
+      "created_at": "2024-07-26T04:51:27.587724Z",
+      "last_seen_at": "2024-09-04T21:25:42.373000Z",
+      "is_action": false,
+      "post_to_slack": false,
+      "tags": []
+    }
+  ]
+}

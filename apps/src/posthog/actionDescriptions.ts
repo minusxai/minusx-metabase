@@ -18,14 +18,14 @@ export const ACTION_DESCRIPTIONS: ActionDescription[] = [
     description: 'Responds to the user query in a text format. Use this tool in case the user asks a clarification question or description of something on their screen.',
   },
   {
-    name: 'updateSQLQueryAndExecute',
+    name: 'updateHogQLQueryAndExecute',
     args: {
-      sql: {
+      query: {
         type: 'string',
-        description: "The SQL query to update in the metabase SQL editor."
+        description: "The HogQL query to update in the Posthog HogQL editor."
       },
     },
-    description: 'Updates the SQL Query in the posthog SQL editor and executes it.',
+    description: 'Updates the HogQL query in the Posthog HogQL editor and executes it.',
   },
   {
     name: 'getTableSchemasById',
@@ -39,5 +39,10 @@ export const ACTION_DESCRIPTIONS: ActionDescription[] = [
       }
     },
     description: 'Gets the schemas of the specified tables by their ids in the database.',
-  }
+  },
+  {
+    name: "getHogQLExpressionsDocumentation",
+    args: {},
+    description: "Gets the documentation for HogQL expressions. Use this tool if you need help with writing HogQL.",
+  },
 ];

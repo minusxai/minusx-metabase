@@ -1,6 +1,7 @@
 import { RPCs } from "web"; 
 import { querySelectorMap, outputTableQuery } from "./querySelectorMap";
 import { sleep } from "../common/utils";
+
 export const waitForQueryExecution = async () => {
  // TODO
  while(true) {
@@ -84,28 +85,4 @@ export const getSqlQuery = async () => {
     selector: querySelectorMap["sql_read"],
   });
   return sqlQuery?.map((row) => row?.attrs?.text).join('\n');
-}
-
-export const waitForRunButtonOrError = async () => {
-  // wait 500 ms
-  await sleep(500);
-  const isDisabled = await RPCs.queryDOMSingle({
-    selector: querySelectorMap["disabled_run_button"],
-  });
-  if (isDisabled.length == 0) {
-    return; // no error
-  }
-  // TODO: get error, either using hover or pressing f8 key
-  return "Syntax Error";
-  // await RPCs.uClick(querySelectorMap["sql_query"]);
-  // await RPCs.typeText(querySelectorMap["sql_query"], sql)
-  // while (true) {
-  //   const isDisabled = await RPCs.queryDOMSingle({
-  //     selector: querySelectorMap["disabled_run_button"],
-  //   });
-  //   if (isDisabled.length == 0) {
-  //     return;
-  //   }
-  //   await sleep(100);
-  // }
 }
