@@ -4,16 +4,33 @@ function insertTextAtCursor(content, url) {
   // Check if there's a selection
   var selection = doc.getSelection();
   if (selection) {
-    var elements = selection.getRangeElements();
-    var lastElement = elements[elements.length - 1].getElement();
+    var rangeElements = selection.getRangeElements();
+    var lastElement = null;
+    var lastEndOffset = -1;
+    var highestIndex = -1;
+
+    // Loop through all selected elements to find the right-most one
+    for (var i = 0; i < rangeElements.length; i++) {
+      var element = rangeElements[i].getElement();
+      var endOffset = rangeElements[i].getEndOffsetInclusive();
+
+      // Check the index of the element to determine its position in the document
+      var currentElementIndex = doc.getBody().getChildIndex(element.getParent());
+
+      // Select the element with the highest index in the document
+      if (currentElementIndex > highestIndex || (currentElementIndex === highestIndex && endOffset > lastEndOffset)) {
+        lastElement = element;
+        lastEndOffset = endOffset;
+        highestIndex = currentElementIndex;
+      }
+    }
     
-    if (lastElement.editAsText) {
+    if (lastElement && lastElement.editAsText) {
       var textElement = lastElement.editAsText();
-      var endOffset = elements[elements.length - 1].getEndOffsetInclusive();
       
-      // Insert text after the selected text
-      var newStartOffset = endOffset + 1;
-      var newElement = textElement.insertText(newStartOffset, content); // Insert after the selected text
+      // Insert text after the right-most selected text
+      var newStartOffset = lastEndOffset + 1;
+      var newElement = textElement.insertText(newStartOffset, content);
       
       // Apply the link to the new text only
       if (url) {
@@ -119,7 +136,7 @@ function insertBase64Image(base64Image, newImgWidth) {
   }
   
   // Set the width of the image based on the specified percentage
-  if (imageElement && newImgWidth) {
+  if (imageElement) {
     var originalWidth = imageElement.getWidth();
     var originalHeight = imageElement.getHeight();
     
