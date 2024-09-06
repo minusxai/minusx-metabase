@@ -53,8 +53,7 @@ function showSidebar() {
 }
 
 function insertBase64Image(base64Image) {
-  
-  // Extract the Base64 part from the URL
+  // Extract the Base64 part from the data URL
   var base64String = base64Image.split(',')[1];
   
   // Convert the Base64 string to a Blob
@@ -64,13 +63,38 @@ function insertBase64Image(base64Image) {
   // Get the active Google Doc
   var doc = DocumentApp.getActiveDocument();
   
-  // Insert the image at the current cursor position
-  var cursor = doc.getCursor();
-  if (cursor) {
-    cursor.insertInlineImage(blob);
-  } else {
+  // Check if there's a selection
+  var selection = doc.getSelection();
+  if (selection) {
+    var rangeElements = selection.getRangeElements();
+    
+    // We will insert the image after the last selected element
+    var lastElement = rangeElements[rangeElements.length - 1].getElement();
+    
+    // Get the parent of the last element, typically a paragraph
+    var parentElement = lastElement.getParent();
+    
+    // Insert the image after the selected text
+    if (parentElement.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      parentElement.asParagraph().appendInlineImage(blob);
+    } else if (parentElement.getType() === DocumentApp.ElementType.TEXT) {
+      parentElement.getParent().appendInlineImage(blob);
+    }
+  } 
+  // If no selection, check if there's a cursor
+  else {
+    var cursor = doc.getCursor();
+    if (cursor) {
+      // Insert the image at the cursor position
+      var element = cursor.insertInlineImage(blob);
+      if (!element) {
+        Logger.log("Unable to insert image at cursor.");
+      }
+    } 
     // If no cursor, append the image at the end of the document
-    doc.getBody().appendImage(blob);
+    else {
+      doc.getBody().appendImage(blob);
+    }
   }
 }
 
