@@ -169,4 +169,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     return actionContent;
   }
+
+  async getOutputAsImage(){
+    const img = await RPCs.getElementScreenCapture({selector: "//*[@data-testid='query-visualization-root']", type: "XPATH"});
+    return img;
+  }
+
+  async getOutputAsText(){
+    return;
+  }
+
 }

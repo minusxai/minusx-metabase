@@ -2,7 +2,8 @@ import chat from "../chat/chat";
 import { DefaultMessageContent } from '../state/chat/types'
 import { getState } from "../state/store"
 import { sleep } from "../helpers/utils"
-import _, { last } from "lodash"
+import _ from "lodash"
+import { getApp } from "../helpers/app";
 
 export async function useAppFromExternal({text}: {text: string}) {
   const content: DefaultMessageContent = {
@@ -24,16 +25,12 @@ export async function useAppFromExternal({text}: {text: string}) {
     console.log(threadStatus)
     await sleep(100)
   }
-  const state = getState()
-  const thread = state.chat.activeThread
-  const messages = state.chat.threads[thread].messages
+  const outputImgs = [await getApp().actionController.getOutputAsImage()] || []
+  const outputText = await getApp().actionController.getOutputAsText() || ''
 
-  const lastTalkToUserCall = _.chain(messages)
-  .flatMap(message => _.get(message, 'content.toolCalls', []))
-  .filter(toolCall => toolCall.function.name === 'talkToUser')
-  .last()
-  .value();
-
-  console.log("Last talkToUser", lastTalkToUserCall)
-  return lastTalkToUserCall?.function?.arguments;
+  return {
+    type: "DEFAULT",
+    text: outputText,
+    images: outputImgs
+  }
 }

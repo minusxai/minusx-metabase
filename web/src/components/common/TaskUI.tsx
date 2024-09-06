@@ -238,7 +238,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         />
         <Divider borderColor={"minusxBW.500"}/>
         <Thumbnails thumbnails={thumbnails} />
-        <Button onClick={() => {useAppFromExternal({text:"generate a random number and tell me what it is"})}} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use App from External</Button>
+        <Button onClick={() => {useAppFromExternal({text:"show me monthly orders"})}} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use App from External</Button>
         <HStack>
           <Textarea
             ref={ref}
