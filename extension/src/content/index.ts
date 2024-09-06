@@ -24,6 +24,7 @@ async function _init(localConfigs: Promise<object>) {
   if (tool == TOOLS.OTHER) {
     // #HACK for gdoc
     setupStyles('content.styles.css')
+    initRPC()
     return;
   }
   if (inject) {

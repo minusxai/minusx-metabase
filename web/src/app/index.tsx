@@ -8,7 +8,7 @@ import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
 import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
-import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected} from './rpc';
+import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
 import { configs } from '../constants';
 import { setAxiosJwt } from './api';
@@ -25,7 +25,7 @@ import { Button } from '@chakra-ui/react';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
-    console.log = log
+    console.log = log   
     ;(window as any).forwardToTab = forwardToTab
 } else {
     console.log = () => {}
@@ -68,7 +68,7 @@ const initCrossInstanceComms = (ref: React.RefObject<HTMLInputElement>) => {
         if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
             const { uuid, message } = rpcEvent
             useAppFromExternal({text: message}).then(response => {
-                window.parent.postMessage({
+                window.parent.parent.parent.parent.parent.parent.parent.parent.parent.postMessage({
                     type: 'RESPONSE',
                     uuid,
                     payload: response
@@ -189,6 +189,27 @@ const base64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAA
 function DebugComponent() {
     const [docContent, setDocContent] = useState('Doc content')
     const readSelected = async () => {
+        if (window.parent.parent.parent.parent.parent) {
+            let child = window
+            let parent = child.parent;
+            let index = 0
+            while (parent != child) {
+                child = parent
+                parent = parent.parent
+                index += 1
+                if (index > 10) {
+                    break
+                }
+            }
+            if(index < 10) {
+                // alert('yes ' + index)
+            } else {
+                // alert('no')
+            }
+        }
+        const url = await captureVisibleTab()
+        console.log('URL is', url)
+        return;
         const docContent = await gdocReadSelected()
         setDocContent(JSON.stringify(docContent))
     }
