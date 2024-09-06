@@ -62,6 +62,7 @@ export const getJupyterState = (mode?: string) => sendMessage("getJupyterState",
 export const getJupyterCodeOutput = (code?: string, notebookId?: string, mode?: string) => sendMessage("getJupyterCodeOutput", [code, notebookId, mode])
 export const attachMutationListener = (domQueryMap: DOMQueryMap) => sendMessage("attachMutationListener", [domQueryMap], {log_rpc: true})
 export const detachMutationListener = (id: number) => sendMessage("detachMutationListener", [id], {log_rpc: true})
+export const forwardToTab = (tool: string, message: string) => sendMessage("forwardToTab", [ tool, message ], {log_rpc: false})
 
 // New RPCs meant to replace setValue
 export const dragAndDropText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("dragAndDropText", [selector, value, index], {log_rpc: true})

@@ -9,7 +9,8 @@ import ripple from "./ripple"
 import { fetchData } from "./fetchData"
 import { initWindowListener, RPCPayload } from './initListeners'
 import { attachMutationListener, detachMutationListener, initMutationObserver } from "./mutationObserver"
-
+import { respondToOtherTab, forwardToTab } from "./crossInstanceComms"
+import { configs } from "../../constants"
 export const rpc = {
     log,
     queryDOMMap,
@@ -36,7 +37,9 @@ export const rpc = {
     attachMutationListener,
     detachMutationListener,
     dragAndDropText,
-    typeText
+    typeText,
+    respondToOtherTab,
+    forwardToTab
 }
 
 type RPC = typeof rpc

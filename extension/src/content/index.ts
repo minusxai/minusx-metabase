@@ -11,6 +11,7 @@ import { setupScript } from "../helpers/setupScript";
 import { once } from "lodash";
 import { appSetupConfigs } from "./apps";
 import { IframeInfo } from "./types";
+import { registerTabIdForTool } from "./RPCs/rpcCalls";
 
 const WEB_URL = configs.WEB_URL
 async function _init(localConfigs: Promise<object>) {
@@ -26,6 +27,7 @@ async function _init(localConfigs: Promise<object>) {
   if (inject) {
     setupScript(`${tool}.bundle.js`)
   }
+  registerTabIdForTool({ tool });
   if (!configs.IS_DEV) {
     console.log = () => {}
     console.error = () => {}

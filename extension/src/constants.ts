@@ -46,4 +46,7 @@ export const configs: Configs = {
 // #HACK Temporary placeholder until we have the tools repo
 export const TOOLS = {
     OTHER: "other",
+    JUPYTER: "jupyter",
+    POSTHOG: "posthog",
+    METABASE: "metabase",
 }

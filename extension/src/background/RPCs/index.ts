@@ -10,6 +10,17 @@ import { getExtensionID } from '../identifier';
 import { get } from 'lodash';
 import { ToolID } from '../../content/RPCs/domEvents';
 let INVALID_TAB = 'Invalid tab';
+const toolToTabIds: Record<string, number[]> = {
+}
+interface RemoteMessage {
+  fn: string,
+  args?: unknown
+}
+
+const sendTabContentScriptMessage = async ({ fn, args }: RemoteMessage, tabId: number, callback: (response: any) => void) => {
+  return chrome.tabs.sendMessage(tabId, {fn, args}, callback)
+}
+
 const FUNCTIONS = {
   sendDebuggerCommand: async ({ tabId, method, params }) => {
     console.log('Sending debugger command', tabId, method, params);
@@ -32,6 +43,40 @@ const FUNCTIONS = {
     return await reenableExtensions();
   },
   captureVisibleTab,
+  registerTabIdForTool: ({ tool }: { tool: string}, sender: chrome.runtime.MessageSender) => {
+    console.log("current map:", toolToTabIds)
+    let tabId = sender.tab?.id
+    if (!tabId) {
+      console.warn("Tab not found")
+      return
+    }
+    if (!toolToTabIds[tool]) {
+      toolToTabIds[tool] = []
+    }
+    // check if already exists
+    if (toolToTabIds[tool].includes(tabId)) {
+      return
+    }
+    toolToTabIds[tool].push(tabId)
+  },
+  getStuffFromToolInstance: async ({ tool, message}: { tool: string, message: string }) => {
+    const tabIds = toolToTabIds[tool]
+    if (!tabIds || tabIds.length == 0) {
+      console.warn("no tab id found for tool", tool)
+      return
+    }
+    const fn = "respondToOtherTab"
+    const args = { message }
+    // just get the first tab id available and send the message to it and wait for response
+    const tabId = tabIds[0]
+    return await new Promise(resolve => {
+        sendTabContentScriptMessage({ fn, args }, tabId, (response) => {
+        console.log("got response from tab", tabId, response)
+        resolve(response)
+      })
+    })
+  }
+
 };
 
 const executeFunction = async (message, sender, callback) => {
@@ -134,7 +179,6 @@ export function initBackgroundRPC() {
   });
 
   // chrome.action.onClicked.addListener(async () => {
-   
   //   if (curren == TOOLS.OTHER) {
   //     // show popup
   //     chrome.
@@ -161,12 +205,24 @@ export function initBackgroundRPC() {
       }
     });
   }
+
+  // add a listener on tab removed, so we can remove from our map
+  chrome.tabs.onRemoved.addListener(async (tabId) => {
+    // check if that tabId is anywhere in our map
+    for (const tool in toolToTabIds) {
+      if (toolToTabIds[tool].includes(tabId)) {
+        toolToTabIds[tool] = toolToTabIds[tool].filter(id => id !== tabId)
+        break
+      }
+    }
+  })
+  if (configs.IS_DEV) {
+   ;(globalThis as any).getToolToTabIds = () => toolToTabIds
+  }
 }
 
-interface RemoteMessage {
-  fn: string,
-  args?: unknown
-}
+
+
 
 const sendContentScriptMessage = async ({ fn, args }: RemoteMessage) => {
   const tabId = await getActiveTab()
