@@ -29,6 +29,7 @@ export interface MetabaseAppStateSQLEditor {
   databaseInfo?: ExtractedDataBase;
   relevantTables: ExtractedTable[];
   sqlQuery: string;
+  similarQueries?: string[];
   sqlErrorMessage?: string;
   queryExecuted: boolean;
   sqlEditorState: 'open' | 'closed' | 'unknown';
@@ -53,14 +54,16 @@ export async function convertDOMtoStateSQLQuery() {
   const isNativeEditorOpen = await getMetabaseState('qb.uiControls.isNativeEditorOpen')
   const sqlErrorMessage = await getSqlErrorMessage();
   const outputTableMarkdown = await getAndFormatOutputTable();
-  const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query')
+  const sqlQuery: string = await getMetabaseState('qb.card.dataset_query.native.query')
   const isShowingRawTable = await getMetabaseState('qb.uiControls.isShowingRawTable')
   const isShowingChartTypeSidebar = await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar')
   const vizType = await getMetabaseState('qb.card.display')
+  const similarQueries = await getSimilarQueries(sqlQuery)
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     databaseInfo,
     relevantTables: tables,
     sqlQuery,
+    similarQueries,
     queryExecuted,
     sqlEditorState: isNativeEditorOpen ? 'open' : 'closed',
     visualizationType: isShowingRawTable ? 'table' : vizType,
@@ -71,6 +74,10 @@ export async function convertDOMtoStateSQLQuery() {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
   }
   return metabaseAppStateSQLEditor;
+}
+
+async function getSimilarQueries(sqlQuery: string): string[] {
+  return []
 }
 
 // check if on dashboard page
