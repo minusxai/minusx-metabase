@@ -224,7 +224,7 @@ function DebugComponent() {
     const imageDoc = async () => {
         const result = await gdocImage(base64Image)
     }
-    return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+    return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '350px', position: 'absolute', right: 0}}>
         <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
             <Button onClick={readSelected} style={{flex: 1}}>Read Selected</Button>
             <Button onClick={readDoc} style={{flex: 1}}>Read Doc</Button>

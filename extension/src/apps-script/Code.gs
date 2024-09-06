@@ -1,10 +1,27 @@
 function insertTextAtCursor(content) {
   var doc = DocumentApp.getActiveDocument();
-  var cursor = doc.getCursor();
-  if (cursor) {
-    cursor.insertText(content);
-  } else {
-    Logger.log("No cursor found.");
+  
+  // Check if there's a selection
+  var selection = doc.getSelection();
+  if (selection) {
+    var elements = selection.getRangeElements();
+    var lastElement = elements[elements.length - 1].getElement();
+    
+    if (lastElement.editAsText) {
+      var textElement = lastElement.editAsText();
+      var endOffset = elements[elements.length - 1].getEndOffsetInclusive();
+      textElement.insertText(endOffset + 1, content); // Insert after the selected text
+    }
+  }
+  // If no selection, check for the cursor
+  else {
+    var cursor = doc.getCursor();
+    if (cursor) {
+      var element = cursor.getSurroundingTextOffset();
+      cursor.insertText(content);  // Insert at the cursor position
+    } else {
+      Logger.log("No cursor or selection found.");
+    }
   }
 }
 
@@ -27,6 +44,7 @@ function onOpen() {
   ui.createMenu('MinusX')
     .addItem('Add Sidebar', 'showSidebar')
     .addToUi();
+  showSidebar();
 }
 
 function showSidebar() {
