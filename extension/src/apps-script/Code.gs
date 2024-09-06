@@ -1,4 +1,4 @@
-function insertTextAtCursor(content) {
+function insertTextAtCursor(content, url) {
   var doc = DocumentApp.getActiveDocument();
   
   // Check if there's a selection
@@ -10,20 +10,39 @@ function insertTextAtCursor(content) {
     if (lastElement.editAsText) {
       var textElement = lastElement.editAsText();
       var endOffset = elements[elements.length - 1].getEndOffsetInclusive();
-      textElement.insertText(endOffset + 1, content); // Insert after the selected text
+      
+      // Insert text after the selected text
+      var newStartOffset = endOffset + 1;
+      var newElement = textElement.insertText(newStartOffset, content); // Insert after the selected text
+      
+      // Apply the link to the new text only
+      if (url) {
+        var newEndOffset = newStartOffset + content.length - 1;
+        textElement.setLinkUrl(newStartOffset, newEndOffset, url);
+      }
     }
   }
   // If no selection, check for the cursor
   else {
     var cursor = doc.getCursor();
     if (cursor) {
-      var element = cursor.getSurroundingTextOffset();
-      cursor.insertText(content);  // Insert at the cursor position
+      var textElement = cursor.getSurroundingText().editAsText();
+      var startOffset = cursor.getSurroundingTextOffset();
+      
+      // Insert the content at the cursor position
+      var newElement = textElement.insertText(startOffset, content);
+      
+      // Apply the link to the inserted text
+      if (url) {
+        var newEndOffset = startOffset + content.length - 1;
+        textElement.setLinkUrl(startOffset, newEndOffset, url);
+      }
     } else {
       Logger.log("No cursor or selection found.");
     }
   }
 }
+
 
 function readCurrentDoc() {
   // Get the active (currently open) Google Document

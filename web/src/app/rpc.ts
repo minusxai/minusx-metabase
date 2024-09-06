@@ -69,7 +69,7 @@ export const dragAndDropText = (selector: QuerySelector, value: string = '', ind
 export const typeText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("typeText", [selector, value, index], {log_rpc: true})
 export const gdocReadSelected = () => sendMessage("gdocReadSelected", [], {direct: true})
 export const gdocRead = () => sendMessage("gdocRead", [], {direct: true})
-export const gdocWrite = (content) => sendMessage("gdocWrite", [content], {direct: true})
+export const gdocWrite = (content, url) => sendMessage("gdocWrite", [content, url], {direct: true})
 export const gdocImage = (image) => sendMessage("gdocImage", [image], {direct: true})
 
 // RPCs that exposes MinusX as an API

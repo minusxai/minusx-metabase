@@ -17,8 +17,12 @@ interface RemoteMessage {
   args?: unknown
 }
 
-const sendTabContentScriptMessage = async ({ fn, args }: RemoteMessage, tabId: number, callback: (response: any) => void) => {
-  return chrome.tabs.sendMessage(tabId, {fn, args}, callback)
+const sendTabContentScriptMessage = async ({ fn, args }: RemoteMessage, tabId: number) => {
+  return new Promise(resolve => {
+    chrome.tabs.sendMessage(tabId, {fn, args}, response => {
+      resolve(response)
+    })
+  })
 }
 
 const FUNCTIONS = {
@@ -72,16 +76,18 @@ const FUNCTIONS = {
     const tabId = tabIds[0]
     // switch to that tab
     await chrome.tabs.update(tabId, {active: true})
-    return await new Promise(resolve => {
-        sendTabContentScriptMessage({ fn, args }, tabId, (response) => {
-        console.log("got response from tab", tabId, response)
-        // switch back to current tab
-        chrome.tabs.update(currentTabId, {active: true})
-        resolve(response)
-      })
-    })
+    const response = await sendTabContentScriptMessage({ fn, args }, tabId)
+    console.log("got response from tab", tabId, response)
+    // #HACK to add URL support
+    const [tab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+    if (response) {
+      response.url = tab.url
+    }
+    console.log("tab", tab)
+    // switch back to current tab
+    chrome.tabs.update(currentTabId, {active: true})
+    return response
   }
-
 };
 
 const executeFunction = async (message, sender, callback) => {
