@@ -244,7 +244,7 @@ function RootApp() {
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
             <ChakraContext>
-                <DebugComponent />
+                {/* <DebugComponent /> */}
                 <ProviderApp />
             </ChakraContext>
             </PersistGate>
