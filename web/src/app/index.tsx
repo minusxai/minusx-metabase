@@ -20,6 +20,7 @@ import { onSubscription } from '../helpers/documentSubscription';
 import { getApp } from '../helpers/app';
 import { getParsedIframeInfo } from '../helpers/origin';
 import { identifyUser } from '../tracking';
+import { useAppFromExternal } from './rpc';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
@@ -65,12 +66,13 @@ const initCrossInstanceComms = (ref: React.RefObject<HTMLInputElement>) => {
         const rpcEvent = event.data
         if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
             const { uuid, message } = rpcEvent
-            const response = "Hi from " + window.location.href + " " + message
-            window.parent.postMessage({
-                type: 'RESPONSE',
-                uuid,
-                payload: response
-            }, "*")
+            useAppFromExternal({text: message}).then(response => {
+                window.parent.postMessage({
+                    type: 'RESPONSE',
+                    uuid,
+                    payload: response
+                }, "*")
+            })
         }
     })
 }

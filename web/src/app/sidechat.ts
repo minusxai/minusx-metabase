@@ -2,7 +2,7 @@ import chat from "../chat/chat";
 import { DefaultMessageContent } from '../state/chat/types'
 import { getState } from "../state/store"
 import { sleep } from "../helpers/utils"
-import _ from "lodash"
+import _, { last } from "lodash"
 
 export async function useAppFromExternal({text}: {text: string}) {
   const content: DefaultMessageContent = {
@@ -35,5 +35,5 @@ export async function useAppFromExternal({text}: {text: string}) {
   .value();
 
   console.log("Last talkToUser", lastTalkToUserCall)
-
+  return lastTalkToUserCall?.function?.arguments;
 }
