@@ -8,7 +8,7 @@ import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
 import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
-import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage} from './rpc';
+import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
 import { configs } from '../constants';
 import { setAxiosJwt } from './api';
@@ -186,6 +186,10 @@ function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: st
 
 function DebugComponent() {
     const [docContent, setDocContent] = useState('Doc content')
+    const readSelected = async () => {
+        const docContent = await gdocReadSelected()
+        setDocContent(JSON.stringify(docContent))
+    }
     const readDoc = async () => {
         const docContent = await gdocRead()
         setDocContent(JSON.stringify(docContent))
@@ -199,7 +203,10 @@ function DebugComponent() {
     }
     return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
         <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+            <Button onClick={readSelected} style={{flex: 1}}>Read Selected</Button>
             <Button onClick={readDoc} style={{flex: 1}}>Read Doc</Button>
+        </div>
+        <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
             <Button onClick={writeDoc} style={{flex: 1}}>Write Doc</Button>
             <Button onClick={imageDoc} style={{flex: 1}}>Image Doc</Button>
         </div>

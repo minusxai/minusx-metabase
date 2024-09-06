@@ -67,6 +67,7 @@ export const forwardToTab = (tool: string, message: string) => sendMessage("forw
 // New RPCs meant to replace setValue
 export const dragAndDropText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("dragAndDropText", [selector, value, index], {log_rpc: true})
 export const typeText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("typeText", [selector, value, index], {log_rpc: true})
+export const gdocReadSelected = () => sendMessage("gdocReadSelected", [])
 export const gdocRead = () => sendMessage("gdocRead", [])
 export const gdocWrite = (content) => sendMessage("gdocWrite", [content])
 export const gdocImage = (image) => sendMessage("gdocImage", [image])
