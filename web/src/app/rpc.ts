@@ -67,10 +67,10 @@ export const forwardToTab = (tool: string, message: string) => sendMessage("forw
 // New RPCs meant to replace setValue
 export const dragAndDropText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("dragAndDropText", [selector, value, index], {log_rpc: true})
 export const typeText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("typeText", [selector, value, index], {log_rpc: true})
-export const gdocReadSelected = () => sendMessage("gdocReadSelected", [])
-export const gdocRead = () => sendMessage("gdocRead", [])
-export const gdocWrite = (content) => sendMessage("gdocWrite", [content])
-export const gdocImage = (image) => sendMessage("gdocImage", [image])
+export const gdocReadSelected = () => sendMessage("gdocReadSelected", [], {direct: true})
+export const gdocRead = () => sendMessage("gdocRead", [], {direct: true})
+export const gdocWrite = (content) => sendMessage("gdocWrite", [content], {direct: true})
+export const gdocImage = (image) => sendMessage("gdocImage", [image], {direct: true})
 
 // RPCs that exposes MinusX as an API
 export { useAppFromExternal } from "./sidechat";

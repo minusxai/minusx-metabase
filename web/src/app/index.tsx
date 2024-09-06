@@ -189,27 +189,27 @@ const base64Image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAA
 function DebugComponent() {
     const [docContent, setDocContent] = useState('Doc content')
     const readSelected = async () => {
-        if (window.parent.parent.parent.parent.parent) {
-            let child = window
-            let parent = child.parent;
-            let index = 0
-            while (parent != child) {
-                child = parent
-                parent = parent.parent
-                index += 1
-                if (index > 10) {
-                    break
-                }
-            }
-            if(index < 10) {
-                // alert('yes ' + index)
-            } else {
-                // alert('no')
-            }
-        }
-        const url = await captureVisibleTab()
-        console.log('URL is', url)
-        return;
+        // if (window.parent.parent.parent.parent.parent) {
+        //     let child = window
+        //     let parent = child.parent;
+        //     let index = 0
+        //     while (parent != child) {
+        //         child = parent
+        //         parent = parent.parent
+        //         index += 1
+        //         if (index > 10) {
+        //             break
+        //         }
+        //     }
+        //     if(index < 10) {
+        //         // alert('yes ' + index)
+        //     } else {
+        //         // alert('no')
+        //     }
+        // }
+        // const url = await captureVisibleTab()
+        // console.log('URL is', url)
+        // return;
         const docContent = await gdocReadSelected()
         setDocContent(JSON.stringify(docContent))
     }
@@ -244,7 +244,7 @@ function RootApp() {
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
             <ChakraContext>
-                <DebugComponent />
+                {/* <DebugComponent /> */}
                 <ProviderApp />
             </ChakraContext>
             </PersistGate>

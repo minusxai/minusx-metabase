@@ -33,6 +33,8 @@ import { RootState } from '../../state/store'
 import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { useAppFromExternal } from '../../app/rpc'
+import { gdocReadSelected, gdocRead, gdocWrite, gdocImage } from '../../app/rpc'
+import { forwardToTab } from '../../app/rpc'
 
 const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
   if (!thumbnails) {
@@ -238,7 +240,14 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         />
         <Divider borderColor={"minusxBW.500"}/>
         <Thumbnails thumbnails={thumbnails} />
-        <Button onClick={() => {useAppFromExternal({text:"show me monthly orders"})}} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use App from External</Button>
+        <Button onClick={async () => {
+          console.log("<><><> button clicked")
+          let text = await gdocReadSelected()
+          console.log("Text is", text)
+          let response = await forwardToTab("jupyter", String(text))
+          console.log("Response is", response)
+          await gdocWrite(String(response?.response?.text))
+        }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use App from External</Button>
         <HStack>
           <Textarea
             ref={ref}
