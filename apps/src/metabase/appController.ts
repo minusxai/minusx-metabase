@@ -1,4 +1,5 @@
-import { BlankMessageContent, RPCs } from "web";
+import { RPCs } from "web";
+import { BlankMessageContent} from "web/types"
 import { AppController } from "../base/appController";
 import {
   MetabaseAppState,
@@ -11,6 +12,7 @@ import {
 } from "./helpers/operations";
 import {
   extractTableInfo,
+  findSimilarQueries,
   getSelectedDbId,
 } from "./helpers/getDatabaseSchema";
 import { get, map, truncate } from "lodash";
@@ -117,6 +119,20 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     );
     const content = await this.getTableSchemasById({ ids });
     return content;
+  }
+
+  async searchPreviousSQLQueries({ words }: { words: string[] }) {
+    const actionContent: BlankMessageContent = { type: "BLANK" };
+    const endpoint = `/api/search?models=card&q=${words.join('+')}`;
+    let queries = []
+    try {
+      const response = await RPCs.fetchData(endpoint, 'GET');
+      queries = map(response.data || [], (card: any) => get(card, 'dataset_query.native.query')).filter(i => !!i);
+    } catch (error) {
+      queries = [];
+    }
+    actionContent.content = JSON.stringify(queries.slice(0, 10));
+    return actionContent
   }
 
   async getDashcardDetailsById({ ids }: { ids: number[] }) {
