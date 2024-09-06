@@ -243,7 +243,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Thumbnails thumbnails={thumbnails} />
           {
             currentTool != "jupyter" && currentTool != "metabase" ? 
-            <VStack>
+            <HStack justify={"center"}>
             <Button onClick={async () => {
               console.log("<><><> button clicked")
               let text = await gdocReadSelected()
@@ -261,7 +261,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               await gdocWrite("source", String(response?.url))
               await gdocImage(String(response?.response?.images[0]), 0.5)
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
-            </VStack> : null
+            </HStack> : null
           }
        
         <HStack>
