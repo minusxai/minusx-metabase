@@ -22,6 +22,8 @@ async function _init(localConfigs: Promise<object>) {
   const extensionId = get(localConfigs, "id", "none")
   const { tool, toolVersion, inject } = identifyToolNative()
   if (tool == TOOLS.OTHER) {
+    // #HACK for gdoc
+    setupStyles('content.styles.css')
     return;
   }
   if (inject) {
