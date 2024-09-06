@@ -40,7 +40,12 @@
 export const captureVisibleTab = async (): Promise<string> => {
   return (await sendRemoteMessage({ fn: 'captureVisibleTab' })) as string;
 }
-
+export const registerTabIdForTool = async ({ tool }: { tool: string}) => {
+  return await sendRemoteMessage({ fn: 'registerTabIdForTool', args: { tool } });
+}
+export const getStuffFromToolInstance = async ({ tool, message }: { tool: string, message: string }) => {
+  return await sendRemoteMessage({ fn: 'getStuffFromToolInstance', args: { tool, message } });
+}
 interface RemoteMessage {
   fn: string,
   args?: unknown

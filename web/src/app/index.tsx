@@ -8,7 +8,7 @@ import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
 import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
-import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL} from './rpc';
+import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
 import { configs } from '../constants';
 import { setAxiosJwt } from './api';
@@ -24,6 +24,7 @@ const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
     console.log = log
+    ;(window as any).forwardToTab = forwardToTab
 } else {
     console.log = () => {}
     console.error = () => {}
@@ -59,6 +60,21 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
     })
 }
 
+const initCrossInstanceComms = (ref: React.RefObject<HTMLInputElement>) => {
+    window.addEventListener('message', (event) => {
+        const rpcEvent = event.data
+        if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
+            const { uuid, message } = rpcEvent
+            const response = "Hi from " + window.location.href + " " + message
+            window.parent.postMessage({
+                type: 'RESPONSE',
+                uuid,
+                payload: response
+            }, "*")
+        }
+    })
+}
+
 const useMinusXMode = () => {
     // const appMode = useSelector((state: RootState) => state.settings.appMode)
     // if (appMode == 'selection') {
@@ -79,6 +95,7 @@ const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isApp
     toggleMinusX(!isAppOpen)
     toggleMinusXRoot('invisible', false)
     initEventCapture();
+    initCrossInstanceComms(ref)
 })
 
 const persistor = persistStore(store);
