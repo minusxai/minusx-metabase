@@ -61,4 +61,9 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
       "Responds to the user with clarifications, questions, or summary. Keep it short and to the point. Always provide the content argument.",
     required: ["content"],
   },
+  {
+    name: "sendNotebookToGoogleDoc",
+    args: {},
+    description: "Sends the current notebook to Google Docs for further analysis. Use this tool when the user asks to create a report."
+  }
 ];

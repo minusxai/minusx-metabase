@@ -7,6 +7,8 @@ import {
   DEFAULT_SUGGESTIONS_USER_PROMPT,
 } from "./prompts";
 import { querySelectorMap } from './helpers/querySelectorMap';
+import { NB_TO_MD_REPORT_LLM_CONFIG } from "./nb-to-md-report/llmConfig";
+import { ToolPlannerConfig } from "../base/defaultState";
 
 export const jupyterInternalState: InternalState = {
   isEnabled: {
@@ -40,6 +42,7 @@ export const jupyterInternalState: InternalState = {
       userPrompt: DEFAULT_SUGGESTIONS_USER_PROMPT,
       actionDescriptions: [],
     },
+    nbToMd: NB_TO_MD_REPORT_LLM_CONFIG as ToolPlannerConfig,
   },
   querySelectorMap,
 };

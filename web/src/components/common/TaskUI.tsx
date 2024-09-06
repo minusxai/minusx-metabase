@@ -27,6 +27,15 @@ import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
 import { UserConfirmation } from './UserConfirmation'
+import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle } from '../../app/rpc'
+import { forwardToTab } from '../../app/rpc'
+import { feelinLucky } from '../../app/lucky'
+import { getApp } from '../../helpers/app'
+import { JupyterNotebookState } from '../../../../apps/src/jupyter/helpers/DOMToState'
+import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/helpers/querySelectorMap'
+import { getElementScreenCapture } from '../../app/rpc'
+import { metaPlanner } from '../../planner/metaPlan'
+ 
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -84,8 +93,10 @@ const tooLongTooltip = (
 )
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
+  const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const initialInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
   const [instructions, setInstructions] = useState<string>(initialInstructions)
+  const [metaQuestion, setMetaQuestion] = useState<string>("")
   const thumbnails = useSelector((state: RootState) => state.thumbnails.thumbnails)
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
@@ -179,7 +190,19 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       width={"100%"}
       pt={2}
     >
+      
       <VStack overflowY={'scroll'}>
+        {
+          metaQuestion &&
+          <>
+          <VStack justifyContent={"start"} width={"100%"} p={3} background={"minusxBW.300"} borderRadius={"10px"}>
+            <HStack><Text fontWeight={"bold"}>Meta Planner</Text><Spinner size="xs" color="minusxGreen.500" /></HStack>
+            <HStack><Text>{metaQuestion}</Text></HStack>
+            
+          </VStack>
+          <Divider borderColor={"minusxBW.500"}/>
+          </>
+        }
         <ChatSection />
       </VStack>
       <VStack alignItems={"stretch"}>
@@ -205,12 +228,63 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
          }
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation userConfirmation={userConfirmation}/>
+          {
+            currentTool != "jupyter" && currentTool != "metabase" ? 
+            <HStack justify={"center"}>
+            <Button onClick={async () => {
+              console.log("<><><> button clicked")
+              let text = await gdocReadSelected()
+              console.log("Text is", text)
+              let response = await forwardToTab("jupyter", String(text))
+              console.log("Response is", response)
+              await gdocWrite(String(response?.response?.text))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Jupyter</Button>
+            <Button onClick={async () => {
+              console.log("<><><> button clicked")
+              let text = await gdocReadSelected()
+              console.log("Text is", text)
+              let response = await forwardToTab("metabase", String(text))
+              console.log("Response is", response)
+              await gdocWrite("source", String(response?.url))
+              await gdocImage(String(response?.response?.images[0]), 0.5)
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
+            </HStack> : null
+          }
+          {
+            currentTool === "jupyter" && (<Button onClick={async ()=>{
+              if (instructions) {
+                const text = instructions
+                setInstructions('')
+                setMetaQuestion(text)
+                await metaPlanner({text: instructions})
+                setMetaQuestion('')
+              }
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>I'm feeling lucky</Button>)
+          }
+        <Button onClick={async () => {
+              console.log("<><><> button clicked")
+              // let text = await gdocReadSelected()
+              const appState = await getApp().getState() as JupyterNotebookState
+              const outputCellSelector =  await jupyterQSMap.cell_output;
+              const imgs = await getElementScreenCapture(outputCellSelector);
+
+              let response = await forwardToTab("gdoc", {appState, imgs})
+              console.log("Response is", response)
+              // await gdocWrite(String(response?.response?.text))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
+            
+        <Button onClick={()=>{
+          if (instructions) {
+            feelinLucky({text: instructions})
+            setInstructions('')
+          }
+        }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         <HStack>
           <Textarea
             ref={ref}
             autoFocus
             aria-label='Enter Instructions'
-            value={instructions || ''}
+            value={instructions}
             disabled={taskInProgress}
             onChange={(e) => setInstructions(e.target.value)}
             onKeyDown={onKeyDown}

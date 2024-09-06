@@ -151,9 +151,9 @@ export const sendIFrameMessage = (payload: IFrameKV) => {
     type: 'STATE_SYNC',
     payload
   }
-  const iframe = document.getElementById('minusx-iframe')
+  const iframe = document.getElementById('minusx-iframe') as HTMLIFrameElement
   if (!iframe) {
     return
   }
-  iframe.contentWindow.postMessage(event, configs.WEB_URL)
+  iframe?.contentWindow?.postMessage(event, configs.WEB_URL)
 }

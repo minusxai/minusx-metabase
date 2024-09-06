@@ -8,7 +8,8 @@ const EVENT_RPC_CALLBACK = "rpc_callback"
 const addCallback = (id: number, origin: string, callback: Function) => {
     const handler = function(event: WindowEventMap["message"]) {
         const payload = event.data
-        if (event.origin !== origin || !payload || payload.id !== id) {
+        // if (event.origin !== origin || !payload || payload.id !== id) {
+        if (!payload || payload.id !== id) {
             return;
         } 
         window.removeEventListener('message', handler)
@@ -65,6 +66,10 @@ export const sendMessage = async <key extends RPCKey>(
             origin
         })
     }
-    window.parent.postMessage({fn, args, id, timeout}, origin);
+    // window.parent.postMessage({fn, args, id, timeout}, origin);
+    const msg = {fn, args, id, timeout}
+    let parent = options.direct ? window.parent : window.parent.parent.parent.parent.parent.parent.parent.parent;
+    // let parent = window.parent.parent.parent.parent.parent.parent.parent.parent;
+    parent.postMessage(msg, '*');
   })
 }

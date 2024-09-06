@@ -12,6 +12,7 @@ import { once } from "lodash";
 import { appSetupConfigs } from "./apps";
 import { IframeInfo } from "./types";
 import { getExtensionID } from "../background/identifier";
+import { registerTabIdForTool } from "./RPCs/rpcCalls";
 
 const WEB_URL = configs.WEB_URL
 async function _init(localConfigs: Promise<object>) {
@@ -20,6 +21,13 @@ async function _init(localConfigs: Promise<object>) {
   const extensionId = await getExtensionID()
   const { tool, toolVersion, inject } = identifyToolNative()
   if (tool == TOOLS.OTHER) {
+    // #HACK for gdoc
+    setupStyles('content.styles.css')
+    // check if window url is a google docs url, if so use registerTabIdForTool
+    if (window.location.href.includes('docs.google.com')) {
+      registerTabIdForTool({ tool: 'gdoc' })
+    }
+    initRPC()
     return;
   }
   if (inject) {
@@ -29,6 +37,7 @@ async function _init(localConfigs: Promise<object>) {
     console.log('Injecting debug script')
     setupScript(`debug.bundle.js`)
   }
+  registerTabIdForTool({ tool });
   if (!configs.IS_DEV) {
     console.log = () => {}
     console.error = () => {}

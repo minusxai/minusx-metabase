@@ -15,6 +15,10 @@
   }
 }
 
+div.script-application-sidebar {
+  width: 350px;
+}
+
 #minusx-root {
   position: fixed;
   top: 0;

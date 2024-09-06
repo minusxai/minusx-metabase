@@ -24,9 +24,9 @@ import Markdown from 'react-markdown'
 const ChatContent: React.FC<{content: ChatMessageContent}> = ({
   content
 }) => {
-  if (content.type == 'DEFAULT') {
+  if (content.type == 'DEFAULT' || content.type == 'LUCKY') {
     return (
-      <div>
+      <div style={content.type == 'LUCKY'? {color: 'red'}: {}}>
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}

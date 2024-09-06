@@ -62,9 +62,18 @@ export const getPosthogAppContext = (path: Parameters<typeof get>[1]) => sendMes
 export const setTextPosthog = (selector: QuerySelector, value: string = '') => sendMessage("setTextPosthog", [selector, value], {log_rpc: true})
 export const attachMutationListener = (domQueryMap: DOMQueryMap) => sendMessage("attachMutationListener", [domQueryMap], {log_rpc: true})
 export const detachMutationListener = (id: number) => sendMessage("detachMutationListener", [id], {log_rpc: true})
+export const forwardToTab = (tool: string, message: string) => sendMessage("forwardToTab", [ tool, message ], {log_rpc: false})
+export const getPendingMessage = () => sendMessage("getPendingMessage", [], {log_rpc: false})
 
 // New RPCs meant to replace setValue
 export const dragAndDropText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("dragAndDropText", [selector, value, index], {log_rpc: true})
 export const typeText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("typeText", [selector, value, index], {log_rpc: true})
 
 export { getUserConfirmation } from "./userConfirmation";
+export const gdocReadSelected = () => sendMessage("gdocReadSelected", [], {direct: true})
+export const gdocRead = () => sendMessage("gdocRead", [], {direct: true})
+export const gdocWrite = (content, url) => sendMessage("gdocWrite", [content, url], {direct: true})
+export const gdocImage = (image, width) => sendMessage("gdocImage", [image, width], {direct: true})
+
+// RPCs that exposes MinusX as an API
+export { useAppFromExternal } from "./sidechat";

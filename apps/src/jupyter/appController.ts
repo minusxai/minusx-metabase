@@ -161,4 +161,20 @@ export class JupyterController extends AppController<JupyterNotebookState> {
       await this.wait({ time: 100 });
     }
   }
+
+  async getOutputAsImage(){
+    return null;
+  }
+
+  async getOutputAsText(){
+    const state = await this.app.getState();
+    const selectedCell = state.cells.filter((cell) => cell.isSelected)[0];
+    return selectedCell.output[0].value;
+  }
+
+  async sendNotebookToGoogleDoc() {
+    const notebook = await this.app.getState();
+    let response = await RPCs.forwardToTab("gdoc", JSON.stringify(notebook))
+    return response;
+  }
 }

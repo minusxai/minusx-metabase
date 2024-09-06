@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html style="width: 850px; height: 100%; background-color: transparent; float:right;">
+  <head>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        // const log = (arg) => document.querySelector("#log").innerHTML = arg
+        // function logMsg() {
+        //   log('clicked')
+        // }
+        // document.getElementById("yoloButton").addEventListener("click", logMsg);
+        const rpc = {
+          "gdocReadSelected": () => 2,
+          "gdocRead": () => 3,
+          "gdocWrite": () => 4,
+          "gdocImage": () => 5,
+        }
+        function onMessage(event) {
+          const payload = event && event.data
+          if (!event || !TRUSTED_ORIGINS.includes(event.origin) || !payload || !(payload.fn in rpc)) {
+              return false;
+          }
+          function onSuccess(response) {
+            event.source.postMessage({
+              type: 'success',
+              response,
+              id: payload.id
+            }, {
+                targetOrigin: event.origin
+            });
+          }
+          function onFailure(err) {
+            event.source.postMessage({
+              type: 'error',
+              error: 'An error occured',
+              id: payload.id
+            }, {
+                targetOrigin: event.origin
+            });
+          }
+          if (payload.fn == 'gdocReadSelected') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).readSelectedText()
+          } else if (payload.fn == 'gdocRead') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).readCurrentDoc()
+          } else if (payload.fn == 'gdocWrite') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).insertTextAtCursor(...payload.args)
+          } else if (payload.fn == 'gdocImage') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).insertBase64Image(...payload.args)
+          }
+          // Promise.resolve((async () => {
+          //     const timeout = payload.timeout || 0
+          //     let completed = false
+          //     const rpcPromise = (async () => {
+          //         const response = await rpc[payload.fn](...payload.args);
+          //         completed = true;
+          //         return response;
+          //     })();
+          //     if (!timeout) {
+          //         return rpcPromise;
+          //     }
+          //     const timeoutPromise = new Promise((resolve, reject) => {
+          //         setTimeout(() => {
+          //             if (completed) resolve(1);
+          //             reject({
+          //                 message: `${payload.fn} RPC timed out`,
+          //             });
+          //         }, timeout);
+          //     });
+          //     return Promise.race([rpcPromise, timeoutPromise]);
+          // })()).then((response) => {
+          //     event.source.postMessage({
+          //         type: 'success',
+          //         response,
+          //         id: payload.id
+          //     }, {
+          //         targetOrigin: event.origin
+          //     });
+          // }).catch(rawError => {
+          //     const error: RPCError = {
+          //         message: rawError?.message?? 'An error occurred',
+          //     }
+          //     try {
+          //         error.error = JSON.parse(JSON.stringify(rawError))
+          //     } catch (e) {
+          //         error.error = "Couldn't serialise error"
+          //     }
+          //     event.source.postMessage({
+          //         type: 'error',
+          //         error,
+          //         id: payload.id
+          //     }, {
+          //         targetOrigin: event.origin
+          //     });
+          // })
+          return true
+        };
+        window.addEventListener("message", onMessage)
+      })
+    </script>
+  </head>
+  <body style="width: 850px; height: 100%; background-color: transparent; float:right;">
+    <!-- <div style="display:flex; justify-content: center; align-items: center; flex-direction: column;">
+      <button id="yoloButton">Set Yolo</button>
+      <div id="log" style="width: 850px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
+    </div> -->
+    <iframe id="myFrame" src="http://localhost:3005/?tool=gdoc&origin=https://docs.google.com" width="100%" height="100%"></iframe>
+  </body>
+</html>
