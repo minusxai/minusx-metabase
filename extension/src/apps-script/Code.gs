@@ -13,15 +13,22 @@ function insertTextAtCursor(content, url) {
     for (var i = 0; i < rangeElements.length; i++) {
       var element = rangeElements[i].getElement();
       var endOffset = rangeElements[i].getEndOffsetInclusive();
+      var parent = element.getParent();
 
-      // Check the index of the element to determine its position in the document
-      var currentElementIndex = doc.getBody().getChildIndex(element.getParent());
+      // Only process elements that have a parent in the document body
+      try {
+        var currentElementIndex = doc.getBody().getChildIndex(parent);
 
-      // Select the element with the highest index in the document
-      if (currentElementIndex > highestIndex || (currentElementIndex === highestIndex && endOffset > lastEndOffset)) {
-        lastElement = element;
-        lastEndOffset = endOffset;
-        highestIndex = currentElementIndex;
+        // Select the element with the highest index in the document
+        if (currentElementIndex > highestIndex || (currentElementIndex === highestIndex && endOffset > lastEndOffset)) {
+          lastElement = element;
+          lastEndOffset = endOffset;
+          highestIndex = currentElementIndex;
+        }
+      } catch (e) {
+        // Log or handle any errors that occur (e.g., elements without valid parents)
+        Logger.log('Error processing element: ' + e.message);
+        continue; // Skip this element if there's an error
       }
     }
     
