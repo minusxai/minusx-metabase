@@ -119,7 +119,7 @@ function insertBase64Image(base64Image, newImgWidth) {
   }
   
   // Set the width of the image based on the specified percentage
-  if (imageElement && newWidth) {
+  if (imageElement && newImgWidth) {
     var originalWidth = imageElement.getWidth();
     var originalHeight = imageElement.getHeight();
     
