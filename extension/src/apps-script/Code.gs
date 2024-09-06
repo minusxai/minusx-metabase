@@ -8,22 +8,24 @@ function insertTextAtCursor(content, url) {
     var lastElement = null;
     var lastEndOffset = -1;
     var highestIndex = -1;
-
+    
     // Loop through all selected elements to find the right-most one
     for (var i = 0; i < rangeElements.length; i++) {
-      var element = rangeElements[i].getElement();
-      var endOffset = rangeElements[i].getEndOffsetInclusive();
-      var parent = element.getParent();
-
       // Only process elements that have a parent in the document body
       try {
+        var element = rangeElements[i].getElement();
+        var endOffset = rangeElements[i].getEndOffsetInclusive();
+        var parent = element.getParent();
         var currentElementIndex = doc.getBody().getChildIndex(parent);
 
-        // Select the element with the highest index in the document
-        if (currentElementIndex > highestIndex || (currentElementIndex === highestIndex && endOffset > lastEndOffset)) {
-          lastElement = element;
-          lastEndOffset = endOffset;
-          highestIndex = currentElementIndex;
+        // Handle the case where selection ends at the end of a paragraph
+        if (rangeElements[i].isPartial() || rangeElements[i].isEntireElement()) {
+          // Select the element with the highest index in the document
+          if (currentElementIndex > highestIndex || (currentElementIndex === highestIndex && endOffset > lastEndOffset)) {
+            lastElement = element;
+            lastEndOffset = endOffset;
+            highestIndex = currentElementIndex;
+          }
         }
       } catch (e) {
         // Log or handle any errors that occur (e.g., elements without valid parents)
