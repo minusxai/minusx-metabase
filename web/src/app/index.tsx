@@ -8,7 +8,7 @@ import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
 import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
-import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab} from './rpc';
+import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
 import { configs } from '../constants';
 import { setAxiosJwt } from './api';
@@ -21,6 +21,7 @@ import { getApp } from '../helpers/app';
 import { getParsedIframeInfo } from '../helpers/origin';
 import { identifyUser } from '../tracking';
 import { useAppFromExternal } from './rpc';
+import { Button } from '@chakra-ui/react';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
@@ -183,12 +184,37 @@ function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: st
     </div>
 }
 
+function DebugComponent() {
+    const [docContent, setDocContent] = useState('Doc content')
+    const readDoc = async () => {
+        const docContent = await gdocRead()
+        setDocContent(JSON.stringify(docContent))
+    }
+    const writeDoc = async () => {
+        const result = await gdocWrite("HAIL MARY")
+    }
+
+    const imageDoc = async () => {
+        const result = await gdocImage("")
+    }
+    return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+        <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+            <Button onClick={readDoc} style={{flex: 1}}>Read Doc</Button>
+            <Button onClick={writeDoc} style={{flex: 1}}>Write Doc</Button>
+            <Button onClick={imageDoc} style={{flex: 1}}>Image Doc</Button>
+        </div>
+        <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
+            {docContent}
+        </div>
+    </div>
+}
+
 function RootApp() {
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
             <ChakraContext>
-                {/* <DebugComponent /> */}
+                <DebugComponent />
                 <ProviderApp />
             </ChakraContext>
             </PersistGate>
