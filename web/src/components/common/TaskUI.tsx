@@ -32,6 +32,7 @@ import { Image } from '../../state/chat/reducer'
 import { RootState } from '../../state/store'
 import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
+import { useAppFromExternal } from '../../app/rpc'
 
 const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
   if (!thumbnails) {
@@ -237,6 +238,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         />
         <Divider borderColor={"minusxBW.500"}/>
         <Thumbnails thumbnails={thumbnails} />
+        <Button onClick={() => {useAppFromExternal({text:"generate a random number and tell me what it is"})}} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use App from External</Button>
         <HStack>
           <Textarea
             ref={ref}

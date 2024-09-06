@@ -1,5 +1,6 @@
 import { dispatch } from '../state/dispatch'
-import { addActionPlanMessage, addUserMessage, DefaultMessageContent, ToolCalls } from '../state/chat/reducer'
+import { addActionPlanMessage, addUserMessage } from '../state/chat/reducer'
+import { DefaultMessageContent } from '../state/chat/types'
 import { LLMResponse } from '../helpers/LLM/types'
 export const CHAT_USER_ACTION = "CHAT_USER_ACTION"
 

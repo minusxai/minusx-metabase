@@ -66,3 +66,6 @@ export const detachMutationListener = (id: number) => sendMessage("detachMutatio
 // New RPCs meant to replace setValue
 export const dragAndDropText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("dragAndDropText", [selector, value, index], {log_rpc: true})
 export const typeText = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("typeText", [selector, value, index], {log_rpc: true})
+
+// RPCs that exposes MinusX as an API
+export { useAppFromExternal } from "./sidechat";
