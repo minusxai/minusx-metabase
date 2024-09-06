@@ -59,7 +59,8 @@ const FUNCTIONS = {
     }
     toolToTabIds[tool].push(tabId)
   },
-  getStuffFromToolInstance: async ({ tool, message}: { tool: string, message: string }) => {
+  getStuffFromToolInstance: async ({ tool, message}: { tool: string, message: string }, sender) => {
+    const currentTabId = sender.tab?.id
     const tabIds = toolToTabIds[tool]
     if (!tabIds || tabIds.length == 0) {
       console.warn("no tab id found for tool", tool)
@@ -69,9 +70,13 @@ const FUNCTIONS = {
     const args = { message }
     // just get the first tab id available and send the message to it and wait for response
     const tabId = tabIds[0]
+    // switch to that tab
+    await chrome.tabs.update(tabId, {active: true})
     return await new Promise(resolve => {
         sendTabContentScriptMessage({ fn, args }, tabId, (response) => {
         console.log("got response from tab", tabId, response)
+        // switch back to current tab
+        chrome.tabs.update(currentTabId, {active: true})
         resolve(response)
       })
     })
