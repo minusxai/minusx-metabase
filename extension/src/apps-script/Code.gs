@@ -71,7 +71,7 @@ function showSidebar() {
   DocumentApp.getUi().showSidebar(html);
 }
 
-function insertBase64Image(base64Image) {
+function insertBase64Image(base64Image, newImgWidth) {
   // Extract the Base64 part from the data URL
   var base64String = base64Image.split(',')[1];
   
@@ -84,6 +84,8 @@ function insertBase64Image(base64Image) {
   
   // Check if there's a selection
   var selection = doc.getSelection();
+  var imageElement;
+  
   if (selection) {
     var rangeElements = selection.getRangeElements();
     
@@ -95,9 +97,9 @@ function insertBase64Image(base64Image) {
     
     // Insert the image after the selected text
     if (parentElement.getType() === DocumentApp.ElementType.PARAGRAPH) {
-      parentElement.asParagraph().appendInlineImage(blob);
+      imageElement = parentElement.asParagraph().appendInlineImage(blob);
     } else if (parentElement.getType() === DocumentApp.ElementType.TEXT) {
-      parentElement.getParent().appendInlineImage(blob);
+      imageElement = parentElement.getParent().appendInlineImage(blob);
     }
   } 
   // If no selection, check if there's a cursor
@@ -105,15 +107,36 @@ function insertBase64Image(base64Image) {
     var cursor = doc.getCursor();
     if (cursor) {
       // Insert the image at the cursor position
-      var element = cursor.insertInlineImage(blob);
-      if (!element) {
+      imageElement = cursor.insertInlineImage(blob);
+      if (!imageElement) {
         Logger.log("Unable to insert image at cursor.");
       }
     } 
     // If no cursor, append the image at the end of the document
     else {
-      doc.getBody().appendImage(blob);
+      imageElement = doc.getBody().appendImage(blob);
     }
+  }
+  
+  // Set the width of the image based on the specified percentage
+  if (imageElement && newWidth) {
+    var originalWidth = imageElement.getWidth();
+    var originalHeight = imageElement.getHeight();
+    
+    // Calculate the new width as a percentage of the original width
+    var newWidth;
+    if (newImgWidth <= 10) {
+      newWidth = originalWidth * newImgWidth;
+    } else {
+      newWidth = newImgWidth
+    }
+    
+    // Calculate the new height to maintain the aspect ratio
+    var newHeight = (newWidth / originalWidth) * originalHeight;
+    
+    // Set the width and height of the image
+    imageElement.setWidth(newWidth);
+    imageElement.setHeight(newHeight);
   }
 }
 
