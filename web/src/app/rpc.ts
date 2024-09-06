@@ -70,7 +70,7 @@ export const typeText = (selector: QuerySelector, value: string = '', index: num
 export const gdocReadSelected = () => sendMessage("gdocReadSelected", [], {direct: true})
 export const gdocRead = () => sendMessage("gdocRead", [], {direct: true})
 export const gdocWrite = (content, url) => sendMessage("gdocWrite", [content, url], {direct: true})
-export const gdocImage = (image) => sendMessage("gdocImage", [image], {direct: true})
+export const gdocImage = (image, width) => sendMessage("gdocImage", [image, width], {direct: true})
 
 // RPCs that exposes MinusX as an API
 export { useAppFromExternal } from "./sidechat";

@@ -259,7 +259,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               let response = await forwardToTab("metabase", String(text))
               console.log("Response is", response)
               await gdocWrite("source", String(response?.url))
-              await gdocImage(String(response?.response?.images[0]))
+              await gdocImage(String(response?.response?.images[0]), 0.5)
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
             </VStack> : null
           }

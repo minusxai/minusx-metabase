@@ -222,7 +222,7 @@ function DebugComponent() {
     }
 
     const imageDoc = async () => {
-        const result = await gdocImage(base64Image)
+        const result = await gdocImage(base64Image, 4)
     }
     return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '350px', position: 'absolute', right: 0}}>
         <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
@@ -244,7 +244,7 @@ function RootApp() {
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
             <ChakraContext>
-                {/* <DebugComponent /> */}
+                <DebugComponent />
                 <ProviderApp />
             </ChakraContext>
             </PersistGate>
