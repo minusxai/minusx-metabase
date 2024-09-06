@@ -125,6 +125,7 @@ const tooLongTooltip = (
 )
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
+  const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const initialInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
   const [instructions, setInstructions] = useState<string>(initialInstructions)
   const thumbnails = useSelector((state: RootState) => state.thumbnails.thumbnails)
@@ -240,14 +241,28 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         />
         <Divider borderColor={"minusxBW.500"}/>
         <Thumbnails thumbnails={thumbnails} />
-        <Button onClick={async () => {
-          console.log("<><><> button clicked")
-          let text = await gdocReadSelected()
-          console.log("Text is", text)
-          let response = await forwardToTab("jupyter", String(text))
-          console.log("Response is", response)
-          await gdocWrite(String(response?.response?.text))
-        }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use App from External</Button>
+          {
+            currentTool != "jupyter" && currentTool != "metabase" ? 
+            <VStack>
+            <Button onClick={async () => {
+              console.log("<><><> button clicked")
+              let text = await gdocReadSelected()
+              console.log("Text is", text)
+              let response = await forwardToTab("jupyter", String(text))
+              console.log("Response is", response)
+              await gdocWrite(String(response?.response?.text))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Jupyter</Button>
+            <Button onClick={async () => {
+              console.log("<><><> button clicked")
+              let text = await gdocReadSelected()
+              console.log("Text is", text)
+              let response = await forwardToTab("metabase", String(text))
+              console.log("Response is", response)
+              await gdocImage(String(response?.response?.images[0]))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
+            </VStack> : null
+          }
+       
         <HStack>
           <Textarea
             ref={ref}
