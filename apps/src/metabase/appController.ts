@@ -12,7 +12,6 @@ import {
 } from "./helpers/operations";
 import {
   extractTableInfo,
-  findSimilarQueries,
   getSelectedDbId,
 } from "./helpers/getDatabaseSchema";
 import { get, map, truncate } from "lodash";
