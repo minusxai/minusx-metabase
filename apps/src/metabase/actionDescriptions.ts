@@ -64,6 +64,19 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
       }
     },
     description: 'Searches for the specified query and finds the relevant tables in the database.',
+  },
+  {
+    name: 'searchPreviousSQLQueries',
+    args: {
+      words: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "Array of words to search to search previous SQL queries."
+      }
+    },
+    description: 'Searches for previous SQL queries using the specified words.',
   }
 ];
 
