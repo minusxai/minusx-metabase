@@ -1,4 +1,7 @@
+import { getDescriptionsForEventDefinitions } from "./operations";
 import { PosthogAppStateSchema } from "./stateSchema";
+import hardcodedEventDefinitions from "./docs/hardcoded-event-definitions.json";
+import { formatEventDescriptionsAsYaml } from "./operations";
 
 export const DEFAULT_SYSTEM_PROMPT = `You are a master of Posthog and HogQL (which is a flavor of SQL for ClickHouse databases).
 
@@ -26,9 +29,13 @@ The "events" table has the following columns:
 * uuid (UUID) - unique identifier of the event.
 * person_id (UUID) - unique identifier of the person who performed the event.
 * event (String) - name of the event.
-* properties (custom type) - additional properties of the event. Properties can be of multiple types: String, Int, Decimal, Float, and Bool. A property can be an array of thosee types. A property always has only ONE type. If the property starts with a $, it is a system-defined property. If the property doesn't start with a $, it is a user-defined property. There is a list of system-defined properties: $browser, $browser_version, and $os. User-defined properties can have any name.
+* properties (custom type) - additional properties of the event. Properties can be of multiple types: String, Int, Decimal, Float, and Bool. A property can be an array of thosee types. A property always has only ONE type. If the property starts with a $, it is a system-defined property. If the property doesn't start with a $, it is a user-defined property. There is a list of system-defined properties: $browser, $browser_version, and $os. User-defined properties can have any name. To get common properties for an event, use the getEventCommonProperties tool.
 
-"
+Here is a detailed list of event definitions and their descriptions. 
+
+<EventDefinitions>
+${formatEventDescriptionsAsYaml(getDescriptionsForEventDefinitions(hardcodedEventDefinitions))}
+</EventDefinitions>
 
 <AppStateSchema>
 ${JSON.stringify(PosthogAppStateSchema)}

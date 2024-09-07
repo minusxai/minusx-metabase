@@ -45,4 +45,17 @@ export const ACTION_DESCRIPTIONS: ActionDescription[] = [
     args: {},
     description: "Gets the documentation for HogQL expressions. Use this tool if you need help with writing HogQL.",
   },
+  {
+    name: "getEventCommonProperties",
+    args: {
+      event_names: {
+        type: "array",
+        description: "The names of the events to get the common properties for. Eg. ['$pageview', '$autocapture']",
+        items: {
+          type: "string",
+        },
+      }
+    },
+    description: "Gets the common properties for the specified events. Use this tool if you need to get the common properties for an event.",
+  }
 ];

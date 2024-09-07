@@ -1,0 +1,47 @@
+{
+  "count": 33,
+  "next": "https://us.posthog.com/api/projects/81547/property_definitions?event_names=%5B%22%24pageview%22%5D&excluded_properties=%5B%22distinct_id%22%2C%22%24session_duration%22%2C%22%24copy_type%22%2C%22%24selected_content%22%2C%22%24set%22%2C%22%24set_once%22%2C%22%24pageview_id%22%2C%22%24autocapture_disabled_server_side%22%2C%22%24console_log_recording_enabled_server_side%22%2C%22%24session_recording_recorder_version_server_side%22%2C%22%24feature_flag_payloads%22%2C%22%24capture_failed_request%22%2C%22%24sentry_exception%22%2C%22%24sentry_exception_message%22%2C%22%24sentry_exception_type%22%2C%22%24sentry_tags%22%2C%22%24exception_type%22%2C%22%24exception_message%22%2C%22%24exception_source%22%2C%22%24exception_lineno%22%2C%22%24exception_colno%22%2C%22%24exception_DOMException_code%22%2C%22%24exception_is_synthetic%22%2C%22%24exception_stack_trace_raw%22%2C%22%24exception_handled%22%2C%22%24exception_personURL%22%2C%22%24ce_version%22%2C%22%24anon_distinct_id%22%2C%22%24event_type%22%2C%22%24insert_id%22%2C%22%24time%22%2C%22%24device_id%22%2C%22%24geoip_city_name%22%2C%22%24geoip_country_name%22%2C%22%24geoip_country_code%22%2C%22%24geoip_continent_name%22%2C%22%24geoip_continent_code%22%2C%22%24geoip_postal_code%22%2C%22%24geoip_latitude%22%2C%22%24geoip_longitude%22%2C%22%24geoip_time_zone%22%2C%22%24geoip_subdivision_1_name%22%2C%22%24geoip_subdivision_1_code%22%2C%22%24geoip_subdivision_2_name%22%2C%22%24geoip_subdivision_2_code%22%2C%22%24geoip_subdivision_3_name%22%2C%22%24geoip_subdivision_3_code%22%2C%22%24geoip_disable%22%2C%22%24el_text%22%2C%22%24app_build%22%2C%22%24app_name%22%2C%22%24app_namespace%22%2C%22%24app_version%22%2C%22%24device_manufacturer%22%2C%22%24is_emulator%22%2C%22%24device_name%22%2C%22%24locale%22%2C%22%24os_name%22%2C%22%24os_version%22%2C%22%24timezone%22%2C%22%24touch_x%22%2C%22%24touch_y%22%2C%22%24plugins_succeeded%22%2C%22%24groups%22%2C%22%24group_0%22%2C%22%24group_1%22%2C%22%24group_2%22%2C%22%24group_3%22%2C%22%24group_4%22%2C%22%24group_set%22%2C%22%24group_key%22%2C%22%24group_type%22%2C%22%24window_id%22%2C%22%24session_id%22%2C%22%24plugins_failed%22%2C%22%24plugins_deferred%22%2C%22%24%24plugin_metrics%22%2C%22%24creator_event_uuid%22%2C%22utm_source%22%2C%22%24initial_utm_source%22%2C%22utm_medium%22%2C%22utm_campaign%22%2C%22utm_name%22%2C%22utm_content%22%2C%22utm_term%22%2C%22%24performance_page_loaded%22%2C%22%24performance_raw%22%2C%22%24had_persisted_distinct_id%22%2C%22%24sentry_event_id%22%2C%22%24timestamp%22%2C%22%24sent_at%22%2C%22%24browser%22%2C%22%24os%22%2C%22%24browser_language%22%2C%22%24current_url%22%2C%22%24browser_version%22%2C%22%24raw_user_agent%22%2C%22%24user_agent%22%2C%22%24screen_height%22%2C%22%24screen_width%22%2C%22%24screen_name%22%2C%22%24viewport_height%22%2C%22%24viewport_width%22%2C%22%24lib%22%2C%22%24lib_custom_api_host%22%2C%22%24lib_version%22%2C%22%24lib_version__major%22%2C%22%24lib_version__minor%22%2C%22%24lib_version__patch%22%2C%22%24referrer%22%2C%22%24referring_domain%22%2C%22%24user_id%22%2C%22%24ip%22%2C%22%24host%22%2C%22%24pathname%22%2C%22%24search_engine%22%2C%22%24active_feature_flags%22%2C%22%24enabled_feature_flags%22%2C%22%24feature_flag_response%22%2C%22%24feature_flag%22%2C%22%24survey_response%22%2C%22%24survey_name%22%2C%22%24survey_questions%22%2C%22%24survey_id%22%2C%22%24survey_iteration%22%2C%22%24survey_iteration_start_date%22%2C%22%24device%22%2C%22%24sentry_url%22%2C%22%24device_type%22%2C%22%24screen_density%22%2C%22%24device_model%22%2C%22%24network_wifi%22%2C%22%24network_bluetooth%22%2C%22%24network_cellular%22%2C%22%24client_session_initial_referring_host%22%2C%22%24client_session_initial_pathname%22%2C%22%24client_session_initial_utm_source%22%2C%22%24client_session_initial_utm_campaign%22%2C%22%24client_session_initial_utm_medium%22%2C%22%24client_session_initial_utm_content%22%2C%22%24client_session_initial_utm_term%22%2C%22%24network_carrier%22%2C%22from_background%22%2C%22url%22%2C%22referring_application%22%2C%22version%22%2C%22previous_version%22%2C%22build%22%2C%22previous_build%22%2C%22gclid%22%2C%22rdt_cid%22%2C%22gad_source%22%2C%22gclsrc%22%2C%22dclid%22%2C%22gbraid%22%2C%22wbraid%22%2C%22fbclid%22%2C%22msclkid%22%2C%22twclid%22%2C%22li_fat_id%22%2C%22mc_cid%22%2C%22igshid%22%2C%22ttclid%22%2C%22%24is_identified%22%2C%22%24web_vitals_enabled_server_side%22%2C%22%24web_vitals_FCP_event%22%2C%22%24web_vitals_FCP_value%22%2C%22%24web_vitals_LCP_event%22%2C%22%24web_vitals_LCP_value%22%2C%22%24web_vitals_INP_event%22%2C%22%24web_vitals_INP_value%22%2C%22%24web_vitals_CLS_event%22%2C%22%24web_vitals_CLS_value%22%5D&filter_by_event_names=true&is_feature_flag=false&limit=5&offset=5",
+  "previous": null,
+  "results": [
+      {
+          "id": "01911c04-c98f-0001-0d80-3aa6c0fbecf6",
+          "name": "email",
+          "is_numerical": false,
+          "property_type": "String",
+          "is_seen_on_filtered_events": true,
+          "tags": []
+      },
+      {
+          "id": "0190ed61-2ee2-000c-a539-ab47474a523c",
+          "name": "$exception_capture_enabled_server_side",
+          "is_numerical": false,
+          "property_type": "Boolean",
+          "is_seen_on_filtered_events": true,
+          "tags": []
+      },
+      {
+          "id": "0190ed61-2ee2-0000-9642-ab963ab4945f",
+          "name": "$exception_capture_endpoint",
+          "is_numerical": false,
+          "property_type": "String",
+          "is_seen_on_filtered_events": true,
+          "tags": []
+      },
+      {
+          "id": "0191b2f4-e384-0006-8f5f-38d30736b0a6",
+          "name": "$exception_capture_endpoint_suffix",
+          "is_numerical": false,
+          "property_type": "String",
+          "is_seen_on_filtered_events": true,
+          "tags": []
+      },
+      {
+          "id": "019168a2-f998-0001-a930-9793f1de805d",
+          "name": "extensionGitCommitId",
+          "is_numerical": false,
+          "property_type": "String",
+          "is_seen_on_filtered_events": true,
+          "tags": []
+      }
+  ]
+}

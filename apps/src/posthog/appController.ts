@@ -6,7 +6,8 @@ import { getSqlErrorMessageFromDOM, getAndFormatOutputTable, waitForQueryExecuti
 import { querySelectorMap } from "./querySelectorMap";
 import { RPCs } from "web";
 import expressionsMd from "./docs/expressions.md";
-
+import { getEventCommonProperties } from "./api";
+import { escapeKeyboardCharacters } from "../common/utils";
 export class PosthogController extends AppController<PosthogAppState> {
   async getTableSchemasById({ ids }: { ids: string[] }) {
     const actionContent: BlankMessageContent = { type: "BLANK" };
@@ -50,8 +51,9 @@ export class PosthogController extends AppController<PosthogAppState> {
     // await RPCs.typeText(querySelectorMap["hogql_query"], "{Home} ")
 
     // Need some event to reset Monaco
+    let escapedQuery = escapeKeyboardCharacters(query);
     await this.wait({ time: 100})
-    await RPCs.typeText(querySelectorMap["hogql_query"], query)
+    await RPCs.typeText(querySelectorMap["hogql_query"], escapedQuery)
     // do metadata request and check for errors
     const sqlQueryMetadata = await getSqlQueryMetadata(query);
     if (sqlQueryMetadata && sqlQueryMetadata.errors.length > 0) {
@@ -75,6 +77,18 @@ export class PosthogController extends AppController<PosthogAppState> {
     return actionContent;
   }
   async getHogQLExpressionsDocumentation() {
-    return expressionsMd;
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    actionContent.content = expressionsMd;
+    return actionContent;
+  }
+  async getEventCommonProperties({event_names}: {event_names: string[]}) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const commonProperties = await getEventCommonProperties(event_names);
+    actionContent.content = JSON.stringify(commonProperties, null, 2);
+    return actionContent;
   }
 }

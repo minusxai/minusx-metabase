@@ -1,7 +1,9 @@
 import { RPCs } from "web"; 
 import { querySelectorMap, outputTableQuery } from "./querySelectorMap";
 import { sleep } from "../common/utils";
-
+import { memoizedGetPosthogEventDefinitions } from "./api";
+import hardcodedDescriptionsAll from "./docs/hardcoded-descriptions-all";
+import { PosthogEventDefinitionQueryResponse } from "./api";
 export const waitForQueryExecution = async () => {
  // TODO
  while(true) {
@@ -85,4 +87,55 @@ export const getSqlQuery = async () => {
     selector: querySelectorMap["sql_read"],
   });
   return sqlQuery?.map((row) => row?.attrs?.text).join('\n');
+}
+
+interface EventDefinitionWithDescription {
+  name: string;
+  label?: string;
+  description?: string;
+  examples?: string[];
+}
+
+export const getDescriptionsForEventDefinitions = (eventDefinitions: PosthogEventDefinitionQueryResponse) => {
+  const hardcodedEventDescriptions = hardcodedDescriptionsAll["events"] as Record<string, any>;
+  if (eventDefinitions && eventDefinitions.count > 0) {
+    const eventDefinitionsWithDescriptions: EventDefinitionWithDescription[] = eventDefinitions.results
+    .map((eventDefinition: any) => {
+      let eventDefinitionWithDescription: EventDefinitionWithDescription = {
+        name: eventDefinition.name,
+      };
+      if (hardcodedEventDescriptions[eventDefinition.name]) {
+        eventDefinitionWithDescription.description = hardcodedEventDescriptions[eventDefinition.name].description;
+        if (hardcodedEventDescriptions[eventDefinition.name].label) {
+          eventDefinitionWithDescription.label = hardcodedEventDescriptions[eventDefinition.name].label;
+        }
+        if (hardcodedEventDescriptions[eventDefinition.name].examples) {
+          eventDefinitionWithDescription.examples = hardcodedEventDescriptions[eventDefinition.name].examples;
+        }
+      }
+      return eventDefinitionWithDescription;
+    });
+    return eventDefinitionsWithDescriptions;
+  } else {
+    console.warn("No event definitions found");
+    return [];
+  }
+}
+
+// format as a single yaml string
+export const formatEventDescriptionsAsYaml = (eventDefsWithDescriptions: EventDefinitionWithDescription[]) => {
+  let eventDefinitionsAndDescriptions = eventDefsWithDescriptions.map((eventDefinitionWithDescription: EventDefinitionWithDescription) => {
+    let eventDefinitionAndDescription = `"${eventDefinitionWithDescription.name}":`;
+    if (eventDefinitionWithDescription.label) {
+      eventDefinitionAndDescription += ` # label: ${eventDefinitionWithDescription.label}`;
+    }
+    if (eventDefinitionWithDescription.description) {
+      eventDefinitionAndDescription += ` # ${eventDefinitionWithDescription.description}`;
+    }
+    if (eventDefinitionWithDescription.examples) {
+      eventDefinitionAndDescription += `\n  examples:\n    - ${eventDefinitionWithDescription.examples.join('\n    - ')}`;
+    }
+    return eventDefinitionAndDescription;
+  }).join('\n');
+  return eventDefinitionsAndDescriptions;
 }
