@@ -118,6 +118,7 @@ function ProviderApp() {
         setInterval(async () => {
             try {
                 const message = await getPendingMessage()
+                console.log("received message", message)
                 if (!_.isEmpty(message)) {
                     alert(message)
                 }
