@@ -35,6 +35,7 @@ import { getSuggestions } from '../../helpers/LLM/remote'
 import { gdocReadSelected, gdocRead, gdocWrite, gdocImage } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
 import { feelinLucky } from '../../app/lucky'
+import { getApp } from '../../helpers/app'
 
 const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
   if (!thumbnails) {
@@ -248,7 +249,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               console.log("<><><> button clicked")
               // let text = await gdocReadSelected()
               console.log("Text is", instructions)
-              let response = await forwardToTab("gdoc", String(instructions))
+              const appState = await getApp().getState()
+              let response = await forwardToTab("gdoc", JSON.stringify(appState))
               console.log("Response is", response)
               // await gdocWrite(String(response?.response?.text))
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>

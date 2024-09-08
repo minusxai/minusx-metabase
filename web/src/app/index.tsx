@@ -124,7 +124,7 @@ function ProviderApp() {
             } catch (err){
 
             }
-        }, 500)
+        }, 1000)
     })
     useEffect(() => {
         init(mode, ref, isAppOpen)
