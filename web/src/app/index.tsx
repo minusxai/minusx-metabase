@@ -116,9 +116,13 @@ function ProviderApp() {
     const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
     useEffect(() => {
         setInterval(async () => {
-            const message = await getPendingMessage()
-            if (!_.isEmpty(message)) {
-                alert(message)
+            try {
+                const message = await getPendingMessage()
+                if (!_.isEmpty(message)) {
+                    alert(message)
+                }
+            } catch (err){
+
             }
         }, 500)
     })
