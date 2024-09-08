@@ -13,6 +13,6 @@ export async function sleep(ms: number = 0) {
 }
 
 export function escapeKeyboardCharacters(text: string) {
-  // replace [ with [[, ] with ]], { with {{, } with }}
-  return text.replace(/\[/g, '[[').replace(/\]/g, ']]').replace(/\{/g, '{{').replace(/\}/g, '}}');
+  // replace [ with [[,  { with {{, 
+  return text.replace(/\[/g, '[[').replace(/\{/g, '{{');
 }
