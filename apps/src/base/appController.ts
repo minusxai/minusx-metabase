@@ -58,10 +58,10 @@ export abstract class AppController<T> {
     const selector = selectorMap[query];
     await getRippleEffect(selector, index);
     await this.uDblClick({ query, index });
-    await RPCs.uSetValueSlow(selector, '{ArrowLeft}', index)
+    await RPCs.typeText(selector, '{ArrowLeft}', index)
     await RPCs.uSelectAllText(true)
-    await RPCs.uSetValueInstant(selector, value, index)
-    await RPCs.uSetValueSlow(selector, '{ArrowLeft}', index)
+    await RPCs.dragAndDropText(selector, value, index)
+    await RPCs.typeText(selector, '{ArrowLeft}', index)
   }
 
   async uHighlight(
