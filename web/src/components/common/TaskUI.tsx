@@ -32,11 +32,14 @@ import { Image } from '../../state/chat/reducer'
 import { RootState } from '../../state/store'
 import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
-import { gdocReadSelected, gdocRead, gdocWrite, gdocImage } from '../../app/rpc'
+import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
 import { feelinLucky } from '../../app/lucky'
 import { getApp } from '../../helpers/app'
-
+import { JupyterNotebookState } from '../../../../apps/src/jupyter/helpers/DOMToState'
+import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/helpers/querySelectorMap'
+import { getElementScreenCapture } from '../../app/rpc'
+ 
 const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
   if (!thumbnails) {
     return null;

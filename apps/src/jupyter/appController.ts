@@ -167,7 +167,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
 
   async sendNotebookToGoogleDoc() {
     const notebook = await this.app.getState();
-    const notebookAsText = JSON.stringify(notebook);
-    // await RPCs.forwardToTab
+    let response = await RPCs.forwardToTab("gdoc", JSON.stringify(notebook))
+    return response;
   }
 }
