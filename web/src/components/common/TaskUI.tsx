@@ -245,15 +245,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           {
             currentTool != "gdoc" && currentTool != "metabase" ? 
             <HStack justify={"center"}>
-            <Button onClick={async () => {
-              console.log("<><><> button clicked")
-              // let text = await gdocReadSelected()
-              console.log("Text is", instructions)
-              const appState = await getApp().getState()
-              let response = await forwardToTab("gdoc", JSON.stringify(appState))
-              console.log("Response is", response)
-              // await gdocWrite(String(response?.response?.text))
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
             {/* <Button onClick={async () => {
               console.log("<><><> button clicked")
               let text = await gdocReadSelected()
@@ -265,6 +256,15 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button> */}
             </HStack> : null
           }
+        <Button onClick={async () => {
+              console.log("<><><> button clicked")
+              // let text = await gdocReadSelected()
+              console.log("Text is", instructions)
+              let response = await forwardToTab("gdoc", String(instructions))
+              console.log("Response is", response)
+              // await gdocWrite(String(response?.response?.text))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
+            
         <Button onClick={()=>{
           if (instructions) {
             feelinLucky({text: instructions})
