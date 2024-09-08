@@ -217,8 +217,14 @@ function DebugComponent() {
         const docContent = await gdocRead()
         setDocContent(JSON.stringify(docContent))
     }
+    const markdown = `# Heading
+Hello World
+
+## Subheading
+Hello subheading
+`
     const writeDoc = async () => {
-        const result = await gdocWrite("HAIL MARY")
+        const result = await gdocWrite(markdown)
     }
 
     const imageDoc = async () => {
