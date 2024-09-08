@@ -18,15 +18,11 @@ export async function saveEvent(event: Event) {
   await db.add('events', { event, timestamp: Date.now() });
 }
 
-type Callback = (events: Event[]) => Promise<boolean>;
+type Callback = (events: {event: Event}[]) => Promise<boolean>;
 
 export async function sendBatch(callback: Callback) {
     const db = await dbPromise;
     const events = await db.getAll('events');
-  
-    if (events.length === 0) {
-      return; // No events to send
-    }
   
     const success = await callback(events);
   

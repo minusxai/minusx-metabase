@@ -103,6 +103,7 @@ function ProviderApp() {
     useEffect(() => {
         const extensionId = getExtensionID()
         const globalData = {
+            IS_DEV: String(configs.IS_DEV),
             ...getParsedIframeInfo()
         }
         if (profileId) {

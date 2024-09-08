@@ -23,16 +23,19 @@ export const captureCustomEvent = async (type: string, payload?: object) => {
 export const initCustomEventCapture = once(() => {
     const schedule = () => sendBatch(async (events) => {
         const send = async () => {
-            if (events.length === 0) {
+            if (!events || events.length === 0) {
                 return true
             }
-            const filledEvents = events.map(event => ({
-                ...event,
-                global: {
+            const filledEvents = events.map(({event}) => ({
+                type: event.type,
+                payload: event.payload || {},
+                globalProps: {
                     ..._globalProperties
                 }
             }))
-            const response = await axios.post(url, filledEvents, {
+            const response = await axios.post(url, {
+                events: filledEvents
+            }, {
                 headers: {
                   'Content-Type': 'application/json',
                 },
@@ -51,7 +54,7 @@ export const initCustomEventCapture = once(() => {
             }
         }
         setTimeout(schedule, 10000)
-        return success
+        return true
     })
     schedule()
     startCustomEventCapture()
