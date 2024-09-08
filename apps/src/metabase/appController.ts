@@ -126,11 +126,12 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     let queries = []
     try {
       const response = await RPCs.fetchData(endpoint, 'GET');
-      queries = map(response.data || [], (card: any) => get(card, 'dataset_query.native.query')).filter(i => !!i);
+      queries = map(response.data || [], (card: any) => get(card, 'dataset_query.native.query')).filter(i => !!i).slice(0, 10);
+      queries = queries.map((query: string) => query.length >= 1000 ? query.slice(0, 1000) + '...' : query);
     } catch (error) {
       queries = [];
     }
-    actionContent.content = JSON.stringify(queries.slice(0, 10));
+    actionContent.content = queries.join(';\n')
     return actionContent
   }
 
