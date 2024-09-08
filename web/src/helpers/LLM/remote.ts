@@ -123,6 +123,7 @@ export const convertToMarkdown = async(appState: string): Promise<string[]> => {
   You are an incredible data scientist, and proficient at using jupyter notebooks. 
   The user gives you a jupyter state and you must convert it into a markdown document.
   Just give a report as a markdown document based on the notebook
+  Don't print any actual code
   `
   const userMessage = JSON.stringify(appState)
 
