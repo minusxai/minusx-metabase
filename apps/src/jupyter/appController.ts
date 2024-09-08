@@ -1,7 +1,8 @@
 import { clone, findIndex, isArray } from "lodash";
 import { AppController } from "../base/appController";
 import { JupyterNotebookState } from "./helpers/DOMToState";
-import { BlankMessageContent, RPCs } from "web";
+import { RPCs } from "web";
+import { BlankMessageContent } from "web/types";
 
 export class JupyterController extends AppController<JupyterNotebookState> {
   async insertCellBelow({ cell_index }: { cell_index: number }) {
@@ -26,7 +27,9 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     const value = isArray(source) ? source.join("\r") : source;
     await this.uDblClick({ query: "select_cell", index: cell_index });
     await this.scrollIntoView({ query: "select_cell", index: cell_index });
+    await this.uHighlight({ query: "select_cell", index: cell_index });
     const userApproved = await RPCs.getUserConfirmation({content: value});
+    await this.uHighlight({ query: "select_cell", index: cell_index });
     if (!userApproved) {
       throw new Error("Action (and subsequent plan) cancelled!");
     }

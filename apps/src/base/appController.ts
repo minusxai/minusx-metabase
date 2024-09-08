@@ -53,6 +53,12 @@ export abstract class AppController<T> {
     return await RPCs.scrollIntoView(selector, index);
   }
 
+  async uHighlight({ query, index = 0 }) {
+    const selectorMap = await this.app.getQuerySelectorMap();
+    const selector = selectorMap[query];
+    return await RPCs.uHighlight(selector, index);
+  }
+
   async setValue({ query, value = "", index = 0 }) {
     const selectorMap = await this.app.getQuerySelectorMap();
     const selector = selectorMap[query];
@@ -62,14 +68,6 @@ export abstract class AppController<T> {
     await RPCs.uSelectAllText(true)
     await RPCs.dragAndDropText(selector, value, index)
     await RPCs.typeText(selector, '{ArrowLeft}', index)
-  }
-
-  async uHighlight(
-    selector: QuerySelector,
-    index: number = 0,
-    styles?: Partial<HTMLEmbedElement["style"]>
-  ) {
-    await RPCs.uHighlight(selector, index, styles);
   }
 
   async runAction(fn: string, args: any) {
