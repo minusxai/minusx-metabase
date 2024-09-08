@@ -266,7 +266,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               const outputCellSelector =  await jupyterQSMap.cell_output;
               const imgs = await getElementScreenCapture(outputCellSelector);
 
-              console.log("Text is", appState)
               let response = await forwardToTab("gdoc", {appState, imgs})
               console.log("Response is", response)
               // await gdocWrite(String(response?.response?.text))
