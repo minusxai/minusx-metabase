@@ -32,9 +32,9 @@ import { Image } from '../../state/chat/reducer'
 import { RootState } from '../../state/store'
 import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
-import { useAppFromExternal } from '../../app/rpc'
 import { gdocReadSelected, gdocRead, gdocWrite, gdocImage } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
+import { feelinLucky } from '../../app/lucky'
 
 const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
   if (!thumbnails) {
@@ -263,7 +263,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button> */}
             </HStack> : null
           }
-       
+        <Button onClick={()=>{
+          if (instructions) {
+            feelinLucky({text: instructions})
+            setInstructions('')
+          }
+        }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         <HStack>
           <Textarea
             ref={ref}
