@@ -24,6 +24,10 @@ async function _init(localConfigs: Promise<object>) {
   if (tool == TOOLS.OTHER) {
     // #HACK for gdoc
     setupStyles('content.styles.css')
+    // check if window url is a google docs url, if so use registerTabIdForTool
+    if (window.location.href.includes('docs.google.com')) {
+      registerTabIdForTool({ tool: 'gdoc' })
+    }
     initRPC()
     return;
   }
