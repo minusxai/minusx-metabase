@@ -74,8 +74,8 @@ const FUNCTIONS = {
     const args = { message }
     // just get the first tab id available and send the message to it and wait for response
     const tabId = tabIds[0]
-    // switch to that tab
-    await chrome.tabs.update(tabId, {active: true})
+    // switch to that tab. don't for demo.
+    // await chrome.tabs.update(tabId, {active: true})
     const response = await sendTabContentScriptMessage({ fn, args }, tabId)
     console.log("got response from tab", tabId, response)
     // #HACK to add URL support
@@ -84,8 +84,8 @@ const FUNCTIONS = {
       response.url = tab.url
     }
     console.log("tab", tab)
-    // switch back to current tab
-    chrome.tabs.update(currentTabId, {active: true})
+    // switch back to current tab. nope
+    // chrome.tabs.update(currentTabId, {active: true})
     return response
   }
 };
