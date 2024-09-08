@@ -14,31 +14,35 @@ export type SubscriptionPayload = {
 
 type SubscriptionResults = Omit<SubscriptionPayload, 'id'>[]
 
-export const initMutationObserver = () => {
-    let oldResponses: SubscriptionResults = []
-    const masterCallback = () => {
-        const newResponses: SubscriptionResults = domQueries.map((query) => {
-            const elements = queryDOMMap(query)
-            const url = window.location.href
-            return { elements, url }
-        })
-        for (let i = 0; i < Math.max(newResponses.length, oldResponses.length); i++) {
-            if (!isEqual(newResponses[i], oldResponses[i])) {
-                const value: SubscriptionPayload = {
-                    id: i,
-                    ...newResponses[i]
-                }
-                sendIFrameMessage({
-                    key: 'subscription',
-                    value
-                })
-                oldResponses[i] = newResponses[i]
+let oldResponses: SubscriptionResults = []
+
+const _masterCallback = () => {
+    const newResponses: SubscriptionResults = domQueries.map((query) => {
+        const elements = queryDOMMap(query)
+        const url = window.location.href
+        return { elements, url }
+    })
+    for (let i = 0; i < Math.max(newResponses.length, oldResponses.length); i++) {
+        if (!isEqual(newResponses[i], oldResponses[i])) {
+            const value: SubscriptionPayload = {
+                id: i,
+                ...newResponses[i]
             }
+            sendIFrameMessage({
+                key: 'subscription',
+                value
+            })
+            oldResponses[i] = newResponses[i]
         }
     }
-    const observer = new MutationObserver(debounce(masterCallback, OBSERVER_INTERVAL, {
-        trailing: true,
-    }));
+}
+
+const masterCallback = debounce(_masterCallback, OBSERVER_INTERVAL, {
+    trailing: true,
+})
+
+export const initMutationObserver = () => { 
+    const observer = new MutationObserver(masterCallback);
     observer.observe(document, {
         childList: true,
         subtree: true,
@@ -47,6 +51,7 @@ export const initMutationObserver = () => {
 
 export const attachMutationListener = (domQueryMap: DOMQueryMap) => {
     domQueries.push(domQueryMap)
+    masterCallback()
     return domQueries.length - 1
 }
 
