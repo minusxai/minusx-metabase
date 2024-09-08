@@ -222,6 +222,36 @@ Hello World
 
 ## Subheading
 Hello subheading
+
+Image:
+![Hello World](${base64Image})
+
+# Heading
+Hello World
+
+## Subheading
+Hello subheading
+
+Image:
+![Hello World](${base64Image})
+
+# Heading
+Hello World
+
+## Subheading
+Hello subheading
+
+Image:
+![Hello World](${base64Image})
+
+# Heading
+Hello World
+
+## Subheading
+Hello subheading
+
+Image:
+![Hello World](${base64Image})
 `
     const writeDoc = async () => {
         const result = await gdocWrite(markdown)

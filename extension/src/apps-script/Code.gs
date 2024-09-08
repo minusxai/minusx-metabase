@@ -1,4 +1,89 @@
-function insertTextAtCursor(content, url) {
+function insertTextAtCursor(newContent, url) {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
+  
+  // Clear the existing content
+  body.clear();
+  
+  // Convert Markdown to Google Docs format and append it
+  processMarkdown(newContent, body);
+}
+
+function processMarkdown(markdown, parentElement) {
+  var lines = markdown.split('\n');
+  
+  lines.forEach(function(line) {
+    if (/^### (.*)/.test(line)) {
+      // H3
+      var header = line.replace(/^### (.*)/, '$1');
+      parentElement.appendParagraph(header).setHeading(DocumentApp.ParagraphHeading.HEADING3);
+    } else if (/^## (.*)/.test(line)) {
+      // H2
+      var header = line.replace(/^## (.*)/, '$1');
+      parentElement.appendParagraph(header).setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    } else if (/^# (.*)/.test(line)) {
+      // H1
+      var header = line.replace(/^# (.*)/, '$1');
+      parentElement.appendParagraph(header).setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    } else if (/\!\[(.*?)\]\((.*?)\)/.test(line)) {
+      // Image
+      var matches = line.match(/\!\[(.*?)\]\((.*?)\)/);
+      var altText = matches[1];
+      var imageUrl = matches[2];
+      
+      if (imageUrl.startsWith('data:image')) {
+        // Base64 Image
+        appendBase64Image(imageUrl, parentElement);
+      } else {
+        // Normal URL Image
+        appendImageFromUrl(imageUrl, parentElement);
+      }
+    } else if (/\*\*(.*)\*\*/.test(line)) {
+      // Bold
+      var boldText = line.replace(/\*\*(.*)\*\*/, '$1');
+      var para = parentElement.appendParagraph(boldText);
+      para.editAsText().setBold(true);
+    } else if (/\*(.*)\*/.test(line)) {
+      // Italics
+      var italicText = line.replace(/\*(.*)\*/, '$1');
+      var para = parentElement.appendParagraph(italicText);
+      para.editAsText().setItalic(true);
+    } else if (/^\[(.*)\]\((.*)\)/.test(line)) {
+      // Links
+      var matches = line.match(/^\[(.*)\]\((.*)\)/);
+      var linkText = matches[1];
+      var linkUrl = matches[2];
+      var para = parentElement.appendParagraph(linkText);
+      para.editAsText().setLinkUrl(linkUrl);
+    } else {
+      // Plain text
+      parentElement.appendParagraph(line);
+    }
+  });
+}
+
+function appendImageFromUrl(imageUrl, parentElement) {
+  try {
+    var imageBlob = UrlFetchApp.fetch(imageUrl).getBlob();
+    parentElement.appendImage(imageBlob);
+  } catch (error) {
+    Logger.log("Error fetching image from URL: " + imageUrl);
+    parentElement.appendParagraph("Image failed to load: " + imageUrl);
+  }
+}
+
+function appendBase64Image(base64Data, parentElement) {
+  try {
+    var base64Image = base64Data.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+    var imageBlob = Utilities.newBlob(Utilities.base64Decode(base64Image), 'image/png');
+    parentElement.appendImage(imageBlob);
+  } catch (error) {
+    Logger.log("Error processing base64 image");
+    parentElement.appendParagraph("Base64 image failed to load.");
+  }
+}
+
+function insertTextAtCursorOld(content, url) {
   var doc = DocumentApp.getActiveDocument();
   
   // Check if there's a selection
