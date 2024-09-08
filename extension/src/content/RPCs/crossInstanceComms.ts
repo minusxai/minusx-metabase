@@ -25,9 +25,24 @@ export const sendIFrameMessageAndGetResponse = async (message: string) => {
   })
 }
 
+let _messageReceived = {}
+
 export async function respondToOtherTab({ message }: { message: string }) {
   // return `Hi from ${window.location.href} ` + message;
-  return sendIFrameMessageAndGetResponse(message)
+  if (location.origin == 'https://docs.google.com') {
+    _messageReceived = message
+    console.log('Message pending:', _messageReceived)
+    return true
+  } else {
+    return sendIFrameMessageAndGetResponse(message)
+  }
+}
+
+export async function getPendingMessage() {
+  // send message to bg script using bgscript's RPC
+  let message = _messageReceived
+  _messageReceived = {}
+  return message
 }
 
 export async function forwardToTab(tool: string, message: string) {

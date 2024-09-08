@@ -8,7 +8,7 @@ import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
 import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
-import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab} from './rpc';
+import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab, getPendingMessage} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
 import { configs } from '../constants';
 import { setAxiosJwt } from './api';
@@ -114,6 +114,14 @@ function ProviderApp() {
    
     const ref = useRef<HTMLInputElement>(null)
     const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
+    useEffect(() => {
+        setInterval(async () => {
+            const message = await getPendingMessage()
+            if (!_.isEmpty(message)) {
+                alert(message)
+            }
+        }, 500)
+    })
     useEffect(() => {
         init(mode, ref, isAppOpen)
         if (session_jwt) {
@@ -280,7 +288,7 @@ function RootApp() {
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
             <ChakraContext>
-                {/* <DebugComponent /> */}
+                <DebugComponent />
                 <ProviderApp />
             </ChakraContext>
             </PersistGate>

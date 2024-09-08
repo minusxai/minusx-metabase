@@ -242,17 +242,17 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Divider borderColor={"minusxBW.500"}/>
         <Thumbnails thumbnails={thumbnails} />
           {
-            currentTool != "jupyter" && currentTool != "metabase" ? 
+            currentTool != "gdoc" && currentTool != "metabase" ? 
             <HStack justify={"center"}>
             <Button onClick={async () => {
               console.log("<><><> button clicked")
-              let text = await gdocReadSelected()
-              console.log("Text is", text)
-              let response = await forwardToTab("jupyter", String(text))
+              // let text = await gdocReadSelected()
+              console.log("Text is", instructions)
+              let response = await forwardToTab("gdoc", String(instructions))
               console.log("Response is", response)
-              await gdocWrite(String(response?.response?.text))
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Jupyter</Button>
-            <Button onClick={async () => {
+              // await gdocWrite(String(response?.response?.text))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
+            {/* <Button onClick={async () => {
               console.log("<><><> button clicked")
               let text = await gdocReadSelected()
               console.log("Text is", text)
@@ -260,7 +260,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               console.log("Response is", response)
               await gdocWrite("source", String(response?.url))
               await gdocImage(String(response?.response?.images[0]), 0.5)
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button> */}
             </HStack> : null
           }
        
