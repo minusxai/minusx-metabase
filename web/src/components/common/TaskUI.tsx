@@ -277,7 +277,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             ref={ref}
             autoFocus
             aria-label='Enter Instructions'
-            value={instructions || ''}
+            value={instructions}
             disabled={taskInProgress}
             onChange={(e) => setInstructions(e.target.value)}
             onKeyDown={onKeyDown}

@@ -23,6 +23,7 @@ import { identifyUser } from '../tracking';
 import { useAppFromExternal } from './rpc';
 import { Button } from '@chakra-ui/react';
 import { convertToMarkdown } from '../helpers/LLM/remote';
+import { setInstructions } from '../state/thumbnails/reducer';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
@@ -121,10 +122,13 @@ function ProviderApp() {
                 const message = await getPendingMessage()
                 if (!_.isEmpty(message)) {
                     console.log("received message", message)
+                    dispatch(setInstructions('Receiving message...'))
                     const response = await convertToMarkdown(message)
                     console.log("Final response is", response)
                     const content = response.content
+                    dispatch(setInstructions('Printing to Google Doc...'))
                     await gdocWrite(content)
+                    dispatch(setInstructions('Done!'))
                 }
             } catch (err){
 
