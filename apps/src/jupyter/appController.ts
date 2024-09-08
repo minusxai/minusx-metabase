@@ -1,7 +1,8 @@
 import { clone, findIndex, isArray } from "lodash";
 import { AppController } from "../base/appController";
 import { JupyterNotebookState } from "./helpers/DOMToState";
-import { BlankMessageContent, RPCs } from "web";
+import { RPCs } from "web";
+import { BlankMessageContent } from "web/types";
 
 export class JupyterController extends AppController<JupyterNotebookState> {
   async insertCellBelow({ cell_index }: { cell_index: number }) {
