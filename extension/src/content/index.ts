@@ -11,6 +11,7 @@ import { setupScript } from "../helpers/setupScript";
 import { once } from "lodash";
 import { appSetupConfigs } from "./apps";
 import { IframeInfo } from "./types";
+import { getExtensionID } from "../background/identifier";
 
 const WEB_URL = configs.WEB_URL
 async function _init(localConfigs: Promise<object>) {
@@ -18,7 +19,7 @@ async function _init(localConfigs: Promise<object>) {
   const mode = get(localConfigs, "configs.mode", "open-sidepanel")
   const posthogConfigs = get(localConfigs, "configs.posthog_configs", {})
   const posthogAPIKey = get(localConfigs, "configs.posthog_api_key", configs.POSTHOG_API_KEY)
-  const extensionId = get(localConfigs, "id", "none")
+  const extensionId = await getExtensionID()
   const { tool, toolVersion, inject } = identifyToolNative()
   if (tool == TOOLS.OTHER) {
     return;
