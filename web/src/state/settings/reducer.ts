@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
+import { set } from 'lodash'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings'
@@ -28,7 +29,8 @@ interface Settings {
   sidePanelTabName: SidePanelTabName,
   devToolsTabName: DevToolsTabName,
   suggestQueries: boolean,
-  iframeInfo: IframeInfoWeb
+  iframeInfo: IframeInfoWeb,
+  confirmChanges: boolean
 }
 
 const initialState: Settings = {
@@ -40,7 +42,8 @@ const initialState: Settings = {
   sidePanelTabName: 'chat',
   devToolsTabName: 'Context',
   suggestQueries: false,
-  iframeInfo: defaultIframeInfoWeb
+  iframeInfo: defaultIframeInfoWeb,
+  confirmChanges: true
 }
 
 export const settingsSlice = createSlice({
@@ -73,6 +76,9 @@ export const settingsSlice = createSlice({
     },
     setIframeInfo: (state, action: PayloadAction<IframeInfoWeb>) => {
       state.iframeInfo = action.payload
+    },
+    setConfirmChanges: (state, action: PayloadAction<boolean>) => {
+      state.confirmChanges = action.payload
     }
   }
 })
@@ -80,6 +86,6 @@ export const settingsSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
-  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo } = settingsSlice.actions
+  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges } = settingsSlice.actions
 
 export default settingsSlice.reducer

@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -70,12 +70,14 @@ const SettingsPage = () => {
 
   const discordLink = 'https://discord.gg/jtFeyPMDcH'
   const isLocal = useSelector((state: RootState) => state.settings.isLocal)
-  const setIsLocal = (value) => {
-    console.log('Setting is local to', value)
+  const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
+  const setIsLocal = (value: boolean) => {
     dispatch(updateIsLocal(value))
   }
-    const setDevToolsPage = (value) => {
-    console.log('Setting DevTools page to', value)
+  const updateConfirmChanges = (value: boolean) => {
+    dispatch(setConfirmChanges(value))
+  }
+  const setDevToolsPage = (value: DevToolsTabName) => {
     dispatch(updateIsDevToolsOpen(true))
     dispatch(updateDevToolsTabName(value))
   }
@@ -128,6 +130,12 @@ const SettingsPage = () => {
           <IconButton size="sm" colorScheme={"minusxGreen"} variant="ghost" aria-label="See Context" icon={<Icon as={BiLinkExternal} boxSize={4} />} onClick={() =>  {setDevToolsPage('Context')}} />
         </HStack>
       </SettingsBlock> : null }
+      <SettingsBlock title="Features" >
+        <HStack justifyContent={"space-between"}>
+          <Text color={"minusxBW.800"} fontSize="sm">Enable User Confirmations</Text>
+          <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
+        </HStack>
+      </SettingsBlock>
       <SettingsBlock title="Support">
         <HStack justifyContent={"space-between"}>
           <HStack>
