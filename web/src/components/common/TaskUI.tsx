@@ -262,9 +262,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Button onClick={async () => {
               console.log("<><><> button clicked")
               // let text = await gdocReadSelected()
-              const appState = await getApp().getState()
+              const appState = await getApp().getState() as JupyterNotebookState
+              const outputCellSelector =  await jupyterQSMap.cell_output;
+              const imgs = await getElementScreenCapture(outputCellSelector);
+
               console.log("Text is", appState)
-              let response = await forwardToTab("gdoc", appState)
+              let response = await forwardToTab("gdoc", {appState, imgs})
               console.log("Response is", response)
               // await gdocWrite(String(response?.response?.text))
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
