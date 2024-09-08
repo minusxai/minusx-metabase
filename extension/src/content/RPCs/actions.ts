@@ -145,19 +145,6 @@ export const uSetValueInstant = async (selector: QuerySelector, value: string = 
   }
 }
 
-export const uSetValue = async (selector: QuerySelector, value: string = '', index: number = 0, type = 'slow') => {
-  if (type === 'slow') {
-    uSetValueSlow(selector, value, index)
-  }
-  else {
-    // #HACK temporary hack to fix backward compatibility
-    await uSetValueSlow(selector, '{ArrowLeft}', index)
-    await uSelectAllText(true)
-    await uSetValueInstant(selector, value, index)
-    return await uSetValueSlow(selector, '{ArrowLeft}', index)
-  }
-}
-
 export const uHighlight = async (selector: QuerySelector, index: number = 0, newStyles?: Partial<HTMLEmbedElement["style"]>) => {
   const element = getElementFromQuerySelector(selector, index);
   if (element) {

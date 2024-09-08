@@ -39,7 +39,6 @@ export const uClick = (selector: QuerySelector, index: number = 0) => sendMessag
 export const uDblClick = (selector: QuerySelector, index: number = 0) => sendMessage("uDblClick", [selector, index], {log_rpc: true})
 export const uHighlight = (selector: QuerySelector, index: number = 0, styles?: Partial<HTMLEmbedElement["style"]>) => sendMessage("uHighlight", [selector, index, styles], {log_rpc: true})
 export const scrollIntoView = (selector: QuerySelector, index: number = 0) => sendMessage("scrollIntoView", [selector, index], {log_rpc: true})
-export const uSetValue = (selector: QuerySelector, value: string = '', index: number = 0, type: string = 'slow') => sendMessage("uSetValue", [selector, value, index, type], {log_rpc: true})
 export const uSetValueSlow = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("uSetValueSlow", [selector, value, index], {log_rpc: true})
 export const uSetValueInstant = (selector: QuerySelector, value: string = '', index: number = 0) => sendMessage("uSetValueInstant", [selector, value, index], {log_rpc: true})
 export const setMinusxMode = (mode: string) => sendMessage("setMinusxMode", [mode], {log_rpc: true})
