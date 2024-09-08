@@ -107,3 +107,35 @@ export const getLucky = async(text: string): Promise<string[]> => {
   
   return parsed.steps;
 }
+
+
+export const convertToMarkdown = async(appState: string): Promise<string[]> => {
+  const llmSettings = {
+    model: "gpt-4o",
+    temperature: 0,
+    response_format: {
+      type: "text",
+    },
+    tool_choice: "none",
+  }
+
+  const systemMessage = `
+  You are an incredible data scientist, and proficient at using jupyter notebooks. 
+  The user gives you a jupyter state and you must convert it into a markdown document.
+  Just give a report as a markdown document based on the notebook
+  `
+  const userMessage = appState
+
+  const response = await getLLMResponse({
+    messages: [{
+      role: "system",
+      content: systemMessage,
+    }, {
+      role: "user",
+      content: userMessage,
+    }],
+    llmSettings: llmSettings,
+    actions: []
+  });
+  return await response.data;
+}

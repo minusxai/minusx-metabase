@@ -22,6 +22,7 @@ import { getParsedIframeInfo } from '../helpers/origin';
 import { identifyUser } from '../tracking';
 import { useAppFromExternal } from './rpc';
 import { Button } from '@chakra-ui/react';
+import { convertToMarkdown } from '../helpers/LLM/remote';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
@@ -118,9 +119,10 @@ function ProviderApp() {
         setInterval(async () => {
             try {
                 const message = await getPendingMessage()
-                console.log("received message", message)
                 if (!_.isEmpty(message)) {
-                    alert(message)
+                    console.log("received message", message)
+                    const response = convertToMarkdown(message)
+                    console.log("Final response is", response)
                 }
             } catch (err){
 
