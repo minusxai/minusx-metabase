@@ -109,7 +109,8 @@ export const getLucky = async(text: string): Promise<string[]> => {
 }
 
 
-export const convertToMarkdown = async(appState: string): Promise<string[]> => {
+export const convertToMarkdown = async(appState, imgs): Promise<string[]> => {
+  console.log('Converting', appState, imgs)
   const llmSettings = {
     model: "gpt-4o",
     temperature: 0,
@@ -138,5 +139,14 @@ export const convertToMarkdown = async(appState: string): Promise<string[]> => {
     llmSettings: llmSettings,
     actions: []
   });
-  return await response.data;
+  let data = await response.data
+  let content = data.content
+  content += imgs.map((img, index) => {
+    if (img.startsWith("data:image")) {
+      return `![Image ${index}](${img})`
+    } else {
+      return ""
+    }
+  }).filter(i => i).join("\n")
+  return content
 }
