@@ -75,7 +75,10 @@ export const uSetValue = async ({ query, value='', index = 0}) => {
   const selector = selectorMap[query];
   await getRippleEffect(selector, index)
   await uDblClick({ query, index });
-  await RPC.uSetValue(selector, value, index, 'fast')
+  await RPC.uSetValueSlow(selector, '{ArrowLeft}', index)
+  await RPC.uSelectAllText(true)
+  await RPC.uSetValueInstant(selector, value, index)
+  await RPC.uSetValueSlow(selector, '{ArrowLeft}', index)
 }
 
 const getRippleEffect = async (selector, index) => {
