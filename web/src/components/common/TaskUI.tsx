@@ -1,12 +1,10 @@
 import {
-  Box,
   HStack,
   Textarea,
   VStack,
   Icon,
   IconButton,
   Divider,
-  Image as ImageComponent,
   Tooltip,
   Text,
   Switch,
@@ -14,57 +12,21 @@ import {
 } from '@chakra-ui/react'
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-// import { debugMode } from '../constants';
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { HiOutlineRefresh } from 'react-icons/hi'
 import { HiMiniSparkles } from "react-icons/hi2";
-import { BsX } from "react-icons/bs";
 import chat from '../../chat/chat'
 import _ from 'lodash'
-import { findActiveTab } from '../../helpers/rpcCalls'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
-import { dispatch } from '../../state/dispatch'
-import { removeThumbnail, resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
+import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries } from '../../state/settings/reducer'
-import { Image } from '../../state/chat/reducer'
 import { RootState } from '../../state/store'
 import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
-
-const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
-  if (!thumbnails) {
-    return null;
-  }
-  if (thumbnails.length == 0) {
-    return null
-  }
-  const ThumbnailComponents = thumbnails.map(({url}, index: number) => {
-    return (
-      <Box key={index} backgroundColor={"minusxBW.500"} borderRadius={5} position={"relative"}>
-        <IconButton
-          isRound={true}
-          onClick={() => dispatch(removeThumbnail(index))}
-          variant="solid"
-          colorScheme="minusxGreen"
-          aria-label="Refresh"
-          size={'xs'}
-          icon={<Icon as={BsX} boxSize={5} />}
-          position={"absolute"}
-          top={0}
-          right={0}
-        />
-        <ImageComponent src={url} height={"100px"} width={"100px"} objectFit={"contain"}/>
-      </Box>
-    )
-  })
-  return (
-    <HStack>
-      {ThumbnailComponents}
-    </HStack>
-  )
-}
+import { Thumbnails } from './Thumbnails'
+import { UserConfirmation } from './UserConfirmation'
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -129,6 +91,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const messages = activeThread.messages
+  const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
   const taskInProgress = !(activeThread.status == 'FINISHED')
   const[showMessagesTooLong, setShowMessagesTooLong] = useState(messages?.length > 100)
@@ -221,6 +184,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       </VStack>
       <VStack alignItems={"stretch"}>
         <Divider borderColor={"minusxBW.500"}/>
+        { !taskInProgress && !userConfirmation.show &&
+        <>
         <ChatSuggestions
           suggestQueries={suggestQueries}
           toggleSuggestions={toggleSuggestions}
@@ -236,7 +201,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           }} 
         />
         <Divider borderColor={"minusxBW.500"}/>
+        </>
+         }
         <Thumbnails thumbnails={thumbnails} />
+        <UserConfirmation userConfirmation={userConfirmation}/>
         <HStack>
           <Textarea
             ref={ref}
