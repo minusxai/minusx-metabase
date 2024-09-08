@@ -53,7 +53,7 @@ export abstract class AppController<T> {
     return await RPCs.scrollIntoView(selector, index);
   }
 
-  async uSetValue({ query, value = "", index = 0 }) {
+  async setValue({ query, value = "", index = 0 }) {
     const selectorMap = await this.app.getQuerySelectorMap();
     const selector = selectorMap[query];
     await getRippleEffect(selector, index);

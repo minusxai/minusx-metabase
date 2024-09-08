@@ -30,7 +30,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     if (!userApproved) {
       throw new Error("Action (and subsequent plan) cancelled!");
     }
-    await this.uSetValue({
+    await this.setValue({
       query: "select_cell_text",
       index: cell_index,
       value,
