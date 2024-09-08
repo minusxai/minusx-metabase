@@ -121,8 +121,10 @@ function ProviderApp() {
                 const message = await getPendingMessage()
                 if (!_.isEmpty(message)) {
                     console.log("received message", message)
-                    const response = convertToMarkdown(message)
+                    const response = await convertToMarkdown(message)
                     console.log("Final response is", response)
+                    const content = response.content
+                    await gdocWrite(content)
                 }
             } catch (err){
 

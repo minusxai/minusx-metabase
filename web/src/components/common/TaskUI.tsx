@@ -259,8 +259,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Button onClick={async () => {
               console.log("<><><> button clicked")
               // let text = await gdocReadSelected()
-              console.log("Text is", instructions)
-              let response = await forwardToTab("gdoc", String(instructions))
+              const appState = await getApp().getState()
+              console.log("Text is", appState)
+              let response = await forwardToTab("gdoc", appState)
               console.log("Response is", response)
               // await gdocWrite(String(response?.response?.text))
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>

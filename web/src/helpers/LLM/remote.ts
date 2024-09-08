@@ -124,7 +124,7 @@ export const convertToMarkdown = async(appState: string): Promise<string[]> => {
   The user gives you a jupyter state and you must convert it into a markdown document.
   Just give a report as a markdown document based on the notebook
   `
-  const userMessage = appState
+  const userMessage = JSON.stringify(appState)
 
   const response = await getLLMResponse({
     messages: [{
