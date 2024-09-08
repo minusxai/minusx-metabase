@@ -164,4 +164,10 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     const selectedCell = state.cells.filter((cell) => cell.isSelected)[0];
     return selectedCell.output[0].value;
   }
+
+  async sendNotebookToGoogleDoc() {
+    const notebook = await this.app.getState();
+    const notebookAsText = JSON.stringify(notebook);
+    // await RPCs.forwardToTab
+  }
 }
