@@ -32,11 +32,11 @@ async function _init(localConfigs: Promise<object>) {
     console.error = () => {}
   }
   initRPC()
-  if (!configs.IS_DEV) {
+  // if (!configs.IS_DEV) {
     // initialise Posthog
     initPosthog(posthogAPIKey, posthogConfigs)
     initWindowListener(posthogRPCs)
-  }
+  // }
 
   setupStyles('content.styles.css')
   // setupStyles(configs.WEB_CSS_CONFIG_URL, false)
