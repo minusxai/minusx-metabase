@@ -9,9 +9,9 @@ const payloadLessEvents = ['persist/REHYDRATE']
 
 export const initEventCapture = once(() => {
     initCustomEventCapture()
-    // if (!configs.IS_DEV) {
+    if (!configs.IS_DEV) {
         initPosthog()
-    // }
+    }
 })
 
 export const initEventListener = once(() => {
