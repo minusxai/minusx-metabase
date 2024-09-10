@@ -46,6 +46,7 @@ export const getElementScreenCapture = (selector: QuerySelector) => sendMessage(
 export const uSelectAllText = (shouldDelete = false) => sendMessage("uSelectAllText", [shouldDelete], {log_rpc: true})
 export const identifyPosthogUser = (profile_id: string, kv?: Record<string, string>) => sendMessage("identifyPosthogUser", [profile_id, kv])
 export const setPosthogGlobalProperties = (kv: Record<string, any>) => sendMessage("setPosthogGlobalProperties", [kv])
+export const setPosthogPersonProperties = (kv: Record<string, any>) => sendMessage("setPosthogPersonProperties", [kv])
 export const resetPosthog = () => sendMessage("resetPosthog", [])
 export const startPosthog = () => sendMessage("startPosthog", [])
 export const stopPosthog = () => sendMessage("stopPosthog", [])
