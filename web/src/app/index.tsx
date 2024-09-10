@@ -14,7 +14,7 @@ import { configs } from '../constants';
 import { setAxiosJwt } from './api';
 import { ToastContainer } from './toast';
 import { interruptPlan, setActiveThreadStatus } from '../state/chat/reducer';
-import { initEventCapture } from '../tracking/init';
+import { initEventCapture, initEventListener } from '../tracking/init';
 import { getExtensionID } from '../helpers/extensionId';
 import { onSubscription } from '../helpers/documentSubscription';
 import { getApp } from '../helpers/app';
@@ -71,14 +71,16 @@ const useMinusXMode = () => {
     return 'open-sidepanel'
 }
 
+initEventCapture()
+
 const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isAppOpen: boolean) => {
+    initEventListener();
     dispatch(setIframeInfo(getParsedIframeInfo()))
     getApp().setup()
     initRPCSync(ref)
     setMinusxMode(mode)
     toggleMinusX(!isAppOpen)
     toggleMinusXRoot('invisible', false)
-    initEventCapture();
 })
 
 const persistor = persistStore(store);
