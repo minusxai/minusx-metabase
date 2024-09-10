@@ -1,4 +1,4 @@
-import { capturePosthogEvent, identifyPosthogUser, startPosthog, stopPosthog } from "./posthog"
+import { capturePosthogEvent, identifyPosthogUser, setPosthogGlobalProperties, setPosthogPersonProperties, startPosthog, stopPosthog } from "./posthog"
 import { captureCustomEvent, setGlobalCustomEventProperties, startCustomEventCapture, stopCustomEventCapture } from "./custom"
 
 export const GLOBAL_EVENTS = {
@@ -16,12 +16,14 @@ export const captureEvent = (type: string, payload?: object) => {
     captureCustomEvent(type, payload)
 }
 
-export const identifyUser = (profile_id: string, kv?: Record<string, string>) => {
-    identifyPosthogUser(profile_id, kv)
-    setGlobalCustomEventProperties({
-        profile_id,
-        ...kv
-    })
+export const identifyUser = (unique_id: string) => {
+    identifyPosthogUser(unique_id)
+}
+
+export const setGlobalProperties = (kv: Record<string, string>) => {
+    setGlobalCustomEventProperties(kv)
+    setPosthogGlobalProperties(kv)
+    setPosthogPersonProperties(kv)
 }
 
 export const stopEventCapture = () => {

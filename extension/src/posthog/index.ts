@@ -11,15 +11,17 @@ export const posthogRPCs = {
     takeFullPosthogSnapshot: async () => {
         window.rrweb.record.takeFullSnapshot()
     },
-    identifyPosthogUser: async (profile_id: string, kv?: Record<string, string>) => {
+    identifyPosthogUser: async (unique_id: string, kv?: Record<string, string>) => {
         const data = {
             ...kv,
-            profile_id
         }
-        window.posthog.identify(profile_id, data)
+        window.posthog.identify(unique_id, data)
     },
     setPosthogGlobalProperties: async (kv: Record<string, any>) => {
         window.posthog.register(kv)
+    },
+    setPosthogPersonProperties: async (kv: Record<string, any>) => {
+        window.posthog.setPersonProperties(kv)
     },
     capturePosthogEvent: async (event: string, kv?: object) => {
         const data = {

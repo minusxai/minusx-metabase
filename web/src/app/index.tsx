@@ -19,7 +19,7 @@ import { getExtensionID } from '../helpers/extensionId';
 import { onSubscription } from '../helpers/documentSubscription';
 import { getApp } from '../helpers/app';
 import { getParsedIframeInfo } from '../helpers/origin';
-import { identifyUser } from '../tracking';
+import { identifyUser, setGlobalProperties } from '../tracking';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
@@ -72,6 +72,7 @@ const useMinusXMode = () => {
 }
 
 initEventCapture()
+identifyUser(getExtensionID())
 
 const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isAppOpen: boolean) => {
     initEventListener();
@@ -103,20 +104,15 @@ function ProviderApp() {
         }
     }, [profileId, session_jwt])
     useEffect(() => {
-        const extensionId = getExtensionID()
         const globalData = {
             IS_DEV: String(configs.IS_DEV),
             ...getParsedIframeInfo()
         }
         if (profileId) {
-            const kv = {
-                email: email || '',
-                ...globalData
-            }
-            identifyUser(profileId, kv)
-        } else {
-            identifyUser(extensionId, globalData)
+            globalData['email'] = email
+            globalData['profile_id'] = profileId
         }
+        setGlobalProperties(globalData)
     }, [profileId])
     // Hack to fix planning stage
     useEffect(() => {

@@ -47,6 +47,19 @@ export const setPosthogGlobalProperties = async (kv: Record<string, string>) => 
     }
 }
 
+export const setPosthogPersonProperties = async (kv: Record<string, string>) => {
+    try {
+        await RPC.setPosthogPersonProperties(kv)
+    } catch (err) {
+        console.error('Error while registering posthog person properties (RPC) is', err)
+    }
+    try {
+        posthog.setPersonProperties(kv)
+    } catch (err) {
+        console.error('Error while registering posthog person properties is', err)
+    }
+}
+
 export const capturePosthogEvent = async (event: string, kv?: object) => {
     if (!_posthog_enabled) {
         return
