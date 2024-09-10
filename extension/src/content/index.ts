@@ -19,7 +19,6 @@ async function _init(localConfigs: Promise<object>) {
   const mode = get(localConfigs, "configs.mode", "open-sidepanel")
   const extensionId = await getExtensionID()
   const { tool, toolVersion, inject } = identifyToolNative()
-  console.log("<><><> identifyToolNative", tool, toolVersion, inject)
   if (tool == TOOLS.OTHER) {
     return;
   }
@@ -41,6 +40,7 @@ async function _init(localConfigs: Promise<object>) {
     initWindowListener(posthogRPCs)
   }
 
+  setupScript('debug.bundle.js')
   setupStyles('content.styles.css')
   // setupStyles(configs.WEB_CSS_CONFIG_URL, false)
 

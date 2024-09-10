@@ -94,7 +94,7 @@ const scrollElementIntoView = async (element: Element) => {
   }
 };
 
-const dropText = async (textToDrop: string, element: Element) => {
+export const dropText = async (textToDrop: string, element: Element) => {
   const dataTransfer = new DataTransfer();
   dataTransfer.clearData()
   dataTransfer.setData('text/plain', textToDrop);

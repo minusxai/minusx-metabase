@@ -24,6 +24,10 @@ export const querySelectorMap: QuerySelectorMap = {
   "cancel_button": {
     type: "XPATH",
     selector:  `//span[@class="LemonButton__content" and text()="Cancel"]`
+  },
+  "hoql_container_to_resize": {
+    type: "XPATH",
+    selector: `//div[@data-attr="hogql-query-editor"]//div[contains(@class,"resize-y overflow-hidden")]`
   }
 };
 
