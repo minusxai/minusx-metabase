@@ -8,6 +8,13 @@ import { configs } from "../constants"
 const payloadLessEvents = ['persist/REHYDRATE']
 
 export const initEventCapture = once(() => {
+    initCustomEventCapture()
+    if (!configs.IS_DEV) {
+        initPosthog()
+    }
+})
+
+export const initEventListener = once(() => {
     eventListener.startListening.withTypes<RootState, AppDispatch>()({
         predicate: () => true,
         effect: async (action) => {
@@ -34,10 +41,6 @@ export const initEventCapture = once(() => {
             }
         },
     }) 
-    initCustomEventCapture()
-    if (!configs.IS_DEV) {
-        initPosthog()
-    }
     if (getState().settings.uploadLogs) {
         startEventCapture()
     } else {
