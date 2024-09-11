@@ -1,4 +1,4 @@
-import { ToolMatcher } from 'extension'
+import { ToolMatcher } from 'extension/types'
 
 // runs in content script context
 export abstract class AppSetup {

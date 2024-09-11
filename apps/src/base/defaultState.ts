@@ -1,4 +1,4 @@
-import { DOMQueryMap, QuerySelectorMap } from "extension";
+import { DOMQueryMap, QuerySelectorMap } from "extension/types";
 import {
   DEFAULT_PLANNER_SYSTEM_PROMPT,
   DEFAULT_PLANNER_USER_PROMPT,

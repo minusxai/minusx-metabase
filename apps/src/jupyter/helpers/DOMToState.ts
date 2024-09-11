@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { DOMQuery } from 'extension';
+import { DOMQuery } from 'extension/types';
 import { RPCs } from 'web';
 
 const { getJupyterState } = RPCs;

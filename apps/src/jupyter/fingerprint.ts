@@ -1,4 +1,4 @@
-import { ToolMatcher } from "../base/appSetup";
+import { ToolMatcher } from "extension/types"
 
 export const jupyterFingerprintMatcher: ToolMatcher = {
   default: {

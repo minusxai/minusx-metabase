@@ -9,6 +9,7 @@ import { TOOLS } from '../../constants';
 import { getExtensionID } from '../identifier';
 import { get } from 'lodash';
 import { ToolID } from '../../content/RPCs/domEvents';
+
 let INVALID_TAB = 'Invalid tab';
 const FUNCTIONS = {
   sendDebuggerCommand: async ({ tabId, method, params }) => {

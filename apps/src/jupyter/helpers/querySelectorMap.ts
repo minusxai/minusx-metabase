@@ -1,4 +1,4 @@
-import { QuerySelectorMap } from 'extension';
+import { QuerySelectorMap } from 'extension/types';
 import _ from 'lodash'
 
 // the or condition is for handling jupyter notebook. TODO(@arpit): figure out more elegant way to handle this

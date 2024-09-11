@@ -1,6 +1,7 @@
 import type { QuerySelector, QuerySelectorMap, Base64Image } from "extension/types";
 import { get } from "lodash";
-import { DefaultMessageContent, RPCs, utils } from "web";
+import { RPCs, utils } from "web";
+import { DefaultMessageContent } from "web/types"
 
 interface App<T> {
   getState: () => Promise<T>;
