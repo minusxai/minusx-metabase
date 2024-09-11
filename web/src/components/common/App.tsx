@@ -30,6 +30,7 @@ import { setMinusxMode } from '../../app/rpc'
 import { configs } from '../../constants'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { getParsedIframeInfo } from '../../helpers/origin'
+import { getApp } from '../../helpers/app'
 
 
 const AppLoggedIn = forwardRef((_props, ref) => {
@@ -140,10 +141,42 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   )
 })
 
+const useAppStore = getApp().useStore()
+
+function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: string }) {
+  const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+  return <div style={{
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      width: isDevToolsOpen ? '850px' : '350px', // Hack to fix Disabled Overlay
+      height: '100%',
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      zIndex: 1000,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+  }}>
+      <span style={{
+          fontSize: '1rem',
+          fontWeight: 'bold',
+          color: '#fff',
+          padding: '10px 20px',
+          margin: '10px',
+          backgroundColor: '#34495e',
+          borderRadius: '5px',
+          textAlign: 'center'
+      }}>
+          {toolEnabledReason}
+      </span>
+  </div>
+}
+
 const AppBody = forwardRef((_props, ref) => {
   const auth = useSelector((state: RootState) => state.auth)
   const appMode = useSelector((state: RootState) => state.settings.appMode)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+  const toolEnabled = useAppStore((state) => state.isEnabled)
   useEffect(() => {
     if (appMode == 'selection') {
       dispatch(updateAppMode('sidePanel'))
@@ -185,6 +218,7 @@ const AppBody = forwardRef((_props, ref) => {
     return (
       <>
         {isDevToolsOpen && <DevToolsBox />}
+        {!toolEnabled.value && <DisabledOverlayComponent toolEnabledReason={toolEnabled.reason} />}
         <AppLoggedIn ref={ref}/>
       </>
     )

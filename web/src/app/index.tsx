@@ -85,7 +85,6 @@ const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isApp
 })
 
 const persistor = persistStore(store);
-const useAppStore = getApp().useStore()
 
 function ProviderApp() {
     const mode = useMinusXMode()
@@ -93,7 +92,6 @@ function ProviderApp() {
     const email = useSelector((state: RootState) => state.auth.email)
     const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
     const isAppOpen = useSelector((state: RootState) => state.settings.isAppOpen)
-    const toolEnabled = useAppStore((state) => state.isEnabled)
    
     const ref = useRef<HTMLInputElement>(null)
     const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
@@ -129,39 +127,9 @@ function ProviderApp() {
     }, [])
     return (
         <>
-            {!toolEnabled.value && <DisabledOverlayComponent toolEnabledReason={toolEnabled.reason} />}
             <App ref={ref} />
         </>
     )
-}
-
-function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: string }) {
-    const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-    return <div style={{
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        width: isDevToolsOpen ? '850px' : '350px', // Hack to fix Disabled Overlay
-        height: '100%',
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        zIndex: 1000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-    }}>
-        <span style={{
-            fontSize: '1rem',
-            fontWeight: 'bold',
-            color: '#fff',
-            padding: '10px 20px',
-            margin: '10px',
-            backgroundColor: '#34495e',
-            borderRadius: '5px',
-            textAlign: 'center'
-        }}>
-            {toolEnabledReason}
-        </span>
-    </div>
 }
 
 function RootApp() {
