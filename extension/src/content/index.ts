@@ -17,8 +17,6 @@ const WEB_URL = configs.WEB_URL
 async function _init(localConfigs: Promise<object>) {
   await localConfigs
   const mode = get(localConfigs, "configs.mode", "open-sidepanel")
-  const posthogConfigs = get(localConfigs, "configs.posthog_configs", {})
-  const posthogAPIKey = get(localConfigs, "configs.posthog_api_key", configs.POSTHOG_API_KEY)
   const extensionId = await getExtensionID()
   const { tool, toolVersion, inject } = identifyToolNative()
   if (tool == TOOLS.OTHER) {
@@ -34,7 +32,7 @@ async function _init(localConfigs: Promise<object>) {
   initRPC()
   if (!configs.IS_DEV) {
     // initialise Posthog
-    initPosthog(posthogAPIKey, posthogConfigs)
+    initPosthog()
     initWindowListener(posthogRPCs)
   }
 

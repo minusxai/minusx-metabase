@@ -38,15 +38,11 @@ export const posthogRPCs = {
     }
 }
 
-export const initPosthog = (posthog_api_key: string, posthog_config?: Partial<PostHogConfig>) => {
+export const initPosthog = () => {
     const posthog = window.posthog
     const parsedPosthogConfigs = JSON.parse(configs.POSTHOG_CONFIGS)
-    posthog_config = {
-        ...parsedPosthogConfigs,
-        ...posthog_config
-    }
     posthog.init(
-        posthog_api_key,
-        posthog_config
+        configs.POSTHOG_API_KEY,
+        parsedPosthogConfigs
     )
 }
