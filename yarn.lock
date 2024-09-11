@@ -11364,14 +11364,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"posthog-js@npm:^1.154.5":
-  version: 1.154.5
-  resolution: "posthog-js@npm:1.154.5"
+"posthog-js@npm:^1.161.3":
+  version: 1.161.3
+  resolution: "posthog-js@npm:1.161.3"
   dependencies:
     fflate: "npm:^0.4.8"
     preact: "npm:^10.19.3"
     web-vitals: "npm:^4.0.1"
-  checksum: 10c0/4e51b3bebd37a2695ae8bda26ce9487b1f18369e299747f4bbe3e47dce9cb2f7c2fab3808f0554a9fe471602796824f8ce6dc4114be339549fc8711f934f4d22
+  checksum: 10c0/f5b85f56f38d57c70b1ef038d886f671b8f126927189a8043b8817942883e366b7d3ac530c9a171baaaed11aabc1736f83bba9ede2f3058a80ec3e4f688c49aa
   languageName: node
   linkType: hard
 
@@ -14022,7 +14022,7 @@ __metadata:
     js-tiktoken: "npm:^1.0.12"
     lodash: "npm:^4.17.21"
     openai: "npm:^4.38.2"
-    posthog-js: "npm:^1.154.5"
+    posthog-js: "npm:^1.161.3"
     prettier: "npm:^2.8.4"
     puppeteer: "npm:^22.13.0"
     query-string: "npm:^9.0.0"
