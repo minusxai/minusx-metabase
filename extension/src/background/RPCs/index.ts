@@ -72,8 +72,24 @@ const FUNCTIONS = {
     }
     const fn = "respondToOtherTab"
     const args = { message }
-    // just get the first tab id available and send the message to it and wait for response
-    const tabId = tabIds[0]
+    // get the leftmost tab id available. use the index and use chrome.tabs.get to get tab info
+    const tabsInfo = await Promise.all(tabIds.map(id => chrome.tabs.get(id)))
+    if (tabsInfo.length == 0) {
+      console.warn("no tab info found for tool", tool)
+      return
+    }
+    // find tab with min index
+    const minTabInfo = tabsInfo.reduce((min, tabInfo) => {
+      if (tabInfo.index < min.index) {
+        return tabInfo
+      }
+      return min
+    }, tabsInfo[0])
+    const tabId = minTabInfo.id
+    if (!tabId) {
+      console.warn("no tab id found for tool", tool)
+      return
+    }
     // switch to that tab
     await chrome.tabs.update(tabId, {active: true})
     const response = await sendTabContentScriptMessage({ fn, args }, tabId)
