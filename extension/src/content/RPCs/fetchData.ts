@@ -31,7 +31,7 @@ export async function fetchData<T>(
       headers[csrfInfo.headerKey] = String(token);
     }
   }
-  let options: RequestInit = {
+  const options: RequestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
