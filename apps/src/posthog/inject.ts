@@ -35,7 +35,6 @@ setInterval(() => {
 }, 1000)
 
 const setTextPosthog = async (selector: QuerySelector, value: string = '') => {
-  // const element = document.evaluate(selector.selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue as HTMLElement
   const elements = resolveSelector(selector)
   if (elements && elements.length > 0) {
     const element = elements[0]
