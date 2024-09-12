@@ -1,7 +1,11 @@
 import { get, isEmpty } from "lodash"
 import { initWindowListener } from 'extension'
 import { querySelectorMap } from "./querySelectorMap"
-
+import { QuerySelector } from "extension/types";
+import { userEvent } from "@testing-library/user-event";
+import { sleep } from "../common/utils";
+// quite a bit of hacks here; shouldn't be importing all this stuff into this file
+// kind of breaks extension/apps/web abstraction. will generalize later
 console.log('Loading posthog RPCs')
 
 const getPosthogAppContext = (path: Parameters<typeof get>[1]) => {
@@ -23,16 +27,27 @@ let interval = setInterval(() => {
   if (container) {
     // height is set in style property, just change it 400px
     container.style.height = '400px'
-    // remove timeout
-    clearInterval(interval)
+    // don't remove timeout, need it for page switching etc.
+    // clearInterval(interval)
   }
 }, 1000)
 
+const setTextPosthog = async (selector: QuerySelector, value: string = '') => {
+  const element = document.evaluate(selector.selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue as HTMLElement
+  if (element) {
+    await userEvent.click(element);
+    await sleep(200)
+    await document.execCommand('selectall', false)
+    await sleep(200)
+    await userEvent.keyboard(value);
+  }
+}
 
 
 
 export const rpc = {
-  getPosthogAppContext
+  getPosthogAppContext,
+  setTextPosthog
 }
 
 initWindowListener(rpc)

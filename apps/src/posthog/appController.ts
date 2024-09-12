@@ -39,21 +39,24 @@ export class PosthogController extends AppController<PosthogAppState> {
     // await RPCs.uSelectAllText(false);
     // await this.wait({ time: 100})
     // await RPCs.typeText(querySelectorMap["hogql_query"], sql);
-
-    await RPCs.uDblClick(querySelectorMap["hogql_query"]);
-    await this.wait({ time: 100})
+    let escapedQuery = escapeKeyboardCharacters(query);
+    // also add a {Backspace} after every newline in the query. actually forget it.
+    // escapedQuery = escapedQuery.replace(/\n/g, '\n{Backspace}');
+    await RPCs.setTextPosthog(querySelectorMap["hogql_query"], escapedQuery);
     // await RPCs.typeText(querySelectorMap["hogql_query"], "{Home}")
-    await RPCs.uSelectAllText(true, ['cut']);
     // await this.wait({ time: 500})
     // await RPCs.typeText(querySelectorMap["hogql_query"], "{Backspace}{Backspace}{Backspace}{Backspace}")
     // await this.wait({ time: 100})
     // await RPCs.typeText(querySelectorMap["hogql_query"], "{Backspace}")
     // await RPCs.typeText(querySelectorMap["hogql_query"], "{Home} ")
+    // await RPCs.uDblClick(querySelectorMap["hogql_query"]);
+    // await this.wait({ time: 100})
+    // await RPCs.uSelectAllText(true, ['cut']);
 
-    // Need some event to reset Monaco
-    let escapedQuery = escapeKeyboardCharacters(query);
-    await this.wait({ time: 100})
-    await RPCs.typeText(querySelectorMap["hogql_query"], escapedQuery)
+    // // Need some event to reset Monaco
+    // let escapedQuery = escapeKeyboardCharacters(query);
+    // await this.wait({ time: 100})
+    // await RPCs.typeText(querySelectorMap["hogql_query"], escapedQuery)
     // do metadata request and check for errors
     const sqlQueryMetadata = await getSqlQueryMetadata(query);
     if (sqlQueryMetadata && sqlQueryMetadata.errors.length > 0) {

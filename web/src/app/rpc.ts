@@ -59,6 +59,7 @@ export const getMetabaseState = (path: Parameters<typeof get>[1]) => sendMessage
 export const getJupyterState = (mode?: string) => sendMessage("getJupyterState", [mode], {log_rpc: true, timeout: 3000})
 export const getJupyterCodeOutput = (code?: string, notebookId?: string, mode?: string) => sendMessage("getJupyterCodeOutput", [code, notebookId, mode])
 export const getPosthogAppContext = (path: Parameters<typeof get>[1]) => sendMessage("getPosthogAppContext", [path], {log_rpc: false})
+export const setTextPosthog = (selector: QuerySelector, value: string = '') => sendMessage("setTextPosthog", [selector, value], {log_rpc: true})
 export const attachMutationListener = (domQueryMap: DOMQueryMap) => sendMessage("attachMutationListener", [domQueryMap], {log_rpc: true})
 export const detachMutationListener = (id: number) => sendMessage("detachMutationListener", [id], {log_rpc: true})
 
