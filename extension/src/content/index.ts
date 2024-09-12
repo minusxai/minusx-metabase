@@ -40,7 +40,6 @@ async function _init(localConfigs: Promise<object>) {
     initWindowListener(posthogRPCs)
   }
 
-  setupScript('debug.bundle.js')
   setupStyles('content.styles.css')
   // setupStyles(configs.WEB_CSS_CONFIG_URL, false)
 

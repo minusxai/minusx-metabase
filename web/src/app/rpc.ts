@@ -43,7 +43,7 @@ export const setMinusxMode = (mode: string) => sendMessage("setMinusxMode", [mod
 export const toggleMinusXRoot = (className: ValidMinusxRootClass, value?: boolean) => sendMessage("toggleMinusXRoot", [className, value], {log_rpc: true})
 export const captureVisibleTab = () => sendMessage("captureVisibleTab", [], {log_rpc: true})
 export const getElementScreenCapture = (selector: QuerySelector) => sendMessage("getElementScreenCapture", [selector], {log_rpc: true})
-export const uSelectAllText = (shouldDelete = false, deleteOps = ['delete']) => sendMessage("uSelectAllText", [shouldDelete, deleteOps], {log_rpc: true})
+export const uSelectAllText = (shouldDelete = false) => sendMessage("uSelectAllText", [shouldDelete], {log_rpc: true})
 export const identifyPosthogUser = (profile_id: string, kv?: Record<string, string>) => sendMessage("identifyPosthogUser", [profile_id, kv])
 export const setPosthogGlobalProperties = (kv: Record<string, any>) => sendMessage("setPosthogGlobalProperties", [kv])
 export const setPosthogPersonProperties = (kv: Record<string, any>) => sendMessage("setPosthogPersonProperties", [kv])

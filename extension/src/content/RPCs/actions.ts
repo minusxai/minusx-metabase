@@ -109,9 +109,7 @@ export const uClick = async (selector: QuerySelector, index: number = 0) => {
     return await user.click(element)
   }
 }
-if (process.env.NODE_ENV == 'development' || true) {
-  (window as any).uClick = uClick
-}
+
 export const uDblClick = async (selector: QuerySelector, index: number = 0) => {
   const user = userEvent.setup({
     pointerEventsCheck: PointerEventsCheckLevel.EachTrigger
