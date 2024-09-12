@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, HStack, Text, Button } from '@chakra-ui/react';
+import { Box, HStack, Text, Select, Button } from '@chakra-ui/react';
 import { getLLMContextFromState } from '../../planner/utils';
 import ReactJson from 'react-json-view'
 import { UserChatMessage } from '../../state/chat/reducer';
@@ -18,7 +18,8 @@ import { configs } from '../../constants';
 import { getApp } from '../../helpers/app';
 import { getParsedIframeInfo } from '../../helpers/origin';
 import { AppState } from 'apps/types';
-
+import { dispatch } from '../../state/dispatch';
+import { switchToThread } from '../../state/chat/reducer';
 const cache: Record<string, TiktokenBPE> = {};
 
 async function getEncoding(
@@ -54,7 +55,7 @@ export const LLMContext: React.FC<null> = () => {
       restTokens: 0,
       actionDescriptionsTokens: 0,
     })
-
+    const numThreads = useSelector((state: RootState) => state.chat.threads.length)
     // const messageHistory = activeThread.messages.slice(0)
     const messageHistory = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread].messages)
     const thumbnailInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
@@ -175,11 +176,28 @@ export const LLMContext: React.FC<null> = () => {
       const perc = total ? Math.round(value * 100 / Object.values(tokenCounts).reduce((s, a) => s + a, 0)) : 0
       return `${value} | ${perc}%`
     }
-   
+    const activeThreadIdx = useSelector((state: RootState) => state.chat.activeThread)
     return (
       <Box>
         <Text fontSize="lg" fontWeight="bold">LLM Context</Text>
         <Text fontSize="xs" fontWeight="bold" color="minusxGreen.800">Total Tokens: {getTokenTokenPercs('totalTokens')}</Text>
+        <Box mt={4} backgroundColor="minusxBW.300" p={2} borderRadius={5} width={"100%"}>
+          {/* show selection to choose active thread */}
+          <HStack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+            <Text fontSize="md" fontWeight="bold">Active Thread</Text>
+            <Select
+              value={activeThreadIdx}
+              onChange={(e) => {
+                return dispatch(switchToThread(parseInt(e.target.value)))
+              }}
+            >
+              {/* show options 0 to numThreads-1*/}
+              {Array.from(Array(numThreads).keys()).map((threadIdx) => (
+                <option key={threadIdx} value={threadIdx}>{threadIdx}</option>
+              ))}
+            </Select>
+          </HStack>
+        </Box>
         <Box mt={4} backgroundColor="minusxBW.300" p={2} borderRadius={5}>
           <HStack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text fontSize="md" fontWeight="bold">LLM Info</Text>

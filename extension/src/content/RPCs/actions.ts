@@ -14,10 +14,6 @@ const OLD_ELEMENTS: OldElements = {
   style: {}
 }
 
-if (process.env.NODE_ENV == 'development' || true) {
-  ;(window as any).userEvent = userEvent
-}
-
 const highlightElement = (newElement: HTMLElement, newStyle: Style) => {
   // Set element style to new style
   const oldStyle: Style = {}
@@ -126,9 +122,8 @@ export const uDblClick = async (selector: QuerySelector, index: number = 0) => {
   }
 }
 
-type DeleteOps = 'delete' | 'cut'
 
-export const uSelectAllText = async (shouldDelete = false, deleteOps: DeleteOps[] =['delete']) => {
+export const uSelectAllText = async (shouldDelete = false) => {
     await document.execCommand('selectall', null, false)
     if (shouldDelete) {
         await document.execCommand('delete', null, false)
@@ -143,29 +138,6 @@ export const typeText = async (selector: QuerySelector, value: string = '', inde
   if (element) {
     console.log('Setting value', element, selector, value, index)
     await user.keyboard(value)
-  }
-}
-
-export const uSetValueSlow = async (selector: QuerySelector, value: string = '', index: number = 0) => {
-  const user = userEvent.setup({
-    pointerEventsCheck: PointerEventsCheckLevel.EachTrigger,
-    skipClick: true,
-  })
-  const element = getElementFromQuerySelector(selector, index);
-  if (element) {
-    console.log('Setting value', selector, value, index)
-    element.dispatchEvent(new Event('focus'));
-    await user.keyboard(' {Backspace}')
-    // const initVal = '{Backspace}'.repeat(value.length+2)
-    // await user.keyboard(initVal)
-    await user.keyboard('{Control>}a{/Control}')
-    await user.keyboard(value)
-    // for (const char of value) {
-    //   // await fireEvent(element, new KeyboardEvent('keydown', { key: char }))
-    //   // await fireEvent(element, new KeyboardEvent('keyup', { key: char }))
-    //   await sleep(100)
-    //   await user.type(element, `${char}`)
-    // }
   }
 }
 

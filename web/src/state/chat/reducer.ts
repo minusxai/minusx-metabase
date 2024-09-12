@@ -369,6 +369,6 @@ export const chatSlice = createSlice({
 
 export const abortPlan = createAction('chat/abortPlan')
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, switchToThread } = chatSlice.actions
 
 export default chatSlice.reducer
