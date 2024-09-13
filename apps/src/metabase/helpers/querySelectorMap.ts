@@ -78,5 +78,13 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//button[@aria-label="Cancel" and @data-testid="run-button"]|//button[contains(@class,"RunButton")]/div/*[@aria-label="close icon"]/../..'
   },
+  select_database_dropdown: {
+    type: 'XPATH',
+    selector: '//div[contains(@class, "GuiBuilder-data")]//a | //div[@data-testid="gui-builder-data"]//a'
+  },
+  select_database_dropdown_options: {
+    type: 'XPATH',
+    selector: '//div[@id="DatabasePicker"]//div[contains(@class,"List-section") or @data-element-id="list-section"]/div/*'
+  },
   ...visualizationSelectors
 };

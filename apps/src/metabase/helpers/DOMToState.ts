@@ -1,5 +1,5 @@
 import { RPCs } from 'web'
-import { getTop200TablesWithoutFieldsForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo } from './getDatabaseSchema';
+import { getTop200TablesWithoutFieldsForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPage } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -28,7 +28,8 @@ interface ExtractedTable {
 
 
 export interface MetabaseAppStateSQLEditor {
-  databaseInfo?: ExtractedDataBase;
+  availableDatabases?: string[];
+  selectedDatabaseInfo?: ExtractedDataBase;
   relevantTables: ExtractedTable[];
   sqlQuery: string;
   sqlErrorMessage?: string;
@@ -47,7 +48,8 @@ export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashb
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
-  const databaseInfo = await getDatabaseInfoForSelectedDb();
+  const availableDatabases = (await memoizedGetDatabases())?.data?.map(({ name }) => name);
+  const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const selectedDatabaseSchema = await getTop200TablesWithoutFieldsForSelectedDb();
   const tables = selectedDatabaseSchema? selectedDatabaseSchema.tables.map(table => extractTableInfo(table)) : [];
 
@@ -60,7 +62,8 @@ export async function convertDOMtoStateSQLQuery() {
   const isShowingChartTypeSidebar = await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar')
   const vizType = await getMetabaseState('qb.card.display')
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
-    databaseInfo,
+    availableDatabases,
+    selectedDatabaseInfo,
     relevantTables: tables,
     sqlQuery,
     queryExecuted,

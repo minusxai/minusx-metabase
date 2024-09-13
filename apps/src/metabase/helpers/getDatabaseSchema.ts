@@ -6,8 +6,17 @@ const { getMetabaseState, fetchData } = RPCs;
 
 // 5 minutes
 const DEFAULT_TTL = 60 * 5;
+
+// this is a subset
+interface DatabaseResponse {
+  total: number;
+  data: {
+    name: string;
+    id: number;
+  }[]
+}
 async function getDatabases() {
-  const resp: any = await fetchData('/api/database', 'GET')
+  const resp = await fetchData('/api/database', 'GET') as DatabaseResponse
   return resp;
 }
 // only memoize for DEFAULT_TTL seconds

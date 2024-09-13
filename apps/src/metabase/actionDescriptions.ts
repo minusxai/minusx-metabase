@@ -77,6 +77,16 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
       }
     },
     description: 'Searches for previous SQL queries using the specified words.',
+  },
+  {
+    name: 'selectDatabase',
+    args: {
+      database: {
+        type: 'string',
+        description: "The name of the database to select."
+      }
+    },
+    description: 'Selects the specified database. Use this tool if user asks to select a database or there is no database selected. ALWAYS confirm with the user before using this tool.',
   }
 ];
 

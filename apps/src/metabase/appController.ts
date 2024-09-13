@@ -186,4 +186,29 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     return actionContent;
   }
+  async selectDatabase({ database }: { database: string }) {
+    let actionContent: BlankMessageContent = { type: "BLANK" };
+    const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
+    if (state.selectedDatabaseInfo?.name === database) {
+      actionContent.content = "Database already selected";
+      return actionContent;
+    }
+    const querySelectorMap = await this.app.getQuerySelectorMap();
+    let options = await RPCs.queryDOMSingle({ selector: querySelectorMap["select_database_dropdown_options"], attrs: ['text'] });
+    // if no options, need to click on dropdown selector first
+    if (options.length === 0) {
+      await this.uClick({ query: "select_database_dropdown" });
+      options = await RPCs.queryDOMSingle({ selector: querySelectorMap["select_database_dropdown_options"], attrs: ['text'] });
+    }
+    const optionsTexts = options.map((option: any) => option?.attrs?.text); 
+    // find the index of the database in the options
+    const index = optionsTexts.findIndex((optionText: string) => optionText?.toLowerCase() === database?.toLowerCase());
+    if (index === -1) {
+      actionContent.content = `Database "${database}" not found`;
+      return actionContent;
+    }
+    await this.uClick({ query: `select_database_dropdown_options`, index });
+    actionContent.content = "Database selected";
+    return actionContent;
+  }
 }

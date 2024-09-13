@@ -3,7 +3,7 @@ export const MetabaseStateSchema = {
   "type": "object",
   "description": "The state of a metabase application",
   "properties": {
-    "databaseInfo": {
+    "selectedDatabaseInfo": {
       "type": "object",
       "description": "Database info",
       "properties": {
@@ -100,7 +100,7 @@ export const MetabaseStateSchema = {
       "description": "The output table in markdown format"
     }
   },
-  "required": ["pageType", "selectedDatabaseSchema", "sqlQuery", "queryExecuted", "sqlEditorState", "visualizationType", "visualizationSettingsStatus"]
+  "required": ["pageType", "sqlQuery", "queryExecuted", "sqlEditorState", "visualizationType", "visualizationSettingsStatus"]
 }
 
 export const DashboardInfoSchema = {
