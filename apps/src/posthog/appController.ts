@@ -1,5 +1,5 @@
 import { AppController } from "../base/appController";
-import { getSqlQueryMetadata, memoizedGetCurrentProjectDatabaseSchema } from "./api";
+import { getSqlQueryMetadata, memoizedGetCurrentProjectDatabaseSchema, runBackgroundHogqlQuery } from "./api";
 import { PosthogAppState } from "./types";
 import { BlankMessageContent } from "web/types"; 
 import { getSqlErrorMessageFromDOM, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
@@ -65,7 +65,7 @@ export class PosthogController extends AppController<PosthogAppState> {
       actionContent.content = errorMessage;
     } else {
       // no error, can run. need to wait for the run button to be enabled? todo
-      await this.wait({ time: 100})
+      await this.wait({ time: 500})
       await this.uClick({ query: "run_button" });
       await waitForQueryExecution();
       const sqlErrorMessage = await getSqlErrorMessageFromDOM();
@@ -92,6 +92,19 @@ export class PosthogController extends AppController<PosthogAppState> {
     };
     const commonProperties = await getEventCommonProperties(event_names);
     actionContent.content = JSON.stringify(commonProperties, null, 2);
+    return actionContent;
+  }
+  async runBackgroundHogqlQuery({query}: {query: string}) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const {error, results} = await runBackgroundHogqlQuery(query);
+    if (error) {
+      actionContent.content = error;
+    } else {
+      // TODO(@arpit): add a better way to format results, probably markdown
+      actionContent.content = JSON.stringify(results, null, 2).slice(0, 2000);
+    }
     return actionContent;
   }
 }

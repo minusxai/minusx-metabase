@@ -1,7 +1,8 @@
 import { RPCs, memoize } from 'web'
 import { get } from 'lodash'
-import { getWithWarning } from '../common/utils'
+import { getWithWarning, sleep } from '../common/utils'
 import { DatabaseSchemaQueryResponse } from './types'
+import { v4 as uuidv4 } from 'uuid';
 
 const DEFAULT_TTL = 0
 // sample /api/projects response:
@@ -109,6 +110,69 @@ export const getSqlQueryMetadata = async (sqlQuery: string) => {
     return response
   } else {
     console.warn("No current project found")
+  }
+}
+
+
+// this is a subset
+interface HogQLQueryResponse {
+  cache_key: string;
+  columns: string[];
+  results: any[][];
+  error: string | null;
+}
+
+interface BackgroundHogQLQueryResponse {
+  error?: string | null;
+  results?: any;
+}
+
+export const runBackgroundHogqlQuery = async (query: string): Promise<BackgroundHogQLQueryResponse> => {
+  const projectId = await memoizedGetCurrentProjectId()
+  if (projectId) {
+    // run metadata request first to check for errors. if there are errors, return them
+    const sqlQueryMetadata = await getSqlQueryMetadata(query);
+    if (sqlQueryMetadata && sqlQueryMetadata.errors.length > 0) {
+      return {
+        error: JSON.stringify(sqlQueryMetadata.errors)
+      }
+    }
+    // generate a uuid
+    const client_query_id = uuidv4();
+    const response = await RPCs.fetchData(
+      `/api/projects/${projectId}/query/`, 
+      'POST', 
+      {
+        "client_query_id": client_query_id,
+        "query": {
+          "kind": "HogQLQuery",
+          "query": query
+        }
+      },
+      {},
+      {cookieKey: 'posthog_csrftoken', headerKey: 'X-Csrftoken'}
+    ) as HogQLQueryResponse
+    if (response.error) {
+      return {
+        error: response.error
+      }
+    } else {
+      // get the results
+      const columns = response.columns
+      const results = response.results
+      return {
+        error: null,
+        results: {
+          columns,
+          rows: results
+        }
+      }
+    }
+  } else {
+    console.warn("No current project found")
+    return {
+      error: "No current project found",
+    }
   }
 }
 
