@@ -60,7 +60,7 @@ function shouldEnable(elements: DOMQueryMapResponse, url: string) {
       return {
         value: false,
         reason:
-          "To enable MinusX on Posthog, head over to the data warehouse page or the HogQL editor tab!",
+          "To enable MinusX on Posthog, head over to the data warehouse page or the SQL editor tab!",
       };
     }
     return {
