@@ -42,4 +42,10 @@ export const posthogInternalState: InternalState = {
     },
   },
   querySelectorMap,
+  whitelistQuery: {
+    editor: {
+      selector: querySelectorMap["hogql_query"],
+      attrs: ["class"],
+    },
+  },
 };

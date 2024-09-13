@@ -1,5 +1,5 @@
 import { AppController } from "../base/appController";
-import { getSqlQueryMetadata, memoizedGetCurrentProjectDatabaseSchema } from "./api";
+import { getSqlQueryMetadata, memoizedGetCurrentProjectDatabaseSchema, runBackgroundHogqlQuery } from "./api";
 import { PosthogAppState } from "./types";
 import { BlankMessageContent } from "web/types"; 
 import { getSqlErrorMessageFromDOM, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
@@ -98,7 +98,13 @@ export class PosthogController extends AppController<PosthogAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const sqlQueryMetadata = await getSqlQueryMetadata(query);
+    const {error, results} = await runBackgroundHogqlQuery(query);
+    if (error) {
+      actionContent.content = error;
+    } else {
+      // TODO(@arpit): add a better way to format results, probably markdown
+      actionContent.content = JSON.stringify(results, null, 2).slice(0, 2000);
+    }
     return actionContent;
   }
 }

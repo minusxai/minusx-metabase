@@ -66,6 +66,6 @@ export const ACTION_DESCRIPTIONS: ActionDescription[] = [
         description: "The HogQL query to run in the background.",
       },
     },
-    description: "Runs a HogQL query in the background. Use this tool if you need to run a HogQL query in the background and gather some information that the user requested for.",
+    description: "Runs a HogQL query in the background. Use this tool if you need to run a HogQL query in the background and gather some information that the user requested for. If there user asks for some more information about events, use this tool to run the query in the background and get the results.",
   },
 ];

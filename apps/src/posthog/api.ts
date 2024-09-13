@@ -1,7 +1,8 @@
 import { RPCs, memoize } from 'web'
 import { get } from 'lodash'
-import { getWithWarning } from '../common/utils'
+import { getWithWarning, sleep } from '../common/utils'
 import { DatabaseSchemaQueryResponse } from './types'
+import { v4 as uuidv4 } from 'uuid';
 
 const DEFAULT_TTL = 0
 // sample /api/projects response:
@@ -112,63 +113,66 @@ export const getSqlQueryMetadata = async (sqlQuery: string) => {
   }
 }
 
+
 // this is a subset
 interface HogQLQueryResponse {
   cache_key: string;
-  query_status: {
-    complete: boolean;
-    error: boolean;
-    error_message: string | null;
-    id: string;
-  }
+  columns: string[];
+  results: any[][];
+  error: string | null;
 }
 
 interface BackgroundHogQLQueryResponse {
-  error: string | null;
-  results: any;
+  error?: string | null;
+  results?: any;
 }
 
-export const runBackgroundHogqlQuery = async (query: string) => {
+export const runBackgroundHogqlQuery = async (query: string): Promise<BackgroundHogQLQueryResponse> => {
   const projectId = await memoizedGetCurrentProjectId()
   if (projectId) {
+    // run metadata request first to check for errors. if there are errors, return them
+    const sqlQueryMetadata = await getSqlQueryMetadata(query);
+    if (sqlQueryMetadata && sqlQueryMetadata.errors.length > 0) {
+      return {
+        error: JSON.stringify(sqlQueryMetadata.errors)
+      }
+    }
+    // generate a uuid
+    const client_query_id = uuidv4();
     const response = await RPCs.fetchData(
       `/api/projects/${projectId}/query/`, 
       'POST', 
       {
+        "client_query_id": client_query_id,
         "query": {
           "kind": "HogQLQuery",
-          "language": "hogQL",
           "query": query
         }
       },
       {},
       {cookieKey: 'posthog_csrftoken', headerKey: 'X-Csrftoken'}
     ) as HogQLQueryResponse
-    if (response.query_status.error) {
+    if (response.error) {
       return {
-        error: response.query_status.error_message
+        error: response.error
       }
     } else {
-      // in the background, keep calling the cache endpoint every 200ms. make NUM_TRIES tries and then fail.
-      const NUM_TRIES = 10
-      let tries = 0
-      while (tries < NUM_TRIES) {
-        const response = await RPCs.fetchData(
-          `/api/projects/${projectId}/query/${response.cache_key}/`, 
-          'GET', 
-          undefined,
-          {cookieKey: 'posthog_csrftoken', headerKey: 'X-Csrftoken'}
-        ) as BackgroundHogQLQueryResponse
-        if (response.error) {
-          tries += 1
-          await sleep(200)
-        } else {
-          return response
+      // get the results
+      const columns = response.columns
+      const results = response.results
+      return {
+        error: null,
+        results: {
+          columns,
+          rows: results
         }
       }
     }
   } else {
     console.warn("No current project found")
+    return {
+      error: "No current project found",
+    }
   }
 }
 
