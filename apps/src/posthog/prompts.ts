@@ -32,6 +32,12 @@ The "events" table has the following columns:
 * event (String) - name of the event.
 * properties (custom type) - additional properties of the event. Properties can be of multiple types: String, Int, Decimal, Float, and Bool. A property can be an array of thosee types. A property always has only ONE type. If the property starts with a $, it is a system-defined property. If the property doesn't start with a $, it is a user-defined property. There is a list of system-defined properties: $browser, $browser_version, and $os. User-defined properties can have any name. To get common properties for an event, use the getEventCommonProperties tool.
 
+The "persons" table as the following columns:
+* id (UUID) - unique identifier of the person.
+* properties (custom type) - additional properties of the person. Properties can be of multiple types: String, Int, Decimal, Float, and Bool. A property can be an array of thosee types. A property always has only ONE type. Eg. the "email" property is a string.
+* created_at (DateTime) - date and time when the person was created.
+* is_identified (Boolean) - whether the person is identified. Only identified persons have emails.
+
 Here is a detailed list of event definitions and their descriptions. 
 
 <EventDefinitions>

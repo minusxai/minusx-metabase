@@ -112,6 +112,66 @@ export const getSqlQueryMetadata = async (sqlQuery: string) => {
   }
 }
 
+// this is a subset
+interface HogQLQueryResponse {
+  cache_key: string;
+  query_status: {
+    complete: boolean;
+    error: boolean;
+    error_message: string | null;
+    id: string;
+  }
+}
+
+interface BackgroundHogQLQueryResponse {
+  error: string | null;
+  results: any;
+}
+
+export const runBackgroundHogqlQuery = async (query: string) => {
+  const projectId = await memoizedGetCurrentProjectId()
+  if (projectId) {
+    const response = await RPCs.fetchData(
+      `/api/projects/${projectId}/query/`, 
+      'POST', 
+      {
+        "query": {
+          "kind": "HogQLQuery",
+          "language": "hogQL",
+          "query": query
+        }
+      },
+      {},
+      {cookieKey: 'posthog_csrftoken', headerKey: 'X-Csrftoken'}
+    ) as HogQLQueryResponse
+    if (response.query_status.error) {
+      return {
+        error: response.query_status.error_message
+      }
+    } else {
+      // in the background, keep calling the cache endpoint every 200ms. make NUM_TRIES tries and then fail.
+      const NUM_TRIES = 10
+      let tries = 0
+      while (tries < NUM_TRIES) {
+        const response = await RPCs.fetchData(
+          `/api/projects/${projectId}/query/${response.cache_key}/`, 
+          'GET', 
+          undefined,
+          {cookieKey: 'posthog_csrftoken', headerKey: 'X-Csrftoken'}
+        ) as BackgroundHogQLQueryResponse
+        if (response.error) {
+          tries += 1
+          await sleep(200)
+        } else {
+          return response
+        }
+      }
+    }
+  } else {
+    console.warn("No current project found")
+  }
+}
+
 const getCurrentProjectDatabaseSchema = async () => {
   const projectId = await memoizedGetCurrentProjectId()
   if (projectId) {

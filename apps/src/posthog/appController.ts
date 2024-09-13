@@ -65,7 +65,7 @@ export class PosthogController extends AppController<PosthogAppState> {
       actionContent.content = errorMessage;
     } else {
       // no error, can run. need to wait for the run button to be enabled? todo
-      await this.wait({ time: 100})
+      await this.wait({ time: 500})
       await this.uClick({ query: "run_button" });
       await waitForQueryExecution();
       const sqlErrorMessage = await getSqlErrorMessageFromDOM();
@@ -92,6 +92,13 @@ export class PosthogController extends AppController<PosthogAppState> {
     };
     const commonProperties = await getEventCommonProperties(event_names);
     actionContent.content = JSON.stringify(commonProperties, null, 2);
+    return actionContent;
+  }
+  async runBackgroundHogqlQuery({query}: {query: string}) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const sqlQueryMetadata = await getSqlQueryMetadata(query);
     return actionContent;
   }
 }
