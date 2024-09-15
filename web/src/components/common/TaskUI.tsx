@@ -32,9 +32,9 @@ import { Image } from '../../state/chat/reducer'
 import { RootState } from '../../state/store'
 import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
-import { useAppFromExternal } from '../../app/rpc'
 import { gdocReadSelected, gdocRead, gdocWrite, gdocImage } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
+import { metaPlanner } from '../../planner/metaPlan'
 
 const Thumbnails: React.FC<{thumbnails: Image[]}> = ({ thumbnails }) => {
   if (!thumbnails) {
@@ -128,6 +128,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const initialInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
   const [instructions, setInstructions] = useState<string>(initialInstructions)
+  const [metaQuestion, setMetaQuestion] = useState<string>("")
   const thumbnails = useSelector((state: RootState) => state.thumbnails.thumbnails)
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
@@ -220,7 +221,19 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       width={"100%"}
       pt={2}
     >
+      
       <VStack overflowY={'scroll'}>
+        {
+          metaQuestion &&
+          <>
+          <VStack justifyContent={"start"} width={"100%"} p={3} background={"minusxBW.300"} borderRadius={"10px"}>
+            <HStack><Text fontWeight={"bold"}>Meta Planner</Text><Spinner size="xs" color="minusxGreen.500" /></HStack>
+            <HStack><Text>{metaQuestion}</Text></HStack>
+            
+          </VStack>
+          <Divider borderColor={"minusxBW.500"}/>
+          </>
+        }
         <ChatSection />
       </VStack>
       <VStack alignItems={"stretch"}>
@@ -263,7 +276,18 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
             </HStack> : null
           }
-       
+        {
+          currentTool === "jupyter" && 
+          <Button onClick={async ()=>{
+            if (instructions) {
+              const text = instructions
+              setInstructions('')
+              setMetaQuestion(text)
+              await metaPlanner({text: instructions})
+              setMetaQuestion('')
+            }
+          }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>I'm feeling lucky</Button>
+        }
         <HStack>
           <Textarea
             ref={ref}
