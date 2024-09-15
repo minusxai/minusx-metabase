@@ -45,7 +45,7 @@ MinusX adds a side-chat to your app, and when given an instruction, it operates 
 ## Supported Analytics Tools
 <a href="https://minusx.ai/tools/jupyter"><img src="https://minusx.ai/_next/static/media/jupyter.0fedaa2d.svg" width="80" height="80" alt=""/></a>
 <a href="https://minusx.ai/tools/metabase"><img src="https://minusx.ai/_next/static/media/metabase.e2bebbef.svg" width="80" height="80" alt=""/></a>
-<a href="https://minusx.ai/tools/posthog"><img src="https://minusx.ai/_next/static/media/metabase.e2bebbef.svg" width="80" height="80" alt=""/></a>
+<a href="https://minusx.ai/tools/posthog"><img src="https://posthog.com/brand/posthog-logomark.svg" width="80" height="80" alt=""/></a>
 
 ---
 
