@@ -152,6 +152,58 @@ export async function convertDOMtoState(): Promise<JupyterNotebookState> {
   return notebookState
 }
 
+function htmlToMarkdown(html: string): string | undefined {
+  // Create a DOM parser to parse the HTML string
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // Get the table from the parsed document
+  const table = doc.querySelector('table');
+  if (!table) {
+      return undefined;
+  }
+
+  // Extract headers
+  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent?.trim() || '');
+  if (headers.length === 0) {
+      return undefined;
+  }
+
+  // Construct the markdown header row
+  let markdown = `| ${headers.join(' | ')} |\n`;
+  markdown += `| ${headers.map(() => '---').join(' | ')} |\n`;
+
+  // Extract rows from the table body
+  const rows = table.querySelectorAll('tbody tr');
+  if (rows.length === 0) {
+      return undefined;
+  }
+
+  let totalChars = markdown.length;
+  const charLimit = 2500;
+  const cellLimit = 500;
+
+  rows.forEach(row => {
+      if (totalChars >= charLimit) return;
+
+      const cols = Array.from(row.querySelectorAll('td, th')).map(td => {
+          const text = td.textContent?.trim() || '';
+          return text.length > cellLimit ? text.substring(0, cellLimit) + '...' : text;
+      });
+
+      const rowMarkdown = `| ${cols.join(' | ')} |\n`;
+      if (totalChars + rowMarkdown.length <= charLimit) {
+          markdown += rowMarkdown;
+          totalChars += rowMarkdown.length;
+      } else {
+          markdown += rowMarkdown.substring(0, charLimit - totalChars) + '...';
+          totalChars = charLimit;  // Ensure no further processing
+      }
+  });
+
+  return markdown;
+}
+
 export function processCellOutput(rawOutputs: any): JupyterCellOutput[] {
   const outputs: JupyterCellOutput[] = []
   if (rawOutputs.length == 0) {
@@ -170,12 +222,21 @@ export function processCellOutput(rawOutputs: any): JupyterCellOutput[] {
       })
     } else if ((rawOutput.output_type == 'execute_result') && (rawOutput.data['text/html'])) {
       if (rawOutput.data['text/html'].includes('dataframe')) {
-        const TOP_N = 5
-        const tableText = rawOutput.data['text/plain'].split('\n').slice(0, TOP_N).join('\n')
-        outputs.push({
-          type: 'dataframe',
-          value: tableText
-        })
+        const tableHtml = rawOutput.data['text/html'] || ""
+        let parsedTable = htmlToMarkdown(tableHtml)
+        if (parsedTable) {
+          outputs.push({
+            type: 'dataframe',
+            value: parsedTable
+          })
+        } else {
+          const TOP_N = 5
+          const tableText = rawOutput.data['text/plain'].split('\n').slice(0, TOP_N).join('\n')
+          outputs.push({
+            type: 'dataframe',
+            value: tableText
+          })
+        }
       }
     } else if ((rawOutput.output_type == 'execute_result') && (rawOutput.data['text/plain'])) {
       outputs.push({
