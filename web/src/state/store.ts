@@ -117,12 +117,16 @@ const migrations = {
     })
     return newState;
   },
+  8: (state: any) => {
+    let newState = {...state}
+    newState.settings.confirmChanges = false
+    return newState;
+  },
 }
-
 
 const persistConfig = {
   key: 'root',
-  version: 7,
+  version: 8,
   storage,
   blacklist: [],
   migrate: createMigrate(migrations, { debug: false }),

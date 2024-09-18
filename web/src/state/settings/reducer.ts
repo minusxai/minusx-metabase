@@ -43,7 +43,7 @@ const initialState: Settings = {
   devToolsTabName: 'Context',
   suggestQueries: false,
   iframeInfo: defaultIframeInfoWeb,
-  confirmChanges: true
+  confirmChanges: false
 }
 
 export const settingsSlice = createSlice({
