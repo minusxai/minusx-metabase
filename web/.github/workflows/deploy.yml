@@ -1,0 +1,23 @@
+name: Deploy on deploy tag
+
+on:
+  push:
+    tags:
+      - 'deploy/**'
+
+jobs:
+  deploy-web-minusxapi-com:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.PROD_SERVER_SSH_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.PROD_SERVER_SSH_PUB_KEY }}" > ~/.ssh/id_rsa.pub
+        chmod 600 ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa.pub
+        ssh-keyscan -H v1.minusxapi.com >> ~/.ssh/known_hosts
+
+    - name: Run frontend server (v1)
+      run: |
+        ssh minusx@v1.minusxapi.com "cd /home/minusx/minusx/web && cp ../yarn.lock ./ && docker compose up -d --build"
