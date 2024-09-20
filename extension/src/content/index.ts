@@ -20,16 +20,6 @@ async function _init(localConfigs: Promise<object>) {
   const mode = get(localConfigs, "configs.mode", "open-sidepanel")
   const extensionId = await getExtensionID()
   const { tool, toolVersion, inject } = identifyToolNative()
-  if (tool == TOOLS.OTHER) {
-    // #HACK for gdoc
-    setupStyles('content.styles.css')
-    // check if window url is a google docs url, if so use registerTabIdForTool
-    if (window.location.href.includes('docs.google.com')) {
-      registerTabIdForTool({ tool: 'gdoc' })
-    }
-    initRPC()
-    return;
-  }
   if (inject) {
     setupScript(`${tool}.bundle.js`)
   }
