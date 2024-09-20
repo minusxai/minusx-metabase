@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button, Input, Box, VStack, Image, CloseButton, HStack, Text, IconButton, Progress } from '@chakra-ui/react';
+import { Button, Input, Box, VStack, Image, CloseButton, HStack, Text, Progress } from '@chakra-ui/react';
 import { login } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
 import {auth, auth as authModule} from '../../app/api'
@@ -84,12 +84,7 @@ const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
           <HStack fontSize={"xs"} fontWeight={"bold"} alignItems={"center"} color={"minusxGreen.400"}>
             <BsLightbulbFill/><Box>Pro Tip {hintIdx + 1}/{numHints}</Box>
           </HStack>
-          <HStack fontSize={"xs"} fontWeight={"bold"} alignItems={"center"} color={"minusxGreen.400"}>
-            <Text fontSize="xs">Next</Text>
-            <IconButton icon={<BsArrowRight />} onClick={handleNext} variant={"ghost"} aria-label='next'/>
-
-          </HStack>
-          
+          <Button onClick={handleNext} variant="ghost" aria-label="Next" rightIcon={<BsArrowRight />} size="sm" fontWeight="bold">Next</Button>
         </HStack>
         <Progress
             value={progress}
