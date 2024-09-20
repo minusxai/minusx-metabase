@@ -31,6 +31,7 @@ interface Settings {
   suggestQueries: boolean,
   iframeInfo: IframeInfoWeb,
   confirmChanges: boolean
+  demoMode: boolean
 }
 
 const initialState: Settings = {
@@ -43,7 +44,8 @@ const initialState: Settings = {
   devToolsTabName: 'Context',
   suggestQueries: false,
   iframeInfo: defaultIframeInfoWeb,
-  confirmChanges: false
+  confirmChanges: false,
+  demoMode: false
 }
 
 export const settingsSlice = createSlice({
@@ -79,6 +81,9 @@ export const settingsSlice = createSlice({
     },
     setConfirmChanges: (state, action: PayloadAction<boolean>) => {
       state.confirmChanges = action.payload
+    },
+    setDemoMode: (state, action: PayloadAction<boolean>) => {
+      state.demoMode = action.payload
     }
   }
 })
@@ -86,6 +91,6 @@ export const settingsSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
-  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges } = settingsSlice.actions
+  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges, setDemoMode } = settingsSlice.actions
 
 export default settingsSlice.reducer

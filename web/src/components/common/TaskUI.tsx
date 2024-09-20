@@ -101,6 +101,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
+  const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
@@ -229,7 +230,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation userConfirmation={userConfirmation}/>
           {
-            currentTool != "jupyter" && currentTool != "metabase" ? 
+            demoMode && currentTool != "jupyter" && currentTool != "metabase" ? 
             <HStack justify={"center"}>
             <Button onClick={async () => {
               console.log("<><><> button clicked")
@@ -251,7 +252,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             </HStack> : null
           }
           {
-            currentTool === "jupyter" && (<Button onClick={async ()=>{
+            demoMode && currentTool === "jupyter" && (<Button onClick={async ()=>{
               if (instructions) {
                 const text = instructions
                 setInstructions('')
@@ -261,7 +262,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               }
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>I'm feeling lucky</Button>)
           }
-        <Button onClick={async () => {
+        {demoMode && <Button onClick={async () => {
               console.log("<><><> button clicked")
               // let text = await gdocReadSelected()
               const appState = await getApp().getState() as JupyterNotebookState
@@ -272,13 +273,14 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               console.log("Response is", response)
               // await gdocWrite(String(response?.response?.text))
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
-            
-        <Button onClick={()=>{
+          }   
+        {demoMode && <Button onClick={()=>{
           if (instructions) {
             feelinLucky({text: instructions})
             setInstructions('')
           }
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
+        }
         <HStack>
           <Textarea
             ref={ref}
