@@ -70,7 +70,11 @@ const initCrossInstanceComms = (ref: React.RefObject<HTMLInputElement>) => {
         if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
             const { uuid, message } = rpcEvent
             useAppFromExternal({text: message}).then(response => {
-                window.parent.parent.parent.parent.parent.parent.parent.parent.parent.postMessage({
+                let rootParent = window.parent
+                while (rootParent != rootParent.parent) {
+                    rootParent = rootParent.parent
+                }
+                rootParent.postMessage({
                     type: 'RESPONSE',
                     uuid,
                     payload: response
