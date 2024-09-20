@@ -3,7 +3,7 @@ name: Deploy on deploy tag
 on:
   push:
     tags:
-      - 'deploy/**'
+      - 'testing'
 
 jobs:
   deploy-web-minusxapi-com:
