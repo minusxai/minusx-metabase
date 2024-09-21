@@ -1,7 +1,8 @@
 name: Deploy on deploy tag
 
 on:
-  push
+  push:
+    tags: ['deploy**']
 
 jobs:
   deploy-web-minusxapi-com:
@@ -19,21 +20,14 @@ jobs:
 
     - name: Run frontend server (v1)
       env:
-        REF: ${{ github.sha }} # trying ref
+        REF: ${{ github.sha }} # ref to checkout
       run: |
-        echo $REF
         ssh minusx@v1.minusxapi.com << EOF
           cd /home/minusx/minusx/web
-          echo "can you read this" $REF
-          echo $REF
-          echo $REF >> /tmp/test.txt
           git fetch --all --tags
           git checkout $REF
           git reset --hard $REF
-          # docker compose up -d --build
+          docker compose up -d --build
           docker image prune -f
-          echo "what is happening"
-          echo $REF
         EOF
-        echo "echo $REF"
           
