@@ -1,11 +1,14 @@
 name: Deploy on deploy tag
 
 on:
-  push
+  push:
+    tags:
+      - 'deploy/**'
 
 jobs:
   deploy-web-minusxapi-com:
     runs-on: ubuntu-latest
+    # if: github.ref == 'refs/heads/main'
     steps:
     - name: Set up SSH
       run: |
@@ -17,5 +20,15 @@ jobs:
         ssh-keyscan -H v1.minusxapi.com >> ~/.ssh/known_hosts
 
     - name: Run frontend server (v1)
+      env:
+        REF: ${{ github.sha }} # This is the current commit SHA
       run: |
-        ssh minusx@v1.minusxapi.com "cd /home/minusx/minusx/web && cp ../yarn.lock ./ && docker compose up -d --build"
+        ssh minusx@v1.minusxapi.com << 'EOF'
+          cd /home/minusx/minusx/web
+          git fetch --all
+          git checkout $REF
+          git reset --hard $REF
+          docker compose up -d --build
+          docker image prune -f
+        EOF
+          
