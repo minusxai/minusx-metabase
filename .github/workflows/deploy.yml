@@ -22,7 +22,7 @@ jobs:
         REF: ${{ github.sha }} # trying ref
       run: |
         echo $REF
-        ssh minusx@v1.minusxapi.com << 'EOF'
+        ssh minusx@v1.minusxapi.com << EOF
           cd /home/minusx/minusx/web
           echo "can you read this" $REF
           echo $REF
