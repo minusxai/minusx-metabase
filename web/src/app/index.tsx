@@ -60,14 +60,7 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
                     onSubscription(payload)
                 }
             }
-        }
-    })
-}
-
-const initCrossInstanceComms = (ref: React.RefObject<HTMLInputElement>) => {
-    window.addEventListener('message', (event) => {
-        const rpcEvent = event.data
-        if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
+        } else if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
             const { uuid, message } = rpcEvent
             useAppFromExternal({text: message}).then(response => {
                 let rootParent = window.parent
@@ -107,7 +100,6 @@ const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isApp
     setMinusxMode(mode)
     toggleMinusX(!isAppOpen)
     toggleMinusXRoot('invisible', false)
-    initCrossInstanceComms(ref)
 })
 
 const persistor = persistStore(store);
