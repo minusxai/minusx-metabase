@@ -19,11 +19,12 @@ jobs:
 
     - name: Run frontend server (v1)
       env:
-        REF: ${{ github.sha }} # This is the current commit SHA
+        REF: ${{ github.ref }} # trying ref
       run: |
         ssh minusx@v1.minusxapi.com << 'EOF'
           cd /home/minusx/minusx/web
-          git fetch --all
+          echo $REF
+          git fetch --all --tags
           git checkout $REF
           git reset --hard $REF
           docker compose up -d --build
