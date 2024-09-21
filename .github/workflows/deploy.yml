@@ -2,7 +2,7 @@ name: Deploy on deploy tag
 
 on:
   push:
-    tags: ['deploy**']
+    tags: [deploy**]
 
 jobs:
   deploy-web-minusxapi-com:
