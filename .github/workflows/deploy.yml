@@ -1,8 +1,6 @@
 name: Deploy on deploy tag
 
-on:
-  push:
-    tags: [deploy**]
+on: push
 
 jobs:
   deploy-web-minusxapi-com:
