@@ -1,11 +1,10 @@
-name: Deploy on deploy tag
+name: Deploy (manual)
 
-on: push
+on: workflow_dispatch
 
 jobs:
   deploy-web-minusxapi-com:
     runs-on: ubuntu-latest
-    # if: github.ref == 'refs/heads/main'
     steps:
     - name: Set up SSH
       run: |
