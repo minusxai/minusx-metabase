@@ -18,14 +18,18 @@ jobs:
         ssh-keyscan -H v1.minusxapi.com >> ~/.ssh/known_hosts
 
     - name: Run frontend server (v1)
+      uses: appleboy/ssh-action@v1.0.3
       env:
-        REF: ${{ github.ref }} # trying ref
-      run: |
-        ssh minusx@v1.minusxapi.com << 'EOF'
+        REF: ${{ github.ref }}
+      with:
+        host: v1.minusxapi.com
+        username: minusx
+        key: ${{ secrets.PROD_SERVER_SSH_KEY }}
+        envs: REF
+        script: |
           cd /home/minusx/minusx/web
           echo "can you read this"
           echo $REF
-          echo $REF >> /tmp/test.txt
           git fetch --all --tags
           git checkout $REF
           git reset --hard $REF
@@ -33,5 +37,4 @@ jobs:
           docker image prune -f
           echo "what is happening"
           echo $REF
-        EOF
-          
+     
