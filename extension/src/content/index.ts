@@ -20,18 +20,24 @@ async function _init(localConfigs: Promise<object>) {
   const mode = get(localConfigs, "configs.mode", "open-sidepanel")
   const extensionId = await getExtensionID()
   const { tool, toolVersion, inject } = identifyToolNative()
-  if (inject) {
-    setupScript(`${tool}.bundle.js`)
-  }
   if (configs.IS_DEV) {
     console.log('Injecting debug script')
     setupScript(`debug.bundle.js`)
-  }
-  registerTabIdForTool({ tool });
-  if (!configs.IS_DEV) {
+  } else {
     console.log = () => {}
     console.error = () => {}
   }
+  if (tool === TOOLS.OTHER) {
+    return
+  }
+  // Google Docs is not supported yet
+  if (tool == 'google' && toolVersion == 'docs') {
+    return
+  }
+  if (inject) {
+    setupScript(`${tool}.bundle.js`)
+  }
+  registerTabIdForTool({ tool });
   initRPC()
   if (!configs.IS_DEV) {
     // initialise Posthog

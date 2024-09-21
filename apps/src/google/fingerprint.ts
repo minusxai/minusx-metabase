@@ -6,7 +6,7 @@ export const googleDocFingerprintMatcher: ToolMatcher = {
     or: [
       {
         type: "urlRegexCondition",
-        urlRegex: "docs.google.com/document",
+        urlRegex: "^https:\/\/docs\.google\.com\/document\/d",
       },
     ],
   },

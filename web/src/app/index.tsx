@@ -114,22 +114,6 @@ function ProviderApp() {
     const ref = useRef<HTMLInputElement>(null)
     const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
     useEffect(() => {
-        setInterval(async () => {
-            try {
-                const message = await getPendingMessage()
-                if (!_.isEmpty(message)) {
-                    console.log("received message", message)
-                    const content = await convertToMarkdown(message.appState, message.imgs)
-                    dispatch(setInstructions('Printing to Google Doc...'))
-                    await gdocWrite(content)
-                    dispatch(setInstructions('Done!'))
-                }
-            } catch (err){
-
-            }
-        }, 1000)
-    })
-    useEffect(() => {
         init(mode, ref, isAppOpen)
         if (session_jwt) {
             setAxiosJwt(session_jwt)

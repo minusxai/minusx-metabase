@@ -31,7 +31,6 @@ export async function respondToOtherTab({ message }: { message: string }) {
   // return `Hi from ${window.location.href} ` + message;
   if (location.origin == 'https://docs.google.com') {
     _messageReceived = message
-    console.log('Message pending:', _messageReceived)
     return true
   } else {
     return sendIFrameMessageAndGetResponse(message)
