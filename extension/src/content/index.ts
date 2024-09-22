@@ -31,7 +31,7 @@ async function _init(localConfigs: Promise<object>) {
     return
   }
   // Google Docs is not supported yet
-  if (tool == 'google' && toolVersion == 'docs') {
+  if (tool == 'google') {
     return
   }
   if (inject) {

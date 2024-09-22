@@ -10,4 +10,13 @@ export const googleDocFingerprintMatcher: ToolMatcher = {
       },
     ],
   },
+  sheets: {
+    type: "combination",
+    or: [
+      {
+        type: "urlRegexCondition",
+        urlRegex: "^https:\/\/docs\.google\.com\/spreadsheets\/d",
+      },
+    ],
+  }
 };
