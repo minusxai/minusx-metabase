@@ -29,11 +29,7 @@ async function _init(localConfigs: Promise<object>) {
   }
   if (tool === TOOLS.OTHER) {
     return
-  }
-  // Google Docs is not supported yet
-  if (tool == 'google') {
-    return
-  }
+  } 
   if (inject) {
     setupScript(`${tool}.bundle.js`)
   }
@@ -50,12 +46,7 @@ async function _init(localConfigs: Promise<object>) {
 
   const origin = window.location.origin
   const href = window.location.href
-  const root = document.createElement('div')
-  root.className = `mode-${mode} closed invisible`
-  root.id = 'minusx-root';
 
-  const iframe = document.createElement('iframe');
-  iframe.id = 'minusx-iframe';
   const iframeInfo: IframeInfo = {
     tool,
     toolVersion,
@@ -66,6 +57,18 @@ async function _init(localConfigs: Promise<object>) {
     gitCommitId: configs.GIT_COMMIT_ID,
     npmPackageVersion: configs.NPM_PACKAGE_VERSION,
   }
+
+  // Google Docs is not supported yet
+  if (tool == 'google') {
+    return
+  }
+
+  const root = document.createElement('div')
+  root.className = `mode-${mode} closed invisible`
+  root.id = 'minusx-root';
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'minusx-iframe'; 
   const params = new URLSearchParams(iframeInfo as unknown as Record<string, string>).toString()
   iframe.src = `${WEB_URL}?${params}`;
   const iframeParent = document.createElement('div')
