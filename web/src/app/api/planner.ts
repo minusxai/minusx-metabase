@@ -27,6 +27,8 @@ export const getLLMResponse = async (payload: any, signal?: AbortSignal) => {
             position: 'bottom-right',
           })
           throw new Error("Unauthorized, please login again")
+        } else if (error.response.status === 402) {
+          throw error
         } else {
           throw error
         }
