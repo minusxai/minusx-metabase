@@ -74,6 +74,8 @@ export const gdocReadSelected = () => sendMessage("gdocReadSelected", [], {direc
 export const gdocRead = () => sendMessage("gdocRead", [], {direct: true})
 export const gdocWrite = (content, url) => sendMessage("gdocWrite", [content, url], {direct: true})
 export const gdocImage = (image, width) => sendMessage("gdocImage", [image, width], {direct: true})
+export const readActiveSpreadsheet = (region?: string) => sendMessage("readActiveSpreadsheet", [region], {direct: true})
+export const getUserSelectedRange = () => sendMessage("getUserSelectedRange", [], {direct: true})
 
 // RPCs that exposes MinusX as an API
 export { useAppFromExternal } from "./sidechat";

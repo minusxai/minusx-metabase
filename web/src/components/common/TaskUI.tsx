@@ -27,7 +27,7 @@ import {  Button, Flex } from '@chakra-ui/react';
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
 import { UserConfirmation } from './UserConfirmation'
-import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle } from '../../app/rpc'
+import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle, readActiveSpreadsheet, getUserSelectedRange } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
 import { feelinLucky } from '../../app/lucky'
 import { getApp } from '../../helpers/app'
@@ -236,9 +236,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             demoMode && currentTool == "google" && currentToolVersion == "sheets" ? 
             <HStack justify={"center"}>
             <Button onClick={async () => {
-              let text = await gdocReadSelected()
-              let response = await forwardToTab("jupyter", String(text))
-              await gdocWrite(String(response?.response?.text))
+              // const range = await getUserSelectedRange()
+              // console.log('Range is', range)
+              let text = await readActiveSpreadsheet()
+              console.log('Read sheets data', text)
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Read table data</Button>
             <Button onClick={async () => {
               let text = await gdocReadSelected()
