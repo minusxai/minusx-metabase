@@ -8,6 +8,7 @@ import { configs } from '../../constants';
 import { BiLinkExternal } from 'react-icons/bi'
 import { setMinusxMode } from '../../app/rpc';
 import { BsDiscord } from "react-icons/bs";
+import { UpgradeMembershipButton } from './Membership';
 
 const ACTIVE_TOOLS = {
   jupyter: true,
@@ -72,6 +73,7 @@ const SettingsPage = () => {
   const isLocal = useSelector((state: RootState) => state.settings.isLocal)
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+  const auth = useSelector((state: RootState) => state.auth)
   const setIsLocal = (value: boolean) => {
     dispatch(updateIsLocal(value))
   }
@@ -96,7 +98,20 @@ const SettingsPage = () => {
     overflow={"scroll"}
     pt={2}
     >
-      <SettingsBlock title="Anaytics Tools">
+      <SettingsBlock title="Profile">
+        <VStack alignItems={"stretch"}>
+          <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+            <Text color={"minusxBW.800"} fontSize="sm">Email</Text>
+            <Text color={"minusxBW.800"} fontSize="sm">{auth.email}</Text>
+          </Stack>
+          <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+            <Text color={"minusxBW.800"} fontSize="sm">Membership</Text>
+            <Text color={"minusxBW.800"} fontSize="sm">{auth.membership}</Text>
+          </Stack>
+          {auth.membership == 'free' && <UpgradeMembershipButton />}
+        </VStack>
+      </SettingsBlock>
+      <SettingsBlock title="Analytics Tools">
         <VStack alignItems={"stretch"}>
           {Object.entries(ACTIVE_TOOLS).map(([tool, isActive], index) => (
             <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0} key={index}>
