@@ -36,6 +36,7 @@ import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/h
 import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
 import { MembershipBlock } from './Membership'
+import { configs } from '../../constants'
  
 
 interface ChatSuggestionsProps {
@@ -284,7 +285,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         }
         {
-          is_credits_expired ?
+          configs.PAYMENTS_ENABLED && is_credits_expired ?
           <MembershipBlock />:
           <HStack>
             <Textarea

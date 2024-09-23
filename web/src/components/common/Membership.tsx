@@ -27,6 +27,9 @@ const refreshProfile = () => {
 }
 
 export const UpgradeMembershipButton = () => {
+  useEffect(() => {
+    refreshProfile()
+  })
   return (
     <Button onClick={() => window.open('https://minusx.ai/pricing', '_blank')}>
       Upgrade Membership
@@ -36,7 +39,9 @@ export const UpgradeMembershipButton = () => {
 
 export const MembershipBlock = () => {
   useEffect(() => {
-    const interval = setInterval(refreshProfile, 3000)
+    const interval = setInterval(() => {
+        refreshProfile()
+    }, 2000)
     return () => clearInterval(interval)
   })
   return <VStack>

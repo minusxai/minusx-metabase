@@ -98,7 +98,7 @@ const SettingsPage = () => {
     overflow={"scroll"}
     pt={2}
     >
-      <SettingsBlock title="Profile">
+      {configs.PAYMENTS_ENABLED && <SettingsBlock title="Profile">
         <VStack alignItems={"stretch"}>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text color={"minusxBW.800"} fontSize="sm">Email</Text>
@@ -110,7 +110,7 @@ const SettingsPage = () => {
           </Stack>
           {auth.membership == 'free' && <UpgradeMembershipButton />}
         </VStack>
-      </SettingsBlock>
+      </SettingsBlock>}
       <SettingsBlock title="Analytics Tools">
         <VStack alignItems={"stretch"}>
           {Object.entries(ACTIVE_TOOLS).map(([tool, isActive], index) => (
