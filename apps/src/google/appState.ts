@@ -1,13 +1,14 @@
+import { RPCs } from "web";
 import { AppController } from "../base/appController";
-import { jupyterInternalState } from "../jupyter/defaultState";
 import { DefaultAppState } from "../base/appState";
+import { googleSheetInternalState } from "./googleSheetInternalState";
 // import { isEmpty } from "lodash";
 // import { RPCs } from "web";
 
 interface GoogleState {}
 
 export class GoogleAppState extends DefaultAppState<GoogleState> {
-    initialInternalState = jupyterInternalState
+    initialInternalState = googleSheetInternalState
     actionController = new GoogleController(this)
 
     public async setup() {
@@ -26,13 +27,13 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
 
     public async getState() {
         // DOM to state
-        return {}
+        return await RPCs.readActiveSpreadsheet()
     }
 }
 
 export class GoogleController extends AppController<GoogleState> {
-  async writeContent(content: string) {
-    console.log('Writing content', content)
+  async writeCode(code: string) {
+    console.log('Writing code', code)
     return;
   }
 }
