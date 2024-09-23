@@ -35,6 +35,7 @@ import { JupyterNotebookState } from '../../../../apps/src/jupyter/helpers/DOMTo
 import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/helpers/querySelectorMap'
 import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
+import { MembershipBlock } from './Membership'
  
 
 interface ChatSuggestionsProps {
@@ -102,6 +103,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+  const is_credits_expired = useSelector((state: RootState) => state.auth.credits_expired)
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
@@ -281,36 +283,38 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           }
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         }
-        <HStack>
-          <Textarea
-            ref={ref}
-            autoFocus
-            aria-label='Enter Instructions'
-            value={instructions}
-            disabled={taskInProgress}
-            onChange={(e) => setInstructions(e.target.value)}
-            onKeyDown={onKeyDown}
-            style={{ width: '98%' }}
-          />
-          <VStack>
+        {
+          is_credits_expired ?
+          <MembershipBlock />:
+          <HStack>
+            <Textarea
+              ref={ref}
+              autoFocus
+              aria-label='Enter Instructions'
+              value={instructions}
+              disabled={taskInProgress}
+              onChange={(e) => setInstructions(e.target.value)}
+              onKeyDown={onKeyDown}
+              style={{ width: '98%' }}
+            />
+            <VStack>
+              {
+                taskInProgress ? (
+                  <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
+                ) : <RunTaskButton runTask={runTask} disabled={taskInProgress} />
+              }
             {
-              taskInProgress ? (
-                <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
-              ) : <RunTaskButton runTask={runTask} disabled={taskInProgress} />
+              showMessagesTooLong ?
+              <Tooltip hasArrow label={tooLongTooltip} placement='auto' borderRadius={5} defaultIsOpen onClose={() => setShowMessagesTooLong(false)} isDisabled={!showMessagesTooLong}>
+                {resetMessageHistoryButton}
+              </Tooltip> : 
+              <Tooltip hasArrow label="Clear Chat" placement='left' borderRadius={5} openDelay={500}>
+                {resetMessageHistoryButton}
+              </Tooltip>
             }
-          {
-            showMessagesTooLong ?
-            <Tooltip hasArrow label={tooLongTooltip} placement='auto' borderRadius={5} defaultIsOpen onClose={() => setShowMessagesTooLong(false)} isDisabled={!showMessagesTooLong}>
-              {resetMessageHistoryButton}
-            </Tooltip> : 
-            <Tooltip hasArrow label="Clear Chat" placement='left' borderRadius={5} openDelay={500}>
-              {resetMessageHistoryButton}
-            </Tooltip>
-          }
-          
-           
-          </VStack>
-        </HStack>    
+            </VStack>
+          </HStack>
+        }
       </VStack>
     </VStack>
   )
