@@ -122,6 +122,14 @@ const migrations = {
     newState.settings.confirmChanges = false
     return newState;
   },
+  9: (state: any) => {
+    let newState = {...state}
+    if (state.auth.is_authenticated) {
+      newState.auth.membership = 'free'
+      newState.auth.credits_expired = false
+    }
+    return newState;
+  },
 }
 
 const persistConfig = {
