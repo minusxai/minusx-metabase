@@ -96,6 +96,7 @@ const tooLongTooltip = (
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
+  const currentToolVersion = useSelector((state: RootState) => state.settings.iframeInfo.toolVersion)
   const initialInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
   const [instructions, setInstructions] = useState<string>(initialInstructions)
   const [metaQuestion, setMetaQuestion] = useState<string>("")
@@ -149,7 +150,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const setSuggestionsDebounced = useCallback(
     _.debounce(async() => {
       const suggestions = await getSuggestions()
-      console.log('Suggestions are', suggestions)
       setSuggestions(suggestions)
     }, 500),
     []
@@ -232,23 +232,33 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
          }
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation userConfirmation={userConfirmation}/>
-          {
-            demoMode && currentTool != "jupyter" && currentTool != "metabase" ? 
+        {
+            demoMode && currentTool == "google" && currentToolVersion == "sheets" ? 
             <HStack justify={"center"}>
             <Button onClick={async () => {
-              console.log("<><><> button clicked")
               let text = await gdocReadSelected()
-              console.log("Text is", text)
               let response = await forwardToTab("jupyter", String(text))
-              console.log("Response is", response)
+              await gdocWrite(String(response?.response?.text))
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Read table data</Button>
+            <Button onClick={async () => {
+              let text = await gdocReadSelected()
+              let response = await forwardToTab("metabase", String(text))
+              await gdocWrite("source", String(response?.url))
+              await gdocImage(String(response?.response?.images[0]), 0.5)
+            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Write table data</Button>
+            </HStack> : null
+          }
+          {
+            demoMode && currentTool == "google" && currentToolVersion == "docs" ? 
+            <HStack justify={"center"}>
+            <Button onClick={async () => {
+              let text = await gdocReadSelected()
+              let response = await forwardToTab("jupyter", String(text))
               await gdocWrite(String(response?.response?.text))
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Jupyter</Button>
             <Button onClick={async () => {
-              console.log("<><><> button clicked")
               let text = await gdocReadSelected()
-              console.log("Text is", text)
               let response = await forwardToTab("metabase", String(text))
-              console.log("Response is", response)
               await gdocWrite("source", String(response?.url))
               await gdocImage(String(response?.response?.images[0]), 0.5)
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
@@ -266,14 +276,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>I'm feeling lucky</Button>)
           }
         {demoMode && <Button onClick={async () => {
-              console.log("<><><> button clicked")
               // let text = await gdocReadSelected()
               const appState = await getApp().getState() as JupyterNotebookState
               const outputCellSelector =  await jupyterQSMap.cell_output;
               const imgs = await getElementScreenCapture(outputCellSelector);
 
               let response = await forwardToTab("gdoc", {appState, imgs})
-              console.log("Response is", response)
               // await gdocWrite(String(response?.response?.text))
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
           }   
