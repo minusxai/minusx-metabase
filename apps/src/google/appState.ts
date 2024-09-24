@@ -2,10 +2,9 @@ import { RPCs } from "web";
 import { AppController } from "../base/appController";
 import { DefaultAppState } from "../base/appState";
 import { googleSheetInternalState } from "./googleSheetInternalState";
+import { GoogleState } from "web/types";
 // import { isEmpty } from "lodash";
 // import { RPCs } from "web";
-
-interface GoogleState {}
 
 export class GoogleAppState extends DefaultAppState<GoogleState> {
     initialInternalState = googleSheetInternalState
