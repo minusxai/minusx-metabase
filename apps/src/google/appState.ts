@@ -26,14 +26,18 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
 
     public async getState() {
         // DOM to state
-        return await RPCs.readActiveSpreadsheet()
+        return {}
     }
 }
 
 export class GoogleController extends AppController<GoogleState> {
   async runAppsScriptCode(code: string) {
+    if (typeof code === 'object') {
+      code = code.code as string
+    }
     console.log('Writing code', code)
     const content = await RPCs.gsheetEvaluate(code)
+    console.log('Output is', content)
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
