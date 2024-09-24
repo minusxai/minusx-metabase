@@ -5,7 +5,8 @@
   "version": "0.0.18",
   "background": { "service_worker": "background.bundle.js" },
   "permissions": [
-    "storage"
+    "storage",
+    "scripting"
   ],
   "action": {
     "default_icon": "icon-34.png",
