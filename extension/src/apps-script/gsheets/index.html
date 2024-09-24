@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html style="width: 850px; height: 100%; background-color: transparent; float:right;">
+  <head>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        const rpc = {
+          "readActiveSpreadsheet": () => 2,
+          "getUserSelectedRange": () => 3,
+          "gsheetEvaluate": () => 4,
+        }
+        function onMessage(event) {
+          const payload = event && event.data
+          if (!event || !TRUSTED_ORIGINS.includes(event.origin) || !payload || !(payload.fn in rpc)) {
+              return false;
+          }
+          function onSuccess(response) {
+            // document.querySelector("#log").innerHTML = JSON.stringify(response)
+            event.source.postMessage({
+              type: 'success',
+              response,
+              id: payload.id
+            }, {
+                targetOrigin: event.origin
+            });
+          }
+          function onFailure(err) {
+            event.source.postMessage({
+              type: 'error',
+              error: 'An error occured',
+              id: payload.id
+            }, {
+                targetOrigin: event.origin
+            });
+          }
+          if (payload.fn == 'readActiveSpreadsheet') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).readActiveSpreadsheet(...payload.args)
+          } else if (payload.fn == 'getUserSelectedRange') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).getUserSelectedRange(...payload.args)
+          } else if (payload.fn == 'gsheetEvaluate') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetEvaluate(...payload.args)
+          }
+          return true
+        };
+        window.addEventListener("message", onMessage)
+      })
+    </script>
+  </head>
+  <body style="width: 850px; height: 100%; background-color: transparent; float:right;">
+    <!-- <div style="display:flex; justify-content: center; align-items: center; flex-direction: column;">
+      <div id="log" style="width: 850px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
+    </div> -->
+    <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&origin=https://docs.google.com" width="100%" height="100%"></iframe>
+  </body>
+</html>
