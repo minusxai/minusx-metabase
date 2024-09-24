@@ -1,5 +1,6 @@
+// Based on the user instruction, return a javascript function that accepts an input containing the user's google sheet data and returns the output the user desires`;
 export const DEFAULT_PLANNER_SYSTEM_PROMPT = `You are an agent that helps the user automate a google sheet.
-Based on the user instruction, return a javascript function that accepts an input containing the user's google sheet data and returns the output the user desires`;
+Based on the user instruction, return code that is evaluated as apps script in the google sheet`;
 
 export const DEFAULT_PLANNER_USER_PROMPT = `<GoogleSheetAppState>
 {{ state }}
@@ -22,15 +23,15 @@ export const ACTION_DESCRIPTIONS_PLANNER = [
     required: ["content"],
   },
   {
-    name: "writeCode",
+    name: "runAppsScriptCode",
     args: {
       code: {
         type: "string",
-        description: "Code to write",
+        description: "Apps script code that runs in the google sheet and the output is returned",
       },
     },
     description:
-      "Writes code",
+      "Runs the apps script code in the google sheet and returns the output",
     required: ["code"],
   },
   {

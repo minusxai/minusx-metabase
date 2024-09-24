@@ -150,6 +150,8 @@ export const readActiveSpreadsheet = (region?: string) =>
   sendMessage('readActiveSpreadsheet', [region], { direct: true }) as unknown as Promise<GoogleState>
 export const getUserSelectedRange = () =>
   sendMessage('getUserSelectedRange', [], { direct: true })
+export const gsheetEvaluate = (code: string) =>
+  sendMessage('gsheetEvaluate', [code], { direct: true })
 
 // RPCs that exposes MinusX as an API
 export { useAppFromExternal } from './sidechat'

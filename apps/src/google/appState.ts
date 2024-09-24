@@ -2,7 +2,7 @@ import { RPCs } from "web";
 import { AppController } from "../base/appController";
 import { DefaultAppState } from "../base/appState";
 import { googleSheetInternalState } from "./googleSheetInternalState";
-import { GoogleState } from "web/types";
+import { BlankMessageContent, GoogleState } from "web/types";
 // import { isEmpty } from "lodash";
 // import { RPCs } from "web";
 
@@ -31,8 +31,14 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
 }
 
 export class GoogleController extends AppController<GoogleState> {
-  async writeCode(code: string) {
+  async runAppsScriptCode(code: string) {
     console.log('Writing code', code)
-    return;
+    const content = await RPCs.gsheetEvaluate(code)
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    actionContent.content = JSON.stringify(content);
+    console.log("Apps script output is", actionContent);
+    return actionContent;
   }
 }
