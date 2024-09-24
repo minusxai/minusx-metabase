@@ -168,6 +168,8 @@ const SettingsPage = () => {
           <IconButton size="sm" colorScheme={"minusxGreen"} variant="ghost" aria-label="See Prompts" icon={<Icon as={BiLinkExternal} boxSize={4} />} onClick={() =>  window.open(discordLink, '_blank')} />
         </HStack>
       </SettingsBlock>
+      <Link href={`${configs.SERVER_BASE_URL}/stripe/create-checkout-session`} isExternal>Checkout</Link>
+
       <Button size={"sm"} p={2} colorScheme="minusxGreen" onClick={() => logoutState()}>Logout</Button>
     </VStack>
   );
