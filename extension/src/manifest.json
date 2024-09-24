@@ -5,8 +5,7 @@
   "version": "0.0.18",
   "background": { "service_worker": "background.bundle.js" },
   "permissions": [
-    "storage",
-    "scripting"
+    "storage"
   ],
   "action": {
     "default_icon": "icon-34.png",
@@ -21,7 +20,7 @@
         "http://*/*",
         "https://*/*"
       ],
-      "js": ["contentScript.bundle.js"],
+      "js": ["contentScript.bundle.js", "diagnostics.bundle.js"],
       "css": [],
       "run_at": "document_start"
     }
@@ -31,7 +30,17 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["content.styles.css", "icon-128.png", "icon-34.png", "*.svg", "metabase.bundle.js", "jupyter.bundle.js", "posthog.bundle.js", "debug.bundle.js"],
+      "resources": [
+        "content.styles.css", 
+        "icon-128.png", 
+        "icon-34.png", 
+        "*.svg", 
+        "metabase.bundle.js", 
+        "jupyter.bundle.js", 
+        "posthog.bundle.js", 
+        "debug.bundle.js",
+        "diagnostics.bundle.js"
+    ],
       "matches": ["<all_urls>"]
     }
   ],

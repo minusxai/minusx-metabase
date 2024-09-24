@@ -7,29 +7,20 @@ import { get } from 'lodash'
 const playgroundLink = 'https://minusx.ai/playground'
 const requestToolLink = 'https://minusx.ai/tool-request'
 const websiteLink = 'https://minusx.ai'
-function DOMtoString(selector: any) {
-  if (selector) {
-      selector = document.querySelector(selector);
-      if (!selector) return "ERROR: querySelector failed to find node"
-  } else {
-      selector = document.documentElement;
-  }
-  return selector.outerHTML;
-}
+
 const getSource = () => {
   return chrome.tabs.query({ active: true, currentWindow: true }).then(function (tabs) {
     var activeTab = tabs[0];
     var activeTabId = activeTab.id;
     if (!activeTabId) return "ERROR: no active tab found"
     console.log("tab id" , activeTabId)
-    return chrome.scripting.executeScript({
-        target: { tabId: activeTabId },
-        injectImmediately: true,  // uncomment this to make it execute straight away, other wise it will wait for document_idle
-        func: DOMtoString,
-        args: ['html']
-    }).then(results => {
-      return results[0].result
-    })
+    return chrome.tabs.sendMessage(activeTabId, {fn: 'getPageSource', args: ['html']})
+      .then(results => {
+        console.log(results)
+        return results.response
+      }).catch(err => {
+        console.log(err)
+      })
 })
 }
 export const Popup: React.FC = () => {

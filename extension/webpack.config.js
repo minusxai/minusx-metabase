@@ -42,6 +42,8 @@ var options = {
     popup: path.join(__dirname, 'src', 'popup', 'index.tsx'),
     contentScript: path.join(__dirname, 'src', 'content', 'index.ts'),
     debug: path.join(__dirname, 'src', 'content', 'debug.ts'),
+    // diagnostics file for bug reporting
+    diagnostics: path.join(__dirname, 'src', 'content', 'diagnostics.ts'),
     // @ppsreejith: We can generate this in the future, for now adding manually
     // Same in manifest.json file
     metabase: path.join(__dirname, '..', 'apps', 'src', 'metabase', 'inject.ts'),
