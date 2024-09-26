@@ -133,11 +133,10 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       </VStack>
       {sidePanelTabName === 'settings' ? <Settings /> : <TaskUI ref={ref}/>}
       <HStack justifyContent="space-between" alignItems="center" width="100%" p="1">
-        {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         <DevToolsToggle size={"micro"}/>
-        {/* <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>Pro Tip: {platformShortcut} to toggle</Text> */}
-        {/* <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text> */}
-        <SupportButton /> 
+        {!configs.IS_DEV && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>Pro Tip: {platformShortcut} to toggle</Text>}
+        {!configs.IS_DEV && <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>}
+        {configs.IS_DEV && <SupportButton />}
       </HStack>
     </VStack>
   )
