@@ -31,6 +31,7 @@ import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { ImageContext } from '../../state/chat/types'
+import { useIntercom } from 'react-use-intercom'
 
 
 const AppLoggedIn = forwardRef((_props, ref) => {
@@ -132,14 +133,35 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       </VStack>
       {sidePanelTabName === 'settings' ? <Settings /> : <TaskUI ref={ref}/>}
       <HStack justifyContent="space-between" alignItems="center" width="100%" p="1">
-        {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         <DevToolsToggle size={"micro"}/>
-        <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>Pro Tip: {platformShortcut} to toggle</Text>
-        <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>
+        {!configs.IS_DEV && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>Pro Tip: {platformShortcut} to toggle</Text>}
+        {!configs.IS_DEV && <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>}
+        {configs.IS_DEV && <SupportButton />}
       </HStack>
     </VStack>
   )
 })
+
+const SupportButton = () => {
+  const {
+    boot,
+    shutdown,
+    show
+  } = useIntercom();
+  const [isSupportOpen, setIsSupportOpen] = useState(false)
+  const toggleSupport = () => setIsSupportOpen(!isSupportOpen)
+  useEffect(() => {
+    if (isSupportOpen) {
+      boot()
+      show()
+    } else {
+      shutdown()
+    }
+  })
+  return <div onClick={toggleSupport} style={{cursor: "pointer"}}>
+    <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>Support</Text>
+  </div>
+}
 
 const useAppStore = getApp().useStore()
 

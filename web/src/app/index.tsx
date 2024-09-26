@@ -24,6 +24,8 @@ import { useAppFromExternal } from './rpc';
 import { Button } from '@chakra-ui/react';
 import { convertToMarkdown } from '../helpers/LLM/remote';
 import { setInstructions } from '../state/thumbnails/reducer';
+import { IntercomProvider, useIntercom } from 'react-use-intercom';
+
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
@@ -242,14 +244,18 @@ Image:
     </div>
 }
 
+const INTERCOM_APP_ID = 'iiqgdpva'
+
 function RootApp() {
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-            <ChakraContext>
-                {/* <DebugComponent /> */}
-                <ProviderApp />
-            </ChakraContext>
+                <IntercomProvider appId={INTERCOM_APP_ID}>
+                    <ChakraContext>
+                        {/* <DebugComponent /> */}
+                        <ProviderApp />
+                    </ChakraContext>
+                </IntercomProvider>
             </PersistGate>
         </Provider>
     ) 
