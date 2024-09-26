@@ -53,6 +53,7 @@
     "react-markdown": "^9.0.1",
     "react-redux": "^9.1.2",
     "react-textarea-autosize": "^8.5.3",
+    "react-use-intercom": "^5.4.1",
     "redux-logger": "^3.0.6",
     "redux-persist": "^6.0.0",
     "styled-components": "^6.1.11"

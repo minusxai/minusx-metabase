@@ -11635,6 +11635,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-use-intercom@npm:^5.4.1":
+  version: 5.4.1
+  resolution: "react-use-intercom@npm:5.4.1"
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 10c0/4e67288fa895158e92a436143b6198b51f01e5708ff8f3bebe1d82d51b832c8e28a1d444bb1f07979ed2bfc1743599edd91f6d729faf6f2932d2f644851ca8c1
+  languageName: node
+  linkType: hard
+
 "react@npm:^18.2.0, react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
@@ -13599,6 +13609,7 @@ __metadata:
     react-markdown: "npm:^9.0.1"
     react-redux: "npm:^9.1.2"
     react-textarea-autosize: "npm:^8.5.3"
+    react-use-intercom: "npm:^5.4.1"
     redux-logger: "npm:^3.0.6"
     redux-persist: "npm:^6.0.0"
     serve: "npm:^14.2.3"
