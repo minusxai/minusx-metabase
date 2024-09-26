@@ -35,7 +35,7 @@ import { JupyterNotebookState } from '../../../../apps/src/jupyter/helpers/DOMTo
 import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/helpers/querySelectorMap'
 import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
-import { MembershipBlock } from './Membership'
+import { MembershipBlock } from './Subscription'
 import { configs } from '../../constants'
  
 

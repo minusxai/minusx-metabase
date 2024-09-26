@@ -5,7 +5,8 @@ import {
   Icon,
   Text,
   Image,
-  Tooltip
+  Tooltip,
+  Spacer
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
@@ -16,7 +17,7 @@ import { Coordinates, startSelection } from '../../helpers/Selection'
 import { useSelector } from 'react-redux'
 import { register } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
-import {auth as authModule} from '../../app/api'
+import {auth as authModule, setAxiosJwt} from '../../app/api'
 import Auth from './Auth'
 import _ from 'lodash'
 import { updateAppMode, updateSidePanelTabName } from '../../state/settings/reducer'
@@ -32,11 +33,31 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { ImageContext } from '../../state/chat/types'
 import { useIntercom } from 'react-use-intercom'
+import { getBillingInfo } from '../../app/api/billing'
+import CreditsPill from './CreditsPill'
+import { setBillingInfo } from '../../state/billing/reducer'
+import { MdOutlineSupportAgent } from 'react-icons/md'
 
 
 const AppLoggedIn = forwardRef((_props, ref) => {
+  const credits = useSelector((state: RootState) => state.billing.credits)
+  const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
+  if (configs.PAYMENTS_ENABLED) {
+    useEffect(() => {
+      // TODO: dunno why this race condition is happening where jwt is not set.
+      // should figure out and fix later
+      setAxiosJwt(session_jwt)
+      // just get credits once
+      getBillingInfo().then(billingInfo => {
+        dispatch(setBillingInfo({
+          credits: billingInfo.credits,
+          isSubscribed: billingInfo.subscribed
+        }))
+      })
+    }, [])
+  }
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
-  const isDevToolsOpen = useSelector((state): RootState => state.settings.isDevToolsOpen)
+  const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const tool = getParsedIframeInfo().tool
   const handleSnapClick = async () => {
     await setMinusxMode('open-selection')
@@ -132,10 +153,15 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         </HStack>
       </VStack>
       {sidePanelTabName === 'settings' ? <Settings /> : <TaskUI ref={ref}/>}
-      <HStack justifyContent="space-between" alignItems="center" width="100%" p="1">
+      <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
+        {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
+       
         <DevToolsToggle size={"micro"}/>
-        {!configs.IS_DEV && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>Pro Tip: {platformShortcut} to toggle</Text>}
-        {!configs.IS_DEV && <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>}
+        <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>
+        {
+          configs.PAYMENTS_ENABLED && <CreditsPill credits={credits} />
+        }
+        {/* <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text> */}
         {configs.IS_DEV && <SupportButton />}
       </HStack>
     </VStack>
@@ -159,7 +185,7 @@ const SupportButton = () => {
     }
   })
   return <div onClick={toggleSupport} style={{cursor: "pointer"}}>
-    <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>Support</Text>
+    <Icon as={MdOutlineSupportAgent} boxSize={5} color="minusxGreen.800" />
   </div>
 }
 

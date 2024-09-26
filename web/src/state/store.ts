@@ -8,11 +8,13 @@ import { persistReducer, createMigrate } from 'redux-persist'
 import logger from 'redux-logger'
 import { configs } from '../constants'
 import { plannerListener } from '../planner/planner'
+import billing from './billing/reducer'
 const combinedReducer = combineReducers({
   chat,
   auth,
   settings,
   thumbnails,
+  billing
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -130,13 +132,26 @@ const migrations = {
     }
     return newState;
   },
+  // remove membership and credits_expired from auth; add billing
+  10: (state: any) => {
+    let newState = {...state}
+    if (state.auth.is_authenticated) {
+      delete newState.auth.membership
+      delete newState.auth.credits_expired
+    }
+    newState.billing = {
+      isSubscribed: false,
+      credits: 0
+    }
+    return newState;
+  },
 }
 
 const persistConfig = {
   key: 'root',
-  version: 8,
+  version: 10,
   storage,
-  blacklist: [],
+  blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),
 };
 

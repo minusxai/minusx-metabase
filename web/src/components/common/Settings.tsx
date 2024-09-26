@@ -1,4 +1,4 @@
-import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon } from '@chakra-ui/react';
+import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
 import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode } from '../../state/settings/reducer';
@@ -8,7 +8,10 @@ import { configs } from '../../constants';
 import { BiLinkExternal } from 'react-icons/bi'
 import { setMinusxMode } from '../../app/rpc';
 import { BsDiscord } from "react-icons/bs";
-import { UpgradeMembershipButton } from './Membership';
+import { PortalButton, SubscribeButton } from './Subscription';
+import axios from 'axios';
+import { getBillingInfo } from '../../app/api/billing';
+import { setBillingInfo } from '../../state/billing/reducer';
 
 const ACTIVE_TOOLS = {
   jupyter: true,
@@ -74,6 +77,18 @@ const SettingsPage = () => {
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const auth = useSelector((state: RootState) => state.auth)
+  const billing = useSelector((state: RootState) => state.billing)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      getBillingInfo().then(billingInfo => {
+        dispatch(setBillingInfo({
+          credits: billingInfo.credits,
+          isSubscribed: billingInfo.subscribed
+        }))
+      })
+    }, 2000)
+    return () => clearInterval(interval)
+  })
   const setIsLocal = (value: boolean) => {
     dispatch(updateIsLocal(value))
   }
@@ -87,6 +102,7 @@ const SettingsPage = () => {
     dispatch(updateIsDevToolsOpen(true))
     dispatch(updateDevToolsTabName(value))
   }
+  
   // const CURRENT_ACTION_TESTS = ACTION_TESTS[tool];
   return (
     <VStack className='settings-body'
@@ -105,10 +121,16 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">{auth.email}</Text>
           </Stack>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
-            <Text color={"minusxBW.800"} fontSize="sm">Membership</Text>
-            <Text color={"minusxBW.800"} fontSize="sm">{auth.membership}</Text>
+            <Text color={"minusxBW.800"} fontSize="sm">Subscription</Text>
+            <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
+              <TagLabel>{billing.isSubscribed ? 'Active' : 'Inactive'}</TagLabel>
+            </Tag>
           </Stack>
-          {auth.membership == 'free' && <UpgradeMembershipButton />}
+          {!billing.isSubscribed && <SubscribeButton />}
+          {<PortalButton />}
+          <Text>
+            Do you need help or have you encountered any issues? Please email us at support@minusx.ai or call/text me at +1 (415) 740-3379
+          </Text>
         </VStack>
       </SettingsBlock>}
       <SettingsBlock title="Analytics Tools">
@@ -168,8 +190,6 @@ const SettingsPage = () => {
           <IconButton size="sm" colorScheme={"minusxGreen"} variant="ghost" aria-label="See Prompts" icon={<Icon as={BiLinkExternal} boxSize={4} />} onClick={() =>  window.open(discordLink, '_blank')} />
         </HStack>
       </SettingsBlock>
-      <Link href={`${configs.SERVER_BASE_URL}/stripe/create-checkout-session`} isExternal>Checkout</Link>
-
       <Button size={"sm"} p={2} colorScheme="minusxGreen" onClick={() => logoutState()}>Logout</Button>
     </VStack>
   );
