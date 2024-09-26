@@ -36,7 +36,8 @@ import { useIntercom } from 'react-use-intercom'
 import { getBillingInfo } from '../../app/api/billing'
 import CreditsPill from './CreditsPill'
 import { setBillingInfo } from '../../state/billing/reducer'
-import { MdOutlineSupportAgent } from 'react-icons/md'
+import { BiSupport } from "react-icons/bi"
+
 
 
 const AppLoggedIn = forwardRef((_props, ref) => {
@@ -184,9 +185,14 @@ const SupportButton = () => {
       shutdown()
     }
   })
-  return <div onClick={toggleSupport} style={{cursor: "pointer"}}>
-    <Icon as={MdOutlineSupportAgent} boxSize={5} color="minusxGreen.800" />
-  </div>
+  return <IconButton
+    variant={'ghost'}
+    colorScheme="minusxGreen"
+    aria-label="Support"
+    size={'sm'}
+    icon={<Icon as={BiSupport} boxSize={4} />}
+    onClick={toggleSupport}
+  />
 }
 
 const useAppStore = getApp().useStore()
