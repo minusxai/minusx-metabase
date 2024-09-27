@@ -24,15 +24,18 @@ export const billingSlice = createSlice({
       state.credits = action.payload.credits
       state.isSubscribed = action.payload.isSubscribed
     },
-    removeOneCreditOnLlmCall: (
-      state
+    updateCredits: (
+      state,
+      action: PayloadAction<number | undefined | null> 
     ) => {
-      state.credits -= 1
+      if (action.payload !== null && action.payload !== undefined) {
+        state.credits = action.payload
+      }
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { setBillingInfo, removeOneCreditOnLlmCall } = billingSlice.actions
+export const { setBillingInfo, updateCredits } = billingSlice.actions
 
 export default billingSlice.reducer

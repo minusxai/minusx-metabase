@@ -8,6 +8,7 @@ export type LLMResponse = {
   finish_reason: ChatCompletion.Choice['finish_reason']
   // optional error message
   error?: string
+  credits?: number
 }
 // Should add more stuff here as and when we try to experiment with them
 export type LLMSettings = {

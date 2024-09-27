@@ -22,7 +22,7 @@ export async function planActionsRemote({
   if (jsonResponse.error) {
     throw new Error(jsonResponse.error)
   }
-  return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content }
+  return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits }
 }
 
 export const getSuggestions = async(): Promise<string[]> => {

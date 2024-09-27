@@ -2,7 +2,7 @@ import { dispatch } from '../state/dispatch'
 import { addActionPlanMessage, addUserMessage } from '../state/chat/reducer'
 import { DefaultMessageContent, LuckyMessageContent } from '../state/chat/types'
 import { LLMResponse } from '../helpers/LLM/types'
-import { removeOneCreditOnLlmCall } from '../state/billing/reducer'
+import { updateCredits } from '../state/billing/reducer'
 export const CHAT_USER_ACTION = "CHAT_USER_ACTION"
 
 export default {
@@ -12,8 +12,6 @@ export default {
         content
       })
     )
-    // eager update of user credits. this is just a display value so not worried about its accuracy
-    dispatch(removeOneCreditOnLlmCall())
   },
   addErrorMessage(err: string) {
     // TODO(@sreejith): implement this
@@ -21,6 +19,8 @@ export default {
   },
   addActionPlanFromLlmResponse(llmResponse: LLMResponse, debug: any) {
     dispatch(addActionPlanMessage({llmResponse, debug}))
+    // update credits. not sure if this is the best place to do this
+    dispatch(updateCredits(llmResponse.credits))
   },
 }
 
