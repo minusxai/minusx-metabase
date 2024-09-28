@@ -39,7 +39,7 @@ import { MembershipBlock } from './Subscription'
 import { configs } from '../../constants'
 import { useIntercom } from 'react-use-intercom'
 import { BiSupport } from "react-icons/bi"
-
+import axios from 'axios';
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -191,24 +191,27 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     const SupportButton = () => {
       const {
         boot,
-        shutdown,
         show,
         hide,
         isOpen,
 
       } = useIntercom();
       const [isBooted, setIsBooted] = useState(false)
-      const toggleSupport = () => {
+      const toggleSupport = async () => {
         if (!isBooted) {
-          boot({
-            hideDefaultLauncher: true,
-            email: email,
-            name: email.split('@')[0],
-          })
-          setIsBooted(true)
+          const response = await axios.get(`${configs.BASE_SERVER_URL}/support`);
+          if (response.data.intercom_token) {
+            console.log('Booting intercom with token', response.data.intercom_token)
+            boot({
+              hideDefaultLauncher: true,
+              email: email,
+              name: email.split('@')[0],
+              userHash: response.data.intercom_token,
+            })
+            setIsBooted(true)
+          }
         }
         isOpen ? hide() : show()
-        console.log('Support is', isOpen)
       }
       return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
         <IconButton
