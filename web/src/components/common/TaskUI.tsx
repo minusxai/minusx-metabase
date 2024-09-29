@@ -199,7 +199,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       const [isBooted, setIsBooted] = useState(false)
       const toggleSupport = async () => {
         if (!isBooted) {
-          const response = await axios.get(`${configs.BASE_SERVER_URL}/support`);
+          const response = await axios.get(`${configs.SERVER_BASE_URL}/support/`);
           if (response.data.intercom_token) {
             console.log('Booting intercom with token', response.data.intercom_token)
             boot({
