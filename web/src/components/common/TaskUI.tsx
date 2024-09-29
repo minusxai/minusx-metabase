@@ -37,7 +37,9 @@ import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
 import { MembershipBlock } from './Subscription'
 import { configs } from '../../constants'
- 
+import { useIntercom } from 'react-use-intercom'
+import { BiSupport } from "react-icons/bi"
+import axios from 'axios';
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -105,6 +107,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+  const email = useSelector((state: RootState) => state.auth.email)
   const is_credits_expired = useSelector((state: RootState) => state.auth.credits_expired)
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
@@ -184,6 +187,46 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     icon={<Icon as={HiOutlineRefresh} boxSize={5} />}
     disabled={messages.length === 0 || taskInProgress}
     />)
+
+    const SupportButton = () => {
+      const {
+        boot,
+        show,
+        hide,
+        isOpen,
+
+      } = useIntercom();
+      const [isBooted, setIsBooted] = useState(false)
+      const toggleSupport = async () => {
+        if (!isBooted) {
+          const response = await axios.get(`${configs.SERVER_BASE_URL}/support/`);
+          if (response.data.intercom_token) {
+            console.log('Booting intercom with token', response.data.intercom_token)
+            boot({
+              hideDefaultLauncher: true,
+              email: email,
+              name: email.split('@')[0],
+              userHash: response.data.intercom_token,
+            })
+            setIsBooted(true)
+          }
+        }
+        isOpen ? hide() : show()
+      }
+      return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
+        <IconButton
+        isRound={true}
+        variant="solid"
+        colorScheme="minusxGreen"
+        size={'sm'}
+        disabled={messages.length === 0 || taskInProgress}  
+        aria-label="Support"
+        icon={<Icon as={BiSupport} boxSize={4} />}
+        onClick={toggleSupport}
+      />
+      </Tooltip>
+    }
+
   return (
     <VStack
       justifyContent="space-between"
@@ -305,7 +348,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               disabled={taskInProgress}
               onChange={(e) => setInstructions(e.target.value)}
               onKeyDown={onKeyDown}
-              style={{ width: '98%' }}
+              style={{ width: '98%', height: "100%" }}
             />
             <VStack>
               {
@@ -313,15 +356,16 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                   <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
                 ) : <RunTaskButton runTask={runTask} disabled={taskInProgress} />
               }
-            {
-              showMessagesTooLong ?
-              <Tooltip hasArrow label={tooLongTooltip} placement='auto' borderRadius={5} defaultIsOpen onClose={() => setShowMessagesTooLong(false)} isDisabled={!showMessagesTooLong}>
-                {resetMessageHistoryButton}
-              </Tooltip> : 
-              <Tooltip hasArrow label="Clear Chat" placement='left' borderRadius={5} openDelay={500}>
-                {resetMessageHistoryButton}
-              </Tooltip>
-            }
+              {
+                showMessagesTooLong ?
+                <Tooltip hasArrow label={tooLongTooltip} placement='auto' borderRadius={5} defaultIsOpen onClose={() => setShowMessagesTooLong(false)} isDisabled={!showMessagesTooLong}>
+                  {resetMessageHistoryButton}
+                </Tooltip> : 
+                <Tooltip hasArrow label="Clear Chat" placement='left' borderRadius={5} openDelay={500}>
+                  {resetMessageHistoryButton}
+                </Tooltip>
+              }
+              <SupportButton />
             </VStack>
           </HStack>
         }

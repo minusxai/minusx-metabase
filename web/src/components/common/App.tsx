@@ -32,11 +32,10 @@ import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { ImageContext } from '../../state/chat/types'
-import { useIntercom } from 'react-use-intercom'
 import { getBillingInfo } from '../../app/api/billing'
 import CreditsPill from './CreditsPill'
 import { setBillingInfo } from '../../state/billing/reducer'
-import { MdOutlineSupportAgent } from 'react-icons/md'
+
 
 
 const AppLoggedIn = forwardRef((_props, ref) => {
@@ -162,32 +161,10 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           configs.PAYMENTS_ENABLED && <CreditsPill credits={credits} />
         }
         {/* <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text> */}
-        {configs.IS_DEV && <SupportButton />}
       </HStack>
     </VStack>
   )
 })
-
-const SupportButton = () => {
-  const {
-    boot,
-    shutdown,
-    show
-  } = useIntercom();
-  const [isSupportOpen, setIsSupportOpen] = useState(false)
-  const toggleSupport = () => setIsSupportOpen(!isSupportOpen)
-  useEffect(() => {
-    if (isSupportOpen) {
-      boot()
-      show()
-    } else {
-      shutdown()
-    }
-  })
-  return <div onClick={toggleSupport} style={{cursor: "pointer"}}>
-    <Icon as={MdOutlineSupportAgent} boxSize={5} color="minusxGreen.800" />
-  </div>
-}
 
 const useAppStore = getApp().useStore()
 
