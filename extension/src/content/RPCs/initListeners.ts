@@ -1,10 +1,10 @@
 import { configs } from "../../constants"
 
 export type RPCPayload = {
-  fn: string
-  args: any[]
-  id: number
-  timeout: number
+    fn: string
+    args: any[]
+    id: number
+    timeout: number
 }
 
 export type RPCError = {
@@ -26,9 +26,9 @@ export type RPCErrorResponse = {
     type: 'error'
 }
 
-export const initWindowListener = <T extends RPCs> (rpc: T) => {
+export const initWindowListener = <T extends RPCs>(rpc: T) => {
     const TRUSTED_ORIGINS = [configs.WEB_URL]
-    window.addEventListener('message', function(event) {
+    window.addEventListener('message', function (event) {
         const payload: RPCPayload = event.data
         if (!TRUSTED_ORIGINS.includes(event.origin) || !payload || !(payload.fn in rpc)) {
             return false;
@@ -63,7 +63,7 @@ export const initWindowListener = <T extends RPCs> (rpc: T) => {
             });
         }).catch(rawError => {
             const error: RPCError = {
-                message: rawError?.message?? 'An error occurred',
+                message: rawError?.message ?? 'An error occurred',
             }
             try {
                 error.error = JSON.parse(JSON.stringify(rawError))
@@ -78,6 +78,30 @@ export const initWindowListener = <T extends RPCs> (rpc: T) => {
                 targetOrigin: event.origin
             });
         })
+        return true
+    });
+}
+
+export const initBgRpc = <T extends RPCs>(rpc: T) => {
+    // Function to handle messages from the background script
+    chrome.runtime.onMessage.addListener((event, sender, sendResponse) => {
+        const payload: RPCPayload = event
+        if (!payload || !(payload.fn in rpc)) {
+            const error = 'Invalid payload'
+            sendResponse({ error });
+            return true;
+        }
+        if (sender.id == chrome.runtime.id) {
+            try {
+                Promise.resolve(rpc[payload.fn](payload.args, sender)).then((response) => {
+                    sendResponse({ response });
+                }).catch(error => {
+                    sendResponse({ error });
+                })
+            } catch (error) {
+                sendResponse({ error });
+            }
+        }
         return true
     });
 }
