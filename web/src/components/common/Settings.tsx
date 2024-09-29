@@ -147,7 +147,7 @@ const SettingsPage = () => {
       <SettingsBlock title="Privacy">
         <VStack alignItems={"stretch"}>
           <TelemetryToggle color="minusxBW.800"/>
-          <Text color={"minusxBW.800"} fontSize="xs">Read a <Link href="https://minusx.ai/privacy-simplified"
+          <Text color={"minusxBW.800"} fontSize="xs">Read a <Link href="https://minusx.ai/#pricing"
             color="blue" isExternal>simple break-down</Link> about what the logs contain, and what we do with them.</Text>
         </VStack>
       </SettingsBlock>
