@@ -145,6 +145,11 @@ const migrations = {
     }
     return newState;
   },
+  11: (state: any) => {
+    let newState = {...state}
+    newState.settings.intercomBooted = false
+    return newState;
+  },
 }
 
 const persistConfig = {

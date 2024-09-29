@@ -8,10 +8,10 @@ import { configs } from '../../constants';
 import { BiLinkExternal } from 'react-icons/bi'
 import { setMinusxMode } from '../../app/rpc';
 import { BsDiscord } from "react-icons/bs";
-import { PortalButton, SubscribeButton } from './Subscription';
-import axios from 'axios';
+import { PortalButton, SubscribeButton, PricingPlans } from './Subscription';
 import { getBillingInfo } from '../../app/api/billing';
 import { setBillingInfo } from '../../state/billing/reducer';
+import { SupportButton } from './Support';
 
 const ACTIVE_TOOLS = {
   jupyter: true,
@@ -123,17 +123,18 @@ const SettingsPage = () => {
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text color={"minusxBW.800"} fontSize="sm">Subscription</Text>
             <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
-              <TagLabel>{billing.isSubscribed ? 'Active' : 'Inactive'}</TagLabel>
+              <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Free Plan'}</TagLabel>
             </Tag>
           </Stack>
           {!billing.isSubscribed && <SubscribeButton />}
-          {<PortalButton />}
+          {billing.isSubscribed && <PortalButton />}
+          <PricingPlans />
           <Text>
-            Do you need help or have you encountered any issues? Please email us at support@minusx.ai or call/text me at +1 (415) 740-3379
+            If you encounter any issues, contact us at support@minusx.ai or <SupportButton email={auth.email} showText={true} />
           </Text>
         </VStack>
       </SettingsBlock>}
-      <SettingsBlock title="Analytics Tools">
+      {/* <SettingsBlock title="Analytics Tools">
         <VStack alignItems={"stretch"}>
           {Object.entries(ACTIVE_TOOLS).map(([tool, isActive], index) => (
             <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0} key={index}>
@@ -142,7 +143,7 @@ const SettingsPage = () => {
             </Stack>
           ))}
         </VStack>
-      </SettingsBlock>
+      </SettingsBlock> */}
       <SettingsBlock title="Privacy">
         <VStack alignItems={"stretch"}>
           <TelemetryToggle color="minusxBW.800"/>
@@ -157,7 +158,7 @@ const SettingsPage = () => {
         </Stack>
         <DevToolsToggle size={"mini"}/>
       </SettingsBlock>: null}
-      {configs.IS_DEV ? <SettingsBlock title="LLM" >
+      {/* {configs.IS_DEV ? <SettingsBlock title="LLM" >
         <HStack justifyContent={"space-between"}>
           <Text color={"minusxBW.800"} fontSize="sm">Use Local Models</Text>
           <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={isLocal} onChange={(e) => setIsLocal(e.target.checked)} />
@@ -170,7 +171,7 @@ const SettingsPage = () => {
           <Text color={"minusxBW.800"} fontSize="sm">Context</Text>
           <IconButton size="sm" colorScheme={"minusxGreen"} variant="ghost" aria-label="See Context" icon={<Icon as={BiLinkExternal} boxSize={4} />} onClick={() =>  {setDevToolsPage('Context')}} />
         </HStack>
-      </SettingsBlock> : null }
+      </SettingsBlock> : null } */}
       <SettingsBlock title="Features" >
         <HStack justifyContent={"space-between"}>
           <Text color={"minusxBW.800"} fontSize="sm">Enable User Confirmations</Text>
