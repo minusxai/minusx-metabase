@@ -43,7 +43,7 @@ export const PortalButton = () => {
 }
 
 export const PricingPlans = () => {
-  return <Link width={"100%"} textAlign={"center"} href="https://minusx.ai/pricing"
+  return <Link width={"100%"} textAlign={"center"} href="https://minusx.ai/#pricing"
   color="blue" isExternal>Explore pricing plans, features</Link>
 }
 
@@ -55,9 +55,7 @@ export const MembershipBlock = () => {
     return () => clearInterval(interval)
   })
   return <VStack>
-    <Text>Please upgrade your membership to continue</Text>
-    {/* <RefreshButton /> */}
-    <SubscribeButton />
+    <Text textAlign={"center"}>Please upgrade your membership to continue using MinusX<SubscribeButton /><PricingPlans/></Text>
   </VStack>
 }
 
