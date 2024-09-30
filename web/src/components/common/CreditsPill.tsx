@@ -3,16 +3,16 @@ import { Tag, TagLabel, TagLeftIcon, Tooltip } from '@chakra-ui/react'
 import { IoDiamondOutline } from "react-icons/io5";
 
 export default function CreditsPill({ credits }: { credits: number }) {
-  const labelText = `Daily credits. Every time you send a message, you use up credits. 
-  Subscribing grants you a fixed amount of credits every day.`
+  const labelText = `Daily credits. You use credits every time you send a message. 
+  Upgrading increases the amount of credits every day.`
   return (
     // make this clickable and add tooltip
     <Tooltip hasArrow label={labelText} placement='auto' borderRadius={5} openDelay={500}>
       <Tag
-        borderRadius='full'
-        variant='solid'
+        borderRadius='3'
+        variant='outline'
         colorScheme="minusxGreen"
-        size="lg"
+        size="sm"
       >
         <TagLeftIcon as={IoDiamondOutline} />
         <TagLabel>{credits}</TagLabel>

@@ -32,6 +32,7 @@ interface Settings {
   iframeInfo: IframeInfoWeb,
   confirmChanges: boolean
   demoMode: boolean
+  intercomBooted: boolean
 }
 
 const initialState: Settings = {
@@ -45,7 +46,8 @@ const initialState: Settings = {
   suggestQueries: false,
   iframeInfo: defaultIframeInfoWeb,
   confirmChanges: false,
-  demoMode: false
+  demoMode: false,
+  intercomBooted: false
 }
 
 export const settingsSlice = createSlice({
@@ -84,6 +86,9 @@ export const settingsSlice = createSlice({
     },
     setDemoMode: (state, action: PayloadAction<boolean>) => {
       state.demoMode = action.payload
+    },
+    setIntercomBooted: (state, action: PayloadAction<boolean>) => {
+      state.intercomBooted = action.payload
     }
   }
 })
@@ -91,6 +96,7 @@ export const settingsSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
-  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges, setDemoMode } = settingsSlice.actions
+  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges, setDemoMode,
+  setIntercomBooted } = settingsSlice.actions
 
 export default settingsSlice.reducer

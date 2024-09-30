@@ -37,9 +37,7 @@ import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
 import { MembershipBlock } from './Subscription'
 import { configs } from '../../constants'
-import { useIntercom } from 'react-use-intercom'
-import { BiSupport } from "react-icons/bi"
-import axios from 'axios';
+import { SupportButton } from './Support'
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -188,45 +186,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     disabled={messages.length === 0 || taskInProgress}
     />)
 
-    const SupportButton = () => {
-      const {
-        boot,
-        show,
-        hide,
-        isOpen,
-
-      } = useIntercom();
-      const [isBooted, setIsBooted] = useState(false)
-      const toggleSupport = async () => {
-        if (!isBooted) {
-          const response = await axios.get(`${configs.SERVER_BASE_URL}/support/`);
-          if (response.data.intercom_token) {
-            console.log('Booting intercom with token', response.data.intercom_token)
-            boot({
-              hideDefaultLauncher: true,
-              email: email,
-              name: email.split('@')[0],
-              userHash: response.data.intercom_token,
-            })
-            setIsBooted(true)
-          }
-        }
-        isOpen ? hide() : show()
-      }
-      return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
-        <IconButton
-        isRound={true}
-        variant="solid"
-        colorScheme="minusxGreen"
-        size={'sm'}
-        disabled={messages.length === 0 || taskInProgress}  
-        aria-label="Support"
-        icon={<Icon as={BiSupport} boxSize={4} />}
-        onClick={toggleSupport}
-      />
-      </Tooltip>
-    }
-
   return (
     <VStack
       justifyContent="space-between"
@@ -365,7 +324,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                   {resetMessageHistoryButton}
                 </Tooltip>
               }
-              <SupportButton />
+              <SupportButton email={email} showText={false}/>
             </VStack>
           </HStack>
         }
