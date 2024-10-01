@@ -13,6 +13,8 @@ export const GLOBAL_EVENTS = {
     "user_login": "global/user_login",
     "billing_checkout": "global/billing_checkout",
     "billing_portal": "global/billing_portal",
+    "billing_subscribed": "global/billing_subscribed",
+    "billing_unsubscribed": "global/billing_unsubscribed",
 }
 
 export const captureEvent = (type: string, payload?: object) => {

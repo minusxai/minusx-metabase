@@ -12,6 +12,7 @@ import { PortalButton, SubscribeButton, PricingPlans } from './Subscription';
 import { getBillingInfo } from '../../app/api/billing';
 import { setBillingInfo } from '../../state/billing/reducer';
 import { SupportButton } from './Support';
+import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 
 const ACTIVE_TOOLS = {
   jupyter: true,
@@ -73,14 +74,18 @@ const SettingsPage = () => {
   // const [showPassword, setShowPassword] = React.useState(false);
 
   const discordLink = 'https://discord.gg/jtFeyPMDcH'
-  const isLocal = useSelector((state: RootState) => state.settings.isLocal)
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const auth = useSelector((state: RootState) => state.auth)
   const billing = useSelector((state: RootState) => state.billing)
   useEffect(() => {
     const interval = setInterval(() => {
-      getBillingInfo().then(billingInfo => {
+      getBillingInfo().then((billingInfo) => {
+        if (billingInfo && billingInfo.subscribed) {
+          captureEvent(GLOBAL_EVENTS.billing_subscribed)
+        } else {
+          captureEvent(GLOBAL_EVENTS.billing_unsubscribed)
+        }
         dispatch(setBillingInfo({
           credits: billingInfo.credits,
           isSubscribed: billingInfo.subscribed
@@ -89,9 +94,6 @@ const SettingsPage = () => {
     }, 2000)
     return () => clearInterval(interval)
   })
-  const setIsLocal = (value: boolean) => {
-    dispatch(updateIsLocal(value))
-  }
   const updateConfirmChanges = (value: boolean) => {
     dispatch(setConfirmChanges(value))
   }
