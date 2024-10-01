@@ -4,12 +4,10 @@ import { Box, VStack, Text, Stack, RadioGroup,
 import PlannerConfig from '../common/PlannerConfig';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { getParsedIframeInfo } from '../../helpers/origin';
 import { getApp } from '../../helpers/app';
 import { ToolPlannerConfig } from 'apps/types';
 
 export const PlannerConfigs: React.FC<null> = () => {
-  // const tool = getParsedIframeInfo().tool
   const defaultPlannerConfig = getApp().useStore().getState().llmConfigs.default
   const [resolvedPlannerConfigs, setResolvedPlannerConfigs] = useState<ToolPlannerConfig>(defaultPlannerConfig)
   // const dispatch = useDispatch()

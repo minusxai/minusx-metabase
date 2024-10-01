@@ -57,7 +57,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   }
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const tool = getParsedIframeInfo().tool
   const handleSnapClick = async () => {
     await setMinusxMode('open-selection')
     dispatch(updateAppMode('selection'))
@@ -94,13 +93,14 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   }
 
   const platformShortcut = getPlatformShortcut()
+  const width = getParsedIframeInfo().width
 
   return (
     <VStack
       px="4"
       pt="4"
       fontSize="sm"
-      w="300px"
+      w={`${width}px`}
       height="100%"
       gap={0}
       backgroundColor={"minusxBW.200"}
@@ -168,13 +168,14 @@ const AppLoggedIn = forwardRef((_props, ref) => {
 
 const useAppStore = getApp().useStore()
 
+const width = getParsedIframeInfo().width
 function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: string }) {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   return <div style={{
       position: 'absolute',
       top: 0,
       right: 0,
-      width: isDevToolsOpen ? '850px' : '300px', // Hack to fix Disabled Overlay
+      width: isDevToolsOpen ? '850px' : `${width}px`, // Hack to fix Disabled Overlay
       height: '100%',
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
       zIndex: 1000,

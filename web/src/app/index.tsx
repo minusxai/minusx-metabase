@@ -229,7 +229,8 @@ Image:
     const imageDoc = async () => {
         const result = await gdocImage(base64Image, 4)
     }
-    return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '300px', position: 'absolute', right: 0}}>
+    const width = getParsedIframeInfo().width
+    return <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: `${width}px`, position: 'absolute', right: 0}}>
         <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center'}}>
             <Button onClick={readSelected} style={{flex: 1}}>Read Selected</Button>
             <Button onClick={readDoc} style={{flex: 1}}>Read Doc</Button>

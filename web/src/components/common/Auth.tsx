@@ -10,6 +10,7 @@ import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import { capture } from '../../helpers/screenCapture/extensionCapture';
 import { TelemetryToggle } from './Settings';
+import { getParsedIframeInfo } from '../../helpers/origin';
 
 interface HighlightItem {
   content: React.ReactNode;
@@ -187,9 +188,10 @@ const Auth = () => {
       arrow: true
     }
   ];
+  const width = getParsedIframeInfo().width
 
   return (
-    <Box p={5} maxW="md" mx="auto" width={"300px"} height={"100%"} backgroundColor={"minusxBW.200"}
+    <Box p={5} maxW="md" mx="auto" width={`${width}px`} height={"100%"} backgroundColor={"minusxBW.200"}
     borderWidth={1.5} borderLeftColor={"minusxBW.500"}>
       <Image src={logo} alt="MinusX" maxWidth='150px'/>
       <VStack spacing={4} mt={5} position={"relative"}>
