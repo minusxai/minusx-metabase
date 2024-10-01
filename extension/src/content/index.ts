@@ -55,7 +55,7 @@ async function _init(localConfigs: Promise<object>) {
     href,
     mode,
     r:extensionId,
-    width,
+    // width,
     gitCommitId: configs.GIT_COMMIT_ID,
     npmPackageVersion: configs.NPM_PACKAGE_VERSION,
   }

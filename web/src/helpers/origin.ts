@@ -14,7 +14,7 @@ export const defaultIframeInfoWeb: IframeInfoWeb = {
     href: '',
     mode: '',
     r: '',
-    width: '350px',
+    width: '350',
     gitCommitId: '',
     npmPackageVersion: '',
     webGitCommitId: '',
@@ -23,6 +23,7 @@ export const defaultIframeInfoWeb: IframeInfoWeb = {
 
 const parsedIframeInfo: IframeInfo = (queryString.parse(location.search) as unknown as IframeInfo || defaultIframeInfoWeb)
 const parsedWebIframeInfo: IframeInfoWeb = {
+    ...defaultIframeInfoWeb,
     ...parsedIframeInfo,
     webGitCommitId: configs.GIT_COMMIT_ID,
     webNpmVersion: configs.NPM_PACKAGE_VERSION
