@@ -45,4 +45,10 @@ export const jupyterInternalState: InternalState = {
     nbToMd: NB_TO_MD_REPORT_LLM_CONFIG as ToolPlannerConfig,
   },
   querySelectorMap,
+  whitelistQuery: {
+    editor: {
+      selector: querySelectorMap["whole_cell"],
+      attrs: ["class"],
+    },
+  },
 };
