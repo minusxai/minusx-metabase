@@ -11,6 +11,8 @@ export const GLOBAL_EVENTS = {
     "otp_success": "global/otp_success",
     "user_signup": "global/user_signup",
     "user_login": "global/user_login",
+    "billing_checkout": "global/billing_checkout",
+    "billing_portal": "global/billing_portal",
 }
 
 export const captureEvent = (type: string, payload?: object) => {
