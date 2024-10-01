@@ -100,7 +100,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       px="4"
       pt="4"
       fontSize="sm"
-      w="350px"
+      w="300px"
       height="100%"
       gap={0}
       backgroundColor={"minusxBW.200"}
@@ -174,7 +174,7 @@ function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: st
       position: 'absolute',
       top: 0,
       right: 0,
-      width: isDevToolsOpen ? '850px' : '350px', // Hack to fix Disabled Overlay
+      width: isDevToolsOpen ? '850px' : '300px', // Hack to fix Disabled Overlay
       height: '100%',
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
       zIndex: 1000,

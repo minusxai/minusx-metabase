@@ -5,7 +5,7 @@ type ToastParams = Parameters<typeof toastRaw>[0]
 const toast = (props: ToastParams) => {
     return toastRaw({
         containerStyle: {
-            width: '350px'
+            width: '300px'
         },
         ...props
     })

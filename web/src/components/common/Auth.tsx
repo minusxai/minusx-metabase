@@ -189,7 +189,7 @@ const Auth = () => {
   ];
 
   return (
-    <Box p={5} maxW="md" mx="auto" width={"350px"} height={"100%"} backgroundColor={"minusxBW.200"}
+    <Box p={5} maxW="md" mx="auto" width={"300px"} height={"100%"} backgroundColor={"minusxBW.200"}
     borderWidth={1.5} borderLeftColor={"minusxBW.500"}>
       <Image src={logo} alt="MinusX" maxWidth='150px'/>
       <VStack spacing={4} mt={5} position={"relative"}>
