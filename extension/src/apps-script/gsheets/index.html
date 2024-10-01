@@ -3,7 +3,8 @@
   <head>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        // const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
         const rpc = {
           "readActiveSpreadsheet": () => 2,
           "getUserSelectedRange": () => 3,
@@ -45,11 +46,23 @@
         window.addEventListener("message", onMessage)
       })
     </script>
+    <style>
+      iframe {
+        border: none;       /* Remove default borders */
+        padding: 0;         /* Remove any padding */
+        margin: 0;          /* Remove any margin */
+        display: block;     /* Prevent inline spacing */
+        width: 100%;        /* Ensure full width */
+        height: 100%;       /* Ensure full height */
+        box-sizing: border-box; /* Consistent sizing */
+      }
+    </style>
   </head>
-  <body style="width: 850px; height: 100%; background-color: transparent; float:right;">
+  <body style="width: 850px; height: 100%; background-color: transparent; float:right; padding: 0; margin: 0; border: none;">
     <!-- <div style="display:flex; justify-content: center; align-items: center; flex-direction: column;">
       <div id="log" style="width: 850px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
     </div> -->
-    <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&origin=https://docs.google.com" width="100%" height="100%"></iframe>
+    <!-- <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
+    <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
   </body>
 </html>
