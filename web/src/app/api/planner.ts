@@ -1,9 +1,7 @@
-
 import { configs } from '../../constants'
 import axios, { AxiosError } from 'axios';
 import { dispatch, logoutState } from '../../state/dispatch';
 import { toast } from '../toast';
-import { update_profile } from '../../state/auth/reducer';
 const url = `${configs.PLANNER_BASE_URL}/getLLMResponse`
 
 
@@ -29,7 +27,10 @@ export const getLLMResponse = async (payload: any, signal?: AbortSignal) => {
           })
           throw new Error("Unauthorized, please login again")
         } else if (error.response.status === 402) {
-          dispatch(update_profile({ credits_expired: true }))
+          // Hack to capture billing event
+          dispatch({
+            type: 'payments/credits_expired',
+          })
           throw error
         } else {
           throw error
