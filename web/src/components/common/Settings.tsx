@@ -13,6 +13,7 @@ import { getBillingInfo } from '../../app/api/billing';
 import { setBillingInfo } from '../../state/billing/reducer';
 import { SupportButton } from './Support';
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
+import CreditsPill from './CreditsPill';
 
 const ACTIVE_TOOLS = {
   jupyter: true,
@@ -127,6 +128,13 @@ const SettingsPage = () => {
             <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
               <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Free Plan'}</TagLabel>
             </Tag>
+          </Stack>
+          <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+            <Text color={"minusxBW.800"} fontSize="sm">Credits remaining today</Text>
+            <CreditsPill credits={billing.credits} />
+            {/* <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
+              <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Free Plan'}</TagLabel>
+            </Tag> */}
           </Stack>
           {!billing.isSubscribed && <SubscribeButton />}
           {billing.isSubscribed && <PortalButton />}
