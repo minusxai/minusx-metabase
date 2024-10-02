@@ -252,7 +252,7 @@ export function processCellOutput(rawOutputs: any): JupyterCellOutput[] {
       }
     }
   })
-  // trim down each of the outputs to the first 10k characters. add a ellipsis if the output is longer than 5k
+  // trim down each of the outputs to the first 10k characters. add a ellipsis if the output is longer than 10k
   outputs.forEach(output => {
     output.value = output.value.length > 10000 ? output.value.substring(0, 10000) + '...' : output.value
   })

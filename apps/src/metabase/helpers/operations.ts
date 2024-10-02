@@ -44,7 +44,7 @@ export async function getAndFormatOutputTable(): Promise<string> {
   }
   let outputTableMarkdown = metabaseToMarkdownTable(outputTable);
   // truncate if more than 2k characters. add an ...[truncated]
-  if (outputTableMarkdown.length > 1000) {
+  if (outputTableMarkdown.length > 2000) {
     outputTableMarkdown = outputTableMarkdown.slice(0, 2000) + '...[truncated]';
   }
   return outputTableMarkdown;

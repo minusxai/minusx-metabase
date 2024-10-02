@@ -120,19 +120,53 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const content = await this.getTableSchemasById({ ids });
     return content;
   }
+  
 
   async searchPreviousSQLQueries({ words }: { words: string[] }) {
+    interface SearchApiResponse {
+      total: number
+      data: {
+        description: string | null
+        name: string
+        dataset_query: {
+          native: {
+            query: string
+          }
+        }
+      }[]
+    }
     const actionContent: BlankMessageContent = { type: "BLANK" };
-    const endpoint = `/api/search?models=card&q=${words.join('+')}`;
-    let queries = []
+    const selectedDbId = await getSelectedDbId();
+    const endpoint = `/api/search?table_db_id=${selectedDbId}&models=card&q=${words.join('+')}`;
+    let queries: {
+      name: string
+      description?: string
+      query: string
+    }[] = []
     try {
-      const response = await RPCs.fetchData(endpoint, 'GET');
-      queries = map(response.data || [], (card: any) => get(card, 'dataset_query.native.query')).filter(i => !!i).slice(0, 10);
-      queries = queries.map((query: string) => query.length >= 1000 ? query.slice(0, 1000) + '...' : query);
+      const response = await RPCs.fetchData(endpoint, 'GET') as SearchApiResponse;
+      // need to get name, description, and query from each card and put into a json obj
+      queries = (response.data || []).map((card: any) => {
+        const query = get(card, 'dataset_query.native.query')
+        const name = get(card, 'name')
+        const description = get(card, 'description')
+        return {
+          name,
+          // only keep description if it's not null
+          ...(description != null && { description }),
+          query
+        }
+      }).filter(i => !!i)
+      // keep only the first 10 queries. TODO: pagination?
+      .slice(0, 10);
     } catch (error) {
       queries = [];
     }
-    actionContent.content = queries.join(';\n')
+    // truncate to 5k chars and add a ...[truncated] if needed
+    actionContent.content = JSON.stringify(queries, null, 2)
+    if (actionContent.content.length > 5000) {
+      actionContent.content = actionContent.content.slice(0, 5000) + '...[truncated]';
+    }
     return actionContent
   }
 
