@@ -104,6 +104,19 @@ const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isApp
     toggleMinusXRoot('invisible', false)
 })
 
+const useInitArgs = (cb: Function, args: any[]) => {
+    const prevArgsRef = useRef(args)
+    const isFirstRender = useRef(true);
+
+    const hasChanged = args.some((arg, index) => prevArgsRef.current[index] !== arg)
+
+    if (isFirstRender.current || hasChanged) {
+        isFirstRender.current = false
+        prevArgsRef.current = args
+        cb()
+    }
+}
+
 const persistor = persistStore(store);
 
 function ProviderApp() {
@@ -115,26 +128,24 @@ function ProviderApp() {
    
     const ref = useRef<HTMLInputElement>(null)
     const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
-    useEffect(() => {
-        init(mode, ref, isAppOpen)
+    init(mode, ref, isAppOpen)
+    useInitArgs(() => {
         if (session_jwt) {
             setAxiosJwt(session_jwt)
         }
-    }, [profileId, session_jwt])
-    useEffect(() => {
+    }, [session_jwt])
+    useInitArgs(() => {
         const globalData = {
             IS_DEV: String(configs.IS_DEV),
+            email: email ?? '',
+            profile_id: profileId ?? '',
             ...getParsedIframeInfo()
-        }
-        if (profileId) {
-            globalData['email'] = email
-            globalData['profile_id'] = profileId
         }
         identifyUser(getExtensionID(), globalData)
         setGlobalProperties(globalData)
     }, [profileId])
     // Hack to fix planning stage
-    useEffect(() => {
+    useInitArgs(() => {
         if (activeThread.status == 'EXECUTING') {
             dispatch(interruptPlan({
                 planID: activeThread.messages.length - 1,
@@ -223,7 +234,7 @@ Image:
 ![Hello World](${base64Image})
 `
     const writeDoc = async () => {
-        const result = await gdocWrite(markdown)
+        const result = await gdocWrite(markdown, '')
     }
 
     const imageDoc = async () => {
