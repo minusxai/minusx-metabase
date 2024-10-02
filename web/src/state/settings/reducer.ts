@@ -87,16 +87,12 @@ export const settingsSlice = createSlice({
     setDemoMode: (state, action: PayloadAction<boolean>) => {
       state.demoMode = action.payload
     },
-    setIntercomBooted: (state, action: PayloadAction<boolean>) => {
-      state.intercomBooted = action.payload
-    }
   }
 })
 
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
-  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges, setDemoMode,
-  setIntercomBooted } = settingsSlice.actions
+  updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries, setIframeInfo, setConfirmChanges, setDemoMode } = settingsSlice.actions
 
 export default settingsSlice.reducer

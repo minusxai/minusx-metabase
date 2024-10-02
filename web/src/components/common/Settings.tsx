@@ -11,15 +11,8 @@ import { BsDiscord } from "react-icons/bs";
 import { PortalButton, SubscribeButton, PricingPlans } from './Subscription';
 import { getBillingInfo } from '../../app/api/billing';
 import { setBillingInfo } from '../../state/billing/reducer';
-import { SupportButton } from './Support';
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from './CreditsPill';
-
-const ACTIVE_TOOLS = {
-  jupyter: true,
-  metabase: true,
-  colab: false
-}
 
 const SettingsHeader = ({ text }: { text: string }) => (
   <Box position='relative' marginTop={2}>
@@ -140,7 +133,7 @@ const SettingsPage = () => {
           {billing.isSubscribed && <PortalButton />}
           <PricingPlans />
           <Text>
-            If you encounter any issues, contact us at support@minusx.ai or <SupportButton email={auth.email} showText={true} />
+            If you encounter any issues, contact us at support@minusx.ai or live support
           </Text>
         </VStack>
       </SettingsBlock>

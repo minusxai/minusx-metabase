@@ -10,12 +10,6 @@ import { BiSupport } from "react-icons/bi"
 import axios from 'axios';
 import React, { useState, useEffect } from 'react'
 import { configs } from '../../constants'
-import { dispatch } from '../../state/dispatch';
-import { setIntercomBooted } from '../../state/settings/reducer';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
-
-
 
 export const SupportButton = ({email} : {email: string}) => {
   const {
@@ -25,13 +19,10 @@ export const SupportButton = ({email} : {email: string}) => {
     isOpen,
 
   } = useIntercom();
-  const intercomBooted = useSelector((state: RootState) => state.settings.demoMode)
+  const [intercomBooted, setIntercomBooted] = useState(false)
   const [hasNotification, setHasNotification] = useState(false)
-  const updateIntercomBooted = (value: boolean) => {
-    dispatch(setIntercomBooted(value))
-  }
   const toggleSupport = async () => isOpen ? hide() : show()
-   
+
   useEffect(() => {
     const bootIntercom = async () => {
       if (!intercomBooted) {
@@ -45,7 +36,7 @@ export const SupportButton = ({email} : {email: string}) => {
               name: email.split('@')[0],
               userHash: response.data.intercom_token,
             });
-            updateIntercomBooted(true);
+            setIntercomBooted(true);
             // Set up event listener for new messages
             window.Intercom('onUnreadCountChange', function(unreadCount: number) {
               setHasNotification(unreadCount > 0);
