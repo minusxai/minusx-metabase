@@ -116,7 +116,7 @@ const SettingsPage = () => {
     overflow={"scroll"}
     pt={2}
     >
-      {configs.PAYMENTS_ENABLED && <SettingsBlock title="Profile">
+      <SettingsBlock title="Profile">
         <VStack alignItems={"stretch"}>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text color={"minusxBW.800"} fontSize="sm">Email</Text>
@@ -135,7 +135,7 @@ const SettingsPage = () => {
             If you encounter any issues, contact us at support@minusx.ai or <SupportButton email={auth.email} showText={true} />
           </Text>
         </VStack>
-      </SettingsBlock>}
+      </SettingsBlock>
       {/* <SettingsBlock title="Analytics Tools">
         <VStack alignItems={"stretch"}>
           {Object.entries(ACTIVE_TOOLS).map(([tool, isActive], index) => (
