@@ -22,6 +22,11 @@ const setVisualizationTypePrimary = (card: any) => {
                 card: card
             }
         })
+        store.dispatch(
+            {
+                type: 'metabase/qb/UPDATE_URL'
+            }
+        )
     }
 }
 
