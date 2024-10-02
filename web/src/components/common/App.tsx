@@ -27,7 +27,6 @@ import { addThumbnail } from '../../state/thumbnails/reducer'
 import { DevToolsBox } from '../devtools';
 import { RootState } from '../../state/store'
 import { setMinusxMode } from '../../app/rpc'
-import { configs } from '../../constants'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
@@ -41,20 +40,18 @@ import { setBillingInfo } from '../../state/billing/reducer'
 const AppLoggedIn = forwardRef((_props, ref) => {
   const credits = useSelector((state: RootState) => state.billing.credits)
   const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
-  if (configs.PAYMENTS_ENABLED) {
-    useEffect(() => {
-      // TODO: dunno why this race condition is happening where jwt is not set.
-      // should figure out and fix later
-      setAxiosJwt(session_jwt)
-      // just get credits once
-      getBillingInfo().then(billingInfo => {
-        dispatch(setBillingInfo({
-          credits: billingInfo.credits,
-          isSubscribed: billingInfo.subscribed
-        }))
-      })
-    }, [])
-  }
+  useEffect(() => {
+    // TODO: dunno why this race condition is happening where jwt is not set.
+    // should figure out and fix later
+    setAxiosJwt(session_jwt)
+    // just get credits once
+    getBillingInfo().then(billingInfo => {
+      dispatch(setBillingInfo({
+        credits: billingInfo.credits,
+        isSubscribed: billingInfo.subscribed
+      }))
+    })
+  }, [])
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const tool = getParsedIframeInfo().tool
@@ -159,7 +156,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>
         {
           sidePanelTabName == 'settings' ?
-          configs.PAYMENTS_ENABLED && <CreditsPill credits={credits} /> :
+          <CreditsPill credits={credits} /> :
           <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>
         }
       </HStack>

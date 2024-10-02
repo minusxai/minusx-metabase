@@ -12,7 +12,6 @@ interface ENV {
     GIT_COMMIT_ID: string
     NPM_PACKAGE_VERSION: string
     IS_DEV: boolean
-    PAYMENTS_ENABLED: boolean
 }
 
 const conf: ENV = {
@@ -27,7 +26,6 @@ const conf: ENV = {
     GIT_COMMIT_ID: process.env.GIT_COMMIT_ID || '',
     NPM_PACKAGE_VERSION: process.env.npm_package_version || '',
     IS_DEV: process.env.IS_PROD == 'true' ? false : process.env.NODE_ENV == 'development',
-    PAYMENTS_ENABLED: process.env.PAYMENTS_ENABLED == 'true' ? true : false,
 }
 
 interface Configs extends ENV {
@@ -35,7 +33,6 @@ interface Configs extends ENV {
     AUTH_BASE_URL: string
     PLANNER_BASE_URL: string
     LOGGING_BASE_URL: string
-    PAYMENTS_ENABLED: boolean
 }
 
 const SERVER_BASE_URL = conf.BASE_SERVER_URL + conf.SERVER_PATH
@@ -46,5 +43,4 @@ export const configs: Configs = {
     AUTH_BASE_URL: SERVER_BASE_URL + conf.AUTH_PATH,
     PLANNER_BASE_URL: SERVER_BASE_URL + conf.PLANNER_PATH,
     LOGGING_BASE_URL: SERVER_BASE_URL + conf.LOGGING_PATH,
-    PAYMENTS_ENABLED: conf.PAYMENTS_ENABLED,
 }
