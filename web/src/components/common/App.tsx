@@ -17,7 +17,7 @@ import { Coordinates, startSelection } from '../../helpers/Selection'
 import { useSelector } from 'react-redux'
 import { register } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
-import {auth as authModule, setAxiosJwt} from '../../app/api'
+import {auth as authModule} from '../../app/api'
 import Auth from './Auth'
 import _ from 'lodash'
 import { updateAppMode, updateSidePanelTabName } from '../../state/settings/reducer'
@@ -38,12 +38,7 @@ import { SupportButton } from './Support'
 
 const AppLoggedIn = forwardRef((_props, ref) => {
   const email = useSelector((state: RootState) => state.auth.email)
-  const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
   useEffect(() => {
-    // TODO: dunno why this race condition is happening where jwt is not set.
-    // should figure out and fix later
-    setAxiosJwt(session_jwt)
-    // just get credits once
     getBillingInfo().then(billingInfo => {
       dispatch(setBillingInfo({
         credits: billingInfo.credits,
@@ -53,7 +48,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   }, [])
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const tool = getParsedIframeInfo().tool
   const handleSnapClick = async () => {
     await setMinusxMode('open-selection')
     dispatch(updateAppMode('selection'))
