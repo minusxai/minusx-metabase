@@ -57,6 +57,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   }
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+  const tool = getParsedIframeInfo().tool
   const handleSnapClick = async () => {
     await setMinusxMode('open-selection')
     dispatch(updateAppMode('selection'))
@@ -154,13 +155,13 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       {sidePanelTabName === 'settings' ? <Settings /> : <TaskUI ref={ref}/>}
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
-       
         <DevToolsToggle size={"micro"}/>
         <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>
         {
-          configs.PAYMENTS_ENABLED && <CreditsPill credits={credits} />
+          sidePanelTabName == 'settings' ?
+          configs.PAYMENTS_ENABLED && <CreditsPill credits={credits} /> :
+          <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>
         }
-        {/* <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text> */}
       </HStack>
     </VStack>
   )
