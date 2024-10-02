@@ -106,6 +106,8 @@ export const fetchData = (
 export const queryURL = () => sendMessage('queryURL', [])
 export const getMetabaseState = (path: Parameters<typeof get>[1]) =>
   sendMessage('getMetabaseState', [path], { log_rpc: true })
+export const setVisualizationTypePrimary = (card: any) =>
+  sendMessage('setVisualizationTypePrimary', [card])
 export const getJupyterState = (mode?: string) =>
   sendMessage('getJupyterState', [mode], { log_rpc: true, timeout: 3000 })
 export const getJupyterCodeOutput = (
