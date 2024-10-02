@@ -6,16 +6,15 @@ export default function CreditsPill({ credits }: { credits: number }) {
   const labelText = `Daily credits. You use credits every time you send a message. 
   Upgrading increases the amount of credits every day.`
   return (
-    // make this clickable and add tooltip
     <Tooltip hasArrow label={labelText} placement='auto' borderRadius={5} openDelay={500}>
       <Tag
         borderRadius='3'
-        variant='outline'
-        colorScheme="minusxGreen"
+        variant='solid'
+        colorScheme="minusxBW"
         size="sm"
       >
-        <TagLeftIcon as={IoDiamondOutline} />
-        <TagLabel>{credits}</TagLabel>
+        <TagLeftIcon color={"minusxBW.800"} as={IoDiamondOutline} />
+        <TagLabel color={"minusxBW.800"}>{credits}</TagLabel>
       </Tag>
     </Tooltip>
   )

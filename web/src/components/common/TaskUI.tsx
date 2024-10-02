@@ -35,7 +35,6 @@ import { JupyterNotebookState } from '../../../../apps/src/jupyter/helpers/DOMTo
 import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/helpers/querySelectorMap'
 import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
-import { SupportButton } from './Support'
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -318,7 +317,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 {resetMessageHistoryButton}
               </Tooltip>
             }
-            <SupportButton email={email} showText={false}/>
           </VStack>
         </HStack>
       </VStack>

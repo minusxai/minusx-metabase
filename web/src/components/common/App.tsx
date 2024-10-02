@@ -32,13 +32,12 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { ImageContext } from '../../state/chat/types'
 import { getBillingInfo } from '../../app/api/billing'
-import CreditsPill from './CreditsPill'
 import { setBillingInfo } from '../../state/billing/reducer'
-
+import { SupportButton } from './Support'
 
 
 const AppLoggedIn = forwardRef((_props, ref) => {
-  const credits = useSelector((state: RootState) => state.billing.credits)
+  const email = useSelector((state: RootState) => state.auth.email)
   const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
   useEffect(() => {
     // TODO: dunno why this race condition is happening where jwt is not set.
@@ -154,11 +153,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         <DevToolsToggle size={"micro"}/>
         <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>
-        {
-          sidePanelTabName == 'settings' ?
-          <CreditsPill credits={credits} /> :
-          <Text fontSize="xs" color="minusxGreen.800" letterSpacing={3} fontWeight={"bold"}>{tool}</Text>
-        }
+        <SupportButton email={email} />
       </HStack>
     </VStack>
   )

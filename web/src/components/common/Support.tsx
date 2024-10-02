@@ -1,6 +1,4 @@
 import {
-  Icon,
-  IconButton,
   Tooltip,
   Button
 } from '@chakra-ui/react'
@@ -17,7 +15,7 @@ import { RootState } from '../../state/store';
 
 
 
-export const SupportButton = ({email, showText} : {email: string, showText: boolean}) => {
+export const SupportButton = ({email} : {email: string}) => {
   const {
     boot,
     show,
@@ -47,18 +45,6 @@ export const SupportButton = ({email, showText} : {email: string, showText: bool
     isOpen ? hide() : show()
   }
   return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
-    {
-      showText ? <Button size="xs" colorScheme="minusxGreen" onClick={toggleSupport}>Live Support</Button> :
-      <IconButton
-      isRound={true}
-      variant="solid"
-      colorScheme="minusxGreen"
-      size={'sm'}  
-      aria-label="Support"
-      icon={<Icon as={BiSupport} boxSize={4} />}
-      onClick={toggleSupport}
-      />
-    }
-    
+      <Button size="xs" colorScheme="minusxGreen" onClick={toggleSupport} py={0}>Live Support</Button>
   </Tooltip>
 }
