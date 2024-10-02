@@ -1,12 +1,14 @@
 import {
   Tooltip,
-  Button
+  Button,
+  Box,
+  keyframes
 } from '@chakra-ui/react'
 
 import { useIntercom } from 'react-use-intercom'
 import { BiSupport } from "react-icons/bi"
 import axios from 'axios';
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { configs } from '../../constants'
 import { dispatch } from '../../state/dispatch';
 import { setIntercomBooted } from '../../state/settings/reducer';
@@ -23,28 +25,62 @@ export const SupportButton = ({email} : {email: string}) => {
     isOpen,
 
   } = useIntercom();
-  
   const intercomBooted = useSelector((state: RootState) => state.settings.demoMode)
+  const [hasNotification, setHasNotification] = useState(false)
   const updateIntercomBooted = (value: boolean) => {
     dispatch(setIntercomBooted(value))
   }
-  const toggleSupport = async () => {
-    if (!intercomBooted) {
-      const response = await axios.get(`${configs.SERVER_BASE_URL}/support/`);
-      if (response.data.intercom_token) {
-        console.log('Booting intercom with token', response.data.intercom_token)
-        boot({
-          hideDefaultLauncher: true,
-          email: email,
-          name: email.split('@')[0],
-          userHash: response.data.intercom_token,
-        })
-        updateIntercomBooted(true)
+  const toggleSupport = async () => isOpen ? hide() : show()
+   
+  useEffect(() => {
+    const bootIntercom = async () => {
+      if (!intercomBooted) {
+        try {
+          const response = await axios.get(`${configs.SERVER_BASE_URL}/support/`);
+          if (response.data.intercom_token) {
+            console.log('Booting intercom with token', response.data.intercom_token);
+            boot({
+              hideDefaultLauncher: true,
+              email: email,
+              name: email.split('@')[0],
+              userHash: response.data.intercom_token,
+            });
+            updateIntercomBooted(true);
+            // Set up event listener for new messages
+            window.Intercom('onUnreadCountChange', function(unreadCount: number) {
+              setHasNotification(unreadCount > 0);
+            });
+          }
+        } catch (error) {
+          console.error('Failed to boot Intercom:', error);
+        }
       }
-    }
-    isOpen ? hide() : show()
-  }
+    };
+
+    bootIntercom();
+  }, []);
+
+  const pulseAnimation = keyframes`
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 82, 82, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
+  `;
   return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
+      <Box position="relative" display="inline-block">
       <Button size="xs" colorScheme="minusxGreen" onClick={toggleSupport} py={0}>Live Support</Button>
+      {hasNotification && (
+        <Box
+          position="absolute"
+          top="-1"
+          right="-1"
+          width="2"
+          height="2"
+          bg="red.500"
+          borderRadius="full"
+          animation={`${pulseAnimation} 1.5s infinite`}
+        />
+      )}
+    </Box>
+    
   </Tooltip>
 }
