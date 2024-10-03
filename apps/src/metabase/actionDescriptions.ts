@@ -29,7 +29,9 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
         description: "The SQL query to update in the metabase SQL editor."
       },
     },
-    description: 'Updates the SQL Query in a metabase SQL editor and executes it. This also sets the "queryExecuted" state to true after execution.',
+    description: `Updates the SQL Query in a metabase SQL editor and executes it. This also sets the "queryExecuted" state to true after execution.
+    Make sure you know the column names for the tables you are using. If you don't know the column names, use the getTableSchemasById tool to get the column names and other information about tables.
+    `,
   },
   {
     name: 'setVisualizationType',
@@ -53,7 +55,7 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
         description: "The ids of the tables to get the schemas for."
       }
     },
-    description: 'Gets the schemas of the specified tables by their ids in the database.',
+    description: 'Gets the schemas of the specified tables by their ids in the database. Can pass multiple ids to get multiple tables in a single call.',
   },
   {
     name: 'searchTableSchemas',
