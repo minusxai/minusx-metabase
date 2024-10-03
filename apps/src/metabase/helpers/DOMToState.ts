@@ -61,9 +61,7 @@ export async function convertDOMtoStateSQLQuery() {
   const isShowingRawTable = await getMetabaseState('qb.uiControls.isShowingRawTable')
   const isShowingChartTypeSidebar = await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar')
   const vizType = await getMetabaseState('qb.card.display')
-  const viz_settings = await getMetabaseState('qb.card.visualization_settings')
-  const viz_dimensions = viz_settings["graph.dimensions"]
-  const viz_metrics = viz_settings["graph.metrics"]
+  const visualization_settings = await getMetabaseState('qb.card.visualization_settings')
 
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     availableDatabases,
@@ -75,8 +73,7 @@ export async function convertDOMtoStateSQLQuery() {
     visualizationType: isShowingRawTable ? 'table' : vizType,
     visualizationSettingsStatus: isShowingChartTypeSidebar ? 'open' : 'closed',
     outputTableMarkdown,
-    viz_dimensions,
-    viz_metrics
+    visualization_settings
   };
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;

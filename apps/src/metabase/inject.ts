@@ -12,27 +12,19 @@ const getMetabaseState = (path: Parameters<typeof get>[1]) => {
     return null
 }
 
-const setVisualizationTypePrimary = (card: any) => {
+const dispatchMetabaseAction = (type: string, payload: any) => {
     const store = get(window, 'Metabase.store')
     if (store && store.dispatch) {
-        console.log("DISPATCHING")
         store.dispatch({
-            type: 'metabase/qb/UPDATE_QUESTION',
-            payload: {
-                card: card
-            }
+            type,
+            payload
         })
-        store.dispatch(
-            {
-                type: 'metabase/qb/UPDATE_URL'
-            }
-        )
     }
 }
 
 export const rpc = {
     getMetabaseState,
-    setVisualizationTypePrimary
+    dispatchMetabaseAction
 }
 
 initWindowListener(rpc)

@@ -89,7 +89,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         }
         currentCard.visualization_settings = visualization_settings;
       }
-      await RPCs.setVisualizationTypePrimary(currentCard);
+      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
       return
     }
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
