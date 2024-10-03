@@ -89,9 +89,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         }
         currentCard.visualization_settings = visualization_settings;
       }
-      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
-      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
-      return
+      try {
+        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+        return
+      }
+      catch (error) {
+        console.error("Failed to update visualization type, falling back to UI method", error);
+      }
     }
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     if (state.visualizationType === visualization_type.toLowerCase()) {
