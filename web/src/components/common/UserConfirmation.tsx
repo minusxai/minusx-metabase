@@ -5,15 +5,28 @@ import {
   Icon,
   IconButton,
   Text,
-  Code
 } from '@chakra-ui/react'
 import React from 'react-redux'
 import { BsX, BsCheck } from "react-icons/bs";
 import _ from 'lodash'
 import { dispatch } from '../../state/dispatch'
-import { setUserConfirmationInput, UserConfirmationState } from '../../state/chat/reducer'
+import { setUserConfirmationInput, toggleUserConfirmation } from '../../state/chat/reducer'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../state/store'
+import { useEffect } from 'react'
+import { abortPlan } from '../../state/chat/reducer'
 
-export const UserConfirmation = ({userConfirmation}: {userConfirmation: UserConfirmationState}) => {
+export const UserConfirmation = () => {
+  const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  const userConfirmation = activeThread.userConfirmation
+
+  useEffect(() => {
+    dispatch(setUserConfirmationInput('NULL'))
+    dispatch(toggleUserConfirmation({'show': false, 'content': ''}))
+  }, []);
+
+  
   if (!userConfirmation.show) return null
   return (
     <VStack alignItems={"center"}>
@@ -30,7 +43,10 @@ export const UserConfirmation = ({userConfirmation}: {userConfirmation: UserConf
           colorScheme='red'
           // color={"red"}
           variant={"solid"}
-          onClick={() => dispatch(setUserConfirmationInput('REJECT'))}
+          onClick={() => {
+            dispatch(setUserConfirmationInput('REJECT'))
+            dispatch(abortPlan())
+          }}
         />
         <IconButton
           flex={1}
