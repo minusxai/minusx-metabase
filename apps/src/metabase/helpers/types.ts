@@ -13,3 +13,28 @@ export interface FormattedTable {
   schema: string;
   columns?: { [key: number]: FormattedColumn };
 }
+
+export const visualizationTypes = ["Table", "Bar", "Line", "Pie", "Row", "Area", "Combo", "Trend", "Funnel", "Detail", "Scatter", "Waterfall", "Number", "Gauge", "Progress", "Map", "PivotTable"]
+export const primaryVisualizationTypes = ["Line", "Bar", "Area", "Scatter"]
+export type VisualizationType = typeof visualizationTypes[number];
+export type VisualizationTypeLower = Lowercase<VisualizationType>;
+export function toLowerVisualizationType(type: VisualizationType): VisualizationTypeLower {
+  return type.toLowerCase() as VisualizationTypeLower;
+}
+
+export interface Card {
+  dataset_query: {
+    database: number;
+    type: string;
+    [key: string]: any;
+  };
+  display: VisualizationTypeLower;
+  displayIsLocked: boolean;
+  visualization_settings: {
+    "graph.dimensions": string[];
+    "graph.metrics": string[];
+    [key: string]: any;
+  };
+  type: string;
+  [key: string]: any;
+}

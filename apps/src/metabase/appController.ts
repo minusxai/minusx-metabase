@@ -20,6 +20,13 @@ import {
   DashcardDetails,
 } from "./helpers/dashboard/types";
 import _ from "lodash";
+import { 
+  VisualizationType,
+  primaryVisualizationTypes,
+  Card,
+  toLowerVisualizationType
+ } from "./helpers/types";
+
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   async toggleSQLEditor(mode: "open" | "close") {
@@ -54,11 +61,43 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+
   async setVisualizationType({
     visualization_type,
+    dimensions,
+    metrics
   }: {
-    visualization_type: string;
+    visualization_type: VisualizationType,
+    dimensions?: string[],
+    metrics?: string[]
   }) {
+    // vivek: ensure the visualization type is capital case
+    function toCapitalCase(str: string) {
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+    visualization_type = toCapitalCase(visualization_type);    
+    console.log("Setting visualization type to", visualization_type, dimensions, metrics);
+    if (primaryVisualizationTypes.includes(visualization_type) && (dimensions && metrics)) {
+      const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+      if (currentCard) {
+        currentCard.display = toLowerVisualizationType(visualization_type);
+        const visualization_settings = {
+          "graph.dimensions": dimensions,
+          "graph.metrics": metrics,
+          "graph.series_order_dimension": null,
+          "graph.series_order": null
+        }
+        currentCard.visualization_settings = visualization_settings;
+      }
+      try {
+        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+        return
+      }
+      catch (error) {
+        console.error("Failed to update visualization type, falling back to UI method", error);
+      }
+    }
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     if (state.visualizationType === visualization_type.toLowerCase()) {
       return;

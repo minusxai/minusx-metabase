@@ -12,8 +12,19 @@ const getMetabaseState = (path: Parameters<typeof get>[1]) => {
     return null
 }
 
+const dispatchMetabaseAction = (type: string, payload: any) => {
+    const store = get(window, 'Metabase.store')
+    if (store && store.dispatch) {
+        store.dispatch({
+            type,
+            payload
+        })
+    }
+}
+
 export const rpc = {
-    getMetabaseState
+    getMetabaseState,
+    dispatchMetabaseAction
 }
 
 initWindowListener(rpc)

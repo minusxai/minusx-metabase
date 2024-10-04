@@ -1,5 +1,5 @@
 import { ActionDescription } from "../base/defaultState";
-import { visualizationTypes } from "./helpers/querySelectorMap";
+import { visualizationTypes } from "./helpers/types";
 
 export const COMMON_ACTION_DESCRIPTIONS: ActionDescription[] = [
   {
@@ -40,9 +40,23 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
         type: 'string',
         enum: visualizationTypes,
         description: "The type of visualization to set in the visualization settings."
+      },
+      dimensions: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "The dimensions to set in the visualization settings. This is usually columns name for the x-axis, and the column to split the data by."
+      },
+      metrics: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "The metrics to set in the visualization settings. This is usually the column name for the y-axis, or the metric to plot."
       }
     },
-    description: 'Sets the visualization type in the visualization settings. "queryExecuted" state must be true to use this tool.',
+    description: 'Sets the visualization type in the visualization settings. "queryExecuted" state must be true to use this tool. Always have at least one dimension and one metric.',
   },
   {
     name: 'getTableSchemasById',
