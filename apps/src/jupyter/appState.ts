@@ -19,7 +19,7 @@ export class JupyterState extends DefaultAppState<JupyterNotebookState> {
             state.update({
                 isEnabled: {
                     value: false,
-                    reason: "Please upgrade to Jupyter Notebook v4.0 or higher to use MinusX",
+                    reason: "Please upgrade to Jupyter Notebook v7.0+ or JupyterLab v4.0+ to use MinusX",
                 },
             });
         }
