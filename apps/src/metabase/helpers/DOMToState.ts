@@ -4,6 +4,7 @@ import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPage } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
+import { visualizationSettings } from './types';
 
 const { getMetabaseState, queryURL } = RPCs;
 
@@ -38,6 +39,7 @@ export interface MetabaseAppStateSQLEditor {
   visualizationType: string;
   visualizationSettingsStatus: 'open' | 'closed';
   outputTableMarkdown: string
+  visualizationSettings: visualizationSettings
 }
 
 // make this DashboardInfo
@@ -57,11 +59,11 @@ export async function convertDOMtoStateSQLQuery() {
   const isNativeEditorOpen = await getMetabaseState('qb.uiControls.isNativeEditorOpen')
   const sqlErrorMessage = await getSqlErrorMessage();
   const outputTableMarkdown = await getAndFormatOutputTable();
-  const sqlQuery: string = await getMetabaseState('qb.card.dataset_query.native.query')
+  const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const isShowingRawTable = await getMetabaseState('qb.uiControls.isShowingRawTable')
   const isShowingChartTypeSidebar = await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar')
-  const vizType = await getMetabaseState('qb.card.display')
-  const visualization_settings = await getMetabaseState('qb.card.visualization_settings')
+  const vizType = await getMetabaseState('qb.card.display') as string
+  const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
 
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     availableDatabases,
@@ -73,7 +75,7 @@ export async function convertDOMtoStateSQLQuery() {
     visualizationType: isShowingRawTable ? 'table' : vizType,
     visualizationSettingsStatus: isShowingChartTypeSidebar ? 'open' : 'closed',
     outputTableMarkdown,
-    visualization_settings
+    visualizationSettings
   };
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;

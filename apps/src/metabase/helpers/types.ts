@@ -22,6 +22,13 @@ export function toLowerVisualizationType(type: VisualizationType): Visualization
   return type.toLowerCase() as VisualizationTypeLower;
 }
 
+
+export interface visualizationSettings {
+  "graph.dimensions": string[];
+  "graph.metrics": string[];
+  [key: string]: any;
+}
+
 export interface Card {
   dataset_query: {
     database: number;
@@ -30,11 +37,7 @@ export interface Card {
   };
   display: VisualizationTypeLower;
   displayIsLocked: boolean;
-  visualization_settings: {
-    "graph.dimensions": string[];
-    "graph.metrics": string[];
-    [key: string]: any;
-  };
+  visualization_settings: visualizationSettings;
   type: string;
   [key: string]: any;
 }

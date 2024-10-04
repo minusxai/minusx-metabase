@@ -91,6 +91,22 @@ export const MetabaseStateSchema = {
       "description": "The status of the visualization settings",
       "enum": ["open", "closed"]
     },
+    "visualizationSettings": {
+      "type": "object",
+      "description": "The settings of the visualization",
+      "properties": {
+        "graph.dimensions": {
+          "type": "array",
+          "description": "The dimensions of the graph",
+          "items": { "type": "string" }
+        },
+        "graph.metrics": {
+          "type": "array",
+          "description": "The metrics of the graph",
+          "items": { "type": "string" }
+        }
+      }
+    },
     "sqlErrorMessage": {
       "type": "string",
       "description": "The error message if any"
@@ -100,7 +116,7 @@ export const MetabaseStateSchema = {
       "description": "The output table in markdown format"
     }
   },
-  "required": ["pageType", "sqlQuery", "queryExecuted", "sqlEditorState", "visualizationType", "visualizationSettingsStatus"]
+  "required": ["pageType", "sqlQuery", "queryExecuted", "sqlEditorState", "visualizationType", "visualizationSettingsStatus", "visualizationSettings"]
 }
 
 export const DashboardInfoSchema = {
