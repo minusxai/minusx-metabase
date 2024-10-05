@@ -14,7 +14,7 @@ import {
   extractTableInfo,
   getSelectedDbId,
 } from "./helpers/getDatabaseSchema";
-import { get, map, truncate } from "lodash";
+import { get, map, set, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -24,7 +24,8 @@ import {
   VisualizationType,
   primaryVisualizationTypes,
   Card,
-  toLowerVisualizationType
+  toLowerVisualizationType,
+  ParameterValues
  } from "./helpers/types";
 
 
@@ -42,9 +43,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    if (state.sqlEditorState == "closed") {
-      await this.toggleSQLEditor("open");
+    const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+    if (currentCard) {
+      currentCard.dataset_query.native.query = sql;
+      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+    } else {
+      console.warn("Could not update SQL query: No current card found");
+      actionContent.content = "Could not update SQL query: Internal Error";
+      return actionContent;
     }
     await this.uDblClick({ query: "sql_query" });
     const userApproved = await RPCs.getUserConfirmation({content: sql});

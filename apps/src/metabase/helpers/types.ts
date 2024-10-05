@@ -29,15 +29,32 @@ export interface visualizationSettings {
   [key: string]: any;
 }
 
+// qb.card
 export interface Card {
   dataset_query: {
     database: number;
     type: string;
-    [key: string]: any;
+    native: {
+      query: string
+      'template-tags': {
+        [key: string]: {
+          id: string,
+          type: string,
+          name: string,
+          default: any,
+          'display-name': string,
+        }
+      }
+    }
   };
   display: VisualizationTypeLower;
   displayIsLocked: boolean;
   visualization_settings: visualizationSettings;
   type: string;
-  [key: string]: any;
+}
+
+// qb.parameterValues
+
+export interface ParameterValues {
+  [key: string]: string;
 }

@@ -5,7 +5,7 @@ import { BlankMessageContent } from "web/types";
 import { getSqlErrorMessageFromDOM, getAndFormatOutputTable, waitForQueryExecution } from "./operations";
 import { querySelectorMap } from "./querySelectorMap";
 import { RPCs } from "web";
-import expressionsMd from "./docs/expressions.md";
+import expressionsMd from "./docs/expressions.md?raw";
 import { getEventCommonProperties } from "./api";
 import { escapeKeyboardCharacters } from "../common/utils";
 export class PosthogController extends AppController<PosthogAppState> {

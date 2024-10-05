@@ -4,7 +4,7 @@ import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPage } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
-import { visualizationSettings } from './types';
+import { visualizationSettings, Card, ParameterValues } from './types';
 
 const { getMetabaseState, queryURL } = RPCs;
 
@@ -33,6 +33,13 @@ export interface MetabaseAppStateSQLEditor {
   selectedDatabaseInfo?: ExtractedDataBase;
   relevantTables: ExtractedTable[];
   sqlQuery: string;
+  sqlVariables: {
+    [key: string]: {
+      value: string,
+      type: string,
+      displayName: string
+    }
+  }
   sqlErrorMessage?: string;
   queryExecuted: boolean;
   sqlEditorState: 'open' | 'closed' | 'unknown';
@@ -64,6 +71,7 @@ export async function convertDOMtoStateSQLQuery() {
   const isShowingChartTypeSidebar = await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar')
   const vizType = await getMetabaseState('qb.card.display') as string
   const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
+  const sqlVariables = await getSqlVariables();
 
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     availableDatabases,
@@ -75,7 +83,8 @@ export async function convertDOMtoStateSQLQuery() {
     visualizationType: isShowingRawTable ? 'table' : vizType,
     visualizationSettingsStatus: isShowingChartTypeSidebar ? 'open' : 'closed',
     outputTableMarkdown,
-    visualizationSettings
+    visualizationSettings,
+    sqlVariables
   };
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
@@ -96,4 +105,27 @@ export async function convertDOMtoState() {
   } else {
     return await convertDOMtoStateSQLQuery();
   }
+}
+async function getSqlVariables() {
+  const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+  if (!currentCard) {
+    return {};
+  }
+  const currentParameterValues = await RPCs.getMetabaseState("qb.parameterValues") as ParameterValues;
+  const parameters = currentCard.dataset_query.native['template-tags'];
+  const sqlVariables: Record<string, {
+    value: string,
+    type: string,
+    displayName: string
+  }> = {};
+  for (const [key, value] of Object.entries(parameters)) {
+    const parameterId = value.id;
+    const parameterValue = currentParameterValues[parameterId];
+    sqlVariables[key] = {
+      value: parameterValue,
+      type: value.type,
+      displayName: value['display-name']
+    };
+  }
+  return sqlVariables; 
 }

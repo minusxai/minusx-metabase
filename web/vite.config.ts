@@ -13,7 +13,9 @@ export default ({ mode }) => {
   env.GIT_COMMIT_ID = child_process.execSync('git rev-parse --short HEAD').toString().trim()
   env.npm_package_version = process.env.npm_package_version || ''
   return defineConfig({
-    plugins: [react()],
+    plugins: [
+      react()
+    ],
     assetsInclude: ['**/*.md'],
     resolve: {
       alias: {

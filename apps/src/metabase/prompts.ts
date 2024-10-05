@@ -1,5 +1,5 @@
 import { MetabaseStateSchema, DashboardInfoSchema, DashcardDetailsSchema } from './schemas'
-
+import SqlVariablesDocs from './docs/sql-variables-simple.md?raw'; 
 export const DEFAULT_PLANNER_SYSTEM_PROMPT = `You are a master of metabase and SQL. 
 
 General instructions:
@@ -25,6 +25,9 @@ Routine to follow:
 5. If you estimate that the task can be accomplished with the tool calls selected in the current call, include the markTaskDone tool call at the end. Do not wait for everything to be executed.
 6. If you are waiting for the user's clarification, also mark the task as done.
 
+<SqlVariablesDocs>
+${JSON.stringify(SqlVariablesDocs)}
+</SqlVariablesDocs>
 <AppStateSchema>
 ${JSON.stringify(MetabaseStateSchema)}
 </AppStateSchema>
