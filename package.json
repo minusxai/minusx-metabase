@@ -14,5 +14,8 @@
     "extension": "yarn workspace extension start",
     "extension-build": "yarn workspace extension build"
   },
-  "packageManager": "yarn@4.3.1"
+  "packageManager": "yarn@4.3.1",
+  "dependencies": {
+    "react-syntax-highlighter": "^15.5.0"
+  }
 }

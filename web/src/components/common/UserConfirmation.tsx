@@ -15,11 +15,28 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { useEffect } from 'react'
 import { abortPlan } from '../../state/chat/reducer'
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
+
+SyntaxHighlighter.registerLanguage('sql', sql);
+SyntaxHighlighter.registerLanguage('python', python);
+
+
+const LANGUAGE_TOOL_MAP: {
+  [key: string]: string
+} = {
+  'jupyter': 'python',
+  'metabase': 'sql',
+  'posthog': 'sql',
+}
 
 export const UserConfirmation = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const userConfirmation = activeThread.userConfirmation
+  const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
 
   useEffect(() => {
     dispatch(setUserConfirmationInput('NULL'))
@@ -30,16 +47,18 @@ export const UserConfirmation = () => {
   if (!userConfirmation.show) return null
   return (
     <VStack alignItems={"center"}>
-      <Text fontWeight={"bold"}>Accept below code?</Text>
-      <Box width={"100%"} p={2} bg={"minusxBW.300"} borderRadius={5}>
-        <Text>{userConfirmation.content}</Text>
+      <Text fontWeight={"bold"} fontSize={17}>Accept below code?</Text>
+      <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
+        <SyntaxHighlighter language={LANGUAGE_TOOL_MAP[currentTool] || 'python'} style={vsd}>
+          {userConfirmation.content}
+        </SyntaxHighlighter>
       </Box>
       {/*two buttons with yes and no*/}
       <HStack width={"80%"}>
         <IconButton
           flex={1}
           aria-label="No"
-          icon={<Icon as={BsX} />}
+          icon={<Icon as={BsX} boxSize={7}/>}
           colorScheme='red'
           // color={"red"}
           variant={"solid"}
@@ -51,7 +70,7 @@ export const UserConfirmation = () => {
         <IconButton
           flex={1}
           aria-label="Yes"
-          icon={<Icon as={BsCheck} />}
+          icon={<Icon as={BsCheck} boxSize={7}/>}
           colorScheme='minusxGreen'
           variant={"solid"}
           onClick={() => dispatch(setUserConfirmationInput('APPROVE'))}
