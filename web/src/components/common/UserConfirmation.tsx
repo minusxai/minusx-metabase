@@ -20,7 +20,7 @@ import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
-import { setConfirmChanges } from '../../state/settings/reducer';
+// import { setConfirmChanges } from '../../state/settings/reducer';
 
 SyntaxHighlighter.registerLanguage('sql', sql);
 SyntaxHighlighter.registerLanguage('python', python);
@@ -46,9 +46,9 @@ export const UserConfirmation = () => {
     dispatch(toggleUserConfirmation({'show': false, 'content': ''}))
   }, []);
 
-  const updateConfirmChanges = (value: boolean) => {
-    dispatch(setConfirmChanges(value))
-  }
+  // const updateConfirmChanges = (value: boolean) => {
+  //   dispatch(setConfirmChanges(value))
+  // }
 
   
   if (!userConfirmation.show) return null
@@ -80,10 +80,10 @@ export const UserConfirmation = () => {
           onClick={() => dispatch(setUserConfirmationInput('APPROVE'))}
         />
       </HStack>
-      <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+      {/* <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
         <Text color={"minusxBW.800"} fontSize={"xs"}>Toggle User Confirmation</Text>
         <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size={"sm"} isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
-      </Stack>
+      </Stack> */}
     </VStack>
   )
 }
