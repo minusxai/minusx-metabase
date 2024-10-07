@@ -40,7 +40,7 @@ export const executeAction = async (action: ExecutableAction): Promise<ActionRet
     return { index, returnValue, status: 'SUCCESS' }
   } catch (err) {
     toast({
-      title: 'User Confirmtion: Rejected',
+      title: 'Action Incomplete',
       description: `${err}`,
       status: 'warning',
       duration: 5000,

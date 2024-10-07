@@ -147,6 +147,16 @@ const SettingsPage = () => {
           ))}
         </VStack>
       </SettingsBlock> */}
+      <SettingsBlock title="Features" >
+        <HStack justifyContent={"space-between"}>
+          <Text color={"minusxBW.800"} fontSize="sm">User Confirmation</Text>
+          <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
+        </HStack>
+        {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+          <Text color={"minusxBW.800"} fontSize="sm">Demo Mode</Text>
+          <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={demoMode} onChange={(e) => updateDemoMode(e.target.checked)} />
+        </HStack>}
+      </SettingsBlock>
       <SettingsBlock title="Privacy">
         <VStack alignItems={"stretch"}>
           <TelemetryToggle color="minusxBW.800"/>
@@ -175,16 +185,6 @@ const SettingsPage = () => {
           <IconButton size="sm" colorScheme={"minusxGreen"} variant="ghost" aria-label="See Context" icon={<Icon as={BiLinkExternal} boxSize={4} />} onClick={() =>  {setDevToolsPage('Context')}} />
         </HStack>
       </SettingsBlock> : null } */}
-      <SettingsBlock title="Features" >
-        <HStack justifyContent={"space-between"}>
-          <Text color={"minusxBW.800"} fontSize="sm">Enable User Confirmations</Text>
-          <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
-        </HStack>
-        {configs.IS_DEV && <HStack justifyContent={"space-between"}>
-          <Text color={"minusxBW.800"} fontSize="sm">Demo Mode</Text>
-          <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={demoMode} onChange={(e) => updateDemoMode(e.target.checked)} />
-        </HStack>}
-      </SettingsBlock>
       <SettingsBlock title="Support">
         <HStack justifyContent={"space-between"}>
           <HStack>

@@ -47,6 +47,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       await this.toggleSQLEditor("open");
     }
     await this.uDblClick({ query: "sql_query" });
+    const userApproved = await RPCs.getUserConfirmation({content: sql});
+    if (!userApproved) {
+      throw new Error("Action (and subsequent plan) cancelled!");
+    }
+
     await this.setValue({ query: "sql_query", value: sql });
     await this.uClick({ query: "run_query" });
     await waitForQueryExecution();

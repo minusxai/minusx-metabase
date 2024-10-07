@@ -102,7 +102,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
-  const email = useSelector((state: RootState) => state.auth.email)
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
@@ -229,7 +228,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         </>
          }
         <Thumbnails thumbnails={thumbnails} />
-        <UserConfirmation userConfirmation={userConfirmation}/>
+        <UserConfirmation/>
         {
             demoMode && currentTool == "google" && currentToolVersion == "sheets" ? 
             <HStack justify={"center"}>
