@@ -13,7 +13,9 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
   },
   "include": ["src"],
   "exclude": ["build", "node_modules"]

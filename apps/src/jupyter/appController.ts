@@ -1,12 +1,17 @@
 import { clone, findIndex, isArray } from "lodash";
-import { AppController } from "../base/appController";
+import { AppController, Action } from "../base/appController";
 import { JupyterNotebookState } from "./helpers/DOMToState";
 import { RPCs } from "web";
 import { BlankMessageContent } from "web/types";
-
 export class JupyterController extends AppController<JupyterNotebookState> {
 
   // 0. Exposed actions --------------------------------------------
+  @Action({
+    labelRunning: "Writing code",
+    labelDone: "Code snippet added",
+    description: "Inserts a cell below the cell with index = {cell_index} and sets the code to {source}. The cell is then run. New cells should not be added in the middle of the notebook unless specifically asked.",
+    renderBody: ({ cell_index, source }: { cell_index: number, source: string }) => null
+  })
   async addCodeAndRun({
     cell_index,
     source,
@@ -22,6 +27,12 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return cellOutput;
   }
 
+  @Action({
+    labelRunning: "Editing code",
+    labelDone: "Code edited",
+    description: "Replaces the code in cell with index = {cell_index} with {source}.",
+    renderBody: ({ cell_index, source }: { cell_index: number, source: string }) => null
+  })
   async replaceCodeAndRun({
     cell_index,
     source,
@@ -36,6 +47,12 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return cellOutput;
   }
 
+  @Action({
+    labelRunning: "Executing cells",
+    labelDone: "Cells executed",
+    description: "Runs cell with index = {cell_index}.",
+    renderBody: ({ cell_index }: { cell_index: number }) => null
+  })
   async runCell({ cell_index }: { cell_index: number }) {
     cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
     await this.uClick({ query: "select_cell", index: cell_index });

@@ -11,6 +11,8 @@ import {
   MdOutlineTimer
 } from 'react-icons/md'
 import { ChatContent } from './ChatContent';
+import { getApp } from "../../helpers/app";
+import 'reflect-metadata';
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
@@ -21,6 +23,7 @@ function extractMessageContent(input: string): string {
   return match ? match[1] : "";
 }
 
+const PLANNING_ACTIONS = ['Planning', 'Understanding App state', 'Thinking', 'Finalizing Actions', 'Validating Answers']
 
 export type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'>
 export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusView>, index:number, content: string, latency: number}> = ({
@@ -32,9 +35,40 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
 }) => {
   const [isExpanded, setIsExpanded] = useState(status != 'FINISHED');
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
+  const [controller, setController] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchController = async () => {
+      const app = await getApp();
+      setController(app.actionController);
+    };
+
+    fetchController();
+  }, []);
+
+  const getActionLabels = (action: string, attr: string) => {
+    if (controller) {
+      const metadata = Reflect.getMetadata('actionMetadata', controller, action);
+      if (metadata) {
+        return metadata[attr];
+      }
+    }
+    return action;
+  }
   
-  const numOfActions = actions.length
-  const titles = status == 'PLANNING' ? ['Planning', 'Understanding Data', 'Thinking', 'Finalizing Actions', 'Validating Answers'] : status == 'FINISHED' ? [`Completed ${numOfActions} ${numOfActions > 1?"Actions" : "Action"}`] : ['Executing Actions']
+  const numOfActions = actions.length;
+  let titles = [];
+  if (status == 'PLANNING') {
+    titles = PLANNING_ACTIONS
+  } else if (status == 'FINISHED') {
+    titles = actions.map(action => getActionLabels(action.function.name, 'labelDone'))    
+    titles = [[...new Set(titles)].join(', ')]
+
+  } else {
+    titles = actions.map(action => getActionLabels(action.function.name, 'labelRunning'))
+    titles = [[...new Set(titles)].join(', ')]
+
+  }
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -90,11 +124,11 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           onClick={toggleExpand} cursor={"pointer"}
         >
           <HStack>
-            {isExpanded ? <BsChevronDown strokeWidth={1} onClick={toggleExpand} cursor={"pointer"}/> : 
-            <BsChevronRight strokeWidth={1} onClick={toggleExpand} cursor={"pointer"}/> }
-            <Text key={currentTitleIndex} 
-                animation={`${scrollUp} 0.5s ease-in-out`} >{titles[currentTitleIndex]}</Text>
-            { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.50" /> : null }
+            {isExpanded ? <BsChevronDown flex={1} strokeWidth={1}/> : <BsChevronRight strokeWidth={1}  flex={1}/>}
+            <Box flex={5}>
+              <Text key={currentTitleIndex} animation={ status === 'PLANNING' ? `${scrollUp} 0.5s ease-in-out` : ""} >{titles[currentTitleIndex]}</Text>
+            </Box>
+            { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxGreen.800" /> : null }
           </HStack>
           { status != 'PLANNING' ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
           

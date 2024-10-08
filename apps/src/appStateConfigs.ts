@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { once } from "lodash";
 import { JupyterState } from "./jupyter/appState";
 import { MetabaseState } from "./metabase/appState";

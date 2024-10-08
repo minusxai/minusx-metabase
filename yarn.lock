@@ -5110,6 +5110,7 @@ __metadata:
     "@types/uuid": "npm:^10"
     lodash: "npm:^4.17.21"
     react: "npm:^18.3.1"
+    reflect-metadata: "npm:^0.2.2"
     uuid: "npm:^10.0.0"
     zustand: "npm:^4.5.5"
   languageName: unknown
@@ -11909,6 +11910,13 @@ __metadata:
   version: 5.0.1
   resolution: "redux@npm:5.0.1"
   checksum: 10c0/b10c28357194f38e7d53b760ed5e64faa317cc63de1fb95bc5d9e127fab956392344368c357b8e7a9bedb0c35b111e7efa522210cfdc3b3c75e5074718e9069c
+  languageName: node
+  linkType: hard
+
+"reflect-metadata@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "reflect-metadata@npm:0.2.2"
+  checksum: 10c0/1cd93a15ea291e420204955544637c264c216e7aac527470e393d54b4bb075f10a17e60d8168ec96600c7e0b9fcc0cb0bb6e91c3fbf5b0d8c9056f04e6ac1ec2
   languageName: node
   linkType: hard
 

@@ -1,13 +1,31 @@
-import type { QuerySelector, QuerySelectorMap, Base64Image } from "extension/types";
+import type { QuerySelectorMap } from "extension/types";
 import { get } from "lodash";
 import { RPCs, utils } from "web";
 import { DefaultMessageContent } from "web/types"
+import 'reflect-metadata';
 
 interface App<T> {
   getState: () => Promise<T>;
   getQuerySelectorMap: () => Promise<QuerySelectorMap>;
 }
 
+interface ActionMetadata {
+  labelRunning: string;
+  labelDone: string;
+  description: string;
+  renderBody: Function;
+}
+
+export function Action(metadata: ActionMetadata) {
+  return function (
+    target: Object,
+    propertyKey: string | symbol,
+    descriptor: PropertyDescriptor
+  ) {
+    // Attach metadata to the method using Reflect API
+    Reflect.defineMetadata('actionMetadata', metadata, target, propertyKey);
+  };
+}
 export abstract class AppController<T> {
   protected app: App<T>;
 
@@ -15,10 +33,29 @@ export abstract class AppController<T> {
     this.app = app;
   }
 
+  // 0. Exposed actions --------------------------------------------
+  @Action({
+    labelRunning: "Completing task",
+    labelDone: "Marking task as done",
+    description: "Marks the task as done if the users' task is accomplished.",
+    renderBody: ({ taskDone }: { taskDone: boolean }) => null
+  })
   async markTaskDone({ taskDone }: { taskDone: boolean }) {
     return;
   }
 
+  @Action({
+    labelRunning: "Responding to user",
+    labelDone: "Responded to user",
+    description: "Responds to the user with the given content.",
+    renderBody: ({ content }: { content: string }) => null
+  })
+  talkToUser({ content }: { content: string }) {
+    return this.respondToUser({ content });
+  }
+  
+
+  // 1. Internal actions --------------------------------------------
   respondToUser({ content }: { content: string }) {
     const actionContent: DefaultMessageContent = {
       type: "DEFAULT",
@@ -26,10 +63,6 @@ export abstract class AppController<T> {
       images: [],
     };
     return actionContent;
-  }
-
-  talkToUser({ content }: { content: string }) {
-    return this.respondToUser({ content });
   }
 
   async wait({ time }: { time: number }) {
