@@ -23,9 +23,15 @@ export interface MessageFeedback {
   reaction: ReactionFeedback;
 }
 
+interface Function {
+  arguments: string,
+  name: string,
+}
+
 // Message Type: ACTIONS
 export interface BaseAction extends ToolCall {
   id: ToolID
+  function: Function
   planID: MessageIndex
   status: ActionStatus
   finished: boolean

@@ -1,15 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Box, HStack, VStack, Icon, Spinner, Text, IconButton, Divider, keyframes } from '@chakra-ui/react'
-import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle, BsBugFill, BsChevronRight, BsChevronDown } from 'react-icons/bs';
+import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle, BsChevronRight, BsChevronDown } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, ChatMessageContent, ActionPlanMessageContent, ActionPlanChatMessage, 
   Action, deleteUserMessage, updateDebugChatIndex, 
-  ActionChatMessage,
-  ToolCall,
-  UserChatMessage} from '../../state/chat/reducer'
-import { updateIsDevToolsOpen, updateDevToolsTabName } from '../../state/settings/reducer';
+  ActionChatMessage} from '../../state/chat/reducer'
 import React from 'react'
-import { configs } from '../../constants';
 import {
   MdOutlineIndeterminateCheckBox,
   MdOutlineCheckBox,
@@ -42,7 +38,7 @@ const ChatContent: React.FC<{content: ChatMessageContent}> = ({
 
 
 function addStatusInfoToActionPlanMessages(messages: Array<ChatMessage>) {
-  const toolMessages = messages.filter(message => message.role == 'tool')
+  const toolMessages = messages.filter(message => message.role == 'tool') as Array<ActionChatMessage>
   const toolMessageMap = new Map(toolMessages.map((message: ActionChatMessage) => [message.action.id, message]))
   return messages.map(message => {
     if (message.role == 'assistant') {
@@ -97,7 +93,7 @@ const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number
         status: toolCall.status
       })
     })
-    const latency = ('latency' in debug)? Math.round(debug.latency/100)/10 : 0
+    const latency = ('latency' in debug)? Math.round(debug.latency as number /100)/10 : 0
     return <ActionStack content={content.messageContent} actions={actions} status={'FINISHED'} index={index} latency={latency}/>
   }
   return (
