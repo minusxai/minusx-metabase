@@ -36,12 +36,17 @@ export class GoogleController extends AppController<GoogleState> {
       code = code.code as string
     }
     console.log('Writing code', code)
-    const content = await RPCs.gsheetEvaluate(code)
+    let content: string = ''
+    try {
+      content = await RPCs.gsheetEvaluate(code) as string
+    } catch (err) {
+      content = err?.message || 'Error running code'
+    }
     console.log('Output is', content)
     const actionContent: BlankMessageContent = {
       type: "BLANK",
+      content 
     };
-    actionContent.content = JSON.stringify(content);
     console.log("Apps script output is", actionContent);
     return actionContent;
   }

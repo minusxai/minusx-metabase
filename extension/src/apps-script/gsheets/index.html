@@ -3,12 +3,10 @@
   <head>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        // const TRUSTED_ORIGINS = ["http://localhost:3005"]
-        const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
+        const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        // const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
         const rpc = {
-          "readActiveSpreadsheet": () => 2,
-          "getUserSelectedRange": () => 3,
-          "gsheetEvaluate": () => 4,
+          "gsheetEvaluate": () => 1,
         }
         function onMessage(event) {
           const payload = event && event.data
@@ -16,6 +14,7 @@
               return false;
           }
           function onSuccess(response) {
+            // console.log('Success!, repsonse is', response)
             // document.querySelector("#log").innerHTML = JSON.stringify(response)
             event.source.postMessage({
               type: 'success',
@@ -26,19 +25,24 @@
             });
           }
           function onFailure(err) {
+            let errorMessage = ''
+            try {
+              errorMessage = err.toString()
+            } catch (e) {
+              errorMessage = 'An error occured'
+            }
+            // console.log('Failure!, error is', errorMessage)
             event.source.postMessage({
               type: 'error',
-              error: 'An error occured',
+              error: {
+                message: errorMessage
+              },
               id: payload.id
             }, {
                 targetOrigin: event.origin
             });
           }
-          if (payload.fn == 'readActiveSpreadsheet') {
-            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).readActiveSpreadsheet(...payload.args)
-          } else if (payload.fn == 'getUserSelectedRange') {
-            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).getUserSelectedRange(...payload.args)
-          } else if (payload.fn == 'gsheetEvaluate') {
+          if (payload.fn == 'gsheetEvaluate') {
             google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetEvaluate(...payload.args)
           }
           return true
@@ -58,11 +62,11 @@
       }
     </style>
   </head>
-  <body style="width: 850px; height: 100%; background-color: transparent; float:right; padding: 0; margin: 0; border: none;">
+  <body style="width: 300px; height: 100%; background-color: transparent; float:right; padding: 0; margin: 0; border: none;">
     <!-- <div style="display:flex; justify-content: center; align-items: center; flex-direction: column;">
-      <div id="log" style="width: 850px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
+      <div id="log" style="width: 300px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
     </div> -->
-    <!-- <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
-    <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
+    <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
+    <!-- <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
   </body>
 </html>

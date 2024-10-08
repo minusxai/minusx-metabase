@@ -1,13 +1,7 @@
 function gsheetEvaluate(expression) {
-  try {
-    // Use eval to evaluate the string expression
-    var result = eval(expression);
-    Logger.log(result)
-    return result;
-  } catch (e) {
-    // Handle any errors that occur during evaluation
-    return "Error: " + e.message;
-  }
+  // Use eval to evaluate the string expression
+  var result = eval(expression);
+  return JSON.stringify(result);
 }
 
 function getUserSelectedRange() {

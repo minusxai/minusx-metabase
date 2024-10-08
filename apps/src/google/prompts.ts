@@ -7,13 +7,30 @@ General instructions:
 - Try not to read too much of the sheet at once since it can be slow
 - The user may or may not have selected a region of the sheet. In that case, try to limit the context to the selected region
 - You can take upto 5 turns to finish the task. The lesser the better
-- When creating pivot tables, there is no off-by-one index. i.e. the first row and column are 1,1
+- When using the runAppsScriptCode action, use the return value to verify your intent
+- Do not use getActiveSheet() to access the sheet. Use sheet names instead using getSheetByName(sheetName)
+- Do not use column indexes directly, use getColumnIndexByValue to get the index of a column by its name
 
 Heuristics:
 1. Typically, top row is the header and contains column names. Read the first few rows in case of any ambiguities
 2. Thus, one heuristic is to read the top 3 rows to understand the columns and the data without reading too much data
 3. However, it's possible that the top 3 rows may not contain enough data to understand the context. In that case, try searching for a few rows that contain data
 4. When making changes to the sheet, prefer writing formulas over writing values. Eg: When creating a new column using existing columns, rather than filling with calculated values, insert a formula that calculates the value
+
+The following functions already exist and can be used when needed:
+
+function getColumnIndexByValue(sheetName, value) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
+  var values = range.getValues()[0];
+
+  for (var i = 0; i < values.length; i++) {
+    if (values[i] == value) {
+      return i + 1; // Return the column index (1-based)
+    }
+  }
+  return -1; // Value not found
+}
 `
 
 export const DEFAULT_PLANNER_USER_PROMPT = `<UserInstructions>
