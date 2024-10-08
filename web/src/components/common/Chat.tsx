@@ -296,8 +296,12 @@ const OngoingActionStack: React.FC = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   
   if (activeThread.status == 'FINISHED') {
-    return <ActionStack actions={[]} status={'PLANNING'} index={-1} content='' latency={0}/>
-  } else {
+    return null
+  }
+  else if (activeThread.status == 'PLANNING') {
+    return <ActionStack actions={[]} status={activeThread.status} index={-1} content='' latency={0}/>
+  } 
+  else {
     const messages = activeThread.messages
     const lastMessage = messages[messages.length - 1]
     if (lastMessage.role != 'tool') {
