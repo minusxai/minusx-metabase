@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Box, HStack, VStack, Icon, Spinner, Text, IconButton, Divider } from '@chakra-ui/react'
+import { Box, HStack, VStack, Icon, Spinner, Text, IconButton, Divider, keyframes } from '@chakra-ui/react'
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle, BsBugFill, BsChevronRight, BsChevronDown } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, ChatMessageContent, ActionPlanMessageContent, ActionPlanChatMessage, 
@@ -187,7 +187,7 @@ function extractMessageContent(input: string): string {
   return match ? match[1] : "";
 }
 
-type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'>
+type ActionStatusView = Pick<Action, 'finished' | 'status'>
 export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusView>, index:number, content: string, latency: number}> = ({
   actions,
   status,
@@ -197,18 +197,33 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(status != 'FINISHED');
+  const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
+  
   const numOfActions = actions.length
-  const title = status == 'PLANNING' ? 'Planning' : status == 'FINISHED' ? `Completed ${numOfActions} ${numOfActions > 1?"Actions" : "Action"}` : 'Executing Actions'
-  // const showDebugInfo = () => {
-  //   dispatch(updateDebugChatIndex(index))
-  //   dispatch(updateDevToolsTabName('Context History'))
-  //   dispatch(updateIsDevToolsOpen(true))
-  // }
+  const titles = status == 'PLANNING' ? ['Planning', 'Understanding Data', 'Thinking', 'Finalizing Actions', 'Validating Answers'] : status == 'FINISHED' ? [`Completed ${numOfActions} ${numOfActions > 1?"Actions" : "Action"}`] : ['Executing Actions']
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentTitleIndex((prevIndex) => (prevIndex + 1) % titles.length);
+    }, 3000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const scrollUp = keyframes`
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0%);
+      opacity: 1;
+    }
+    `;
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
   }
   return (
-    <HStack aria-label={title} className={'action-stack'} justifyContent={'start'} width="100%"
+    <HStack aria-label={titles[currentTitleIndex]} className={'action-stack'} justifyContent={'start'} width="100%"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}> 
       <Box
@@ -238,7 +253,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           <HStack>
             {isExpanded ? <BsChevronDown strokeWidth={1} onClick={toggleExpand} cursor={"pointer"}/> : 
             <BsChevronRight strokeWidth={1} onClick={toggleExpand} cursor={"pointer"}/> }
-            <Text>{title}</Text>
+            <Text key={currentTitleIndex} 
+                animation={`${scrollUp} 0.5s ease-in-out`} >{titles[currentTitleIndex]}</Text>
             { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.50" /> : null }
           </HStack>
           { status != 'PLANNING' ? <Text fontSize={"10px"}>{"thinking: "}{latency}{"s"}</Text> : null }
@@ -278,11 +294,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
 const OngoingActionStack: React.FC = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  
   if (activeThread.status == 'FINISHED') {
-    return null
-  }
-  else if (activeThread.status == 'PLANNING') {
-    return <ActionStack actions={[]} status={activeThread.status} index={-1} content='' latency={0}/>
+    return <ActionStack actions={[]} status={'PLANNING'} index={-1} content='' latency={0}/>
   } else {
     const messages = activeThread.messages
     const lastMessage = messages[messages.length - 1]
