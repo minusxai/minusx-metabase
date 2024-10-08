@@ -59,14 +59,14 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   return (
     <HStack aria-label={titles[currentTitleIndex]} className={'action-stack'} justifyContent={'start'} width="100%"> 
       <Box
-        bg={'minusxGreen.800'}
-        p={2}
-        // px={2}
-        // py={1}
-        // my={0}
+        // bg={'minusxGreen.800'}
+        // p={2}
+        px={2}
+        py={1}
+        my={0}
         borderRadius={5}
-        color={'minusxBW.50'}
-        // color={'minusxGreen.800'}
+        // color={'minusxBW.50'}
+        color={'minusxGreen.800'}
         border={'1px'}
         width={'90%'}
         position="relative"
@@ -84,8 +84,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           paddingBottom={actions.length && isExpanded ? 1 : 0}
           marginBottom={actions.length && isExpanded ? 1 : 0}
           borderBottomWidth={ actions.length && isExpanded ? '1px' : '0px'}
-          borderBottomColor={'minusxBW.50'}
-          // borderBottomColor={'minusxGreen.800'}
+          // borderBottomColor={'minusxBW.50'}
+          borderBottomColor={'minusxGreen.800'}
           justifyContent={'space-between'}
           onClick={toggleExpand} cursor={"pointer"}
         >

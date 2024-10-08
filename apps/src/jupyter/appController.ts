@@ -5,15 +5,52 @@ import { RPCs } from "web";
 import { BlankMessageContent } from "web/types";
 
 export class JupyterController extends AppController<JupyterNotebookState> {
-  async insertCellBelow({ cell_index }: { cell_index: number }) {
+
+  // 0. Exposed actions --------------------------------------------
+  async addCodeAndRun({
+    cell_index,
+    source,
+  }: {
+    cell_index: number;
+    source: string | string[];
+  }) {
+    cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
+    await this.insertCellBelow({ cell_index });
+    await this.setCellValue({ cell_index: cell_index + 1, source });
+    const cellOutput = await this.executeCell({ cell_index: cell_index + 1 });
+    await this.uClick({ query: "select_cell", index: cell_index + 1 });
+    return cellOutput;
+  }
+
+  async replaceCodeAndRun({
+    cell_index,
+    source,
+  }: {
+    cell_index: number;
+    source: string | string[];
+  }) {
+    cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
+    await this.setCellValue({ cell_index, source });
+    const cellOutput = await this.executeCell({ cell_index });
     await this.uClick({ query: "select_cell", index: cell_index });
-    await this.uClick({ query: "insert_cell_below" });
+    return cellOutput;
+  }
+
+  async runCell({ cell_index }: { cell_index: number }) {
+    cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
+    await this.uClick({ query: "select_cell", index: cell_index });
+    await this.uClick({ query: "run_cell" });
+    await this.waitForCellExecution({ index: cell_index });
+    // select the cell again because after execution, jupyter selects the next cell
+    await this.uClick({ query: "select_cell", index: cell_index });
     return;
   }
 
-  async insertCellAbove({ cell_index }: { cell_index: number }) {
+  // 1. Internal actions --------------------------------------------
+
+  async insertCellBelow({ cell_index }: { cell_index: number }) {
     await this.uClick({ query: "select_cell", index: cell_index });
-    await this.uClick({ query: "insert_cell_above" });
+    await this.uClick({ query: "insert_cell_below" });
     return;
   }
 
@@ -41,16 +78,6 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return;
   }
 
-  async runCell({ cell_index }: { cell_index: number }) {
-    cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
-    await this.uClick({ query: "select_cell", index: cell_index });
-    await this.uClick({ query: "run_cell" });
-    await this.waitForCellExecution({ index: cell_index });
-    // select the cell again because after execution, jupyter selects the next cell
-    await this.uClick({ query: "select_cell", index: cell_index });
-    return;
-  }
-
   async executeCell({ cell_index }: { cell_index: number }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
@@ -65,6 +92,45 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     return actionContent;
   }
 
+  async getCurrentlySelectedCell() {
+    const querySelectorMap = await this.app.getQuerySelectorMap();
+    const queryResponse = await RPCs.queryDOMSingle({
+      selector: querySelectorMap.whole_cell,
+    });
+    const selectedCell = findIndex(queryResponse, (cell) =>
+      cell.attrs.class.includes?.("jp-mod-selected")
+    );
+    return selectedCell;
+  }
+
+  async cellIndexOrCurrentlySelected(cell_index: number | undefined) {
+    if (cell_index === undefined) {
+      const selectedCell = await this.getCurrentlySelectedCell();
+      cell_index = selectedCell;
+    }
+    return cell_index;
+  }
+
+  async waitForCellExecution({ index }: { index: number }) {
+    while (true) {
+      const state = await this.app.getState();
+      const cell = state.cells[index];
+      // check if cell.inputAreaPrompt has an asterisk (it can be anywhere in the string)
+      if (!cell.isExecuting) {
+        break;
+      }
+      await this.wait({ time: 100 });
+    }
+  }
+
+  // 2. Deprecated or unused actions --------------------------------------------
+  
+  async insertCellAbove({ cell_index }: { cell_index: number }) {
+    await this.uClick({ query: "select_cell", index: cell_index });
+    await this.uClick({ query: "insert_cell_above" });
+    return;
+  }  
+  
   async deleteCells({ cell_indexes }: { cell_indexes: number[] }) {
     const sortedIds = clone(cell_indexes);
     sortedIds.sort();
@@ -89,22 +155,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     await this.executeCell({ cell_index: cell_index + 1 });
     return;
   }
-
-  async addCodeAndRun({
-    cell_index,
-    source,
-  }: {
-    cell_index: number;
-    source: string | string[];
-  }) {
-    cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
-    await this.insertCellBelow({ cell_index });
-    await this.setCellValue({ cell_index: cell_index + 1, source });
-    const cellOutput = await this.executeCell({ cell_index: cell_index + 1 });
-    await this.uClick({ query: "select_cell", index: cell_index + 1 });
-    return cellOutput;
-  }
-
+  
   async setValueExecuteCell({
     cell_index,
     source,
@@ -115,51 +166,6 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     await this.setCellValue({ cell_index, source });
     const cellOutput = await this.executeCell({ cell_index });
     return cellOutput;
-  }
-
-  async replaceCodeAndRun({
-    cell_index,
-    source,
-  }: {
-    cell_index: number;
-    source: string | string[];
-  }) {
-    cell_index = await this.cellIndexOrCurrentlySelected(cell_index);
-    await this.setCellValue({ cell_index, source });
-    const cellOutput = await this.executeCell({ cell_index });
-    await this.uClick({ query: "select_cell", index: cell_index });
-    return cellOutput;
-  }
-
-  async getCurrentlySelectedCell() {
-    const querySelectorMap = await this.app.getQuerySelectorMap();
-    const queryResponse = await RPCs.queryDOMSingle({
-      selector: querySelectorMap.whole_cell,
-    });
-    const selectedCell = findIndex(queryResponse, (cell) =>
-      cell.attrs.class.includes?.("jp-mod-selected")
-    );
-    return selectedCell;
-  }
-
-  async cellIndexOrCurrentlySelected(cell_index: number | undefined) {
-    if (cell_index === undefined) {
-      const selectedCell = await this.getCurrentlySelectedCell();
-      cell_index = selectedCell;
-    }
-    return cell_index;
-  }
-
-  async waitForCellExecution({ index }) {
-    while (true) {
-      const state = await this.app.getState();
-      const cell = state.cells[index];
-      // check if cell.inputAreaPrompt has an asterisk (it can be anywhere in the string)
-      if (!cell.isExecuting) {
-        break;
-      }
-      await this.wait({ time: 100 });
-    }
   }
 
   async getOutputAsImage(){
