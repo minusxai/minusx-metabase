@@ -85,6 +85,7 @@ const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number
         <Box
           className={'bubble'}
           bg={role == 'user' ? 'minusxBW.300' : 'minusxGreen.800'}
+          // bg={role == 'user' ? 'minusxBW.300' : 'minusxBW.600'}
           padding={3}
           borderRadius={role == 'user' ? '10px 10px 0 10px' : '10px 10px 10px 0'}
           color={role == 'user' ? 'minusxBW.900' : 'minusxBW.50'}
@@ -102,9 +103,11 @@ const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number
             borderWidth={'3px'}
             borderStyle={"solid"}
             borderTopColor={role == 'user' ? 'minusxBW.300' : 'minusxGreen.800'}
+            // borderTopColor={role == 'user' ? 'minusxBW.300' : 'minusxBW.600'}
             borderBottomColor="transparent"
             borderRightColor={role == 'user' ? 'minusxBW.300' : 'transparent'}
             borderLeftColor={role == 'user' ? 'transparent' : 'minusxGreen.800'}
+            // borderLeftColor={role == 'user' ? 'transparent' : 'minusxBW.600'}
           />
         </Box>
         {(isHovered || (reaction !== "unrated")) && (role == 'tool') && (
