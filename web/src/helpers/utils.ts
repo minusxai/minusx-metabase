@@ -11,3 +11,15 @@ export type Subset<T, K extends T> = K;
 export type Promisify<T extends (...args: any[]) => any> = (
   ...args: Parameters<T>
 ) => Promise<ReturnType<T>>;
+
+
+const PLATFORM_LANGUAGES: {
+  [key: string]: string
+} = {
+  jupyter: 'python',
+  metabase: 'sql'
+}
+
+export const getPlatformLanguage = (platform: string): string => {
+  return PLATFORM_LANGUAGES[platform] || 'python'
+}

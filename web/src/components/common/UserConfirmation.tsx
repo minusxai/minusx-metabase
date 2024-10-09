@@ -21,18 +21,11 @@ import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
 // import { setConfirmChanges } from '../../state/settings/reducer';
+import { getPlatformLanguage } from '../../helpers/utils';
 
 SyntaxHighlighter.registerLanguage('sql', sql);
 SyntaxHighlighter.registerLanguage('python', python);
 
-
-const LANGUAGE_TOOL_MAP: {
-  [key: string]: string
-} = {
-  'jupyter': 'python',
-  'metabase': 'sql',
-  'posthog': 'sql',
-}
 
 export const UserConfirmation = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
@@ -56,7 +49,7 @@ export const UserConfirmation = () => {
     <VStack alignItems={"center"}>
       <Text fontWeight={"bold"} fontSize={17}>Accept below code?</Text>
       <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-        <SyntaxHighlighter language={LANGUAGE_TOOL_MAP[currentTool] || 'python'} style={vsd}>
+        <SyntaxHighlighter language={getPlatformLanguage(currentTool)} style={vsd}>
           {userConfirmation.content}
         </SyntaxHighlighter>
       </Box>
