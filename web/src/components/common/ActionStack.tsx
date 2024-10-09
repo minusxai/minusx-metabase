@@ -43,7 +43,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   content,
   latency
 }) => {
-  const [isExpanded, setIsExpanded] = useState(status != 'FINISHED');
+  const [isExpanded, setIsExpanded] = useState(false);
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   const [controller, setController] = useState<any>(null);
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
@@ -76,7 +76,6 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     }
   }
   
-  const numOfActions = actions.length;
   let titles: string[] = [];
   if (status == 'PLANNING') {
     titles = PLANNING_ACTIONS
@@ -111,7 +110,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     setIsExpanded(!isExpanded)
   }
   return (
-    <HStack aria-label={titles[currentTitleIndex]} className={'action-stack'} justifyContent={'start'} width={isExpanded ? "100%" : ""}> 
+    <HStack aria-label={titles[currentTitleIndex]} className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={status == 'PLANNING' ? "100%" : ""}> 
       <Box
         bg={'minusxGreen.800'}
         // bg={'minusxBW.600'}
@@ -124,6 +123,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         // color={'minusxGreen.800'}
         border={'1px'}
         maxWidth={'100%'}
+        width={status == 'PLANNING' ? "100%" : ""}
         position="relative"
       > 
         {content && <>
@@ -147,9 +147,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           <HStack>
             {isExpanded ? <BsChevronDown strokeWidth={1}/> : <BsChevronRight strokeWidth={1}/>}
             <Box flex={5}>
-              <Text key={currentTitleIndex} animation={ status === 'PLANNING' ? `${scrollUp} 0.5s ease-in-out` : ""} >{titles[currentTitleIndex]}</Text>
+              <Text key={currentTitleIndex} animation={ status === 'PLANNING' && currentTitleIndex > 0 ? `${scrollUp} 0.5s ease-in-out` : ""} >{titles[currentTitleIndex]}</Text>
             </Box>
-            { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxGreen.800" /> : null }
+            { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" /> : null }
           </HStack>
           { (status != 'PLANNING') && isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
           
