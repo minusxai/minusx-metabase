@@ -74,6 +74,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         return metadata['renderBody'](parseArguments(args, action));
       }
     }
+    return {text: null, code: null};
   }
   
   let titles: string[] = [];
