@@ -17,24 +17,30 @@ type ActionReturnValue = {
   status: FinishedActionStatus
 }
 
+export const parseArguments = (actionArgs: string, fn: string): any => {
+  let args = {}
+  try{
+    args = typeof actionArgs == 'string' ? JSON.parse(actionArgs) : actionArgs || {}
+  }
+  catch(e){
+    if (fn === 'talkToUser') {
+      args = { content: actionArgs }
+    }
+    else {
+      console.log('Error parsing action args', e)
+      throw e
+    }
+  }
+  return args
+}
+
+
 export const executeAction = async (action: ExecutableAction): Promise<ActionReturnValue> => {
   const { index } = action;
   const actionArgs = action['args']
   const fn = action['function']
   try {
-    let args = {}
-    try{
-      args = typeof actionArgs == 'string' ? JSON.parse(actionArgs) : actionArgs || {}
-    }
-    catch(e){
-      if (fn === 'talkToUser') {
-        args = { content: actionArgs }
-      }
-      else {
-        console.log('Error parsing action args', e)
-        throw e
-      }
-    }
+    const args = parseArguments(actionArgs, fn)
     let returnValue = await getApp().actionController.runAction(fn, args)
     console.log('Successfully completed action', fn, 'with args', args)
     return { index, returnValue, status: 'SUCCESS' }
