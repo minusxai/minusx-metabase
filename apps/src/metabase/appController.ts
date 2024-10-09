@@ -1,6 +1,6 @@
 import { BlankMessageContent } from "web/types";
 import { RPCs } from "web";
-import { AppController } from "../base/appController";
+import { AppController, Action } from "../base/appController";
 import {
   MetabaseAppState,
   MetabaseAppStateSQLEditor,
@@ -29,15 +29,15 @@ import {
 
 
 export class MetabaseController extends AppController<MetabaseAppState> {
-  async toggleSQLEditor(mode: "open" | "close") {
-    if (mode === "open") {
-      await this.uDblClick({ query: "expand_editor" });
-    } else if (mode === "close") {
-      await this.uDblClick({ query: "contract_editor" });
+  // 0. Exposed actions --------------------------------------------
+  @Action({
+    labelRunning: "Updating SQL query",
+    labelDone: "Updated query",
+    description: "Updates the SQL query in the Metabase SQL editor and executes it.",
+    renderBody: ({ sql}: { sql: string }) => {
+      return {text: null, code: sql}
     }
-    return;
-  }
-
+  })
   async updateSQLQueryAndExecute({ sql }: { sql: string }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
@@ -66,7 +66,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
-
+  @Action({
+    labelRunning: "Plotting data",
+    labelDone: "Plotted data",
+    description: "Plots the data in the SQL editor using the given visualization type.",
+    renderBody: ({ visualization_type, dimensions, metrics}: { visualization_type: VisualizationType, dimensions?: string[], metrics?: string[] }) => {
+      return {text: `plot: ${visualization_type}`, code: JSON.stringify({dimensions, metrics})}
+    }
+  })
   async setVisualizationType({
     visualization_type,
     dimensions,
@@ -125,6 +132,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return;
   }
 
+  @Action({
+    labelRunning: "Retrieving table schemas",
+    labelDone: "Analyzed tables",
+    description: "Retrieves the schemas of the specified tables by their ids in the database.",
+    renderBody: ({ids}: { ids: number[] }) => {
+      return {text: null, code: JSON.stringify(ids)}
+    }
+  })
   async getTableSchemasById({ ids }: { ids: number[] }) {
     const actionContent: BlankMessageContent = { type: "BLANK" };
     // need to fetch schemas
@@ -145,6 +160,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+  @Action({
+    labelRunning: "Searching for tables",
+    labelDone: "Found tables",
+    description: "Searches for tables in the database based on the query.",
+    renderBody: ({ query }: { query: string }) => {
+      return {text: null, code: query}
+    }
+  })
   async searchTableSchemas({ query }: { query: string }) {
     const actionContent: BlankMessageContent = { type: "BLANK" };
     const selectedDbId = await getSelectedDbId();
@@ -164,8 +187,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const content = await this.getTableSchemasById({ ids });
     return content;
   }
-  
 
+  @Action({
+    labelRunning: "Searching for previous SQL queries",
+    labelDone: "Retrieved queries",
+    description: "Searches for previous SQL queries using the specified words.",
+    renderBody: ({words}: { words: string[] }) => {
+      return {text: null, code: JSON.stringify(words)}
+    }
+  })
   async searchPreviousSQLQueries({ words }: { words: string[] }) {
     interface SearchApiResponse {
       total: number
@@ -214,6 +244,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent
   }
 
+  @Action({
+    labelRunning: "Getting dashcard details",
+    labelDone: "Retrieved dashcards",
+    description: "Gets more detailed information about the specified dashcards, including the visualization type, the query, and the data displayed.",
+    renderBody: ({ids}: { ids: number[] }) => {
+      return {text: null, code: JSON.stringify(ids)}
+    }
+  })
   async getDashcardDetailsById({ ids }: { ids: number[] }) {
     let actionContent: BlankMessageContent = { type: "BLANK" };
     const dashboardMetabaseState: DashboardMetabaseState =
@@ -264,6 +302,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     return actionContent;
   }
+  
+  @Action({
+    labelRunning: "Selecting database",
+    labelDone: "Selected database",
+    description: "Selects the specified database.",
+    renderBody: ({database}: { database: string }) => {
+      return {text: null, code: JSON.stringify({database})}
+    }
+  })
   async selectDatabase({ database }: { database: string }) {
     let actionContent: BlankMessageContent = { type: "BLANK" };
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
@@ -290,6 +337,18 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+
+  // 1. Internal actions -------------------------------------------
+  async toggleSQLEditor(mode: "open" | "close") {
+    if (mode === "open") {
+      await this.uDblClick({ query: "expand_editor" });
+    } else if (mode === "close") {
+      await this.uDblClick({ query: "contract_editor" });
+    }
+    return;
+  }
+
+  // 2. Deprecated or unused actions -------------------------------
   async getOutputAsImage(){
     const img = await RPCs.getElementScreenCapture({selector: "//*[@data-testid='query-visualization-root']", type: "XPATH"});
     return img;

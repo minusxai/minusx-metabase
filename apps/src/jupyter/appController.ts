@@ -70,7 +70,6 @@ export class JupyterController extends AppController<JupyterNotebookState> {
   }
 
   // 1. Internal actions --------------------------------------------
-
   async insertCellBelow({ cell_index }: { cell_index: number }) {
     await this.uClick({ query: "select_cell", index: cell_index });
     await this.uClick({ query: "insert_cell_below" });
@@ -147,7 +146,6 @@ export class JupyterController extends AppController<JupyterNotebookState> {
   }
 
   // 2. Deprecated or unused actions --------------------------------------------
-  
   async insertCellAbove({ cell_index }: { cell_index: number }) {
     await this.uClick({ query: "select_cell", index: cell_index });
     await this.uClick({ query: "insert_cell_above" });
