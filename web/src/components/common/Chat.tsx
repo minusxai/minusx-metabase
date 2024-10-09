@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, HStack, VStack, IconButton } from '@chakra-ui/react'
+import { Box, HStack, VStack, IconButton, Stack } from '@chakra-ui/react'
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, deleteUserMessage, ActionChatMessage } from '../../state/chat/reducer'
@@ -163,10 +163,10 @@ export const ChatSection = () => {
   const Chats = messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
-  <VStack className='chat-section'  style={{ overflowY: 'scroll' }} width={'100%'}>
+  <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'}>
     {Chats}
     <OngoingActionStack />
     <div ref={messagesEndRef} />
-  </VStack>
+  </HStack>
   )
 }

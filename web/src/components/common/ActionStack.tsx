@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, HStack, Icon, Spinner, Text, keyframes } from '@chakra-ui/react'
+import { Box, HStack, Icon, Spinner, Text, keyframes, VStack } from '@chakra-ui/react'
 import { Action } from '../../state/chat/reducer'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -13,6 +13,16 @@ import {
 import { ChatContent } from './ChatContent';
 import { getApp } from "../../helpers/app";
 import 'reflect-metadata';
+import { parseArguments } from '../../planner/plannerActions';
+
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
+import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
+import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
+import { getPlatformLanguage } from '../../helpers/utils';
+
+SyntaxHighlighter.registerLanguage('python', python);
+SyntaxHighlighter.registerLanguage('sql', sql);
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
@@ -36,6 +46,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const [isExpanded, setIsExpanded] = useState(status != 'FINISHED');
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   const [controller, setController] = useState<any>(null);
+  const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
 
   useEffect(() => {
     const fetchController = async () => {
@@ -55,9 +66,18 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     }
     return action;
   }
+
+  const renderActionArgs = (action: string, args: string) => {
+    if (controller) {
+      const metadata = Reflect.getMetadata('actionMetadata', controller, action);
+      if (metadata) {
+        return metadata['renderBody'](parseArguments(args, action));
+      }
+    }
+  }
   
   const numOfActions = actions.length;
-  let titles = [];
+  let titles: string[] = [];
   if (status == 'PLANNING') {
     titles = PLANNING_ACTIONS
   } else if (status == 'FINISHED') {
@@ -91,7 +111,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     setIsExpanded(!isExpanded)
   }
   return (
-    <HStack aria-label={titles[currentTitleIndex]} className={'action-stack'} justifyContent={'start'} width="100%"> 
+    <HStack aria-label={titles[currentTitleIndex]} className={'action-stack'} justifyContent={'start'} width={isExpanded ? "100%" : ""}> 
       <Box
         // bg={'minusxGreen.800'}
         // p={2}
@@ -102,7 +122,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         // color={'minusxBW.50'}
         color={'minusxGreen.800'}
         border={'1px'}
-        width={'90%'}
+        width={isExpanded ? '100%' : ''}
         position="relative"
       > 
         {content && <>
@@ -124,28 +144,40 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           onClick={toggleExpand} cursor={"pointer"}
         >
           <HStack>
-            {isExpanded ? <BsChevronDown flex={1} strokeWidth={1}/> : <BsChevronRight strokeWidth={1}  flex={1}/>}
+            {isExpanded ? <BsChevronDown strokeWidth={1}/> : <BsChevronRight strokeWidth={1}/>}
             <Box flex={5}>
               <Text key={currentTitleIndex} animation={ status === 'PLANNING' ? `${scrollUp} 0.5s ease-in-out` : ""} >{titles[currentTitleIndex]}</Text>
             </Box>
             { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxGreen.800" /> : null }
           </HStack>
-          { status != 'PLANNING' ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
+          { (status != 'PLANNING') && isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
           
         </HStack>
-        {isExpanded && actions.map((action, index) => (
-          <HStack className={'action'} padding={'2px'} key={index}>
-            <Icon
-              as={
-                !action.finished
-                  ? MdOutlineCheckBoxOutlineBlank
-                  : (action.status == 'SUCCESS' ?  MdOutlineCheckBox : MdOutlineIndeterminateCheckBox)
-              }
-              boxSize={5}
-            />
-            <Text>{action.function.name}</Text>
-          </HStack>
-        ))}
+        {isExpanded && actions.map((action, index) => {
+          const { text, code } = renderActionArgs(action.function.name, action.function.arguments)
+          return (
+          <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
+            <HStack>
+              <Icon
+                as={
+                  !action.finished
+                    ? MdOutlineCheckBoxOutlineBlank
+                    : (action.status == 'SUCCESS' ?  MdOutlineCheckBox : MdOutlineIndeterminateCheckBox)
+                }
+                boxSize={5}
+              />
+              <Text>{action.function.name}{text ? " | " : ""}{text}</Text>
+            </HStack>
+            
+            { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
+              <SyntaxHighlighter language={getPlatformLanguage(currentTool)} style={vsd}>
+                {code || ""}
+              </SyntaxHighlighter>
+             </Box>
+            }
+            
+          </VStack>
+        )})}
         {/* {isHovered && isExpanded && configs.IS_DEV && index >= 0 && (
         <Box position="absolute" top={-1} right={0}>
           <IconButton
