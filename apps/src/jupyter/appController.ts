@@ -8,9 +8,11 @@ export class JupyterController extends AppController<JupyterNotebookState> {
   // 0. Exposed actions --------------------------------------------
   @Action({
     labelRunning: "Writing code",
-    labelDone: "Code snippet added",
+    labelDone: "Added code",
     description: "Inserts a cell below the cell with index = {cell_index} and sets the code to {source}. The cell is then run. New cells should not be added in the middle of the notebook unless specifically asked.",
-    renderBody: ({ cell_index, source }: { cell_index: number, source: string }) => null
+    renderBody: ({ cell_index, source }: { cell_index: number, source: string }) => {
+      return {text: `cell_idx: ${cell_index}`, code: source}
+    }
   })
   async addCodeAndRun({
     cell_index,
@@ -29,9 +31,11 @@ export class JupyterController extends AppController<JupyterNotebookState> {
 
   @Action({
     labelRunning: "Editing code",
-    labelDone: "Code edited",
+    labelDone: "Edited code",
     description: "Replaces the code in cell with index = {cell_index} with {source}.",
-    renderBody: ({ cell_index, source }: { cell_index: number, source: string }) => null
+    renderBody: ({ cell_index, source }: { cell_index: number, source: string }) => {
+      return {text: `cell_idx: ${cell_index}`, code: source}
+    }
   })
   async replaceCodeAndRun({
     cell_index,
@@ -49,9 +53,11 @@ export class JupyterController extends AppController<JupyterNotebookState> {
 
   @Action({
     labelRunning: "Executing cells",
-    labelDone: "Cells executed",
+    labelDone: "Executed cells",
     description: "Runs cell with index = {cell_index}.",
-    renderBody: ({ cell_index }: { cell_index: number }) => null
+    renderBody: ({ cell_index }: { cell_index: number }) => {
+      return {text: `cell_idx: ${cell_index}`, code: null}
+    }
   })
   async runCell({ cell_index }: { cell_index: number }) {
     cell_index = await this.cellIndexOrCurrentlySelected(cell_index);

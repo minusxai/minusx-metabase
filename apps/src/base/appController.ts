@@ -36,9 +36,11 @@ export abstract class AppController<T> {
   // 0. Exposed actions --------------------------------------------
   @Action({
     labelRunning: "Completing task",
-    labelDone: "Marking task as done",
+    labelDone: "Task Completed",
     description: "Marks the task as done if the users' task is accomplished.",
-    renderBody: ({ taskDone }: { taskDone: boolean }) => null
+    renderBody: ({ taskDone }: { taskDone: boolean }) => {
+      return {text: null, code: null}
+    }
   })
   async markTaskDone({ taskDone }: { taskDone: boolean }) {
     return;
@@ -46,9 +48,11 @@ export abstract class AppController<T> {
 
   @Action({
     labelRunning: "Responding to user",
-    labelDone: "Responded to user",
+    labelDone: "Replied to user",
     description: "Responds to the user with the given content.",
-    renderBody: ({ content }: { content: string }) => null
+    renderBody: ({ content }: { content: string }) => {
+      return {text: null, code: null}
+    }
   })
   talkToUser({ content }: { content: string }) {
     return this.respondToUser({ content });
