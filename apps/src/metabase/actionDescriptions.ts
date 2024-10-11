@@ -22,15 +22,29 @@ export const COMMON_ACTION_DESCRIPTIONS: ActionDescription[] = [
 export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
   ...COMMON_ACTION_DESCRIPTIONS,
   {
-    name: 'updateSQLQueryAndExecute',
+    name: 'updateSQLQuery',
     args: {
       sql: {
         type: 'string',
         description: "The SQL query to update in the metabase SQL editor."
       },
+      executeImmediately: {
+        type: 'boolean',
+        description: "Whether to execute the query immediately after updating it. Defaults to true."
+      }
     },
-    description: `Updates the SQL Query in a metabase SQL editor and executes it. This also sets the "queryExecuted" state to true after execution.
+    description: `Updates the SQL Query in a metabase SQL editor and executes it. This also sets the "queryExecuted" state to true after execution (if executeImmediately is true).
     Make sure you know the column names for the tables you are using. If you don't know the column names, use the getTableSchemasById tool to get the column names and other information about tables.
+    Use the executeImmediately parameter to control whether to execute the query immediately after updating it. If you want to execute the query immediately, set this parameter to true. If you want to wait for the user's clarification, or perform other actions
+    such as setting a variable, set this parameter to false.
+    `,
+    required: ["sql"],
+  },
+  {
+    name: 'executeSQLQuery',
+    args: {
+    },
+    description: `Executes the SQL query in the metabase SQL editor. This also sets the "queryExecuted" state to true after execution.
     `,
   },
   {
@@ -118,7 +132,7 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
   //   description: "Gets the documentation for the specified query.",
   // },
   {
-    name: "setVariableValue",
+    name: "setSqlVariable",
     args: {
       variable: {
         type: "string",
@@ -126,10 +140,19 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
       },
       value: {
         type: "string",
-        description: "The value to set for the variable."
-      }
+        description: "The value to set for the variable. For a date, use the format YYYY-MM-DD (eg. 2024-01-01)."
+      },
+      type: {
+        type: "string",
+        description: "The type of the variable.",
+        enum: ["date", "text", "number"]
+      },
+      displayName: {
+        type: "string",
+        description: "The display name of the variable."
+      },
     },
-    description: "Sets the value of a variable in the query.",
+    description: "Sets the value, type, and display name of a variable in the query. If the variable does not exist, no action is taken. All parameters other than variable name are optional. NOTE: if creating a new variable, use this tool AFTER updating the SQL query, not before.",
   },
 ];
 

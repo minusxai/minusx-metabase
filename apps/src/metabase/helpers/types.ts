@@ -51,6 +51,19 @@ export interface Card {
   displayIsLocked: boolean;
   visualization_settings: visualizationSettings;
   type: string;
+  parameters: {
+    id: string,
+    type: string,
+    target: [
+      string, // 'variable'
+      [
+        "template-tag",
+        string // variable name
+      ]
+    ],
+    name: string, // display name
+    slug: string // also variable name
+  }[]
 }
 
 // qb.parameterValues
