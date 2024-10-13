@@ -17,7 +17,8 @@ const PLATFORM_LANGUAGES: {
   [key: string]: string
 } = {
   jupyter: 'python',
-  metabase: 'sql'
+  metabase: 'sql',
+  google: 'javascript'
 }
 
 export const getPlatformLanguage = (platform: string): string => {

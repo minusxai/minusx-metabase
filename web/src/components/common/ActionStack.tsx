@@ -14,15 +14,7 @@ import { ChatContent } from './ChatContent';
 import { getApp } from "../../helpers/app";
 import 'reflect-metadata';
 import { parseArguments } from '../../planner/plannerActions';
-
-import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
-import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
-import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
-import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
-import { getPlatformLanguage } from '../../helpers/utils';
-
-SyntaxHighlighter.registerLanguage('python', python);
-SyntaxHighlighter.registerLanguage('sql', sql);
+import { CodeBlock } from './CodeBlock';
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
@@ -42,18 +34,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   latency
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [controller, setController] = useState<any>(null);
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
-
-  useEffect(() => {
-    const fetchController = async () => {
-      const app = await getApp();
-      setController(app.actionController);
-    };
-
-    fetchController();
-  }, []);
-
+  const controller = getApp().actionController
   const getActionLabels = (action: string, attr: string) => {
     if (controller) {
       const metadata = Reflect.getMetadata('actionMetadata', controller, action);
@@ -88,8 +70,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
   }
+
   return (
-    <HStack aria-label={title} className={'action-stack'} justifyContent={'start'} maxWidth={"100%"}> 
+    <HStack aria-label={title} className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
       <Box
         bg={'minusxGreen.800'}
         // bg={'minusxBW.600'}
@@ -101,7 +84,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         color={'minusxBW.50'}
         // color={'minusxGreen.800'}
         border={'1px'}
-        maxWidth={'100%'}
+        width={'100%'}
         position="relative"
       > 
         {content && <>
@@ -149,9 +132,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-              <SyntaxHighlighter language={getPlatformLanguage(currentTool)} style={vsd}>
-                {code || ""}
-              </SyntaxHighlighter>
+              <CodeBlock code={code || ""} tool={currentTool}/>
              </Box>
             }
             
@@ -218,7 +199,7 @@ const scrollUp = keyframes`
   `;
 
 const PlanningActionStack: React.FC = () => {
-  const planningActions = ['Planning', 'Understanding App state', 'Thinking', 'Finalizing Actions', 'Validating Answers']
+  const planningActions = ['Planning next steps', 'Thinking about the question', 'Understanding App state', 'Finalizing Actions', 'Validating Answers']
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -235,7 +216,8 @@ const PlanningActionStack: React.FC = () => {
       borderRadius={5}
       color={'minusxBW.50'}
       width={"100%"}
-      position="relative"
+      display={"flex"}
+      justifyContent={"center"}
     >
       <HStack>
         <Box>

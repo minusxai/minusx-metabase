@@ -16,15 +16,7 @@ import { setUserConfirmationInput, toggleUserConfirmation } from '../../state/ch
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { useEffect } from 'react'
-import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
-import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
-import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
-import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
-// import { setConfirmChanges } from '../../state/settings/reducer';
-import { getPlatformLanguage } from '../../helpers/utils';
-
-SyntaxHighlighter.registerLanguage('sql', sql);
-SyntaxHighlighter.registerLanguage('python', python);
+import { CodeBlock } from './CodeBlock'
 
 
 export const UserConfirmation = () => {
@@ -32,16 +24,11 @@ export const UserConfirmation = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const userConfirmation = activeThread.userConfirmation
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
-  const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
 
   useEffect(() => {
     dispatch(setUserConfirmationInput('NULL'))
     dispatch(toggleUserConfirmation({'show': false, 'content': ''}))
   }, []);
-
-  // const updateConfirmChanges = (value: boolean) => {
-  //   dispatch(setConfirmChanges(value))
-  // }
 
   
   if (!userConfirmation.show) return null
@@ -49,9 +36,7 @@ export const UserConfirmation = () => {
     <VStack alignItems={"center"}>
       <Text fontWeight={"bold"} fontSize={17}>Accept below code?</Text>
       <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-        <SyntaxHighlighter language={getPlatformLanguage(currentTool)} style={vsd}>
-          {userConfirmation.content}
-        </SyntaxHighlighter>
+        <CodeBlock code={userConfirmation.content} tool={currentTool}/>
       </Box>
       {/*two buttons with yes and no*/}
       <HStack width={"80%"}>
