@@ -1,5 +1,5 @@
 import { RPCs } from "web";
-import { AppController } from "../base/appController";
+import { AppController, Action } from "../base/appController";
 import { DefaultAppState } from "../base/appState";
 import { googleSheetInternalState } from "./googleSheetInternalState";
 import { BlankMessageContent, GoogleState } from "web/types";
@@ -31,6 +31,14 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
 }
 
 export class GoogleController extends AppController<GoogleState> {
+  @Action({
+    labelRunning: "Running AppScript",
+    labelDone: "Sheet Actions",
+    description: "Runs AppScript code in the Google Sheets",
+    renderBody: ({ code }: { code: string }) => {
+      return {text: null, code: code}
+    }
+  })
   async runAppsScriptCode(code: string) {
     if (typeof code === 'object') {
       code = code.code as string

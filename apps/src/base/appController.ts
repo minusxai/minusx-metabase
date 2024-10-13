@@ -36,7 +36,7 @@ export abstract class AppController<T> {
   // 0. Exposed actions --------------------------------------------
   @Action({
     labelRunning: "Completing task",
-    labelDone: "Task Completed",
+    labelDone: "Task Done",
     description: "Marks the task as done if the users' task is accomplished.",
     renderBody: ({ taskDone }: { taskDone: boolean }) => {
       return {text: null, code: null}
@@ -48,7 +48,7 @@ export abstract class AppController<T> {
 
   @Action({
     labelRunning: "Responding to user",
-    labelDone: "Replied to user",
+    labelDone: "Reply Sent",
     description: "Responds to the user with the given content.",
     renderBody: ({ content }: { content: string }) => {
       return {text: null, code: null}
