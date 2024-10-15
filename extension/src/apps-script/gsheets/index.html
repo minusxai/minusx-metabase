@@ -3,10 +3,11 @@
   <head>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
-        // const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        // const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
         const rpc = {
           "gsheetEvaluate": () => 1,
+          "gsheetGetState": () => 2
         }
         function onMessage(event) {
           const payload = event && event.data
@@ -14,6 +15,7 @@
               return false;
           }
           function onSuccess(response) {
+            // console.log('Success!, repsonse is', response)
             // document.querySelector("#log").innerHTML = JSON.stringify(response)
             event.source.postMessage({
               type: 'success',
@@ -24,9 +26,18 @@
             });
           }
           function onFailure(err) {
+            let errorMessage = ''
+            try {
+              errorMessage = err.toString()
+            } catch (e) {
+              errorMessage = 'An error occured'
+            }
+            // console.log('Failure!, error is', errorMessage)
             event.source.postMessage({
               type: 'error',
-              error: 'An error occured',
+              error: {
+                message: errorMessage
+              },
               id: payload.id
             }, {
                 targetOrigin: event.origin
@@ -34,6 +45,8 @@
           }
           if (payload.fn == 'gsheetEvaluate') {
             google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetEvaluate(...payload.args)
+          } else if (payload.fn == 'gsheetGetState') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetGetState(...payload.args)
           }
           return true
         };
@@ -56,8 +69,7 @@
     <!-- <div style="display:flex; justify-content: center; align-items: center; flex-direction: column;">
       <div id="log" style="width: 300px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
     </div> -->
-    <!-- <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
-    <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
+    <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
+    <!-- <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
   </body>
 </html>
-        
