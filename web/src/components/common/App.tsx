@@ -38,6 +38,9 @@ import { SupportButton } from './Support'
 
 const AppLoggedIn = forwardRef((_props, ref) => {
   const email = useSelector((state: RootState) => state.auth.email)
+  const tool = getParsedIframeInfo().tool
+  const toolVersion = getParsedIframeInfo().toolVersion
+  const isSheets = tool == 'google' && toolVersion == 'sheets'
   useEffect(() => {
     getBillingInfo().then(billingInfo => {
       dispatch(setBillingInfo({
@@ -145,7 +148,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       {sidePanelTabName === 'settings' ? <Settings /> : <TaskUI ref={ref}/>}
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
-        <DevToolsToggle size={"micro"}/>
+        { !isSheets && <DevToolsToggle size={"micro"}/>}
         <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>
         <SupportButton email={email} />
       </HStack>
