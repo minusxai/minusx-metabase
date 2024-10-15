@@ -149,7 +149,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
-        <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>
+        { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
         <SupportButton email={email} />
       </HStack>
     </VStack>
