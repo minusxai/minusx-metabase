@@ -100,6 +100,7 @@ export type UserConfirmationInput = 'NULL' | 'APPROVE' | 'REJECT'
 export interface UserConfirmationState {
   show: boolean
   content: string
+  contentTitle?: string // optional title for the prompt that's shown to the user
   userInput: UserConfirmationInput
 }
 
@@ -358,12 +359,14 @@ export const chatSlice = createSlice({
     },
     toggleUserConfirmation: (state, action: PayloadAction<{
       show: boolean
-      content: string
+      content: string,
+      contentTitle?: string
     }>) => {
       const userConfirmation = state.threads[state.activeThread].userConfirmation
-      const { show, content } = action.payload
+      const { show, content, contentTitle } = action.payload
       userConfirmation.show = show
       userConfirmation.content = content
+      userConfirmation.contentTitle = contentTitle
       userConfirmation.userInput = 'NULL'
     },
     setUserConfirmationInput: (state, action: PayloadAction<UserConfirmationInput>) => {

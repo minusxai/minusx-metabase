@@ -45,15 +45,18 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Updating SQL query",
     labelDone: "Updated query",
     description: "Updates the SQL query in the Metabase SQL editor and executes it.",
-    renderBody: ({ sql}: { sql: string }) => {
+    renderBody: ({ sql }: { sql: string }) => {
       return {text: null, code: sql}
     }
   })
-
   async updateSQLQuery({ sql, executeImmediately = true }: { sql: string, executeImmediately?: boolean }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?"});
+    if (!userApproved) {
+      throw new Error("Action (and subsequent plan) cancelled!");
+    }
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     if (state.sqlEditorState == "closed") {
       await this.toggleSQLEditor("open");
@@ -66,43 +69,35 @@ export class MetabaseController extends AppController<MetabaseAppState> {
 
     
     if (executeImmediately) {
-      return await this.executeSQLQuery();
+      return await this._executeSQLQueryInternal();
     } else {
       actionContent.content = "OK";
       return actionContent;
     }
-    await this.uDblClick({ query: "sql_query" });
-    const userApproved = await RPCs.getUserConfirmation({content: sql});
-    if (!userApproved) {
-      throw new Error("Action (and subsequent plan) cancelled!");
-    }
-
-    await this.setValue({ query: "sql_query", value: sql });
-  }
-
-  async executeSQLQuery() {
-    const actionContent: BlankMessageContent = {
-      type: "BLANK",
-    };
-    await this.uClick({ query: "run_query" });
-    await waitForQueryExecution();
-    const sqlErrorMessage = await getSqlErrorMessage();
-    if (sqlErrorMessage) {
-      actionContent.content = sqlErrorMessage;
-    } else {
-      // table output
-      const tableOutput = await getAndFormatOutputTable();
-      actionContent.content = tableOutput;
-    }
-    return actionContent;
   }
 
   @Action({
-    labelRunning: "Plotting data",
-    labelDone: "Plotted data",
-    description: "Plots the data in the SQL editor using the given visualization type.",
-    renderBody: ({ visualization_type, dimensions, metrics}: { visualization_type: VisualizationType, dimensions?: string[], metrics?: string[] }) => {
-      return {text: `plot: ${visualization_type}`, code: JSON.stringify({dimensions, metrics})}
+    labelRunning: "Executing SQL Query",
+    labelDone: "Executed SQL query",
+    description: "Executes the SQL query in the Metabase SQL editor.",
+    renderBody: () => {
+      return {text: null, code: null}
+    }
+  })
+  async executeSQLQuery() {
+    const userApproved = await RPCs.getUserConfirmation({content: "Execute query", contentTitle: "Accept below action?"});
+    if (!userApproved) {
+      throw new Error("Action (and subsequent plan) cancelled!");
+    }
+    return await this._executeSQLQueryInternal();
+  }
+
+  @Action({
+    labelRunning: "Updating SQL Variable",
+    labelDone: "Updated SQL Variable",
+    description: "Updates value or metadata of a variable in the SQL editor.",
+    renderBody: ({ variable, value, type, displayName }: { variable: string, value: string, type: string, displayName: string}) => {
+      return {text: `variable: ${variable}`, code: JSON.stringify({value, type, displayName})}
     }
   })
   async setSqlVariable({ variable, value, type, displayName }: { variable: string, value: string, type: string, displayName: string }) {
@@ -163,7 +158,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
-
+  @Action({
+    labelRunning: "Plotting data",
+    labelDone: "Plotted data",
+    description: "Plots the data in the SQL editor using the given visualization type.",
+    renderBody: ({ visualization_type, dimensions, metrics}: { visualization_type: VisualizationType, dimensions?: string[], metrics?: string[] }) => {
+      return {text: `plot: ${visualization_type}`, code: JSON.stringify({dimensions, metrics})}
+    }
+  })
   async setVisualizationType({
     visualization_type,
     dimensions,
@@ -436,6 +438,22 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       await this.uDblClick({ query: "contract_editor" });
     }
     return;
+  }
+  async _executeSQLQueryInternal() {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    await this.uClick({ query: "run_query" });
+    await waitForQueryExecution();
+    const sqlErrorMessage = await getSqlErrorMessage();
+    if (sqlErrorMessage) {
+      actionContent.content = sqlErrorMessage;
+    } else {
+      // table output
+      const tableOutput = await getAndFormatOutputTable();
+      actionContent.content = tableOutput;
+    }
+    return actionContent;
   }
 
   // 2. Deprecated or unused actions -------------------------------

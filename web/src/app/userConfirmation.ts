@@ -4,12 +4,12 @@ import { sleep } from "../helpers/utils"
 import { toggleUserConfirmation } from "../state/chat/reducer"
 import { abortPlan } from '../state/chat/reducer'
 
-export async function getUserConfirmation({content}: {content: string}) {
+export async function getUserConfirmation({content, contentTitle}: {content: string, contentTitle?: string}) {
   const state = getState()
   const isEnabled = state.settings.confirmChanges
   if (!isEnabled) return true
   const thread = state.chat.activeThread
-  dispatch(toggleUserConfirmation({'show': true, 'content': content}))
+  dispatch(toggleUserConfirmation({'show': true, 'content': content, 'contentTitle': contentTitle}))
   
   while (true){
     const state = getState()

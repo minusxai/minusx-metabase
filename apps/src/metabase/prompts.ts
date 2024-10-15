@@ -32,7 +32,7 @@ Routine to follow:
 6. If you are waiting for the user's clarification, also mark the task as done.
 
 <SqlVariablesDocs>
-${JSON.stringify(SqlVariablesDocs)}
+${SqlVariablesDocs}
 </SqlVariablesDocs>
 <AppStateSchema>
 ${JSON.stringify(MetabaseStateSchema)}

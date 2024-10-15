@@ -34,7 +34,7 @@ export const UserConfirmation = () => {
   if (!userConfirmation.show) return null
   return (
     <VStack alignItems={"center"}>
-      <Text fontWeight={"bold"} fontSize={17}>Accept below code?</Text>
+      <Text fontWeight={"bold"} fontSize={17}>{userConfirmation.contentTitle ?? "Accept below code?"}</Text>
       <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
         <CodeBlock code={userConfirmation.content} tool={currentTool}/>
       </Box>
