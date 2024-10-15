@@ -26,7 +26,7 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
 
     public async getState() {
         // DOM to state
-        return {}
+        return await RPCs.gsheetGetState()
     }
 }
 

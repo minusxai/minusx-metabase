@@ -154,6 +154,8 @@ export const getUserSelectedRange = () =>
   sendMessage('getUserSelectedRange', [], { direct: true })
 export const gsheetEvaluate = (code: string) =>
   sendMessage('gsheetEvaluate', [code], { direct: true })
+export const gsheetGetState = () =>
+  sendMessage('gsheetGetState', [], { direct: true })
 
 // RPCs that exposes MinusX as an API
 export { useAppFromExternal } from './sidechat'

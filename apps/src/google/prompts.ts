@@ -28,7 +28,10 @@ The following functions already exist and can be used when needed inside runApps
 
 export const DEFAULT_PLANNER_USER_PROMPT = `<UserInstructions>
 {{ instructions }}
-</UserInstructions>`;
+</UserInstructions>
+<GoogleSheetAppState>
+{{ state }}
+</GoogleSheetAppState>`;
 
 export const ACTION_DESCRIPTIONS_PLANNER = [
   {
