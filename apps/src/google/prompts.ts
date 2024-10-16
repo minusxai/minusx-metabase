@@ -23,6 +23,7 @@ Important notes:
 - Do not write for loops to set values for multiple cells since it will be slow. Set the value for an entire range using the setRangeFormula function.
 - When writing formulas, keep it simple. Try to get the task done with simple formulas unless complex formulas are needed
 - An example of a simple formula is: =SUM(A1:A10) or =A1/B1. An example of a complex formula is: ARRAYFORMULA(IF(
+- All pivot tables need to be created in a new sheet, unless the user specifies otherwise
 - You can take upto 5 turns to finish the task. The fewer the better.
 
 The following functions already exist and can be used when needed inside runAppsScriptCode:
