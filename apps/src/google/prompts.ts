@@ -15,10 +15,11 @@ Routine to follow:
 6. If you are waiting for the user's clarification, mark the task as done.
 
 Important notes:
-- Do not use getActiveSheet() to access the sheet. Use sheet names instead using getSheetByName(sheetName)
+- Always write formulas instead of writing values directly. This will make the sheet dynamic and easy to update.
+- Again, focus on writing formulas and not values.
+- Focus on the active sheet (i.e the sheet with isActive = true)
 - Do not read the entire sheet. It is too slow and unnecessary. Read only the required rows and columns. Or the first 3 rows to understand the data. If you need more, read more rows.
 - Do not use column indexes directly, use getColumnIndexByValue to get the index of a column by its name
-- Always write a formula in the sheet instead of using apps script functions. It is faster and more efficient.
 - When writing formulas, keep it simple. Do not use complex formulas. Use only the basic functions.
 - You can take upto 5 turns to finish the task. The fewer the better.
 
