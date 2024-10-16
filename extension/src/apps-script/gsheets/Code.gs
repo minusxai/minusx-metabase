@@ -7,7 +7,10 @@ function getCurrentSelectionRange(sheet) {
 
   // If no selection, return an empty object
   if (!selection) {
-    return {};
+    return {
+      numRows: 1,
+      numColumns: 1
+    };
   }
 
   var rangeInfo = {
@@ -49,14 +52,25 @@ function gsheetGetState() {
 
   sheets.forEach(function(sheet) {
     var sheetName = sheet.getName();
+    var lastRow = sheet.getLastRow()
+    var lastColumn = sheet.getLastColumn()
+    var selection = getCurrentSelectionRange(sheet)
     var sheetInfo = {
       isActive: activeSheet.getName() == sheetName,
       name: sheetName,
       regions: [],
-      selectedRange: getCurrentSelectionRange(sheet),
+      lastRow,
+      lastColumn,
     };
+    if (selection.numRows != 1 || selection.numColumns != 1) {
+      sheetInfo.selectedRange = selection
+    }
+    if (lastRow == 0 && lastColumn == 0) {
+      sheetState.sheets.push(sheetInfo);
+      return
+    }
 
-    var dataRange = sheet.getRange(1, 1, 10, sheet.getLastColumn());
+    var dataRange = sheet.getRange(1, 1, 10, lastColumn);
     var values = dataRange.getValues();
     var formulas = dataRange.getFormulas();
     var numberFormats = dataRange.getNumberFormats();
@@ -71,21 +85,28 @@ function gsheetGetState() {
       // Start a new region when we find a non-empty row
       if (nonEmptyCols.length > 0 && currentRegion === null) {
         currentRegion = {
-          headers: rowData,    // Headers are the first non-empty row
-          sampleRows: [],
+          firstRow: rowData,    // Headers are the first non-empty row
           numColumns: nonEmptyCols.length  // Region width based on first row
         };
       } else if (nonEmptyCols.length > 0 && currentRegion) {
         // If region started, add non-header rows
         if (startRow < 2) {
           var rowInfo = rowData.map(function(cell, colIndex) {
-            return {
+            var isFormula = formulas[row][colIndex] !== ''
+            var cellInfo = {
               value: cell,
-              isFormula: formulas[row][colIndex] !== '',    // Check if it's a formula
               format: interpretFormat(numberFormats[row][colIndex])  // Get interpreted format
             };
+            if (isFormula) {
+              cellInfo.formula = formulas[row][colIndex]
+            }
+            return cellInfo;
           });
-          currentRegion.sampleRows.push(rowInfo); // Add first 2 rows below headers
+          if (startRow == 0) {
+            currentRegion.secondRow = rowInfo
+          } else {
+            currentRegion.thirdRow = rowInfo
+          }
           startRow += 1;
         }
       } else if (nonEmptyCols.length === 0 && currentRegion) {
