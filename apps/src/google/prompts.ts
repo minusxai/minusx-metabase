@@ -18,7 +18,7 @@ Important notes:
 - Do not use getActiveSheet() to access the sheet. Use sheet names instead using getSheetByName(sheetName)
 - Do not read the entire sheet. It is too slow and unnecessary. Read only the required rows and columns. Or the first 3 rows to understand the data. If you need more, read more rows.
 - Do not use column indexes directly, use getColumnIndexByValue to get the index of a column by its name
-- Always try to write a formula in the sheet instead of using apps script functions. It is faster and more efficient.
+- Always write a formula in the sheet instead of using apps script functions. It is faster and more efficient.
 - When writing formulas, keep it simple. Do not use complex formulas. Use only the basic functions.
 - You can take upto 5 turns to finish the task. The fewer the better.
 
