@@ -1,194 +1,176 @@
-function columnIndexToLetter(columnIndex) {
-  var letter = '';
-  while (columnIndex > 0) {
-    var remainder = (columnIndex - 1) % 26;
-    letter = String.fromCharCode(remainder + 65) + letter;
-    columnIndex = Math.floor((columnIndex - 1) / 26);
-  }
-  return letter;
-}
-
-function getColumnIndexByValue(sheetName, value) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  var range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
-  var values = range.getValues()[0];
-
-  for (var i = 0; i < values.length; i++) {
-    if (values[i] == value) {
-      return columnIndexToLetter(i + 1); // Convert index to letter (1-based)
-    }
-  }
-  return ''; // Return empty string if value not found
-}
-
-function getCurrentSelectionRange(sheet) {
-  var selection = sheet.getActiveRange();  // Get the current selection range
-
-  // If no selection, return an empty object
-  if (!selection) {
-    return {};
-  }
-
-  var rangeInfo = {
-    startRow: selection.getRow(),
-    startColumn: selection.getColumn(),
-    numRows: selection.getNumRows(),
-    numColumns: selection.getNumColumns(),
-    values: selection.getValues()  // Optionally, return the values in the selected range
-  };
-
-  // Logger.log(JSON.stringify(rangeInfo))
-  return rangeInfo;
-}
-
-function gsheetGetState() {
-  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var sheets = spreadsheet.getSheets();
-  var activeSheet = spreadsheet.getActiveSheet();
+function insertTextAtCursor(newContent, url) {
+  var doc = DocumentApp.getActiveDocument();
+  var body = doc.getBody();
   
-  // Object to store sheet state information
-  var sheetState = {
-    sheets: []
-  };
+  // Clear the existing content
+  body.clear();
+  
+  // Convert Markdown to Google Docs format and append it
+  processMarkdown(newContent, body);
+}
 
-  // Function to interpret number formats
-  function interpretFormat(format) {
-    if (format.includes('%')) {
-      return 'Percentage';
-    } else if (format.includes('$') || format.includes('€') || format.includes('£') || format.includes('₹')) {
-      return 'Currency';
-    } else if (format.match(/^\d{4}-\d{2}-\d{2}/) || format.toLowerCase().includes('d')) {
-      return 'Date';
-    } else if (format.includes('0.###############') || format.includes('0.00')) {
-      return 'Number';
+function processMarkdown(markdown, parentElement) {
+  var lines = markdown.split('\n');
+  
+  lines.forEach(function(line) {
+    if (/^### (.*)/.test(line)) {
+      // H3
+      var header = line.replace(/^### (.*)/, '$1');
+      parentElement.appendParagraph(header).setHeading(DocumentApp.ParagraphHeading.HEADING3);
+    } else if (/^## (.*)/.test(line)) {
+      // H2
+      var header = line.replace(/^## (.*)/, '$1');
+      parentElement.appendParagraph(header).setHeading(DocumentApp.ParagraphHeading.HEADING2);
+    } else if (/^# (.*)/.test(line)) {
+      // H1
+      var header = line.replace(/^# (.*)/, '$1');
+      parentElement.appendParagraph(header).setHeading(DocumentApp.ParagraphHeading.HEADING1);
+    } else if (/\!\[(.*?)\]\((.*?)\)/.test(line)) {
+      // Image
+      var matches = line.match(/\!\[(.*?)\]\((.*?)\)/);
+      var altText = matches[1];
+      var imageUrl = matches[2];
+      
+      if (imageUrl.startsWith('data:image')) {
+        // Base64 Image
+        appendBase64Image(imageUrl, parentElement);
+      } else {
+        // Normal URL Image
+        appendImageFromUrl(imageUrl, parentElement);
+      }
+    } else if (/\*\*(.*)\*\*/.test(line)) {
+      // Bold
+      var boldText = line.replace(/\*\*(.*)\*\*/, '$1');
+      var para = parentElement.appendParagraph(boldText);
+      para.editAsText().setBold(true);
+    } else if (/\*(.*)\*/.test(line)) {
+      // Italics
+      var italicText = line.replace(/\*(.*)\*/, '$1');
+      var para = parentElement.appendParagraph(italicText);
+      para.editAsText().setItalic(true);
+    } else if (/^\[(.*)\]\((.*)\)/.test(line)) {
+      // Links
+      var matches = line.match(/^\[(.*)\]\((.*)\)/);
+      var linkText = matches[1];
+      var linkUrl = matches[2];
+      var para = parentElement.appendParagraph(linkText);
+      para.editAsText().setLinkUrl(linkUrl);
     } else {
-      return 'General';
+      // Plain text
+      parentElement.appendParagraph(line);
     }
+  });
+}
+
+function appendImageFromUrl(imageUrl, parentElement) {
+  try {
+    var imageBlob = UrlFetchApp.fetch(imageUrl).getBlob();
+    parentElement.appendImage(imageBlob);
+  } catch (error) {
+    Logger.log("Error fetching image from URL: " + imageUrl);
+    parentElement.appendParagraph("Image failed to load: " + imageUrl);
   }
+}
 
-  sheets.forEach(function(sheet) {
-    var sheetName = sheet.getName();
-    var sheetInfo = {
-      isActive: activeSheet.getName() == sheetName,
-      name: sheetName,
-      regions: [],
-      selectedRange: getCurrentSelectionRange(sheet),
-    };
+function appendBase64Image(base64Data, parentElement) {
+  try {
+    var base64Image = base64Data.replace(/^data:image\/(png|jpeg|jpg);base64,/, "");
+    var imageBlob = Utilities.newBlob(Utilities.base64Decode(base64Image), 'image/png');
+    parentElement.appendImage(imageBlob);
+  } catch (error) {
+    Logger.log("Error processing base64 image");
+    parentElement.appendParagraph("Base64 image failed to load.");
+  }
+}
 
-    var dataRange = sheet.getRange(1, 1, 10, sheet.getLastColumn());
-    var values = dataRange.getValues();
-    var formulas = dataRange.getFormulas();
-    var numberFormats = dataRange.getNumberFormats();
+function insertTextAtCursorOld(content, url) {
+  var doc = DocumentApp.getActiveDocument();
+  
+  // Check if there's a selection
+  var selection = doc.getSelection();
+  if (selection) {
+    var rangeElements = selection.getRangeElements();
+    var lastElement = null;
+    var lastEndOffset = -1;
+    var highestIndex = -1;
+    
+    // Loop through all selected elements to find the right-most one
+    for (var i = 0; i < rangeElements.length; i++) {
+      // Only process elements that have a parent in the document body
+      try {
+        var element = rangeElements[i].getElement();
+        var endOffset = rangeElements[i].getEndOffsetInclusive();
+        var parent = element.getParent();
+        var currentElementIndex = doc.getBody().getChildIndex(parent);
 
-    // Identify regions with non-empty values
-    var currentRegion = null;
-    var startRow = 0;
-    for (var row = 0; row < 10; row++) {
-      var rowData = values[row];
-      var nonEmptyCols = rowData.filter(function(cell) { return cell !== ''; });
-
-      // Start a new region when we find a non-empty row
-      if (nonEmptyCols.length > 0 && currentRegion === null) {
-        currentRegion = {
-          headers: rowData,    // Headers are the first non-empty row
-          sampleRows: [],
-          numColumns: nonEmptyCols.length  // Region width based on first row
-        };
-      } else if (nonEmptyCols.length > 0 && currentRegion) {
-        // If region started, add non-header rows
-        if (startRow < 2) {
-          var rowInfo = rowData.map(function(cell, colIndex) {
-            return {
-              value: cell,
-              isFormula: formulas[row][colIndex] !== '',    // Check if it's a formula
-              format: interpretFormat(numberFormats[row][colIndex])  // Get interpreted format
-            };
-          });
-          currentRegion.sampleRows.push(rowInfo); // Add first 2 rows below headers
-          startRow += 1;
+        // Handle the case where selection ends at the end of a paragraph
+        if (rangeElements[i].isPartial() || rangeElements[i].isEntireElement()) {
+          // Select the element with the highest index in the document
+          if (currentElementIndex > highestIndex || (currentElementIndex === highestIndex && endOffset > lastEndOffset)) {
+            lastElement = element;
+            lastEndOffset = endOffset;
+            highestIndex = currentElementIndex;
+          }
         }
-      } else if (nonEmptyCols.length === 0 && currentRegion) {
-        // End of current region if we hit an empty row
-        sheetInfo.regions.push(currentRegion);
-        currentRegion = null;
-        startRow = 0;
+      } catch (e) {
+        // Log or handle any errors that occur (e.g., elements without valid parents)
+        Logger.log('Error processing element: ' + e.message);
+        continue; // Skip this element if there's an error
       }
     }
-
-    // Push the last region if it didn't end with an empty row
-    if (currentRegion) {
-      sheetInfo.regions.push(currentRegion);
+    
+    if (lastElement && lastElement.editAsText) {
+      var textElement = lastElement.editAsText();
+      
+      // Insert text after the right-most selected text
+      var newStartOffset = lastEndOffset + 1;
+      var newElement = textElement.insertText(newStartOffset, content);
+      
+      // Apply the link to the new text only
+      if (url) {
+        var newEndOffset = newStartOffset + content.length - 1;
+        textElement.setLinkUrl(newStartOffset, newEndOffset, url);
+      }
     }
-
-    sheetState.sheets.push(sheetInfo);
-  });
-
-  Logger.log(sheetState);
-  return JSON.stringify(sheetState);
-}
-
-// expression = `getColumnIndexByValue("Campaign Data", "Customer_Segment")`
-
-function gsheetEvaluate(expression) {
-  // Use eval to evaluate the string expression
-  var result = eval(expression);
-  // Logger.log(result)
-  return JSON.stringify(result);
-}
-
-function getUserSelectedRange() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var range = sheet.getActiveRange();  // Get the user's currently selected range
-  var a1Notation = range.getA1Notation(); 
-  return a1Notation;
-}
-
-function readActiveSpreadsheet(region) {
-  if (!region) {
-    region = getUserSelectedRange()
   }
-  var range = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet().getRange(region);
-  
-  // Get the values, formulas, and merged status of the range
-  var values = range.getValues();
-  var formulas = range.getFormulas();
-  var numRows = range.getNumRows();
-  var numColumns = range.getNumColumns();
-  
-  // Initialize the cells array to store cell data
-  var cells = [];
-
-  for (var row = 0; row < numRows; row++) {
-    var rowData = [];
-    for (var col = 0; col < numColumns; col++) {
-      var cell = range.getCell(row + 1, col + 1); // Get each cell individually
-      var cellValue = values[row][col];
-      var cellType = typeof cellValue;
-      var isMerged = cell.isPartOfMerge();        // Check if the cell is part of a merged region
-      var cellData = {
-        "value": cellValue,                // The value of the cell
-        "type": cellType,
-        "formula": formulas[row][col] || null,    // The formula (or null if there's none)
-        "isMerged": isMerged                      // Whether the cell is part of a merged range
-      };
-      rowData.push(cellData);                     // Add the cell data to the row
+  // If no selection, check for the cursor
+  else {
+    var cursor = doc.getCursor();
+    if (cursor) {
+      var textElement = cursor.getSurroundingText().editAsText();
+      var startOffset = cursor.getSurroundingTextOffset();
+      
+      // Insert the content at the cursor position
+      var newElement = textElement.insertText(startOffset, content);
+      
+      // Apply the link to the inserted text
+      if (url) {
+        var newEndOffset = startOffset + content.length - 1;
+        textElement.setLinkUrl(startOffset, newEndOffset, url);
+      }
+    } else {
+      Logger.log("No cursor or selection found.");
     }
-    cells.push(rowData);                          // Add the row data to the cells array
   }
+}
 
-  // Construct the final output object
-  var output = {
-    "region": region,                            // The range of the spreadsheet being read
-    "cells": cells                                // The cells data as an array of arrays
-  };
+
+function readCurrentDoc() {
+  // Get the active (currently open) Google Document
+  var doc = DocumentApp.getActiveDocument();
   
-  Logger.log(JSON.stringify(output));             // Log the result for debugging
-
-  return output;                                  // Return the final output object
+  // Get the body of the document
+  var body = doc.getBody();
+  
+  // Read the entire text content of the document
+  var text = body.getText();
+  
+  // Optionally, return the text or process it further
+  return text;
 }
 
 function onOpen() {
-  var ui = SpreadsheetApp.getUi();
+  var ui = DocumentApp.getUi();
   ui.createMenu('MinusX')
     .addItem('Add Sidebar', 'showSidebar')
     .addToUi();
@@ -197,5 +179,113 @@ function onOpen() {
 
 function showSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('index').setTitle('MinusX').setWidth(400);
-  SpreadsheetApp.getUi().showSidebar(html);
+  DocumentApp.getUi().showSidebar(html);
+}
+
+function insertBase64Image(base64Image, newImgWidth) {
+  // Extract the Base64 part from the data URL
+  var base64String = base64Image.split(',')[1];
+  
+  // Convert the Base64 string to a Blob
+  var decodedImage = Utilities.base64Decode(base64String);
+  var blob = Utilities.newBlob(decodedImage, 'image/png', 'imageName');
+  
+  // Get the active Google Doc
+  var doc = DocumentApp.getActiveDocument();
+  
+  // Check if there's a selection
+  var selection = doc.getSelection();
+  var imageElement;
+  
+  if (selection) {
+    var rangeElements = selection.getRangeElements();
+    
+    // We will insert the image after the last selected element
+    var lastElement = rangeElements[rangeElements.length - 1].getElement();
+    
+    // Get the parent of the last element, typically a paragraph
+    var parentElement = lastElement.getParent();
+    
+    // Insert the image after the selected text
+    if (parentElement.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      imageElement = parentElement.asParagraph().appendInlineImage(blob);
+    } else if (parentElement.getType() === DocumentApp.ElementType.TEXT) {
+      imageElement = parentElement.getParent().appendInlineImage(blob);
+    }
+  } 
+  // If no selection, check if there's a cursor
+  else {
+    var cursor = doc.getCursor();
+    if (cursor) {
+      // Insert the image at the cursor position
+      imageElement = cursor.insertInlineImage(blob);
+      if (!imageElement) {
+        Logger.log("Unable to insert image at cursor.");
+      }
+    } 
+    // If no cursor, append the image at the end of the document
+    else {
+      imageElement = doc.getBody().appendImage(blob);
+    }
+  }
+  
+  // Set the width of the image based on the specified percentage
+  if (imageElement) {
+    var originalWidth = imageElement.getWidth();
+    var originalHeight = imageElement.getHeight();
+    
+    // Calculate the new width as a percentage of the original width
+    var newWidth;
+    if (newImgWidth <= 10) {
+      newWidth = originalWidth * newImgWidth;
+    } else {
+      newWidth = newImgWidth
+    }
+    
+    // Calculate the new height to maintain the aspect ratio
+    var newHeight = (newWidth / originalWidth) * originalHeight;
+    
+    // Set the width and height of the image
+    imageElement.setWidth(newWidth);
+    imageElement.setHeight(newHeight);
+  }
+}
+
+function readSelectedText() {
+  // Get the active document
+  var doc = DocumentApp.getActiveDocument();
+  
+  // Get the user's selection
+  var selection = doc.getSelection();
+  
+  // Check if a selection exists
+  if (selection) {
+    var selectedText = '';
+    
+    // Get the selected elements (it can be a range of elements)
+    var elements = selection.getRangeElements();
+    
+    for (var i = 0; i < elements.length; i++) {
+      var element = elements[i];
+      
+      // Only process text elements that are fully or partially selected
+      if (element.getElement().editAsText) {
+        var textElement = element.getElement().editAsText();
+        if (element.isPartial()) {
+          // Get only the selected part of the text
+          selectedText += textElement.getText().substring(element.getStartOffset(), element.getEndOffsetInclusive() + 1);
+        } else {
+          // Get the entire text element if fully selected
+          selectedText += textElement.getText();
+        }
+      }
+    }
+    
+    // Log the selected text (or you can return or use it as needed)
+    Logger.log("Selected text: " + selectedText);
+    return selectedText;
+  } else {
+    Logger.log("No text selected.");
+    return "No selection";
+  }
 }

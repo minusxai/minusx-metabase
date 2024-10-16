@@ -1,3 +1,34 @@
+function setRangeFormula(range, formula) {
+  range.setFormula(formula)
+}
+
+// function testSetRangeFormula() {
+//   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+//   var sheet = spreadsheet.getActiveSheet();
+//   var selection = sheet.getRange(2, sheet.getLastColumn()-1, sheet.getLastRow(), sheet.getLastColumn());
+//   setRangeFormula(selection, 'L2/M2');
+// }
+
+function getCurrentSelectionRange(sheet) {
+  var selection = sheet.getActiveRange();  // Get the current selection range
+
+  // If no selection, return an empty object
+  if (!selection) {
+    return {};
+  }
+
+  var rangeInfo = {
+    startRow: selection.getRow(),
+    startColumn: selection.getColumn(),
+    numRows: selection.getNumRows(),
+    numColumns: selection.getNumColumns(),
+    values: selection.getValues()  // Optionally, return the values in the selected range
+  };
+
+  // Logger.log(JSON.stringify(rangeInfo))
+  return rangeInfo;
+}
+
 function gsheetGetState() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var sheets = spreadsheet.getSheets();
@@ -28,7 +59,8 @@ function gsheetGetState() {
     var sheetInfo = {
       isActive: activeSheet.getName() == sheetName,
       name: sheetName,
-      regions: []
+      regions: [],
+      selectedRange: getCurrentSelectionRange(sheet),
     };
 
     var dataRange = sheet.getRange(1, 1, 10, sheet.getLastColumn());
@@ -83,6 +115,16 @@ function gsheetGetState() {
   return JSON.stringify(sheetState);
 }
 
+function columnIndexToLetter(columnIndex) {
+  var letter = '';
+  while (columnIndex > 0) {
+    var remainder = (columnIndex - 1) % 26;
+    letter = String.fromCharCode(remainder + 65) + letter;
+    columnIndex = Math.floor((columnIndex - 1) / 26);
+  }
+  return letter;
+}
+
 function getColumnIndexByValue(sheetName, value) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   var range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
@@ -90,13 +132,11 @@ function getColumnIndexByValue(sheetName, value) {
 
   for (var i = 0; i < values.length; i++) {
     if (values[i] == value) {
-      return i + 1; // Return the column index (1-based)
+      return columnIndexToLetter(i + 1); // Convert index to letter (1-based)
     }
   }
-  return -1; // Value not found
+  return ''; // Return empty string if value not found
 }
-
-// expression = `getColumnIndexByValue("Campaign Data", "Customer_Segment")`
 
 function gsheetEvaluate(expression) {
   // Use eval to evaluate the string expression
