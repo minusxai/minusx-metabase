@@ -1,6 +1,7 @@
 function gsheetGetState() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var sheets = spreadsheet.getSheets();
+  var activeSheet = spreadsheet.getActiveSheet()
   
   // Object to store sheet state information
   var sheetState = {
@@ -8,41 +9,41 @@ function gsheetGetState() {
   };
 
   sheets.forEach(function(sheet) {
+    var sheetName = sheet.getName()
     var sheetInfo = {
-      sheetName: sheet.getName(),
+      isActive: activeSheet.getName() == sheetName,
+      name: sheetName,
       regions: []
     };
 
-    var dataRange = sheet.getDataRange();
+    var dataRange = sheet.getRange(1, 1, 10, sheet.getLastColumn())
     var values = dataRange.getValues();
-    var rows = values.length;
-    var cols = values[0].length;
 
     // Identify regions with non-empty values
     var currentRegion = null;
-    for (var row = 0; row < rows; row++) {
+    var startRow = 0;
+    for (var row = 0; row < 10; row++) {
       var rowData = values[row];
       var nonEmptyCols = rowData.filter(function(cell) { return cell !== ''; });
 
       // Start a new region when we find a non-empty row
       if (nonEmptyCols.length > 0 && currentRegion === null) {
         currentRegion = {
-          startRow: row + 1,  // 1-based index
           headers: rowData,    // Headers are the first non-empty row
-          rows: [],
-          width: nonEmptyCols.length,  // Region width based on first row
-          height: 1  // Start height at 1 for the header row
+          sampleRows: [],
+          numColumns: nonEmptyCols.length,  // Region width based on first row
         };
       } else if (nonEmptyCols.length > 0 && currentRegion) {
         // If region started, add non-header rows
-        if (row - currentRegion.startRow < 3) {
-          currentRegion.rows.push(rowData); // Add first 2 rows below headers
+        if (startRow < 2) {
+          currentRegion.sampleRows.push(rowData); // Add first 2 rows below headers
+          startRow += 1;
         }
-        currentRegion.height++;  // Increment height for each row added
       } else if (nonEmptyCols.length === 0 && currentRegion) {
         // End of current region if we hit an empty row
         sheetInfo.regions.push(currentRegion);
         currentRegion = null;
+        startRow = 0;
       }
     }
 
@@ -54,6 +55,7 @@ function gsheetGetState() {
     sheetState.sheets.push(sheetInfo);
   });
 
+  // Logger.log(sheetState)
   return JSON.stringify(sheetState);
 }
 
