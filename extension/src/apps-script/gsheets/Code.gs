@@ -2,13 +2,6 @@ function setRangeFormula(range, formula) {
   range.setFormula(formula)
 }
 
-// function testSetRangeFormula() {
-//   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-//   var sheet = spreadsheet.getActiveSheet();
-//   var selection = sheet.getRange(2, sheet.getLastColumn()-1, sheet.getLastRow(), sheet.getLastColumn());
-//   setRangeFormula(selection, 'L2/M2');
-// }
-
 function getCurrentSelectionRange(sheet) {
   var selection = sheet.getActiveRange();  // Get the current selection range
 
