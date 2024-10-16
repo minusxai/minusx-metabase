@@ -23,7 +23,7 @@ Important notes:
 - You can take upto 5 turns to finish the task. The fewer the better.
 
 The following functions already exist and can be used when needed inside runAppsScriptCode:
-1. idx = getColumnIndexByValue(sheetName, value)
+1. const idx: number = getColumnIndexByValue(sheetName, columnName) // returns the numerical index of the column with the given column name
 `
 
 export const DEFAULT_PLANNER_USER_PROMPT = `<UserInstructions>
