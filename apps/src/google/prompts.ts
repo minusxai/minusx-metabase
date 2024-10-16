@@ -16,7 +16,7 @@ Routine to follow:
 
 Important notes:
 - Always write formulas instead of writing values directly. This will make the sheet dynamic and easy to update.
-- Again, focus on writing formulas and not values.
+- Again, focus on writing formulas and not values. Change multiple values at once. Do not go one by one.
 - Focus on the active sheet (i.e the sheet with isActive = true)
 - Do not read the entire sheet. It is too slow and unnecessary. Read only the required rows and columns. Or the first 3 rows to understand the data. If you need more, read more rows.
 - Do not use column indexes directly, use getColumnIndexByValue to get the index of a column by its name
