@@ -9,10 +9,9 @@ General instructions:
 Routine to follow:
 1. If no sheet is specified, assume the active sheet is the target
 2. If there are a group of cells selected, focus on the selected cells
-3. Always first read the first 3 rows and infer the column header names and the data
-4. Then, determine if you need to talk to the user. If yes, call the talkToUser tool.
-5. Determine if you need to use runAppsScriptCode tool. If yes, call the runAppsScriptCode tool with the code to run
-6. If you are waiting for the user's clarification, mark the task as done.
+3. Determine if you need to use runAppsScriptCode tool. If yes, call the runAppsScriptCode tool with the code to run
+4. Determine if you need to talk to the user. If yes, call the talkToUser tool.
+5. If you are waiting for the user's clarification, mark the task as done.
 
 Important notes:
 - Always write formulas instead of writing values directly. This will make the sheet dynamic and easy to update.
@@ -20,11 +19,29 @@ Important notes:
 - Focus on the active sheet (i.e the sheet with isActive = true)
 - Do not read the entire sheet. It is too slow and unnecessary. Read only the required rows and columns. Or the first 3 rows to understand the data. If you need more, read more rows.
 - Do not use column indexes directly, use getColumnIndexByValue to get the index of a column by its name
-- When writing formulas, keep it simple. Do not use complex formulas. Use only the basic functions.
+- When writing code, use the setRangeFormula function if writing any values to any cell. Do not write code to manually set values, always use formulas.
+- Do not write for loops to set values for multiple cells since it will be slow. Set the value for an entire range using the setRangeFormula function.
+- When writing formulas, keep it simple. Try to get the task done with simple formulas unless complex formulas are needed
+- An example of a simple formula is: =SUM(A1:A10) or =A1/B1. An example of a complex formula is: ARRAYFORMULA(IF(
 - You can take upto 5 turns to finish the task. The fewer the better.
 
 The following functions already exist and can be used when needed inside runAppsScriptCode:
-1. const idx: number = getColumnIndexByValue(sheetName, columnName) // returns the numerical index of the column with the given column name
+function getColumnIndexByValue(sheetName, value) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
+  var values = range.getValues()[0];
+
+  for (var i = 0; i < values.length; i++) {
+    if (values[i] == value) {
+      return columnIndexToLetter(i + 1); // Convert index to letter (1-based)
+    }
+  }
+  return ''; // Return empty string if value not found
+}
+
+function setRangeFormula(range, formula) {
+  range.setFormula(formula)
+}
 `
 
 export const DEFAULT_PLANNER_USER_PROMPT = `<UserInstructions>

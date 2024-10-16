@@ -1,3 +1,26 @@
+function columnIndexToLetter(columnIndex) {
+  var letter = '';
+  while (columnIndex > 0) {
+    var remainder = (columnIndex - 1) % 26;
+    letter = String.fromCharCode(remainder + 65) + letter;
+    columnIndex = Math.floor((columnIndex - 1) / 26);
+  }
+  return letter;
+}
+
+function getColumnIndexByValue(sheetName, value) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  var range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
+  var values = range.getValues()[0];
+
+  for (var i = 0; i < values.length; i++) {
+    if (values[i] == value) {
+      return columnIndexToLetter(i + 1); // Convert index to letter (1-based)
+    }
+  }
+  return ''; // Return empty string if value not found
+}
+
 function getCurrentSelectionRange(sheet) {
   var selection = sheet.getActiveRange();  // Get the current selection range
 
@@ -102,19 +125,6 @@ function gsheetGetState() {
 
   Logger.log(sheetState);
   return JSON.stringify(sheetState);
-}
-
-function getColumnIndexByValue(sheetName, value) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-  var range = sheet.getRange(1, 1, 1, sheet.getLastColumn());
-  var values = range.getValues()[0];
-
-  for (var i = 0; i < values.length; i++) {
-    if (values[i] == value) {
-      return i + 1; // Return the column index (1-based)
-    }
-  }
-  return -1; // Value not found
 }
 
 // expression = `getColumnIndexByValue("Campaign Data", "Customer_Segment")`
