@@ -1,23 +1,40 @@
 function gsheetGetState() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var sheets = spreadsheet.getSheets();
-  var activeSheet = spreadsheet.getActiveSheet()
+  var activeSheet = spreadsheet.getActiveSheet();
   
   // Object to store sheet state information
   var sheetState = {
     sheets: []
   };
 
+  // Function to interpret number formats
+  function interpretFormat(format) {
+    if (format.includes('%')) {
+      return 'Percentage';
+    } else if (format.includes('$') || format.includes('€') || format.includes('£') || format.includes('₹')) {
+      return 'Currency';
+    } else if (format.match(/^\d{4}-\d{2}-\d{2}/) || format.toLowerCase().includes('d')) {
+      return 'Date';
+    } else if (format.includes('0.###############') || format.includes('0.00')) {
+      return 'Number';
+    } else {
+      return 'General';
+    }
+  }
+
   sheets.forEach(function(sheet) {
-    var sheetName = sheet.getName()
+    var sheetName = sheet.getName();
     var sheetInfo = {
       isActive: activeSheet.getName() == sheetName,
       name: sheetName,
       regions: []
     };
 
-    var dataRange = sheet.getRange(1, 1, 10, sheet.getLastColumn())
+    var dataRange = sheet.getRange(1, 1, 10, sheet.getLastColumn());
     var values = dataRange.getValues();
+    var formulas = dataRange.getFormulas();
+    var numberFormats = dataRange.getNumberFormats();
 
     // Identify regions with non-empty values
     var currentRegion = null;
@@ -31,12 +48,19 @@ function gsheetGetState() {
         currentRegion = {
           headers: rowData,    // Headers are the first non-empty row
           sampleRows: [],
-          numColumns: nonEmptyCols.length,  // Region width based on first row
+          numColumns: nonEmptyCols.length  // Region width based on first row
         };
       } else if (nonEmptyCols.length > 0 && currentRegion) {
         // If region started, add non-header rows
         if (startRow < 2) {
-          currentRegion.sampleRows.push(rowData); // Add first 2 rows below headers
+          var rowInfo = rowData.map(function(cell, colIndex) {
+            return {
+              value: cell,
+              isFormula: formulas[row][colIndex] !== '',    // Check if it's a formula
+              format: interpretFormat(numberFormats[row][colIndex])  // Get interpreted format
+            };
+          });
+          currentRegion.sampleRows.push(rowInfo); // Add first 2 rows below headers
           startRow += 1;
         }
       } else if (nonEmptyCols.length === 0 && currentRegion) {
@@ -55,7 +79,7 @@ function gsheetGetState() {
     sheetState.sheets.push(sheetInfo);
   });
 
-  // Logger.log(sheetState)
+  Logger.log(sheetState);
   return JSON.stringify(sheetState);
 }
 
