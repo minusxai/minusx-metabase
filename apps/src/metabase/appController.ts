@@ -60,8 +60,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const varsAndUuids = getVariablesAndUuidsInQuery(sql);
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
-    const templateTags = getTemplateTags(varsAndUuids, existingTemplateTags);
-    const parameters = getParameters(varsAndUuids, existingParameters);
+    const templateTags = getTemplateTags(varsAndUuids, existingTemplateTags || {});
+    const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
     currentCard.parameters = parameters;
     currentCard.dataset_query.native.query = sql;
@@ -125,7 +125,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
           return actionContent;
         } else {
           // check if type and displayName are present and use the qb.card UPDATE_QUESTION action to update them
-          let variableInfo = currentCard.dataset_query.native['template-tags'][variable];
+          let variableInfo = currentCard.dataset_query.native['template-tags']?.[variable];
           variableInfo['type'] = type ?? variableInfo['type'];
           variableInfo['display-name'] = displayName ?? variableInfo['display-name'];
           currentCard.dataset_query.native['template-tags'][variable] = variableInfo;
@@ -138,8 +138,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
           let otherType = typeToOtherTypeMap[variableInfo['type']];
           // find the parameter in currentCard.parameters and modify its type to otherType
           console.log("currentCard.parameters", currentCard.parameters);
-          for (let i = 0; i < currentCard.parameters.length; i++) {
-            const parameter = currentCard.parameters[i];
+          let currentParams = currentCard.parameters || [];
+          for (let i = 0; i < currentParams.length; i++) {
+            const parameter = currentParams[i];
             if (parameter.slug == variable) {
               parameter.type = otherType ?? parameter.type;
               parameter.name = displayName ?? parameter.name;

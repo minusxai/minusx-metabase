@@ -8,16 +8,14 @@ type VarAndUuids = {
 }[]
  // not using this right now, but might be useful later?
 export const getVariablesAndUuidsInQuery = (query: string): VarAndUuids => {
-  const result: VarAndUuids = [];
-  const regex = /{{(\w+)}}/g;
+  // using map to dedupe
+  let asMap: Record<string, string> = {};
+  const regex = /{{\s*(\w+)\s*}}/g;
   let match;
   while ((match = regex.exec(query)) !== null) {
-    result.push({
-      variable: match[1],
-      uuid: uuidv4()
-    });
+    asMap[match[1]] = uuidv4();
   }
-  return result;
+  return Object.entries(asMap).map(([key, value]) => ({ variable: key, uuid: value }));
 }
 
 function slugToDisplayName(slug: string): string {
