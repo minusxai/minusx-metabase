@@ -45,12 +45,6 @@ interface ChatSuggestionsProps {
 }
 
 const ChatSuggestions: React.FC<ChatSuggestionsProps> = ({ suggestQueries, toggleSuggestions, suggestions, onSuggestionClick }) => {
-  const tool = getParsedIframeInfo().tool
-  const toolVersion = getParsedIframeInfo().toolVersion
-  const isSuggestionsDisabled = tool === "google" && toolVersion === "sheets"
-  if (isSuggestionsDisabled) {
-    return null
-  }
   return (
     <Flex wrap="wrap" gap={2}>
       <HStack justifyContent={"space-between"} width={"100%"}>
@@ -215,7 +209,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       </VStack>
       <VStack alignItems={"stretch"}>
         <Divider borderColor={"minusxBW.500"}/>
-        { !taskInProgress && !userConfirmation.show &&
+        { !taskInProgress && !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
         <ChatSuggestions
           suggestQueries={suggestQueries}
