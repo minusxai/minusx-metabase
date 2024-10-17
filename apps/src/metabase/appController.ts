@@ -27,17 +27,12 @@ import {
   toLowerVisualizationType,
   ParameterValues
  } from "./helpers/types";
+import {
+  getTemplateTags,
+  getParameters,
+  getVariablesAndUuidsInQuery
+} from "./helpers/sqlQuery";
 
- // not using this right now, but might be useful later?
-const getVariablesInQuery = (query: string): string[] => {
-  const variablesInQuery: string[] = [];
-  const regex = /{{(\w+)}}/g;
-  let match;
-  while ((match = regex.exec(query)) !== null) {
-    variablesInQuery.push(match[1]);
-  }
-  return variablesInQuery;
-}
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------
@@ -62,10 +57,19 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       await this.toggleSQLEditor("open");
     }
     const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
-    // const currentVariables = getVariablesInQuery(currentCard.dataset_query.native.query);
-    // const variablesInQuery = getVariablesInQuery(sql);
-    await this.uDblClick({ query: "sql_query" });
-    await this.setValue({ query: "sql_query", value: sql });
+    const varsAndUuids = getVariablesAndUuidsInQuery(sql);
+    const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
+    const existingParameters = currentCard.parameters;
+    const templateTags = getTemplateTags(varsAndUuids, existingTemplateTags);
+    const parameters = getParameters(varsAndUuids, existingParameters);
+    currentCard.dataset_query.native['template-tags'] = templateTags;
+    currentCard.parameters = parameters;
+    currentCard.dataset_query.native.query = sql;
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+    
+    // await this.uDblClick({ query: "sql_query" });
+    // await this.setValue({ query: "sql_query", value: sql });
 
     
     if (executeImmediately) {
