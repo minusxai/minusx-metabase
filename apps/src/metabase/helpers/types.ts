@@ -68,7 +68,7 @@ export interface Card {
   displayIsLocked: boolean;
   visualization_settings: visualizationSettings;
   type: string;
-  parameters: QBParameters;
+  parameters?: QBParameters;
 }
 
 // qb.parameterValues
