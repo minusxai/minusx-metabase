@@ -4,7 +4,7 @@
 <p>
   <b>MinusX is an AI Data Scientist that works on tools you use and love</b>
   <br>
-  Currently, it can operate <a href="https://minusx.ai/tools/jupyter">Jupyter</a>, <a href="https://minusx.ai/tools/metabase">Metabase</a>, and <a href="https://minusx.ai/tools/posthog">Posthog</a> with more tools on the way.
+  Currently, it can operate <a href="https://minusx.ai/tools/jupyter">Jupyter</a>, <a href="https://minusx.ai/tools/metabase">Metabase</a>, <a href="https://minusx.ai/tools/google-sheets">Google Sheets</a>, and <a href="https://minusx.ai/tools/posthog">Posthog</a> with more tools on the way.
 </p>
 <h3>
   <a href="https://minusx.ai/chrome-extension">Install Extension</a>
@@ -45,13 +45,14 @@ MinusX adds a side-chat to your app, and when given an instruction, it operates 
 ## Supported Analytics Tools
 <a href="https://minusx.ai/tools/jupyter"><img src="https://minusx.ai/_next/static/media/jupyter.0fedaa2d.svg" width="80" height="80" alt=""/></a>
 <a href="https://minusx.ai/tools/metabase"><img src="https://minusx.ai/_next/static/media/metabase.e2bebbef.svg" width="80" height="80" alt=""/></a>
+<a href="https://minusx.ai/tools/google-sheets"><img src="https://www.gstatic.com/images/branding/product/2x/sheets_2020q4_48dp.png" width="80" height="80" alt=""/></a>
 <a href="https://minusx.ai/tools/posthog"><img src="https://posthog.com/brand/posthog-logomark.svg" width="80" height="80" alt=""/></a>
 
 ---
 
 ## Using MinusX
-- Install the [Chrome extension](https://minusx.ai/chrome-extension)
-- Take MinusX for a spin in our [playground](https://minusx.ai/playground), or in your own Jupyter/Metabase instances!
+- Install the [Chrome extension](https://minusx.ai/chrome-extension) or the [Google Sheets Add-on](https://workspace.google.com/u/0/marketplace/app/minusx/1001122509846)
+- Take MinusX for a spin in our [playground](https://minusx.ai/playground), or in your own Jupyter/Metabase instances / Google Sheets!
 - Don't see your favorite tool in our list? Here’s a [google form](https://minusx.ai/tool-request) you can fill out so that we can notify you when we support your tool!
 
 ---
