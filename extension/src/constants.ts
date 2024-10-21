@@ -49,4 +49,5 @@ export const TOOLS = {
     JUPYTER: "jupyter",
     POSTHOG: "posthog",
     METABASE: "metabase",
+    GOOGLE: "google",
 }

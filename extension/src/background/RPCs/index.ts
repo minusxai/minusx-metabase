@@ -172,22 +172,29 @@ const setCallbacksBasedOnTool = async () => {
   chrome.action.setPopup({popup: ''})
   if (currentTool == TOOLS.OTHER || currentTool == INVALID_TAB || isInvisible) {
     chrome.action.setPopup({popup: 'popup.html'})
+    chrome.commands.onCommand.removeListener(commandListener);
   } else {
     chrome.action.onClicked.addListener(callIfNotOther)
+    if (currentTool == TOOLS.GOOGLE) {
+      chrome.commands.onCommand.removeListener(commandListener);
+    } else {
+      chrome.commands.onCommand.addListener(commandListener);
+    }
   }
 }
+
+const commandListener = (command: string) => {
+  console.log(`Command: ${command}`);
+  if (command == 'open-chat') {
+    console.log('Chat opened!');
+    sendContentScriptMessage({fn: 'toggleMinusX'})
+  }
+}
+
 export function initBackgroundRPC() {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     executeFunction(message, sender, sendResponse);
     return true;
-  });
-
-  chrome.commands.onCommand.addListener(async (command) => {
-    console.log(`Command: ${command}`);
-    if (command == 'open-chat') {
-      console.log('Chat opened!');
-      sendContentScriptMessage({fn: 'toggleMinusX'})
-    }
   });
 
   // check for tab changes and set currentTool
