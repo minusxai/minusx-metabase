@@ -124,7 +124,7 @@ const SettingsPage = () => {
             </Tag>
           </Stack>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
-            <Text color={"minusxBW.800"} fontSize="sm">Credits remaining today</Text>
+            <Text color={"minusxBW.800"} fontSize="sm">Credits remaining</Text>
             <CreditsPill credits={billing.credits} />
             {/* <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
               <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Free Plan'}</TagLabel>
