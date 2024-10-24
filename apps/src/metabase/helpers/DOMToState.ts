@@ -1,11 +1,11 @@
 import { RPCs } from 'web'
-import { getTop200TablesWithoutFieldsForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases } from './getDatabaseSchema';
+import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPage } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
-import { visualizationSettings, Card, ParameterValues } from './types';
-
+import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
+import { getTablesFromSql } from './parseSql';
 const { getMetabaseState, queryURL } = RPCs;
 
 interface ExtractedDataBase {
@@ -46,7 +46,7 @@ export interface MetabaseAppStateSQLEditor {
   visualizationType: string;
   visualizationSettingsStatus: 'open' | 'closed';
   outputTableMarkdown: string
-  visualizationSettings: visualizationSettings
+  visualizationSettings: visualizationSettings,
 }
 
 // make this DashboardInfo
@@ -59,20 +59,19 @@ export async function convertDOMtoStateSQLQuery() {
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const availableDatabases = (await memoizedGetDatabases())?.data?.map(({ name }) => name);
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
-  const selectedDatabaseSchema = await getTop200TablesWithoutFieldsForSelectedDb();
-  const tables = selectedDatabaseSchema? selectedDatabaseSchema.tables.map(table => extractTableInfo(table)) : [];
+  const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
+  const tables = (await getRelevantTablesForSelectedDb(sqlQuery)).map(table => extractTableInfo(table));
 
   const queryExecuted = await getMetabaseState('qb.queryResults') !== null;
   const isNativeEditorOpen = await getMetabaseState('qb.uiControls.isNativeEditorOpen')
   const sqlErrorMessage = await getSqlErrorMessage();
   const outputTableMarkdown = await getAndFormatOutputTable();
-  const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const isShowingRawTable = await getMetabaseState('qb.uiControls.isShowingRawTable')
   const isShowingChartTypeSidebar = await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar')
   const vizType = await getMetabaseState('qb.card.display') as string
   const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
   const sqlVariables = await getSqlVariables();
-
+  const tablesFromSql = getTablesFromSql(sqlQuery);
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     availableDatabases,
     selectedDatabaseInfo,
@@ -84,7 +83,7 @@ export async function convertDOMtoStateSQLQuery() {
     visualizationSettingsStatus: isShowingChartTypeSidebar ? 'open' : 'closed',
     outputTableMarkdown,
     visualizationSettings,
-    sqlVariables
+    sqlVariables,
   };
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;

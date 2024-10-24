@@ -1,5 +1,6 @@
 import { memoize, RPCs } from 'web'
 import { FormattedTable } from './types';
+import { getTablesFromSql } from './parseSql';
 import _ from 'lodash';
 
 const { getMetabaseState, fetchData } = RPCs;
@@ -111,15 +112,15 @@ async function getDatabaseTablesWithoutFields(dbId: number) {
 }
 
 const getTop200TablesWithoutFields = async (dbId: number) => {
-  const jsonResponse = await fetchData(`/api/search?models=table&table_db_id=${dbId}&filters_items_in_personal_collection=only`, 'GET');
+  const jsonResponse = await fetchData(`/api/search?models=table&table_db_id=${dbId}&filters_items_in_personal_collection=only&limit=200`, 'GET');
   return {
     tables: _.map(_.get(jsonResponse, 'data', []), (table: any) => (extractTableInfo(table, false, 'table_schema'))).slice(0, 200)
   }
 };
 
-export const memoizedGetTop200TablesWithoutFields = memoize(getTop200TablesWithoutFields, DEFAULT_TTL);
+/*export*/ const memoizedGetTop200TablesWithoutFields = memoize(getTop200TablesWithoutFields, DEFAULT_TTL);
 
-export const getTop200TablesWithoutFieldsForSelectedDb = async () => {
+/*export*/ const getTop200TablesWithoutFieldsForSelectedDb = async () => {
   const dbId = await getSelectedDbId();
   return dbId? await memoizedGetTop200TablesWithoutFields(dbId) : undefined;
 }
@@ -147,4 +148,28 @@ export async function logMetabaseVersion() {
     return;
   }
   console.log("Metabase version", apiVersion);
+}
+
+export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
+  const dbId = await getSelectedDbId();
+  if (!dbId) {
+    return [];
+  }
+  const tablesFromSql = getTablesFromSql(sql);
+  const {tables: top200} = await memoizedGetTop200TablesWithoutFields(dbId);
+  const {tables: allTables} = await memoizedGetDatabaseTablesWithoutFields(dbId);
+  for (const table of tablesFromSql) {
+    // check if its already there in top200. if so don't do anything
+    const relevantTable = top200.find(tableInfo => tableInfo.name === table.table && tableInfo.schema === table.schema);
+    if (!relevantTable) {
+      // check if there in allTables. if so, add it to top200
+      const relevantTable = allTables.find(tableInfo => tableInfo.name === table.table && tableInfo.schema === table.schema);
+      if (relevantTable) {
+        // insert at beginning
+        top200.unshift(relevantTable);
+      }
+    }
+  }
+  // trim to 200
+  return top200.slice(0, 200);
 }
