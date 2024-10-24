@@ -18,7 +18,7 @@ export function getTablesFromSql(sql: string): TableAndSchema[] {
       };
     });
   } catch (error) {
-    console.warn('Error parsing SQL (maybe malformed):', error);
+    console.warn('Error parsing SQL (maybe malformed):', sql, error);
     return [];
   }
 }

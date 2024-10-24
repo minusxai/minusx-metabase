@@ -2,7 +2,7 @@ import { RPCs, utils } from "web";
 
 const { getMetabaseState } = RPCs;
 export const getSqlErrorMessage = async () => {
-  let errorMessage = await getMetabaseState('qb.queryResults[0].error')
+  let errorMessage: any = await getMetabaseState('qb.queryResults[0].error')
   // check if errorMessage is a string, if so, return it
   if (typeof errorMessage === 'string') {
     return errorMessage;
@@ -12,11 +12,16 @@ export const getSqlErrorMessage = async () => {
     return undefined;
   }
   // if errorMessage is an object, if so, check if it has status property and if its 0 return "query timed out"
-  if (errorMessage && typeof errorMessage === 'object' && errorMessage.status === 0) {
-    return 'query timed out';
+  if (errorMessage && typeof errorMessage === 'object') {
+    if (errorMessage.status === 0) {
+      return 'query timed out';
+    }
+    if (errorMessage.data && typeof errorMessage.data === 'string') {
+      return errorMessage.data;
+    }
   }
   // log error
-  console.warn("Error getting SQL error message", errorMessage);
+  console.warn("Error getting SQL error message", JSON.stringify(errorMessage));
   return 'unknown error';
 }
 
