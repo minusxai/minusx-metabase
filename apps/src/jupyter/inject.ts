@@ -2,12 +2,12 @@ import { get } from 'lodash';
 import { initWindowListener } from 'extension'
 
 async function getJupyterApp() {
-    if (window.hasOwnProperty('jupyterapp')) {
+    if (window.hasOwnProperty('jupyterapp') && window['jupyterapp']) {
         return window['jupyterapp']
     }
     return new Promise((resolve) => {
         const interval = setInterval(() => {
-            if (window.hasOwnProperty('jupyterapp')) {
+            if (window.hasOwnProperty('jupyterapp') && window['jupyterapp']) {
                 clearInterval(interval)
                 resolve(window['jupyterapp'])
             }
