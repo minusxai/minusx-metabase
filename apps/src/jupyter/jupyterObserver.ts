@@ -11,7 +11,7 @@ function trackScriptTag(scriptNode: Node) {
     const observer = new MutationObserver(() => {
         if (scriptNode) {
             const originalJson = JSON.parse(scriptNode.textContent || '{}');
-            if (!isEmpty(originalJson)) {
+            if (!isEmpty(originalJson) && !originalJson['exposeAppInBrowser']) {
                 const modifiedJson = modifyJupyterConfig(originalJson);
                 scriptNode.textContent = JSON.stringify(modifiedJson);
                 observer.disconnect();
@@ -46,7 +46,6 @@ export const initObserveJupyterApp = () => {
                 mutation.addedNodes.forEach(function(node) {
                     if (node.tagName === 'SCRIPT' && node.id === 'jupyter-config-data') {
                         processScriptTag(node);
-                        console.log('Found script! removing observer')
                         observer.disconnect();  // Stop observing once we've found and processed the script
                     }
                 });
@@ -56,12 +55,9 @@ export const initObserveJupyterApp = () => {
     
     observer.observe(document.documentElement, { childList: true, subtree: true });
     document.onload = function() {
-        console.log('Removing observer')
         observer.disconnect();
     }
     setTimeout(() => {
-        console.log('Removing observer')
         observer.disconnect();
     }, MAX_OBSERVER_TIME)
-    console.log('Started observing')
 }
