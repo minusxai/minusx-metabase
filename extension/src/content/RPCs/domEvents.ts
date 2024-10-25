@@ -131,6 +131,7 @@ const evaluateToolExpression = (expression: ToolExpression): boolean => {
 
 export function identifyToolVersion(toolVersionMatcher: ToolMatcher) {
   if (!toolVersionMatcher) {
+    console.warn("no tool version matcher")
     return
   }
   for (const toolVersion in toolVersionMatcher) {

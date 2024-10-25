@@ -134,6 +134,7 @@ const getTool = async (): Promise<ToolID> => {
   try {
     const response = (await sendContentScriptMessage({fn: 'identifyToolNative'})).response
     if (!response) {
+      console.warn("no response from identifyToolNative")
       return {
         tool: TOOLS.OTHER,
         toolVersion: TOOLS.OTHER
@@ -141,18 +142,11 @@ const getTool = async (): Promise<ToolID> => {
     }
     return response
   } catch (err) {
+    console.warn("Error getting tool", err)
     return {
       tool: TOOLS.OTHER,
       toolVersion: TOOLS.OTHER
     }
-  }
-}
-
-const isMinusXInvisible = async () => {
-  try {
-    return (await sendContentScriptMessage({fn: 'checkMinusXClassName', args: 'invisible'})).response
-  } catch (err) {
-    return false
   }
 }
 
@@ -164,13 +158,11 @@ const setCallbacksBasedOnTool = async () => {
   console.log("setting callbacks based on tool")
   let toolID = await getTool();
   let currentTool = toolID.tool;
-  let isInvisible = await isMinusXInvisible();
-  console.log("is invisible", isInvisible)
   
   console.log("current tool is", currentTool)
   chrome.action.onClicked.removeListener(callIfNotOther)
   chrome.action.setPopup({popup: ''})
-  if (currentTool == TOOLS.OTHER || currentTool == INVALID_TAB || isInvisible) {
+  if (currentTool == TOOLS.OTHER || currentTool == INVALID_TAB ) {
     chrome.action.setPopup({popup: 'popup.html'})
     chrome.commands.onCommand.removeListener(commandListener);
   } else {
@@ -201,7 +193,7 @@ export function initBackgroundRPC() {
   chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     let currentTabId = await getActiveTab();
     if (currentTabId == tabId) {
-      console.log("tab updated")
+      console.log("tab updated", changeInfo, tabId)
       setCallbacksBasedOnTool()
     }
   });

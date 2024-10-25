@@ -9,7 +9,8 @@ export const posthogFingerprintMatcher: ToolMatcher = {
         domQuery: {
           selector: {
             type: "XPATH",
-            selector: "//title[text()=\"PostHog\"]",
+            // ends-with PostHog
+            selector: "//title[substring(text(), string-length(text()) - string-length('PostHog') + 1) = 'PostHog']",
           },
         },
       },
