@@ -8,7 +8,7 @@ import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
 import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
-import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab, getPendingMessage} from './rpc';
+import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab, getPendingMessage, gsheetSetUserToken} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
 import { configs } from '../constants';
 import { setAxiosJwt } from './api';
@@ -121,6 +121,9 @@ const persistor = persistStore(store);
 
 function ProviderApp() {
     const mode = useMinusXMode()
+    const tool = getParsedIframeInfo().tool
+    const toolVersion = getParsedIframeInfo().toolVersion
+    const isGSheets = tool == 'google' && toolVersion == 'sheets'
     const profileId = useSelector((state: RootState) => state.auth.profile_id)
     const email = useSelector((state: RootState) => state.auth.email)
     const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
@@ -131,7 +134,14 @@ function ProviderApp() {
     init(mode, ref, isAppOpen)
     useInitArgs(() => {
         if (session_jwt) {
-            setAxiosJwt(session_jwt)
+            setAxiosJwt(session_jwt) 
+        }
+        if (isGSheets) {
+            if (session_jwt) {
+                gsheetSetUserToken(session_jwt)
+            } else {
+                gsheetSetUserToken('')
+            }
         }
     }, [session_jwt])
     useInitArgs(() => {
