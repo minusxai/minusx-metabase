@@ -1,3 +1,70 @@
+const LLM_RESPONSE_URL = "https://v1.minusxapi.com/planner/getLLMResponse";
+
+function gsheetSetUserToken(token) {
+  const scriptProperties = PropertiesService.getScriptProperties();
+  scriptProperties.setProperty('userToken', token);
+}
+
+function MX_WEB(columns, query) {
+  // columns = [0.2, 0.3]
+  // query = "Is this less than majority chance?"
+  const scriptProperties = PropertiesService.getScriptProperties();
+  const userToken = scriptProperties.getProperty('userToken');
+  let dataArray;
+  if (Array.isArray(columns)) {
+    dataArray = columns.flat();
+  } else {
+    dataArray = [columns];
+  }
+  systemMessage = `You are used as a google apps script function. You will be given an array of cell values and a query and your response will be used to set the current cell value.
+<CellValues>${JSON.stringify(dataArray)}</CellValues>
+<Query>${query}</Query>`
+  let payload = {
+    "messages": [
+        {
+            "role": "system",
+            "content": systemMessage
+        }
+    ],
+    "actions": [],
+    "llmSettings": {
+        "model": "gpt-4o",
+        "temperature": 0,
+        "response_format": {
+            "type": "text"
+        },
+        "tool_choice": "required"
+    }
+  }
+  // Optionally, return or log the result
+  let options = {
+    'method': 'POST',
+    'contentType': 'application/json',
+    'payload': JSON.stringify(payload),
+    'muteHttpExceptions': true,
+    'headers': {
+      'Authorization': `Bearer ${userToken}`
+    }
+  };
+  let responseCode
+  try {
+    let response = UrlFetchApp.fetch(LLM_RESPONSE_URL, options);
+    responseCode = response.getResponseCode()
+    let result = JSON.parse(response.getContentText());
+    if (responseCode == 200) {
+      return result.content
+    } else if (responseCode == 401) {
+      return 'Unauthorized. Please login to the MinusX sidebar'
+    } else if (responseCode == 402) {
+      return 'Credits Expired. Please add a membership to continue'
+    } else {
+      return `An error occured. Status Code: ${responseCode}`
+    }
+  } catch (err) {
+    return 'An unexpected error occured'
+  }
+}
+
 function setRangeFormula(range, formula) {
   range.setFormula(formula)
 }
