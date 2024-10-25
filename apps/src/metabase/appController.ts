@@ -308,7 +308,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const actionContent: BlankMessageContent = { type: "BLANK" };
     const selectedDbId = await getSelectedDbId();
-    const endpoint = `/api/search?table_db_id=${selectedDbId}&models=card&q=${words.join('+')}`;
+    const endpoint = `/api/search?table_db_id=${selectedDbId}&search_native_query=true&models=card&q=${words.join('+')}`;
     let queries: {
       name: string
       description?: string
