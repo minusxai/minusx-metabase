@@ -87,7 +87,7 @@ export class JupyterController extends AppController<JupyterNotebookState> {
     await this.uDblClick({ query: "select_cell", index: cell_index });
     await this.scrollIntoView({ query: "select_cell", index: cell_index });
     await this.uHighlight({ query: "select_cell", index: cell_index });
-    const userApproved = await RPCs.getUserConfirmation({content: value});
+    const userApproved = await RPCs.getUserConfirmation({content: value, contentTitle: "Accept below code?", oldContent: ""});
     await this.uHighlight({ query: "select_cell", index: cell_index });
     if (!userApproved) {
       throw new Error("Action (and subsequent plan) cancelled!");

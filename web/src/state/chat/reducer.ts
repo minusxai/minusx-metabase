@@ -101,6 +101,7 @@ export interface UserConfirmationState {
   show: boolean
   content: string
   contentTitle?: string // optional title for the prompt that's shown to the user
+  oldContent?: string // optional existing content to show diff for code
   userInput: UserConfirmationInput
 }
 
@@ -361,12 +362,14 @@ export const chatSlice = createSlice({
       show: boolean
       content: string,
       contentTitle?: string
+      oldContent?: string
     }>) => {
       const userConfirmation = state.threads[state.activeThread].userConfirmation
-      const { show, content, contentTitle } = action.payload
+      const { show, content, contentTitle, oldContent } = action.payload
       userConfirmation.show = show
       userConfirmation.content = content
       userConfirmation.contentTitle = contentTitle
+      userConfirmation.oldContent = oldContent
       userConfirmation.userInput = 'NULL'
     },
     setUserConfirmationInput: (state, action: PayloadAction<UserConfirmationInput>) => {
