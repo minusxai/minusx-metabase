@@ -4,7 +4,6 @@ import { dispatch, logoutState } from '../../state/dispatch';
 import { toast } from '../toast';
 const url = `${configs.PLANNER_BASE_URL}/getLLMResponse`
 
-
 export const getLLMResponse = async (payload: any, signal?: AbortSignal) => {
     return await axios.post(url, payload, {
       headers: {

@@ -3,11 +3,12 @@
   <head>
     <script>
       document.addEventListener('DOMContentLoaded', () => {
-        const TRUSTED_ORIGINS = ["http://localhost:3005"]
-        // const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
+        // const TRUSTED_ORIGINS = ["http://localhost:3005"]
+        const TRUSTED_ORIGINS = ["https://web.minusxapi.com"]
         const rpc = {
           "gsheetEvaluate": () => 1,
-          "gsheetGetState": () => 2
+          "gsheetGetState": () => 2,
+          "gsheetSetUserToken": () => 3,
         }
         function onMessage(event) {
           const payload = event && event.data
@@ -47,6 +48,8 @@
             google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetEvaluate(...payload.args)
           } else if (payload.fn == 'gsheetGetState') {
             google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetGetState(...payload.args)
+          } else if (payload.fn == 'gsheetSetUserToken') {
+            google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFailure).gsheetSetUserToken(...payload.args)
           }
           return true
         };
@@ -69,7 +72,7 @@
     <!-- <div style="display:flex; justify-content: center; align-items: center; flex-direction: column;">
       <div id="log" style="width: 300px; display:flex; justify-content: center; align-items: center; flex-direction: column;">Empty</div>
     </div> -->
-    <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
-    <!-- <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
+    <!-- <iframe id="myFrame" src="http://localhost:3005/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" /> -->
+    <iframe id="myFrame" src="https://web.minusxapi.com/?tool=google&toolVersion=sheets&width=300&origin=https://docs.google.com" width="100%" height="100%" />
   </body>
 </html>
