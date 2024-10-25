@@ -10,7 +10,12 @@ export abstract class AppState<T extends InternalState, K> {
   // 1. Handles setup
   async setup() {}
 
-  // 2. Get / set internal state
+  // 2. Get diagnostics
+  async getDiagnostics(): Promise<object> {
+    return {}
+  }
+
+  // 3. Get / set internal state
   public useStore() {
       return createStore(this.initialInternalState)
   }

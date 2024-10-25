@@ -2,7 +2,9 @@ import { DefaultAppState } from "../base/appState";
 import { JupyterController } from "./appController";
 import { jupyterInternalState } from "./defaultState";
 import { convertDOMtoState, JupyterNotebookState } from "./helpers/DOMToState";
-import { subscribe } from "web";
+import { RPCs, subscribe } from "web";
+import { querySelectorMap } from "./helpers/querySelectorMap";
+import { pick } from "lodash";
 
 export class JupyterState extends DefaultAppState<JupyterNotebookState> {
     initialInternalState = jupyterInternalState
@@ -27,6 +29,24 @@ export class JupyterState extends DefaultAppState<JupyterNotebookState> {
     public async getState() {
         // DOM to state
         return convertDOMtoState()
+    }
+
+    public async getDiagnostics() {
+        const jupyterDiagnostics = await RPCs.queryDOMSingle({
+            selector: querySelectorMap.jupyter_config_data,
+            attrs: ['text']
+        });
+        try {
+            const jupyterConfigData = JSON.parse(jupyterDiagnostics[0].attrs.text);
+            return pick(
+                jupyterConfigData,
+                ['appName', 'appNamespace', 'appUrl', 'appVersion', 'baseUrl', 'notebookVersion', 'exposeAppInBrowser']
+            );
+        } catch (err) {
+            return {
+                error: 'Error parsing jupyter config data'
+            }
+        }
     }
 }
 

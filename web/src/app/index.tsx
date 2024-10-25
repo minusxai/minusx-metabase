@@ -19,7 +19,7 @@ import { getExtensionID } from '../helpers/extensionId';
 import { onSubscription } from '../helpers/documentSubscription';
 import { getApp } from '../helpers/app';
 import { getParsedIframeInfo } from '../helpers/origin';
-import { identifyUser, setGlobalProperties } from '../tracking';
+import { captureEvent, GLOBAL_EVENTS, identifyUser, setGlobalProperties } from '../tracking';
 import { useAppFromExternal } from './rpc';
 import { Button } from '@chakra-ui/react';
 import { convertToMarkdown } from '../helpers/LLM/remote';
@@ -94,6 +94,17 @@ const useMinusXMode = () => {
 initEventCapture()
 // identifyUser(getExtensionID())
 
+const checkDiagnostics = async () => {
+    const tool = getParsedIframeInfo().tool
+    const app = getApp()
+    const diagnostics = await app.getDiagnostics()
+    const payload = {
+        ...diagnostics,
+        tool,
+    }
+    captureEvent(GLOBAL_EVENTS.diagnostics, payload)
+}
+
 const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isAppOpen: boolean) => {
     initEventListener();
     dispatch(setIframeInfo(getParsedIframeInfo()))
@@ -102,6 +113,7 @@ const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isApp
     setMinusxMode(mode)
     toggleMinusX(!isAppOpen)
     toggleMinusXRoot('invisible', false)
+    checkDiagnostics()
 })
 
 const useInitArgs = (cb: Function, args: any[]) => {
