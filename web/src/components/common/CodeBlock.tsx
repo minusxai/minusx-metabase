@@ -13,7 +13,7 @@ SyntaxHighlighter.registerLanguage('sql', sql);
 SyntaxHighlighter.registerLanguage('python', python);
 SyntaxHighlighter.registerLanguage('javascript', javascript);  
 
-function getCombinedCodeAndDiffs(code_new: string, code_old: string) {
+function getCombinedCodeAndDiffs(code_new: string, code_old: string | undefined) {
   if (code_old === undefined) {
     return { combinedCode: code_new, diffLineIndices: { added: [], removed: [] } };
   }
@@ -56,9 +56,11 @@ function getCombinedCodeAndDiffs(code_new: string, code_old: string) {
   return { combinedCode, diffLineIndices};
 }
 
-export const CodeBlock = ({ code, tool, oldCode }: { code: string, tool: string, oldCode: string }) => {
-  const language = getPlatformLanguage(tool);
+export const CodeBlock = ({ code, tool, oldCode }: { code: string, tool: string, oldCode: string | undefined }) => {
+  
+  const validDiff = oldCode!==undefined;
 
+  const language = getPlatformLanguage(tool);
   const { combinedCode, diffLineIndices } = getCombinedCodeAndDiffs(code, oldCode);
 
   const linePropsFn = (lineNumber: number) => {
@@ -78,22 +80,22 @@ export const CodeBlock = ({ code, tool, oldCode }: { code: string, tool: string,
 
   return (
     <Tabs isFitted colorScheme={'minusXGreen'} size={"sm"}>
-      <TabList borderBottom={'none'}>
+      { validDiff && <TabList borderBottom={'none'}>
         <Tab>Updated {language}</Tab>
         <Tab>Diff</Tab>
-      </TabList>
+      </TabList> }
 
-      <TabPanels bg={"#1e1e1e"} borderRadius={5} mt={0}>
+      <TabPanels bg={"#1e1e1e"} borderRadius={5} mt={0} maxHeight={"500px"} overflow={"scroll"}>
         <TabPanel p={0}>
           <SyntaxHighlighter language={language} style={vsd} showLineNumbers={true} wrapLines={true} lineProps={linePropsFn} lineNumberStyle={{display: 'none'}}>
             {code}
           </SyntaxHighlighter>
         </TabPanel>
-        <TabPanel p={0}>
+        { validDiff && <TabPanel p={0}>
           <SyntaxHighlighter language={language} style={vsd} showLineNumbers={true} wrapLines={true} lineProps={lineDiffFn} lineNumberStyle={{display: 'none'}}>
             {combinedCode}
           </SyntaxHighlighter>
-        </TabPanel>
+        </TabPanel> }
       </TabPanels>
     </Tabs>
   )

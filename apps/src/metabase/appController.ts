@@ -89,7 +89,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async executeSQLQuery() {
-    const userApproved = await RPCs.getUserConfirmation({content: "Execute query", contentTitle: "Accept below action?", oldContent: ""});
+    const userApproved = await RPCs.getUserConfirmation({content: "Execute query", contentTitle: "Accept below action?", oldContent: undefined});
     if (!userApproved) {
       throw new Error("Action (and subsequent plan) cancelled!");
     }

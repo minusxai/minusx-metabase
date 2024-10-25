@@ -132,7 +132,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-              <CodeBlock code={code || ""} tool={currentTool} oldCode=''/>
+              <CodeBlock code={code || ""} tool={currentTool} oldCode={undefined}/>
              </Box>
             }
             

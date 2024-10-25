@@ -4,7 +4,7 @@ import { sleep } from "../helpers/utils"
 import { toggleUserConfirmation } from "../state/chat/reducer"
 import { abortPlan } from '../state/chat/reducer'
 
-export async function getUserConfirmation({content, contentTitle, oldContent}: {content: string, contentTitle: string, oldContent: string}) {
+export async function getUserConfirmation({content, contentTitle, oldContent}: {content: string, contentTitle: string, oldContent: string | undefined}) {
   const state = getState()
   const isEnabled = state.settings.confirmChanges
   if (!isEnabled) return true
