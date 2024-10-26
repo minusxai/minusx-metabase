@@ -15,6 +15,7 @@ export const GLOBAL_EVENTS = {
     "billing_portal": "global/billing_portal",
     "billing_subscribed": "global/billing_subscribed",
     "billing_unsubscribed": "global/billing_unsubscribed",
+    "diagnostics": "global/diagnostics",
 }
 
 export const captureEvent = (type: string, payload?: object) => {

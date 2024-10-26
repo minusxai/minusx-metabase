@@ -8,6 +8,10 @@ export const querySelectorMap: QuerySelectorMap = {
   //   type: 'QUERY',
   //   selector: '[role="textbox"]',
   // },
+  jupyter_config_data: {
+    type: 'CSS',
+    selector: 'script#jupyter-config-data',
+  },
   whole_cell: {
     type: 'XPATH',
     // make sure only visible tab's stuff is selected
