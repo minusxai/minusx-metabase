@@ -5,7 +5,6 @@ import { isDashboardPage } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
-import { getTablesFromSql } from './parseSql';
 const { getMetabaseState, queryURL } = RPCs;
 
 interface ExtractedDataBase {
@@ -71,7 +70,6 @@ export async function convertDOMtoStateSQLQuery() {
   const vizType = await getMetabaseState('qb.card.display') as string
   const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
   const sqlVariables = await getSqlVariables();
-  const tablesFromSql = getTablesFromSql(sqlQuery);
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     availableDatabases,
     selectedDatabaseInfo,

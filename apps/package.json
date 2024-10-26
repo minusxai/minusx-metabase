@@ -23,6 +23,8 @@
   },
   "packageManager": "yarn@4.3.1",
   "devDependencies": {
-    "@types/uuid": "^10"
+    "@types/uuid": "^10",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5"
   }
 }

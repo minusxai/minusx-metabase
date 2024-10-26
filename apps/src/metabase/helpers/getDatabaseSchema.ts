@@ -1,6 +1,6 @@
 import { memoize, RPCs } from 'web'
 import { FormattedTable } from './types';
-import { getTablesFromSql } from './parseSql';
+import { getTablesFromSqlRegex } from './parseSql';
 import _ from 'lodash';
 
 const { getMetabaseState, fetchData } = RPCs;
@@ -155,21 +155,31 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   if (!dbId) {
     return [];
   }
-  const tablesFromSql = getTablesFromSql(sql);
-  const {tables: top200} = await memoizedGetTop200TablesWithoutFields(dbId);
+  const tablesFromSql = getTablesFromSqlRegex(sql);
+  let {tables: top200} = await memoizedGetTop200TablesWithoutFields(dbId);
   const {tables: allTables} = await memoizedGetDatabaseTablesWithoutFields(dbId);
-  for (const table of tablesFromSql) {
-    // check if its already there in top200. if so don't do anything
-    const relevantTable = top200.find(tableInfo => tableInfo.name === table.table && tableInfo.schema === table.schema);
+  for (const tableInfo of tablesFromSql) {
+    // if schema is empty, assume its public
+    let {table, schema} = tableInfo;
+    if (schema === '' || schema === undefined) {
+      schema = 'public';
+    }
+    // lowercase everything
+    table = table.toLowerCase();
+    schema = schema.toLowerCase();
+    // check if its already there in top200. if so don't do anything. again lowercase everything
+    const relevantTable = top200.find(tableInfo => tableInfo.name.toLowerCase() === table && tableInfo.schema.toLowerCase() === schema);
     if (!relevantTable) {
       // check if there in allTables. if so, add it to top200
-      const relevantTable = allTables.find(tableInfo => tableInfo.name === table.table && tableInfo.schema === table.schema);
+      const relevantTable = allTables.find(tableInfo => tableInfo.name.toLowerCase() === table && tableInfo.schema.toLowerCase() === schema);
       if (relevantTable) {
         // insert at beginning
         top200.unshift(relevantTable);
       }
     }
   }
+  // dedupe (by schema.name)
+  top200 = _.uniqBy(top200, (tableInfo) => `${tableInfo.schema}.${tableInfo.name}`);
   // trim to 200
   return top200.slice(0, 200);
 }
