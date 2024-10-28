@@ -28,7 +28,7 @@ function MX_WEB(columns, query) {
     ],
     "actions": [],
     "llmSettings": {
-        "model": "gpt-4o",
+        "model": "gpt-4o-mini",
         "temperature": 0,
         "response_format": {
             "type": "text"
