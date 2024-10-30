@@ -31,6 +31,10 @@ COPY web/.yarnrc.yml ./yarn.lock web/package.json ./web
 
 WORKDIR /app/web
 
+# to enable mac builds
+# https://github.com/nodejs/docker-node/issues/1912#issuecomment-2133772534
+ENV UV_USE_IO_URING=0
+
 RUN yarn set version 4.3.1
 
 RUN yarn install
