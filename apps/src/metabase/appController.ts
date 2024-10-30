@@ -295,7 +295,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async searchPreviousSQLQueries({ words }: { words: string[] }) {
-    
     const actionContent: BlankMessageContent = { type: "BLANK" };
     const selectedDbId = await getSelectedDbId();
     const endpoint = `/api/search?table_db_id=${selectedDbId}&search_native_query=true&models=card&q=${words.join('+')}`;

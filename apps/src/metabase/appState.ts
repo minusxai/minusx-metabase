@@ -7,6 +7,7 @@ import { isDashboardPage } from "./helpers/dashboard/util";
 import { isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
+import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
@@ -25,6 +26,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
       });
     })
+    // heat up cache
+    await getRelevantTablesForSelectedDb('');
   }
 
   public async getState(): Promise<MetabaseAppState> {

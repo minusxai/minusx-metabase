@@ -150,9 +150,25 @@ export async function logMetabaseVersion() {
   console.log("Metabase version", apiVersion);
 }
 
+function getTableKey<T extends TableAndSchema>(tableInfo: T): string {
+  return `${tableInfo.schema.toLowerCase()}.${tableInfo.name.toLowerCase()}`;
+}
+
+function dedupeTables<T extends TableAndSchema>(tables: T[]): T[] {
+  return _.uniqBy(tables, (tableInfo) => getTableKey(tableInfo));
+}
+
+function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchema[] {
+  let lowered = tables.map(tableInfo => ({
+    name: tableInfo.name.toLowerCase(),
+    schema: tableInfo.schema.toLowerCase() || 'public'
+  }));
+  return dedupeTables(lowered);
+}
+
 const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
   const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${500}`, 'GET') as SearchApiResponse;
-  const tableAndSchemas: TableAndSchema[] = [];
+  let tableAndSchemas: TableAndSchema[] = [];
   for (const card of _.get(jsonResponse, 'data', [])) {
     const query = _.get(card, 'dataset_query.native.query');
     if (query) {
@@ -160,7 +176,7 @@ const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
       tableAndSchemas.push(...tablesInfo);
     }
   }
-  return tableAndSchemas;
+  return lowerAndDefaultSchemaAndDedupe(tableAndSchemas);
 }
 
 export const memoizedGetTablesAndSchemasFromTop500Cards = memoize(getTablesAndSchemasFromTop500Cards, DEFAULT_TTL);
@@ -168,35 +184,31 @@ export const memoizedGetTablesAndSchemasFromTop500Cards = memoize(getTablesAndSc
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
+    console.warn("[minusx] No database selected when getting relevant tables");
     return [];
   }
-  const tablesFromSql = getTablesFromSqlRegex(sql);
-  const tablesFromCards = await memoizedGetTablesAndSchemasFromTop500Cards(dbId);
-  const tablesToTest = [...tablesFromSql, ...tablesFromCards];
-  let {tables: top200} = await memoizedGetTop200TablesWithoutFields(dbId);
-  const {tables: allTables} = await memoizedGetDatabaseTablesWithoutFields(dbId);
-  for (const tableInfo of tablesToTest) {
-    // if schema is empty, assume its public
-    let {table, schema} = tableInfo;
-    if (schema === '' || schema === undefined) {
-      schema = 'public';
+  // do all fetching at once?
+  const [tablesFromCards, {tables: top200}, {tables: allTables}] = await Promise.all([
+    memoizedGetTablesAndSchemasFromTop500Cards(dbId),
+    memoizedGetTop200TablesWithoutFields(dbId),
+    memoizedGetDatabaseTablesWithoutFields(dbId)
+  ]).catch(err => {
+    console.warn("[minusx] Error getting relevant tables", err);
+    throw err;
+  });
+  const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
+  const tablesToTest = dedupeTables([...tablesFromSql, ...tablesFromCards]);
+  const allTablesAsMap = _.fromPairs(allTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
+  const validTables = tablesToTest.flatMap(tableInfo => {
+    const tableKey = getTableKey(tableInfo);
+    if (allTablesAsMap[tableKey]) {
+      return [allTablesAsMap[tableKey]];
+    } else {
+      return [];
     }
-    // lowercase everything
-    table = table.toLowerCase();
-    schema = schema.toLowerCase();
-    // check if its already there in top200. if so don't do anything. again lowercase everything
-    const relevantTable = top200.find(tableInfo => tableInfo.name.toLowerCase() === table && tableInfo.schema.toLowerCase() === schema);
-    if (!relevantTable) {
-      // check if there in allTables. if so, add it to top200
-      const relevantTable = allTables.find(tableInfo => tableInfo.name.toLowerCase() === table && tableInfo.schema.toLowerCase() === schema);
-      if (relevantTable) {
-        // insert at beginning
-        top200.unshift(relevantTable);
-      }
-    }
-  }
-  // dedupe (by schema.name)
-  top200 = _.uniqBy(top200, (tableInfo) => `${tableInfo.schema}.${tableInfo.name}`);
-  // trim to 200
-  return top200.slice(0, 200);
+  })
+  // merge top200 and validTables, prioritizing validTables
+  const relevantTables = dedupeTables([...validTables, ...top200]);
+  const relevantTablesTop200 = relevantTables.slice(0, 200);
+  return relevantTablesTop200;
 }

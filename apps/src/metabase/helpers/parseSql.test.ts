@@ -10,7 +10,7 @@ describe('getTablesFromSqlRegex', () => {
       WHERE event_status IS 'active';
     `,
       results: [
-        { schema: 'user_activity', table: 'events_log' }
+        { schema: 'user_activity', name: 'events_log' }
       ]
     },
     // another simple select
@@ -21,7 +21,7 @@ describe('getTablesFromSqlRegex', () => {
     FROM platform_data.user_profiles;
     `,
       results: [
-        { schema: 'platform_data', table: 'user_profiles' }
+        { schema: 'platform_data', name: 'user_profiles' }
       ]
     }
     ,
@@ -36,8 +36,8 @@ describe('getTablesFromSqlRegex', () => {
       FROM recent_orders alias;
     `,
       results: [
-        { schema: 'sales_data', table: 'order_details' },
-        { schema: '', table: 'recent_orders' }
+        { schema: 'sales_data', name: 'order_details' },
+        { schema: '', name: 'recent_orders' }
       ]
     }
     ,
@@ -66,7 +66,7 @@ describe('getTablesFromSqlRegex', () => {
       LIMIT 1048575;
       `,
       results: [
-        { schema: 'analytics', table: 'event tracking' }
+        { schema: 'analytics', name: 'event tracking' }
       ]
     }
     ,
@@ -119,13 +119,13 @@ describe('getTablesFromSqlRegex', () => {
       ) as sessions_derived;
     `,
       results: [
-        { schema: '', table: 'purchase_transactions' },
-        { schema: '', table: 'transaction_metadata' },
-        { schema: '', table: 'segment_definitions' },
-        { schema: '', table: 'customer_sessions' },
-        { schema: '', table: 'session_details' },
-        { schema: '', table: 'session_histories' },
-        { schema: '', table: 'session_durations' },
+        { schema: '', name: 'purchase_transactions' },
+        { schema: '', name: 'transaction_metadata' },
+        { schema: '', name: 'segment_definitions' },
+        { schema: '', name: 'customer_sessions' },
+        { schema: '', name: 'session_details' },
+        { schema: '', name: 'session_histories' },
+        { schema: '', name: 'session_durations' },
       ]
     }
     ,
@@ -164,7 +164,7 @@ describe('getTablesFromSqlRegex', () => {
       ORDER BY created_at DESC;
     `,
       results: [
-        { schema: '', table: 'store_locations' }
+        { schema: '', name: 'store_locations' }
       ]
     },
     // optional filter example
@@ -177,7 +177,7 @@ describe('getTablesFromSqlRegex', () => {
         [[AND category = {{category}}]]
       `,
       results: [
-        { schema: '', table: 'products' }
+        { schema: '', name: 'products' }
       ]
     },
     // foreign language example
@@ -188,7 +188,7 @@ describe('getTablesFromSqlRegex', () => {
       WHERE estado = 'activo';
       `,
       results: [
-        { schema: 'públicó', table: 'usuarios' }
+        { schema: 'públicó', name: 'usuarios' }
       ]
     },
     // join
@@ -230,10 +230,10 @@ describe('getTablesFromSqlRegex', () => {
       ORDER BY "day" DESC, daily_messages DESC;
       `,
       results: [
-        { schema: 'public', table: 'user_records' },
-        { schema: 'public', table: 'profiles' },
-        { schema: '', table: 'daily_messages' },
-        { schema: '', table: 'ranked_messages' }
+        { schema: 'public', name: 'user_records' },
+        { schema: 'public', name: 'profiles' },
+        { schema: '', name: 'daily_messages' },
+        { schema: '', name: 'ranked_messages' }
       ]
     },
     // same table multiple times (we actually return both, doesn't matter, dedup is done later anyway)
@@ -251,10 +251,10 @@ describe('getTablesFromSqlRegex', () => {
             ORDER BY some_column;
       `,
       results: [
-        { schema: 'some_schema', table: 'some_table' },
-        { schema: 'some_schema', table: 'some_table' },
-        { schema: '', table: 'dummy1' },
-        { schema: '', table: 'dummy2' }
+        { schema: 'some_schema', name: 'some_table' },
+        { schema: 'some_schema', name: 'some_table' },
+        { schema: '', name: 'dummy1' },
+        { schema: '', name: 'dummy2' }
       ]
 
     },
@@ -262,21 +262,21 @@ describe('getTablesFromSqlRegex', () => {
     {
       sql: `SELECT * from "some-schema"."some-table";`,
       results: [
-        { schema: 'some-schema', table: 'some-table' }
+        { schema: 'some-schema', name: 'some-table' }
       ]
     },
     // only schema quoted
     {
       sql: `SELECT * from "some-schema".sometable;`,
       results: [
-        { schema: 'some-schema', table: 'sometable' }
+        { schema: 'some-schema', name: 'sometable' }
       ]
     },
     // only table quoted
     {
       sql: `SELECT * from someschema."some-table";`,
       results: [
-        { schema: 'someschema', table: 'some-table' }
+        { schema: 'someschema', name: 'some-table' }
       ]
     },
   ];
