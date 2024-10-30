@@ -15,6 +15,7 @@ General instructions:
 
 Special Instructions:
 - If the Trino engine is used, DO NOT end the query with a semicolon. Trailing semicolons are not supported in Trino.
+- Do not remove comments from the SQL query unless specifically asked to. Often they are needed by the user for experimentation.
 
 Routine to follow:
 1. If there are any images in the last user message, focus on the image
