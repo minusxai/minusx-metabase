@@ -1,6 +1,6 @@
 import { memoize, RPCs } from 'web'
-import { FormattedTable } from './types';
-import { getTablesFromSqlRegex } from './parseSql';
+import { FormattedTable, SearchApiResponse } from './types';
+import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
 
 const { getMetabaseState, fetchData } = RPCs;
@@ -150,15 +150,32 @@ export async function logMetabaseVersion() {
   console.log("Metabase version", apiVersion);
 }
 
+const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
+  const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${500}`, 'GET') as SearchApiResponse;
+  const tableAndSchemas: TableAndSchema[] = [];
+  for (const card of _.get(jsonResponse, 'data', [])) {
+    const query = _.get(card, 'dataset_query.native.query');
+    if (query) {
+      const tablesInfo = getTablesFromSqlRegex(query);
+      tableAndSchemas.push(...tablesInfo);
+    }
+  }
+  return tableAndSchemas;
+}
+
+export const memoizedGetTablesAndSchemasFromTop500Cards = memoize(getTablesAndSchemasFromTop500Cards, DEFAULT_TTL);
+
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     return [];
   }
   const tablesFromSql = getTablesFromSqlRegex(sql);
+  const tablesFromCards = await memoizedGetTablesAndSchemasFromTop500Cards(dbId);
+  const tablesToTest = [...tablesFromSql, ...tablesFromCards];
   let {tables: top200} = await memoizedGetTop200TablesWithoutFields(dbId);
   const {tables: allTables} = await memoizedGetDatabaseTablesWithoutFields(dbId);
-  for (const tableInfo of tablesFromSql) {
+  for (const tableInfo of tablesToTest) {
     // if schema is empty, assume its public
     let {table, schema} = tableInfo;
     if (schema === '' || schema === undefined) {

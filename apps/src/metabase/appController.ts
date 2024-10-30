@@ -25,7 +25,8 @@ import {
   primaryVisualizationTypes,
   Card,
   toLowerVisualizationType,
-  ParameterValues
+  ParameterValues,
+  SearchApiResponse
  } from "./helpers/types";
 import {
   getTemplateTags,
@@ -294,18 +295,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async searchPreviousSQLQueries({ words }: { words: string[] }) {
-    interface SearchApiResponse {
-      total: number
-      data: {
-        description: string | null
-        name: string
-        dataset_query: {
-          native: {
-            query: string
-          }
-        }
-      }[]
-    }
+    
     const actionContent: BlankMessageContent = { type: "BLANK" };
     const selectedDbId = await getSelectedDbId();
     const endpoint = `/api/search?table_db_id=${selectedDbId}&search_native_query=true&models=card&q=${words.join('+')}`;

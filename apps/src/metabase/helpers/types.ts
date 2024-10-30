@@ -76,3 +76,16 @@ export interface Card {
 export interface ParameterValues {
   [key: string]: string;
 }
+
+export interface SearchApiResponse {
+  total: number
+  data: {
+    description: string | null
+    name: string
+    dataset_query: {
+      native: {
+        query: string
+      }
+    }
+  }[]
+}

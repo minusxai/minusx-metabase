@@ -32,9 +32,12 @@ export function getTablesFromSqlRegex(sql: string): TableAndSchema[] {
   // need to capture both schema (if exists) and table
   // have 2 patterns: one is for schema.table and one for "schema with spaces"."table with spaces"
   const regex = /(?:FROM|JOIN|INTO)\s+(?:((?:[\w\p{L}]+)|(?:"(?:[\w\s\-\p{L}]+))")\.)?((?:[\w\p{L}]+)|(?:"(?:[\w\s\-\p{L}]+))")\s*/ugi;
-  const matches = sql.matchAll(regex);
+  const matches = Array.from(sql.matchAll(regex));
   const tables: TableAndSchema[] = [];
-  
+  // log if 0 matches when sql is not empty
+  if (matches.length === 0 && sql !== '') { 
+    console.warn('[minusx] No matches found in sql:', sql);
+  }
   for (const match of matches) {
     let [, schema, table] = match;
     // remove surrounding quotes if present
