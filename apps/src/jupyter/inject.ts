@@ -5,13 +5,18 @@ async function getJupyterApp() {
     if (window.hasOwnProperty('jupyterapp') && window['jupyterapp']) {
         return window['jupyterapp']
     }
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+        let times = 0
         const interval = setInterval(() => {
+            times++
             if (window.hasOwnProperty('jupyterapp') && window['jupyterapp']) {
                 clearInterval(interval)
                 resolve(window['jupyterapp'])
+            } else if (times > 20) {
+                clearInterval(interval)
+                reject('Jupyter app not found')
             }
-        }, 100)
+        }, 200)
     })
 }
 

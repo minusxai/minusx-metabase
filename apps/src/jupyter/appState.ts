@@ -16,6 +16,13 @@ export class JupyterState extends DefaultAppState<JupyterNotebookState> {
         // errors out. kind of hacky
         try {
             await this.getState()
+            const state = this.useStore().getState();
+            state.update({
+                isEnabled: {
+                    value: true,
+                    reason: "",
+                },
+            });
         } catch (err) {
             const state = this.useStore().getState();
             state.update({
@@ -24,6 +31,9 @@ export class JupyterState extends DefaultAppState<JupyterNotebookState> {
                     reason: "Please upgrade to Jupyter Notebook v7.0+ or JupyterLab v4.0+ to use MinusX",
                 },
             });
+            setTimeout(() => {
+                this.setup()
+            }, 1000)
         }
     }
     public async getState() {
