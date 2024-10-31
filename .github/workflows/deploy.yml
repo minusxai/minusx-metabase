@@ -20,6 +20,7 @@ jobs:
         REF: ${{ github.sha }} # ref to checkout
       run: |
         ssh minusx@v1.minusxapi.com << EOF
+          set -e  # Exit on any error
           cd /home/minusx/minusx/web
           git fetch --all --tags
           git checkout $REF
