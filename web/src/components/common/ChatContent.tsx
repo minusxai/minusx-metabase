@@ -1,6 +1,16 @@
 import React from 'react';
 import { ChatMessageContent } from '../../state/chat/reducer'
 import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import './ChatContent.css'
+
+function LinkRenderer(props: any) {
+  return (
+    <a href={props.href} target="_blank" rel="minusxapp">
+      <u>{props.children}</u>
+    </a>
+  );
+}
 
 export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
   content
@@ -11,7 +21,7 @@ export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
-        <Markdown>
+        <Markdown remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer}}>
           {content.text}
         </Markdown>
       </div>
