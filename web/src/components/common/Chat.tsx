@@ -3,11 +3,12 @@ import { Box, HStack, VStack, IconButton, Stack } from '@chakra-ui/react'
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, deleteUserMessage, ActionChatMessage } from '../../state/chat/reducer'
-import _ from 'lodash'
+import _, { isEmpty } from 'lodash'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { ActionStack, ActionStatusView, OngoingActionStack } from './ActionStack';
 import { ChatContent } from './ChatContent';
+import { getApp } from '../../helpers/app';
 
 function addStatusInfoToActionPlanMessages(messages: Array<ChatMessage>) {
   const toolMessages = messages.filter(message => message.role == 'tool') as Array<ActionChatMessage>
@@ -149,6 +150,16 @@ const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number
   )
 }
 
+const useAppStore = getApp().useStore()
+
+const HelperMessage = () => {
+  const helperMessage = useAppStore((state) => state.helperMessage)
+  if (!helperMessage) {
+    return null
+  }
+  return <Chat role='assistant' index={-1} content={{type: 'DEFAULT', text: helperMessage, images: []}} />
+}
+
 export const ChatSection = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
@@ -165,7 +176,9 @@ export const ChatSection = () => {
   // tool call in each assistant message, add the status from the corresponding
   // tool message
   const messagesWithStatus = addStatusInfoToActionPlanMessages(messages)
-  const Chats = messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
+  const Chats = isEmpty(messagesWithStatus) ?
+    <HelperMessage /> :
+    messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
   <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'}>

@@ -57,7 +57,8 @@ export interface InternalState {
     suggestions: ToolPlannerConfig
   } & Record<string, ToolPlannerConfig>;
   querySelectorMap: QuerySelectorMap;
-  whitelistQuery?: DOMQueryMap
+  whitelistQuery?: DOMQueryMap;
+  helperMessage?: string;
 }
 
 export const defaultInternalState: InternalState = {
