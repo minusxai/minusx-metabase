@@ -31,6 +31,7 @@ export default ({ mode }) => {
     build: {
       outDir: path.resolve(__dirname, './web-build'),
       emptyOutDir: true,
+      sourcemap: true,
     },
     root: path.resolve(__dirname, 'src/app'), // Set the root to your app directory
     publicDir: path.resolve(__dirname, 'public'), // Set the public directory to your public directory

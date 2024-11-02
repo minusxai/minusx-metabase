@@ -151,7 +151,7 @@ export async function logMetabaseVersion() {
 }
 
 function getTableKey<T extends TableAndSchema>(tableInfo: T): string {
-  return `${tableInfo.schema.toLowerCase()}.${tableInfo.name.toLowerCase()}`;
+  return `${tableInfo.schema?.toLowerCase()}.${tableInfo.name.toLowerCase()}`;
 }
 
 function dedupeTables<T extends TableAndSchema>(tables: T[]): T[] {
@@ -161,7 +161,7 @@ function dedupeTables<T extends TableAndSchema>(tables: T[]): T[] {
 function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchema[] {
   let lowered = tables.map(tableInfo => ({
     name: tableInfo.name.toLowerCase(),
-    schema: tableInfo.schema.toLowerCase() || 'public'
+    schema: tableInfo.schema?.toLowerCase() || 'public'
   }));
   return dedupeTables(lowered);
 }
