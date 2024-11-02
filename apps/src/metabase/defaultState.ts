@@ -66,10 +66,10 @@ export const metabaseInternalState: InternalState = {
       attrs: ["class"],
     },
   },
-  helperMessage: `### Hello, welcome to MinusX!
-Here's a quick MinusX manual to get you started:
-1. MinusX works best when you provide a clear prompt with the table name you're interested in.
-2. If you do not provide the table name, tell MinusX to figure out the correct table.
+//   helperMessage: `### Hello, welcome to MinusX!
+// Here's a quick MinusX manual to get you started:
+// 1. MinusX works best when you provide a clear prompt with the table name you're interested in.
+// 2. If you do not provide the table name, tell MinusX to figure out the correct table.
 
-That's it. You're all set! For more info, you can check our [FAQ](https://minusx.ai/tools/metabase).`,
+// That's it. You're all set! For more info, you can check our [FAQ](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase).`,
 };
