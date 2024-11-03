@@ -12,6 +12,12 @@ function LinkRenderer(props: any) {
   );
 }
 
+function ModifiedParagraph(props: any) {
+  return (
+    <p style={{margin: '0px'}}>{props.children}</p>
+  )
+}
+
 export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
   content
 }) => {
@@ -21,7 +27,7 @@ export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
-        <Markdown remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer}}>
+        <Markdown remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph}}>
           {content.text}
         </Markdown>
       </div>
