@@ -2,6 +2,7 @@ import {
   HStack,
   Textarea,
   VStack,
+  Stack,
   Icon,
   IconButton,
   Divider,
@@ -16,6 +17,7 @@ import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { HiOutlineRefresh } from 'react-icons/hi'
+import { BiScreenshot, BiPaperclip } from 'react-icons/bi'
 import { HiMiniSparkles } from "react-icons/hi2";
 import chat from '../../chat/chat'
 import _ from 'lodash'
@@ -36,6 +38,15 @@ import { querySelectorMap as jupyterQSMap } from '../../../../apps/src/jupyter/h
 import { getElementScreenCapture } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
 import { getParsedIframeInfo } from '../../helpers/origin'
+import AutosizeTextarea from './AutosizeTextarea'
+import { setMinusxMode } from '../../app/rpc'
+import { updateAppMode, updateSidePanelTabName } from '../../state/settings/reducer'
+import { UIElementSelection } from './UIElements'
+import { capture } from '../../helpers/screenCapture/extensionCapture'
+import { addThumbnail } from '../../state/thumbnails/reducer'
+import { Coordinates, startSelection } from '../../helpers/Selection'
+import { ImageContext } from '../../state/chat/types'
+
 
 interface ChatSuggestionsProps {
   suggestQueries: boolean;
@@ -129,6 +140,42 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     return JSON.stringify(messages).length / 4 > 10000
   }
 
+  const handleSnapClick = async () => {
+    await setMinusxMode('open-selection')
+    dispatch(updateAppMode('selection'))
+    const uiSelection = new UIElementSelection()
+    startSelection(async (coords) => {
+      const nodes = coords ? uiSelection.getSelectedNodes() : []
+      uiSelection.end()
+      console.log('Coords are', coords)
+      // if (nodes.length >= 0 && coords) {
+      if (coords) {
+        console.log('Nodes are', nodes, coords)
+        try {
+          const {url, width, height} = await capture(coords)
+          console.log('URL, width, height', url, width, height)
+          const context : ImageContext = {
+            text: ""
+          }
+          dispatch(addThumbnail({
+            url,
+            type: "BASE64",
+            width,
+            height,
+            context,
+          }))
+        } catch (err) {
+          console.log('Error while capturing', err)
+        }
+      }
+      dispatch(updateAppMode('sidePanel'))
+      await setMinusxMode(isDevToolsOpen ? 'open-sidepanel-devtools' : 'open-sidepanel')
+    }, (coords) => {
+      uiSelection.select(coords)
+    })
+  }
+
+
 
   const runTask = async () => {
     if (instructions) {
@@ -177,7 +224,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   let resetMessageHistoryButton = (<IconButton
     isRound={true}
     onClick={clearMessages}
-    variant="solid"
+    variant="ghost"
     colorScheme="minusxGreen"
     aria-label="Refresh"
     size={'sm'}
@@ -297,30 +344,55 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           }
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         } */}
-        <HStack>
-          <Textarea
+        <Stack position={"relative"}>
+          <AutosizeTextarea
             ref={ref}
             autoFocus
             aria-label='Enter Instructions'
             value={instructions}
-            disabled={taskInProgress}
+            isDisabled={taskInProgress}
             onChange={(e) => setInstructions(e.target.value)}
             onKeyDown={onKeyDown}
-            style={{ width: '98%', height: "100%" }}
+            style={{ width: '100%', height: "100%" }}
           />
-          <VStack>
-            {
-              taskInProgress ? (
-                <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
-              ) : <RunTaskButton runTask={runTask} disabled={taskInProgress} />
-            }
-            {
-              <Tooltip hasArrow label="Clear Chat" placement='left' borderRadius={5} openDelay={500}>
-                {resetMessageHistoryButton}
-              </Tooltip>
-            }
-          </VStack>
-        </HStack>
+          <HStack position={"absolute"} bottom={0} width={"100%"} p={2}>
+            <HStack justify={"space-between"}  width={"100%"}>
+              <HStack gap={0}>
+                <Tooltip hasArrow label="Select & Ask" placement='right' borderRadius={5} openDelay={500}>
+                  <IconButton
+                    variant={'ghost'}
+                    colorScheme="minusxGreen"
+                    aria-label="Selection"
+                    size={'sm'}
+                    onClick={handleSnapClick}
+                    icon={<Icon as={BiPaperclip} boxSize={5} />}
+                  />
+                </Tooltip>
+                <Tooltip hasArrow label="Select & Ask" placement='right' borderRadius={5} openDelay={500}>
+                  <IconButton
+                    variant={'ghost'}
+                    colorScheme="minusxGreen"
+                    aria-label="Selection"
+                    size={'sm'}
+                    onClick={handleSnapClick}
+                    icon={<Icon as={BiScreenshot} boxSize={5} />}
+                  />
+                </Tooltip>
+                <Tooltip hasArrow label="Clear Chat" placement='right' borderRadius={5} openDelay={500}>
+                  {resetMessageHistoryButton}
+                </Tooltip>
+              </HStack>
+              <HStack>
+                {
+                  taskInProgress ? (
+                    <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
+                  ) : <RunTaskButton runTask={runTask} disabled={taskInProgress} />
+                }
+              </HStack>
+              
+            </HStack>
+          </HStack>
+        </Stack>
       </VStack>
     </VStack>
   )

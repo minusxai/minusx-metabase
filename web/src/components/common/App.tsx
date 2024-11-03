@@ -12,8 +12,7 @@ import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
 import Settings, {DevToolsToggle} from './Settings'
 import TaskUI from './TaskUI'
-import { BiScreenshot, BiCog, BiMessage } from 'react-icons/bi'
-import { Coordinates, startSelection } from '../../helpers/Selection'
+import { BiCog, BiMessage } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { register } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
@@ -21,16 +20,11 @@ import {auth as authModule} from '../../app/api'
 import Auth from './Auth'
 import _ from 'lodash'
 import { updateAppMode, updateSidePanelTabName } from '../../state/settings/reducer'
-import { UIElementSelection } from './UIElements'
-import { capture } from '../../helpers/screenCapture/extensionCapture'
-import { addThumbnail } from '../../state/thumbnails/reducer'
 import { DevToolsBox } from '../devtools';
 import { RootState } from '../../state/store'
-import { setMinusxMode } from '../../app/rpc'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
-import { ImageContext } from '../../state/chat/types'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { SupportButton } from './Support'
@@ -52,41 +46,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   }, [])
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const handleSnapClick = async () => {
-    await setMinusxMode('open-selection')
-    dispatch(updateAppMode('selection'))
-    const uiSelection = new UIElementSelection()
-    startSelection(async (coords) => {
-      const nodes = coords ? uiSelection.getSelectedNodes() : []
-      uiSelection.end()
-      console.log('Coords are', coords)
-      // if (nodes.length >= 0 && coords) {
-      if (coords) {
-        console.log('Nodes are', nodes, coords)
-        try {
-          const {url, width, height} = await capture(coords)
-          console.log('URL, width, height', url, width, height)
-          const context : ImageContext = {
-            text: ""
-          }
-          dispatch(addThumbnail({
-            url,
-            type: "BASE64",
-            width,
-            height,
-            context,
-          }))
-        } catch (err) {
-          console.log('Error while capturing', err)
-        }
-      }
-      dispatch(updateAppMode('sidePanel'))
-      await setMinusxMode(isDevToolsOpen ? 'open-sidepanel-devtools' : 'open-sidepanel')
-    }, (coords) => {
-      uiSelection.select(coords)
-    })
-  }
-
   const platformShortcut = getPlatformShortcut()
   const width = getParsedIframeInfo().width
 
@@ -123,26 +82,16 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 onClick={() => dispatch(updateSidePanelTabName('chat'))}
               />
             </Tooltip>
-            <Tooltip hasArrow label="Select & Ask" placement='bottom' borderRadius={5} openDelay={500}>
+            <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
-                variant={'ghost'}
-                colorScheme="minusxGreen"
-                aria-label="Selection"
-                size={'sm'}
-                onClick={handleSnapClick}
-                icon={<Icon as={BiScreenshot} boxSize={5} />}
+              variant={sidePanelTabName === 'settings' ? 'solid' : 'ghost'}
+              colorScheme="minusxGreen"
+              aria-label="Settings"
+              size={'sm'}
+              icon={<Icon as={BiCog} boxSize={5} />}
+              onClick={() => dispatch(updateSidePanelTabName('settings'))}
               />
-              </Tooltip>
-              <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
-                <IconButton
-                variant={sidePanelTabName === 'settings' ? 'solid' : 'ghost'}
-                colorScheme="minusxGreen"
-                aria-label="Settings"
-                size={'sm'}
-                icon={<Icon as={BiCog} boxSize={5} />}
-                onClick={() => dispatch(updateSidePanelTabName('settings'))}
-                />
-              </Tooltip>
+            </Tooltip>
           </HStack>
         </HStack>
       </VStack>
