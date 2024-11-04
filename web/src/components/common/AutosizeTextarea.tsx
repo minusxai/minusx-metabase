@@ -13,8 +13,9 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           borderWidth: '1px',
           borderRadius: 'lg',
         }}
-        border='1px solid #ddd'
+        border='1px solid #ccc'
         borderRadius='lg'
+        bg='minusxBW.50'
       >
         <Textarea
           minH="unset"
@@ -22,8 +23,8 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           w="100%"
           resize="none"
           ref={ref}
-          minRows={3}
-          maxHeight={450}
+          minRows={2}
+          maxHeight={300}
           as={ResizeTextarea}
           _focus={{
             border: '0px solid #ddd',

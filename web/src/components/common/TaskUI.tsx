@@ -296,8 +296,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             <HStack justify={"space-between"}  width={"100%"}>
               <HStack gap={0}>
                 <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/>
-                <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={false}/>
-                <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={false}/>
+                <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={taskInProgress}/>
+                <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
               </HStack>
               <HStack>
                 {
