@@ -13,7 +13,8 @@ type LLMPrompts = {
 }
 export function getLLMContextFromState(
   prompts: LLMPrompts,
-  appState: AppState,
+  userAppState: AppState,
+  currentAppState: AppState,
   messageHistory: ChatMessage[]): LLMContext {
   // search backwards for the index of the last user message
   const lastUserMessageIdx = messageHistory.findLastIndex((message) => message.role === 'user')
@@ -25,7 +26,7 @@ export function getLLMContextFromState(
   const furtherMessages = messageHistory.slice(lastUserMessageIdx + 1)
 
   const promptContext = {
-    state: JSON.stringify(appState),
+    state: JSON.stringify(userAppState),
     instructions: lastUserMessage.content.text
   }
   const systemMessage = renderString(prompts.system, promptContext);
@@ -37,6 +38,30 @@ export function getLLMContextFromState(
       ...lastUserMessage.content,
       text: prompt
     }
+  }
+
+  if (furtherMessages.length != 0) {
+    const latestMessage = structuredClone(furtherMessages[furtherMessages.length - 1])
+    if (latestMessage.content.type == 'BLANK') {
+      let content = latestMessage.content.content
+      try {
+        if (content) {
+          content = JSON.parse(content)
+        }
+      } catch (e) {
+        // do nothing
+      }
+      latestMessage.content.content = JSON.stringify({
+        content: content || '',
+        currentAppState
+      })
+    } else if (latestMessage.content.type == 'DEFAULT') {
+      latestMessage.content.text = JSON.stringify({
+        content: latestMessage.content.text || '',
+        currentAppState
+      })
+    }
+    furtherMessages[furtherMessages.length - 1] = latestMessage
   }
   earlierMessages.push(finalUserMessage)
   // add furtherMessages to earlierMessages
