@@ -144,7 +144,7 @@ export const chatSlice = createSlice({
   reducers: {
     addUserMessage: (
       state,
-      action: PayloadAction<Omit<UserChatMessage, "role" | "index" | "feedback">>
+      action: PayloadAction<Omit<UserChatMessage, "role" | "index" | "feedback" | "createdAt" | "updatedAt">>
     ) => {
       const messages = getMessages(state)
       const timestamp = Date.now()
