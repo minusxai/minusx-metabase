@@ -1,12 +1,12 @@
 import { dispatch } from '../state/dispatch'
 import { addActionPlanMessage, addUserMessage } from '../state/chat/reducer'
-import { DefaultMessageContent, LuckyMessageContent } from '../state/chat/types'
+import { DefaultMessageContent } from '../state/chat/types'
 import { LLMResponse } from '../helpers/LLM/types'
 import { updateCredits } from '../state/billing/reducer'
 export const CHAT_USER_ACTION = "CHAT_USER_ACTION"
 
 export default {
-  addUserMessage({ content }: { content: DefaultMessageContent | LuckyMessageContent }) { 
+  addUserMessage({ content }: { content: DefaultMessageContent }) { 
     dispatch(
       addUserMessage({
         content

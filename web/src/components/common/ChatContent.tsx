@@ -21,9 +21,9 @@ function ModifiedParagraph(props: any) {
 export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
   content
 }) => {
-  if (content.type == 'DEFAULT' || content.type == 'LUCKY') {
+  if (content.type == 'DEFAULT') {
     return (
-      <div style={content.type == 'LUCKY'? {color: 'red'}: {}}>
+      <div>
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
