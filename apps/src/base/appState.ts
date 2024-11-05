@@ -6,6 +6,7 @@ import { AppController } from "./appController";
 export abstract class AppState<T extends InternalState, K> {
   abstract initialInternalState: T;
   abstract actionController: AppController<K>;
+  _stateCache: Record<string, K> = {};
 
   // 1. Handles setup
   async setup() {}
@@ -21,6 +22,14 @@ export abstract class AppState<T extends InternalState, K> {
   }
 
   public abstract getState(): Promise<K>;
+
+  public getCachedState(id: string): K | undefined {
+    return this._stateCache[id];
+  }
+
+  public setCachedState(id: string, state: K) {
+    this._stateCache[id] = state;
+  }
 
   // Get / set internal state
   public async getPlannerConfig() {
