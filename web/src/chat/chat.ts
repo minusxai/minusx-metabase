@@ -8,17 +8,17 @@ import { AppState } from 'apps/types'
 import { getState } from '../state/store'
 
 export default {
-  async addUserMessage({ content }: { content: DefaultMessageContent }) { 
-    const app = getApp()
-    const appState = await app.getState() as AppState
-    const messageId = getState().chat.activeThread
-    app.setCachedState(messageId, appState)
+  async addUserMessage({ content }: { content: DefaultMessageContent }) {  
     dispatch(
       addUserMessage({
         content,
         debug: {}
       })
     )
+    const app = getApp()
+    const appState = await app.getState() as AppState
+    const messageId = getState().chat.activeThread
+    app.setCachedState(messageId, appState)
   },
   addErrorMessage(err: string) {
     // TODO(@sreejith): implement this
