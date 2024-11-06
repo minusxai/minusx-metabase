@@ -7,6 +7,8 @@ import { getLLMContextFromState } from './utils';
 import { AppState, SimplePlannerConfig } from 'apps/types';
 import { getApp } from '../helpers/app';
 
+const app = getApp()
+
 export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlannerConfig) {
   // get messages and last message
   const startTime = Date.now()
@@ -18,8 +20,8 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
     system: plannerConfig.systemPrompt,
     user: plannerConfig.userPrompt,
   }
-  const appState = await getApp().getState() as AppState
-  const currentAppState = appState
+  const appState = app.getCachedState(thread) as AppState
+  const currentAppState = await app.getState() as AppState
   const actionDescriptions = plannerConfig.actionDescriptions
   const messages = getLLMContextFromState(prompts, appState, currentAppState, messageHistory)
   const llmResponse = await planActions({

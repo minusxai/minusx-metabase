@@ -57,6 +57,7 @@ export const LLMContext: React.FC<null> = () => {
     })
     const numThreads = useSelector((state: RootState) => state.chat.threads.length)
     // const messageHistory = activeThread.messages.slice(0)
+    const thread = useSelector((state: RootState) => state.chat.activeThread)
     const messageHistory = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread].messages)
     const thumbnailInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
     const lastMessage: UserChatMessage = {
@@ -143,15 +144,16 @@ export const LLMContext: React.FC<null> = () => {
     const actionDescriptions = simplePlannerConfig.actionDescriptions
     // append the last user message to the message history
     let extendedMessageHistory = [...messageHistory, lastMessage]
-    const currentAppState = appState as AppState
-    const messages = appState ? getLLMContextFromState(prompts, appState as AppState, currentAppState, extendedMessageHistory) : []
+    const app = getApp()
+    const userAppState = app.getCachedState(thread) as AppState
+    const messages = appState ? getLLMContextFromState(prompts, userAppState, appState as AppState, extendedMessageHistory) : []
     const systemMessage = messages.length ? messages[0] : {}
     const nonSystemMessages = messages.length ? messages.slice(1, messages.length - 1) : []
     
     const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px"}
     const reloadAppState = async () => {
       const app = getApp()
-      const appState = await app.getState()
+      const appState = await app.getState() as AppState
       setAppState(appState)
       setResolvedPlannerConfig(await app.getPlannerConfig())
       countAllTokens(systemMessage, nonSystemMessages, appState, actionDescriptions)
