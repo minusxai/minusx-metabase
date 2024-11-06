@@ -18,7 +18,7 @@ export interface Base64Image {
 
 export type Image = Base64Image
 
-export type ChatMessageContentType = 'BLANK' | 'DEFAULT' | 'ACTIONS' | 'LUCKY'
+export type ChatMessageContentType = 'BLANK' | 'DEFAULT' | 'ACTIONS'
 
 // Message Type: DEFAULT
 export interface BlankMessageContent {
@@ -29,13 +29,6 @@ export interface BlankMessageContent {
 // Message Type: DEFAULT
 export interface DefaultMessageContent {
   type: Subset<ChatMessageContentType, 'DEFAULT'>
-  images: Image[]
-  text: string
-}
-
-// Message Type: LUCKY
-export interface LuckyMessageContent {
-  type: Subset<ChatMessageContentType, 'LUCKY'>
   images: Image[]
   text: string
 }

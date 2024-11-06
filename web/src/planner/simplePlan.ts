@@ -4,8 +4,10 @@ import _ from 'lodash';
 import { getState } from '../state/store';
 import chat from '../chat/chat';
 import { getLLMContextFromState } from './utils';
-import { SimplePlannerConfig } from 'apps/types';
+import { AppState, SimplePlannerConfig } from 'apps/types';
 import { getApp } from '../helpers/app';
+
+const app = getApp()
 
 export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlannerConfig) {
   // get messages and last message
@@ -18,9 +20,10 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
     system: plannerConfig.systemPrompt,
     user: plannerConfig.userPrompt,
   }
-  const appState = await getApp().getState()
+  const currentAppState = await app.getState() as AppState
+  const appState = (app.getCachedState(thread) as AppState) || currentAppState
   const actionDescriptions = plannerConfig.actionDescriptions
-  const messages = getLLMContextFromState(prompts, appState, messageHistory)
+  const messages = getLLMContextFromState(prompts, appState, currentAppState, messageHistory)
   const llmResponse = await planActions({
     messages,
     actions: actionDescriptions,
