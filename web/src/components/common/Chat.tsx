@@ -80,7 +80,7 @@ const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number
       <Box
         className={'bubble-container'}
         width="90%"
-        paddingBottom={1}
+        // paddingBottom={1}
         position="relative"
       >
         <Box
@@ -181,7 +181,7 @@ export const ChatSection = () => {
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
-  <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'}>
+  <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
     {Chats}
     <OngoingActionStack />
     <div style={{ height: '10px', width: '100%' }} />
