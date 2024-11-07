@@ -10,7 +10,8 @@ import {
   Text,
   Switch,
   Spinner,
-  Button
+  Button,
+  Checkbox
 } from '@chakra-ui/react'
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -39,7 +40,7 @@ import { metaPlanner } from '../../planner/metaPlan'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import AutosizeTextarea from './AutosizeTextarea'
 import { setMinusxMode } from '../../app/rpc'
-import { updateAppMode, updateSidePanelTabName } from '../../state/settings/reducer'
+import { updateAppMode, updateSidePanelTabName, setDemoMode } from '../../state/settings/reducer'
 import { UIElementSelection } from './UIElements'
 import { capture } from '../../helpers/screenCapture/extensionCapture'
 import { addThumbnail } from '../../state/thumbnails/reducer'
@@ -47,6 +48,7 @@ import { Coordinates, startSelection } from '../../helpers/Selection'
 import { ImageContext } from '../../state/chat/types'
 import { QuickActionButton } from './QuickActionButton'
 import { ChatSuggestions } from './ChatSuggestions'
+import { LuClipboardList } from "react-icons/lu";
 
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
@@ -60,6 +62,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
@@ -77,6 +80,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const clearMessages = () => {
     dispatch(startNewThread())
+  }
+
+  const updateDemoMode = (demoMode: boolean) => {
+    dispatch(setDemoMode(demoMode))
   }
 
   const toggleSuggestions = (value: boolean) => {
@@ -126,15 +133,23 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const runTask = async () => {
     if (instructions) {
-      chat.addUserMessage({
-        content: {
-          type: "DEFAULT",
-          text: instructions,
-          images: thumbnails
-        },
-      })
-      dispatch(resetThumbnails())
+      const text = instructions
       setInstructions('')
+      if (demoMode) {
+        setMetaQuestion(instructions)
+        await metaPlanner({text: instructions})
+        setMetaQuestion('')
+      } 
+      else {
+        chat.addUserMessage({
+          content: {
+            type: "DEFAULT",
+            text: instructions,
+            images: thumbnails
+          },
+        })
+        dispatch(resetThumbnails())
+      }
     }
   }
 
@@ -253,7 +268,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
             </HStack> : null
           }
-          {
+          {/* {
             demoMode && currentTool === "jupyter" && (<Button onClick={async ()=>{
               if (instructions) {
                 const text = instructions
@@ -263,7 +278,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 setMetaQuestion('')
               }
             }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>I'm feeling lucky</Button>)
-          }
+          } */}
         {/* {demoMode && <Button onClick={async () => {
               // let text = await gdocReadSelected()
               const appState = await getApp().getState() as JupyterNotebookState
@@ -298,6 +313,25 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/>
                 <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={taskInProgress}/>
                 <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
+                <Checkbox sx={{
+                  '& input:not(:checked) + span': {
+                    borderColor: 'minusxBW.500',
+                  },
+                  '& input:checked + span': {
+                    bg: 'minusxGreen.500',
+                    borderColor: 'minusxGreen.500',
+                  },
+                  '& input:checked:hover + span': {
+                    bg: 'minusxGreen.500',
+                    borderColor: 'minusxGreen.500',
+                  },
+                  span:{
+                    marginLeft: 1,
+                  }
+                  }}
+                  isChecked={demoMode}
+                  onChange={(e) => updateDemoMode(e.target.checked)}
+                ><Text fontSize={12} color={"minusxBW.600"} p={0} m={0}>MetaPlanner</Text></Checkbox>
               </HStack>
               <HStack>
                 {
