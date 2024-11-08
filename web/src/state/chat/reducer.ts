@@ -111,6 +111,7 @@ interface ChatThread {
   messages: Array<ChatMessage>
   status: ChatThreadStatus
   userConfirmation: UserConfirmationState
+  interrupted: boolean
 }
 
 interface ChatState {
@@ -130,6 +131,7 @@ const initialState: ChatState = {
     messages: [],
     status: 'FINISHED',
     userConfirmation: initialUserConfirmationState,
+    interrupted: false
   }],
   activeThread: 0,
 }
@@ -158,6 +160,7 @@ export const chatSlice = createSlice({
         createdAt: timestamp,
         updatedAt: timestamp,
       })
+      state.threads[state.activeThread].interrupted = false
     },
     deleteUserMessage: (
       state,
@@ -316,7 +319,8 @@ export const chatSlice = createSlice({
           show: false,
           content: '',
           userInput: 'NULL'
-        }
+        },
+        interrupted: false
       })
     },
     addReaction: (
@@ -376,11 +380,15 @@ export const chatSlice = createSlice({
       const userConfirmation = state.threads[state.activeThread].userConfirmation
       userConfirmation.userInput = action.payload
     },
+    abortPlan: (state) => {
+      const thread = state.activeThread
+      const activeThread = state.threads[thread]
+      activeThread.interrupted = true
+    }
   },
 })
 
-export const abortPlan = createAction('chat/abortPlan')
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, switchToThread } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, switchToThread, abortPlan } = chatSlice.actions
 
 export default chatSlice.reducer
