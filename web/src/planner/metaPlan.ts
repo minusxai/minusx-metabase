@@ -7,11 +7,10 @@ import { getMetaPlan } from "../helpers/LLM/remote";
 
 export async function metaPlanner({text}: {text: string}) {
   
-  let steps = await getMetaPlan(text)
+  let steps = await getMetaPlan(text, [])
 
-  steps.reverse()
   while (!isEmpty(steps)) {
-    const step = steps.pop()
+    const step = steps.shift()
     const content: DefaultMessageContent = {
       type: "DEFAULT",
       //@ts-ignore
@@ -20,7 +19,7 @@ export async function metaPlanner({text}: {text: string}) {
     }
     chat.addUserMessage({content})
     while (true) {
-      await sleep(1000)
+      await sleep(500)
       const state = getState()
       const thread = state.chat.activeThread
       const threadStatus = state.chat.threads[thread].status
@@ -30,5 +29,7 @@ export async function metaPlanner({text}: {text: string}) {
       }
       console.log(threadStatus)
     }
+    steps = await getMetaPlan(text, steps)
+    console.log('New steps are', steps)
   }
 }
