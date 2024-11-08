@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Input, Box, VStack, Image, CloseButton, HStack, Text, Progress } from '@chakra-ui/react';
+import { Select, CreatableSelect } from "chakra-react-select";
 import { login } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
 import {auth, auth as authModule} from '../../app/api'
@@ -230,6 +231,38 @@ const Auth = () => {
                 }
               }}
               borderColor={"minusxBW.600"}
+            />
+            How did you find us?
+            <CreatableSelect
+              chakraStyles={{container: (base) => ({...base, width: "100%"})}}
+              tagColorScheme="purple"
+              placeholder="How did you find us?"
+              options={[
+                {
+                  label: "Instagram",
+                  value: "Instagram",
+                },
+                {
+                  label: "LinkedIn",
+                  value: "LinkedIn",
+                },
+                {
+                  label: "Twitter",
+                  value: "Twitter",
+                },
+                {
+                  label: "Google",
+                  value: "Google",
+                },
+                {
+                  label: "YouTube",
+                  value: "YouTube",
+                },
+                {
+                  label: "Friends/Colleagues",
+                  value: "Friends/Colleagues",
+                },
+              ]}
             />
             <Button colorScheme="minusxBW" variant="outline" onClick={handleVerifyOtp} width="100%" aria-label="Verify Code">
               Verify Code
