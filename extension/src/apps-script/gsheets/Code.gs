@@ -1,23 +1,41 @@
-const LLM_RESPONSE_URL = "https://v1.minusxapi.com/planner/getLLMResponse";
+const BASE_URL = "https://v1.minusxapi.com";
+const LLM_RESPONSE_URL = BASE_URL + "/planner/getLLMResponse";
+const SCRAPE_URL = BASE_URL + "/web/scrape";
+
+
+function md5(inputString) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, inputString)
+    .reduce((output, byte) => output + (byte < 0 ? byte + 256 : byte).toString(16).padStart(2, '0'), '');
+}
+
+function getCache(a1Notation){
+  const key = "cell_" + a1Notation;
+  const cache = CacheService.getDocumentCache();
+  const cachedInputOutput = cache.get(key);
+  if (cachedInputOutput === null){
+    return null
+  }
+  else{
+    return cachedInputOutput.split("<delimiter>")
+  }
+}
+
+function updateCache(a1Notation, inputHash, output){
+  const key = "cell_" + a1Notation;
+  const cache = CacheService.getDocumentCache();
+  cache.put(key, inputHash + "<delimiter>" +  output, 21600);
+}
 
 function gsheetSetUserToken(token) {
   const scriptProperties = PropertiesService.getScriptProperties();
   scriptProperties.setProperty('userToken', token);
 }
 
-function MX_WEB(columns, query) {
-  // columns = [0.2, 0.3]
-  // query = "Is this less than majority chance?"
+function queryContent(content, query){
   const scriptProperties = PropertiesService.getScriptProperties();
   const userToken = scriptProperties.getProperty('userToken');
-  let dataArray;
-  if (Array.isArray(columns)) {
-    dataArray = columns.flat();
-  } else {
-    dataArray = [columns];
-  }
   systemMessage = `You are used as a google apps script function. You will be given an array of cell values and a query and your response will be used to set the current cell value.
-<CellValues>${JSON.stringify(dataArray)}</CellValues>
+<CellValues>${content}</CellValues>
 <Query>${query}</Query>`
   let payload = {
     "messages": [
@@ -28,7 +46,7 @@ function MX_WEB(columns, query) {
     ],
     "actions": [],
     "llmSettings": {
-        "model": "gpt-4o-mini",
+        "model": "gpt-4o",
         "temperature": 0,
         "response_format": {
             "type": "text"
