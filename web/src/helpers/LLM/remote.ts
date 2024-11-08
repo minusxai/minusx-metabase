@@ -69,7 +69,6 @@ export const getMetaPlan = async(text: string): Promise<string[]> => {
   You take the jupyter state and give a list of steps to perform to explore and analyze data.
   The steps will be taken by another agent and performed one by one. So give detailed steps.
 
-
   <JupyterAppState>
   {{ state }}
   </JupyterAppState>
@@ -88,8 +87,6 @@ export const getMetaPlan = async(text: string): Promise<string[]> => {
 
   const appState = app.getState()
   const finalSystemMessage = systemMessage.replaceAll("{{ state }}", JSON.stringify(appState))
-  
-
 
   const response = await getLLMResponse({
     messages: [{

@@ -2,23 +2,25 @@ import chat from "../chat/chat";
 import { DefaultMessageContent } from '../state/chat/types'
 import { getState } from "../state/store"
 import { sleep } from "../helpers/utils"
-import _ from "lodash"
+import _, { isEmpty } from "lodash"
 import { getMetaPlan } from "../helpers/LLM/remote";
 
 export async function metaPlanner({text}: {text: string}) {
   
-  const steps = await getMetaPlan(text)
+  let steps = await getMetaPlan(text)
 
-  console.log(steps, "steps")
-  for (const step of steps) {
+  steps.reverse()
+  while (!isEmpty(steps)) {
+    const step = steps.pop()
     const content: DefaultMessageContent = {
       type: "DEFAULT",
-      text: step,
+      //@ts-ignore
+      text: step, 
       images: []
     }
     chat.addUserMessage({content})
-    while (true){
-      await sleep(2000) // hack to avoid race condition
+    while (true) {
+      await sleep(1000)
       const state = getState()
       const thread = state.chat.activeThread
       const threadStatus = state.chat.threads[thread].status
@@ -27,7 +29,6 @@ export async function metaPlanner({text}: {text: string}) {
         break;
       }
       console.log(threadStatus)
-      await sleep(100)
     }
   }
 }
