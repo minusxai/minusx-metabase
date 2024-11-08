@@ -12,6 +12,7 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import { capture } from '../../helpers/screenCapture/extensionCapture';
 import { TelemetryToggle } from './Settings';
 import { getParsedIframeInfo } from '../../helpers/origin';
+import { toast } from '../../app/toast';
 
 interface HighlightItem {
   content: React.ReactNode;
@@ -111,8 +112,29 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [authJWT, setAuthJWT] = useState("");
   const [otp, setOTP] = useState("");
+  const [discoveryMethod, setDiscoveryMethod] = useState("");
   const isOTPMode = authJWT ? true : false
   const handleVerifyOtp = () => {
+    if (!otp) {
+      return toast({
+        title: 'Invalid code',
+        description: "Please enter a valid code",
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      })
+    }
+    if (!discoveryMethod) {
+      return toast({
+        title: 'Please fill all the fields',
+        description: "Please tell us how you found us!",
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      })
+    }
     console.log('Login params are', authJWT, otp, session_jwt)
     captureEvent(GLOBAL_EVENTS.otp_attempted, { email, otp, authJWT })
     authModule.login(authJWT, otp, session_jwt).then(({ session_jwt, profile_id, email, is_new_user }) => {
@@ -237,6 +259,7 @@ const Auth = () => {
               chakraStyles={{container: (base) => ({...base, width: "100%"})}}
               tagColorScheme="purple"
               placeholder="How did you find us?"
+              onChange={(value) => setDiscoveryMethod(value)}
               options={[
                 {
                   label: "Instagram",
