@@ -1,13 +1,27 @@
 import chat from "../chat/chat";
 import { DefaultMessageContent } from '../state/chat/types'
-import { getState } from "../state/store"
+import { getState, RootState } from "../state/store"
 import { sleep } from "../helpers/utils"
 import _, { isEmpty } from "lodash"
 import { getMetaPlan } from "../helpers/LLM/remote";
+import { ChatMessage } from "../state/chat/reducer";
+
+const getMessageHistory = () => {
+  const state = getState()
+  const thread = state.chat.activeThread
+  const messageHistory = JSON.stringify(
+    state.chat.threads[thread].messages.map((msg: ChatMessage) => ({
+      role: msg.role,
+      content: msg.content
+    }))
+  )
+  console.log('Message history is', messageHistory)
+  return messageHistory
+}
 
 export async function metaPlanner({text}: {text: string}) {
   
-  let steps = await getMetaPlan(text, [])
+  let steps = await getMetaPlan(text, [], getMessageHistory())
   console.log('Initial steps are', steps)
 
   while (!isEmpty(steps)) {
@@ -39,7 +53,8 @@ export async function metaPlanner({text}: {text: string}) {
     if (!shouldContinue) {
       break;
     }
-    const newSteps = await getMetaPlan(text, steps)
+    
+    const newSteps = await getMetaPlan(text, steps, getMessageHistory())
     if (!isEmpty(newSteps)) {
       steps = newSteps
     }
