@@ -111,6 +111,7 @@ const Auth = () => {
   const session_jwt = useSelector(state => state.auth.session_jwt)
   const [email, setEmail] = useState("");
   const [authJWT, setAuthJWT] = useState("");
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [otp, setOTP] = useState("");
   const [discoveryMethod, setDiscoveryMethod] = useState("");
   const isOTPMode = authJWT ? true : false
@@ -125,7 +126,7 @@ const Auth = () => {
         position: 'bottom-right',
       })
     }
-    if (!discoveryMethod) {
+    if (isFirstTimeUser && !discoveryMethod) {
       return toast({
         title: 'Please fill all the fields',
         description: "Please tell us how you found us!",
@@ -158,8 +159,9 @@ const Auth = () => {
   const handleSignin = () => {
     // capture email_entered event
     captureEvent(GLOBAL_EVENTS.email_entered, { email })
-    authModule.verifyEmail(email).then(({auth_jwt}) => {
+    authModule.verifyEmail(email).then(({auth_jwt, first}) => {
       setAuthJWT(auth_jwt)
+      setIsFirstTimeUser(first)
       captureEvent(GLOBAL_EVENTS.otp_received, { email, auth_jwt })
     }).catch((error) => {
       captureEvent(GLOBAL_EVENTS.otp_sending_failed, { email })
@@ -254,6 +256,8 @@ const Auth = () => {
               }}
               borderColor={"minusxBW.600"}
             />
+            { isFirstTimeUser ?
+            <>
             How did you find us?
             <CreatableSelect
               chakraStyles={{container: (base) => ({...base, width: "100%"})}}
@@ -287,6 +291,8 @@ const Auth = () => {
                 },
               ]}
             />
+            </> : null
+            }
             <Button colorScheme="minusxBW" variant="outline" onClick={handleVerifyOtp} width="100%" aria-label="Verify Code">
               Verify Code
             </Button>
