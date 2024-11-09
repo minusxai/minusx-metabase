@@ -136,6 +136,9 @@ const Auth = () => {
         position: 'bottom-right',
       })
     }
+    if (discoveryMethod) {
+      captureEvent(GLOBAL_EVENTS.user_discovery_method, { email, discoveryMethod })
+    }
     console.log('Login params are', authJWT, otp, session_jwt)
     captureEvent(GLOBAL_EVENTS.otp_attempted, { email, otp, authJWT })
     authModule.login(authJWT, otp, session_jwt).then(({ session_jwt, profile_id, email, is_new_user }) => {
@@ -145,7 +148,7 @@ const Auth = () => {
           email,
       }))
       if (is_new_user) {
-        captureEvent(GLOBAL_EVENTS.user_signup, { email, profile_id })
+        captureEvent(GLOBAL_EVENTS.user_signup, { email, profile_id, discoveryMethod })
       } else {
         captureEvent(GLOBAL_EVENTS.user_login, { email, profile_id })
       }
