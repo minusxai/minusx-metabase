@@ -303,6 +303,10 @@ function onOpen() {
   showSidebar();
 }
 
+function onInstall(e) {
+  onOpen(e);
+}
+
 function showSidebar() {
   var html = HtmlService.createHtmlOutputFromFile('index').setTitle('MinusX').setWidth(400);
   SpreadsheetApp.getUi().showSidebar(html);
