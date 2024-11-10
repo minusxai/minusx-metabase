@@ -32,10 +32,14 @@ import { Markdown } from './Markdown'
 import addonsMenu from '../../assets/screenshots/addons-menu.png'
 import addonsSearch from '../../assets/screenshots/addons-search.png'
 import addonsInstall from '../../assets/screenshots/addons-install.png'
+import addonsActivate from '../../assets/screenshots/addons-activate.png'
+
+const useAppStore = getApp().useStore()
 
 const AppInstructions = () => {
+  const addOnStatus = useAppStore((state) => state.addOnStatus)
   const installInstructions = `### Almost there.
-You need to add the MinusX Sheets add-on to enable MinusX. You can do this in 3 steps.
+You need to add the MinusX Sheets add-on to enable MinusX:
 1. Select the Add-ons menu in Google Sheets
 
 ![Add-ons menu](${addonsMenu})
@@ -47,8 +51,18 @@ You need to add the MinusX Sheets add-on to enable MinusX. You can do this in 3 
 3. Install the MinusX add-on. You're all set!
 
 ![Add-ons install](${addonsInstall})
+
+4. If you cannot find the MinusX add-on in the menu, try this [direct link](https://workspace.google.com/u/0/marketplace/app/minusx/1001122509846). You might have to refresh the page.
 `
-  const instructions = installInstructions
+  const activateInstructions = `### MinusX is Installed!
+You can activate the MinusX Sheets add-on from the extensions menu:
+
+![Add-ons activate](${addonsActivate})
+`
+  const loadingInstructions = `### Evaluating.`
+  const instructions = addOnStatus == undefined ?
+   loadingInstructions :
+   addOnStatus == 'uninstalled' ? installInstructions : activateInstructions
   return (
     <VStack
       px="4"
@@ -143,8 +157,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     </VStack>
   )
 })
-
-const useAppStore = getApp().useStore()
 
 const width = getParsedIframeInfo().width
 function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: string }) {

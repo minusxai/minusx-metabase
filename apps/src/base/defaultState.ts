@@ -47,6 +47,8 @@ export type CoTPlannerConfig = {
 
 export type ToolPlannerConfig = SimplePlannerConfig | CoTPlannerConfig;
 
+export type AddOnStatus = 'uninstalled' | 'deactivated' | 'activated'
+
 export interface InternalState {
   isEnabled: {
     value: boolean;
@@ -59,6 +61,7 @@ export interface InternalState {
   querySelectorMap: QuerySelectorMap;
   whitelistQuery?: DOMQueryMap;
   helperMessage?: string;
+  addOnStatus?: AddOnStatus
 }
 
 export const defaultInternalState: InternalState = {
