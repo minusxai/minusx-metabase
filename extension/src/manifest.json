@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "MinusX",
   "description": "AI Data Scientist for all your Analytics Apps",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "background": { "service_worker": "background.bundle.js" },
   "permissions": [
     "storage"
