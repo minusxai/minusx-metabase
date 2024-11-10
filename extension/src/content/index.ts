@@ -47,6 +47,7 @@ async function _init(localConfigs: Promise<object>) {
   const origin = window.location.origin
   const href = window.location.href
   const width = '350'
+  const variant = 'default'
 
   const iframeInfo: IframeInfo = {
     tool,
@@ -55,6 +56,7 @@ async function _init(localConfigs: Promise<object>) {
     href,
     mode,
     r:extensionId,
+    variant,
     width,
     gitCommitId: configs.GIT_COMMIT_ID,
     npmPackageVersion: configs.NPM_PACKAGE_VERSION,
@@ -84,6 +86,9 @@ async function _init(localConfigs: Promise<object>) {
 
   const iframe = document.createElement('iframe');
   iframe.id = 'minusx-iframe'; 
+  if (tool == 'google') {
+    iframeInfo.variant = 'instructions'
+  }
   const params = new URLSearchParams(iframeInfo as unknown as Record<string, string>).toString()
   iframe.src = `${WEB_URL}?${params}`;
   const iframeParent = document.createElement('div')

@@ -5,6 +5,7 @@ export interface IframeInfo {
   href: string
   mode: string
   r: string
+  variant: 'default' | 'instructions'
   width: string,
   gitCommitId: string,
   npmPackageVersion: string,
