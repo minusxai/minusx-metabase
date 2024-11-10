@@ -61,9 +61,22 @@ async function _init(localConfigs: Promise<object>) {
   }
 
   // Google Docs is not supported yet
-  if (tool == 'google') {
-    return
-  }
+  // if (tool == 'google') {
+    // #HACK to insert as a 'collaborator' in Google Apps
+    // setTimeout(() => {
+    //   const gDocPresenceContainer = document.querySelector("div.docs-presence-plus-widget-inner.goog-inline-block")
+    //   const minusXButton = document.createElement('div')
+    //   minusXButton.className = 'docs-presence-plus-collab-widget-container goog-inline-block docs-presence-plus-collab-widget-focus'
+    //   minusXButton.ariaLabel = 'MinusX'
+    //   minusXButton.role = 'button'
+    //   minusXButton.id = 'minusx-google-button'
+    //   minusXButton.style.backgroundImage = `url(${chrome.runtime.getURL('logo_x.svg')})`
+    //   minusXButton.style.backgroundSize = 'contain'
+    //   minusXButton.style.cursor = 'pointer'
+    //   gDocPresenceContainer?.appendChild(minusXButton)
+    // }, 2000)
+    // return
+  // }
 
   const root = document.createElement('div')
   root.className = `mode-${mode} closed invisible`
