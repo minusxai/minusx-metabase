@@ -29,15 +29,16 @@ import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
-import addonsMenu from '../../assets/screenshots/addons-menu.png'
-import addonsSearch from '../../assets/screenshots/addons-search.png'
-import addonsInstall from '../../assets/screenshots/addons-install.png'
-import addonsActivate from '../../assets/screenshots/addons-activate.png'
 import { toggleMinusXRoot } from '../../app/rpc'
+import { configs } from '../../constants'
 
 const useAppStore = getApp().useStore()
 
 const AppInstructions = () => {
+  const addonsMenu = `${configs.WEB_URL}/screenshots/addons-menu.png`
+  const addonsSearch = `${configs.WEB_URL}/screenshots/addons-search.png`
+  const addonsInstall = `${configs.WEB_URL}/screenshots/addons-install.png`
+  const addonsActivate = `${configs.WEB_URL}/screenshots/addons-activate.png`
   const addOnStatus = useAppStore((state) => state.addOnStatus)
   useEffect(() => {
     if (addOnStatus == 'activated') {
