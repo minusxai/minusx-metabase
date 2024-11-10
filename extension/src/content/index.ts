@@ -79,6 +79,9 @@ async function _init(localConfigs: Promise<object>) {
     // }, 2000)
     // return
   // }
+  if (tool == 'google' && toolVersion == 'docs') {
+    return
+  }
 
   const root = document.createElement('div')
   root.className = `mode-${mode} closed invisible`
