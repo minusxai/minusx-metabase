@@ -12799,6 +12799,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-zoom-pan-pinch@npm:^3.6.1":
+  version: 3.6.1
+  resolution: "react-zoom-pan-pinch@npm:3.6.1"
+  peerDependencies:
+    react: "*"
+    react-dom: "*"
+  checksum: 10c0/ec32df7ba9c1b8113fa87e5759c6b697f0f985df1be31b26720c3fdff67dc7f31ac13eabad201d7d5a12f2a4bed637bf7090e8a04f0237618bc751cf37c784d9
+  languageName: node
+  linkType: hard
+
 "react@npm:^18.2.0, react@npm:^18.3.1":
   version: 18.3.1
   resolution: "react@npm:18.3.1"
@@ -14849,6 +14859,7 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-textarea-autosize: "npm:^8.5.3"
     react-use-intercom: "npm:^5.4.1"
+    react-zoom-pan-pinch: "npm:^3.6.1"
     redux-logger: "npm:^3.0.6"
     redux-persist: "npm:^6.0.0"
     serve: "npm:^14.2.3"

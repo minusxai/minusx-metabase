@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import MarkdownComponent from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ChatContent.css'
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { Image } from "@chakra-ui/react"
 
 function LinkRenderer(props: any) {
   return (
@@ -23,12 +25,25 @@ function ModifiedUL(props: any) {
   )
 }
 
-function Image(props: any) {
-  return <img {...props} />
+function ZoomableImage({src, alt}: {src: string, alt: string}) {
+  return <div style={{cursor: "grabbing"}}>
+    <TransformWrapper initialScale={1} doubleClick={{disabled: true}}>
+      <TransformComponent>
+        <Image src={src} alt={alt}/>
+      </TransformComponent>
+    </TransformWrapper>
+  </div>
+}
+
+function ImageComponent(props: any) {
+  if (!props) {
+    return null
+  }
+  return <ZoomableImage src={props.src} alt={props.alt}/>
 }
 
 export function Markdown({content}: {content: string}) {
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, img: Image}}>{content}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, img: ImageComponent}}>{content}</MarkdownComponent>
   )
 }
