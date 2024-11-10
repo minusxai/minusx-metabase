@@ -124,7 +124,7 @@ function shuffle(array: Array<any>) {
 }
 
 
-const defaultDiscoveryMethods = [
+const defaultDiscoverySources = [
   {
     label: "Instagram",
     value: "Instagram",
@@ -151,7 +151,7 @@ const defaultDiscoveryMethods = [
   },
 ]
 
-shuffle(defaultDiscoveryMethods)
+shuffle(defaultDiscoverySources)
 
 const Auth = () => {
  
@@ -160,7 +160,7 @@ const Auth = () => {
   const [authJWT, setAuthJWT] = useState("");
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [otp, setOTP] = useState("");
-  const [discoveryMethod, setDiscoveryMethod] = useState("");
+  const [discoverySource, setDiscoverySource] = useState("");
   const isOTPMode = authJWT ? true : false
   const handleVerifyOtp = () => {
     if (!otp) {
@@ -173,7 +173,7 @@ const Auth = () => {
         position: 'bottom-right',
       })
     }
-    if (isFirstTimeUser && !discoveryMethod) {
+    if (isFirstTimeUser && !discoverySource) {
       return toast({
         title: 'Please fill all the fields',
         description: "Please tell us how you found us!",
@@ -183,8 +183,8 @@ const Auth = () => {
         position: 'bottom-right',
       })
     }
-    if (discoveryMethod) {
-      captureEvent(GLOBAL_EVENTS.user_discovery_method, { email, discoveryMethod })
+    if (discoverySource) {
+      captureEvent(GLOBAL_EVENTS.user_discovery_source, { email, discoverySource })
     }
     console.log('Login params are', authJWT, otp, session_jwt)
     captureEvent(GLOBAL_EVENTS.otp_attempted, { email, otp, authJWT })
@@ -195,7 +195,7 @@ const Auth = () => {
           email,
       }))
       if (is_new_user) {
-        captureEvent(GLOBAL_EVENTS.user_signup, { email, profile_id, discoveryMethod })
+        captureEvent(GLOBAL_EVENTS.user_signup, { email, profile_id, discoverySource })
       } else {
         captureEvent(GLOBAL_EVENTS.user_login, { email, profile_id })
       }
@@ -313,8 +313,8 @@ const Auth = () => {
               chakraStyles={{container: (base) => ({...base, width: "100%"})}}
               tagColorScheme="purple"
               placeholder="How did you find us?"
-              onChange={(option) => setDiscoveryMethod(get(option, 'value', ''))}
-              options={defaultDiscoveryMethods}
+              onChange={(option) => setDiscoverySource(get(option, 'value', ''))}
+              options={defaultDiscoverySources}
             />
             </> : null
             }

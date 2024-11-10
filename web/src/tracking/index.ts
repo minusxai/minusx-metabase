@@ -10,7 +10,7 @@ export const GLOBAL_EVENTS = {
     "otp_failed": "global/otp_failed",
     "otp_success": "global/otp_success",
     "user_signup": "global/user_signup",
-    "user_discovery_method": "global/user_discovery_method",
+    "user_discovery_source": "global/user_discovery_source",
     "user_login": "global/user_login",
     "billing_checkout": "global/billing_checkout",
     "billing_portal": "global/billing_portal",
