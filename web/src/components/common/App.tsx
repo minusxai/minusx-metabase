@@ -28,7 +28,67 @@ import { getApp } from '../../helpers/app'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { SupportButton } from './Support'
+import { Markdown } from './Markdown'
+import addonsMenu from '../../assets/screenshots/addons-menu.png'
+import addonsSearch from '../../assets/screenshots/addons-search.png'
+import addonsInstall from '../../assets/screenshots/addons-install.png'
+import addonsActivate from '../../assets/screenshots/addons-activate.png'
+import { toggleMinusXRoot } from '../../app/rpc'
 
+const useAppStore = getApp().useStore()
+
+const AppInstructions = () => {
+  const addOnStatus = useAppStore((state) => state.addOnStatus)
+  useEffect(() => {
+    if (addOnStatus == 'activated') {
+      toggleMinusXRoot('closed', true)
+    }
+  }, [addOnStatus])
+  const installInstructions = `### Almost there.
+You need to add the MinusX Sheets add-on to enable MinusX:
+1. Select the Add-ons menu in Google Sheets
+
+![Add-ons menu](${addonsMenu})
+
+2. Search for MinusX in the add-ons store
+
+![Add-ons search](${addonsSearch})
+
+3. Install the MinusX add-on. You're all set!
+
+![Add-ons install](${addonsInstall})
+
+4. If you cannot find the MinusX add-on in the menu, try this [direct link](https://workspace.google.com/u/0/marketplace/app/minusx/1001122509846). You might have to refresh the page.
+`
+  const activateInstructions = `### MinusX is Installed!
+You can activate the MinusX Sheets add-on from the extensions menu:
+
+![Add-ons activate](${addonsActivate})
+`
+  const loadingInstructions = `### Evaluating.`
+  const activatedInstructions = `### MinusX is fully active!`
+  const instructions = addOnStatus == undefined ?
+   loadingInstructions :
+   addOnStatus == 'uninstalled' ? installInstructions : 
+   addOnStatus == 'deactivated' ? activateInstructions : activatedInstructions
+  return (
+    <VStack
+      px="4"
+      pt="4"
+      fontSize="sm"
+      w={`${width}px`}
+      height="100%"
+      gap={0}
+      backgroundColor={"minusxBW.200"}
+      borderColor={"minusxBW.200"}
+      borderWidth={1.5}
+      borderLeftColor={"minusxBW.500"}
+      alignItems={"start"}
+    >
+      <Markdown content={instructions}/>
+    </VStack>
+  )
+}
 
 const AppLoggedIn = forwardRef((_props, ref) => {
   const email = useSelector((state: RootState) => state.auth.email)
@@ -106,8 +166,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   )
 })
 
-const useAppStore = getApp().useStore()
-
 const width = getParsedIframeInfo().width
 function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: string }) {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
@@ -143,6 +201,7 @@ const AppBody = forwardRef((_props, ref) => {
   const appMode = useSelector((state: RootState) => state.settings.appMode)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const toolEnabled = useAppStore((state) => state.isEnabled)
+  const variant = getParsedIframeInfo().variant
   useEffect(() => {
     if (appMode == 'selection') {
       dispatch(updateAppMode('sidePanel'))
@@ -178,6 +237,10 @@ const AppBody = forwardRef((_props, ref) => {
           fontSize="30px" fontWeight={"bold"}>Press Esc to exit "Select & Ask" mode</Text>
       </HStack>
     )
+  }
+
+  if (variant === 'instructions') {
+    return <AppInstructions />
   }
 
   if (appMode === 'sidePanel') {

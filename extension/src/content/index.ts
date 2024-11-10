@@ -47,6 +47,7 @@ async function _init(localConfigs: Promise<object>) {
   const origin = window.location.origin
   const href = window.location.href
   const width = '350'
+  const variant = 'default'
 
   const iframeInfo: IframeInfo = {
     tool,
@@ -55,13 +56,30 @@ async function _init(localConfigs: Promise<object>) {
     href,
     mode,
     r:extensionId,
+    variant,
     width,
     gitCommitId: configs.GIT_COMMIT_ID,
     npmPackageVersion: configs.NPM_PACKAGE_VERSION,
   }
 
   // Google Docs is not supported yet
-  if (tool == 'google') {
+  // if (tool == 'google') {
+    // #HACK to insert as a 'collaborator' in Google Apps
+    // setTimeout(() => {
+    //   const gDocPresenceContainer = document.querySelector("div.docs-presence-plus-widget-inner.goog-inline-block")
+    //   const minusXButton = document.createElement('div')
+    //   minusXButton.className = 'docs-presence-plus-collab-widget-container goog-inline-block docs-presence-plus-collab-widget-focus'
+    //   minusXButton.ariaLabel = 'MinusX'
+    //   minusXButton.role = 'button'
+    //   minusXButton.id = 'minusx-google-button'
+    //   minusXButton.style.backgroundImage = `url(${chrome.runtime.getURL('logo_x.svg')})`
+    //   minusXButton.style.backgroundSize = 'contain'
+    //   minusXButton.style.cursor = 'pointer'
+    //   gDocPresenceContainer?.appendChild(minusXButton)
+    // }, 2000)
+    // return
+  // }
+  if (tool == 'google' && toolVersion == 'docs') {
     return
   }
 
@@ -71,6 +89,9 @@ async function _init(localConfigs: Promise<object>) {
 
   const iframe = document.createElement('iframe');
   iframe.id = 'minusx-iframe'; 
+  if (tool == 'google') {
+    iframeInfo.variant = 'instructions'
+  }
   const params = new URLSearchParams(iframeInfo as unknown as Record<string, string>).toString()
   iframe.src = `${WEB_URL}?${params}`;
   const iframeParent = document.createElement('div')

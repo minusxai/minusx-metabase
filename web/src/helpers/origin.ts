@@ -14,6 +14,7 @@ export const defaultIframeInfoWeb: IframeInfoWeb = {
     href: '',
     mode: '',
     r: '',
+    variant: 'default',
     width: '350',
     gitCommitId: '',
     npmPackageVersion: '',
