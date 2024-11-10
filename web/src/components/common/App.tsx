@@ -60,9 +60,11 @@ You can activate the MinusX Sheets add-on from the extensions menu:
 ![Add-ons activate](${addonsActivate})
 `
   const loadingInstructions = `### Evaluating.`
+  const activatedInstructions = `### MinusX is fully active!`
   const instructions = addOnStatus == undefined ?
    loadingInstructions :
-   addOnStatus == 'uninstalled' ? installInstructions : activateInstructions
+   addOnStatus == 'uninstalled' ? installInstructions : 
+   addOnStatus == 'deactivated' ? activateInstructions : activatedInstructions
   return (
     <VStack
       px="4"

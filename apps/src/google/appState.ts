@@ -36,11 +36,27 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
             type: "XPATH",
             selector: "//div[@id='docs-extensions-menu' and contains(text(), 'Extensions')]"
           }
+        },
+        sidebarHeader: {
+          selector: {
+            type: "XPATH",
+            selector: "//div[@class='script-application-sidebar-title' and contains(text(), 'MinusX')]"
+          }
+        },
+        sidebarBody: {
+          selector: {
+            type: "CSS",
+            selector: "div.script-application-sidebar-content > iframe"
+          }
         }
       }, async ({elements, url}) => {
         if (!isEmpty(elements.extensionMenu) && isEmpty(elements.menuButton)) {
           this.useStore().setState({
             addOnStatus: 'uninstalled'
+          })
+        } else if (!isEmpty(elements.sidebarHeader) && !isEmpty(elements.sidebarBody)) {
+          this.useStore().setState({
+            addOnStatus: 'activated'
           })
         } else {
           this.useStore().setState({
