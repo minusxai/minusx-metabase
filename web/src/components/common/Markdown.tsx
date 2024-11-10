@@ -24,7 +24,6 @@ function ModifiedUL(props: any) {
 }
 
 export function Markdown({content}: {content: string}) {
-  console.log('Markdown content', content)
   return (
     <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL}}>{content}</MarkdownComponent>
   )
