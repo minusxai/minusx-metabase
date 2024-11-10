@@ -51,6 +51,7 @@ import { ChatSuggestions } from './ChatSuggestions'
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const currentToolVersion = useSelector((state: RootState) => state.settings.iframeInfo.toolVersion)
+  const isSheets = currentTool == 'google' && currentToolVersion == 'sheets'
   const initialInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
   const [instructions, setInstructions] = useState<string>(initialInstructions)
   const [metaQuestion, setMetaQuestion] = useState<string>("")
@@ -295,7 +296,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             <HStack justify={"space-between"}  width={"100%"}>
               <HStack gap={0}>
                 <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/>
-                <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={taskInProgress}/>
+                <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/>
                 <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
               </HStack>
               <HStack>
