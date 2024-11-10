@@ -28,7 +28,27 @@ import { getApp } from '../../helpers/app'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { SupportButton } from './Support'
+import { Markdown } from './Markdown'
 
+const AppInstructions = () => {
+  const instructions = `# Hello World`
+  return (
+    <VStack
+      px="4"
+      pt="4"
+      fontSize="sm"
+      w={`${width}px`}
+      height="100%"
+      gap={0}
+      backgroundColor={"minusxBW.200"}
+      borderColor={"minusxBW.200"}
+      borderWidth={1.5}
+      borderLeftColor={"minusxBW.500"}
+    >
+      <Markdown content={instructions}/>
+    </VStack>
+  )
+}
 
 const AppLoggedIn = forwardRef((_props, ref) => {
   const email = useSelector((state: RootState) => state.auth.email)
@@ -143,6 +163,7 @@ const AppBody = forwardRef((_props, ref) => {
   const appMode = useSelector((state: RootState) => state.settings.appMode)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const toolEnabled = useAppStore((state) => state.isEnabled)
+  const variant = getParsedIframeInfo().variant
   useEffect(() => {
     if (appMode == 'selection') {
       dispatch(updateAppMode('sidePanel'))
@@ -178,6 +199,10 @@ const AppBody = forwardRef((_props, ref) => {
           fontSize="30px" fontWeight={"bold"}>Press Esc to exit "Select & Ask" mode</Text>
       </HStack>
     )
+  }
+
+  if (variant === 'instructions') {
+    return <AppInstructions />
   }
 
   if (appMode === 'sidePanel') {
