@@ -23,8 +23,12 @@ function ModifiedUL(props: any) {
   )
 }
 
+function Image(props: any) {
+  return <img {...props} />
+}
+
 export function Markdown({content}: {content: string}) {
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL}}>{content}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, img: Image}}>{content}</MarkdownComponent>
   )
 }

@@ -29,9 +29,26 @@ import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
+import addonsMenu from '../../assets/screenshots/addons-menu.png'
+import addonsSearch from '../../assets/screenshots/addons-search.png'
+import addonsInstall from '../../assets/screenshots/addons-install.png'
 
 const AppInstructions = () => {
-  const instructions = `# Hello World`
+  const installInstructions = `### Almost there.
+You need to add the MinusX Sheets add-on to enable MinusX. You can do this in 3 steps.
+1. Select the Add-ons menu in Google Sheets
+
+![Add-ons menu](${addonsMenu})
+
+2. Search for MinusX in the add-ons store
+
+![Add-ons search](${addonsSearch})
+
+3. Install the MinusX add-on. You're all set!
+
+![Add-ons install](${addonsInstall})
+`
+  const instructions = installInstructions
   return (
     <VStack
       px="4"
@@ -44,6 +61,7 @@ const AppInstructions = () => {
       borderColor={"minusxBW.200"}
       borderWidth={1.5}
       borderLeftColor={"minusxBW.500"}
+      alignItems={"start"}
     >
       <Markdown content={instructions}/>
     </VStack>
