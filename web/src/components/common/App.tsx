@@ -33,11 +33,17 @@ import addonsMenu from '../../assets/screenshots/addons-menu.png'
 import addonsSearch from '../../assets/screenshots/addons-search.png'
 import addonsInstall from '../../assets/screenshots/addons-install.png'
 import addonsActivate from '../../assets/screenshots/addons-activate.png'
+import { toggleMinusXRoot } from '../../app/rpc'
 
 const useAppStore = getApp().useStore()
 
 const AppInstructions = () => {
   const addOnStatus = useAppStore((state) => state.addOnStatus)
+  useEffect(() => {
+    if (addOnStatus == 'activated') {
+      toggleMinusXRoot('closed', true)
+    }
+  }, [addOnStatus])
   const installInstructions = `### Almost there.
 You need to add the MinusX Sheets add-on to enable MinusX:
 1. Select the Add-ons menu in Google Sheets
