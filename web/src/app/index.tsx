@@ -6,7 +6,7 @@ import ChakraContext from '../components/common/ChakraContext';
 import App from '../components/common/App';
 import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
-import { setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
+import { setAppRecording, setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
 import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab, getPendingMessage, gsheetSetUserToken} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
@@ -25,6 +25,7 @@ import { Button } from '@chakra-ui/react';
 import { convertToMarkdown } from '../helpers/LLM/remote';
 import { setInstructions } from '../state/thumbnails/reducer';
 import { IntercomProvider, useIntercom } from 'react-use-intercom';
+import { endTranscript, storeTranscripts } from '../helpers/recordings';
 
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
@@ -61,6 +62,18 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
                 } else {
                     onSubscription(payload)
                 }
+            }
+            if (rpcEvent.payload.key == 'recordingInProgress') {
+                const isRecording = rpcEvent.payload.value
+                // @ppsreejith: Backward compatible hack.
+                dispatch(setAppRecording(isRecording))
+                if (!isRecording) {
+                    endTranscript()
+                }
+            }
+            if (rpcEvent.payload.key == 'recordingTranscript') {
+                const transcript = JSON.parse(rpcEvent.payload.value)
+                storeTranscripts(transcript)
             }
         } else if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
             const { uuid, message } = rpcEvent

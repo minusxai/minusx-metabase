@@ -32,7 +32,7 @@ interface Settings {
   confirmChanges: boolean
   demoMode: boolean
   intercomBooted: boolean
-  addOnStatus: 'uninstalled' | 'deactivated' | 'activated'
+  appRecording: boolean
 }
 
 const initialState: Settings = {
@@ -48,7 +48,7 @@ const initialState: Settings = {
   confirmChanges: false,
   demoMode: false,
   intercomBooted: false,
-  addOnStatus: 'uninstalled'
+  appRecording: false
 }
 
 export const settingsSlice = createSlice({
@@ -87,7 +87,10 @@ export const settingsSlice = createSlice({
     },
     setDemoMode: (state, action: PayloadAction<boolean>) => {
       state.demoMode = action.payload
-    }
+    },
+    setAppRecording: (state, action: PayloadAction<boolean>) => {
+      state.appRecording = action.payload
+    },
   }
 })
 
@@ -95,7 +98,7 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
