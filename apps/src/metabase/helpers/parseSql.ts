@@ -25,7 +25,10 @@ export interface TableAndSchema {
     return [];
   }
 }
-
+export const removeSurroundingBackticksAndQuotes = (str: string) => {
+  // trim away surrounding backticks and quotes
+  return str.replace(/^[`"]|[`"]$/g, '');
+}
 // TODO(@arpit): currently don't support some bigquery syntax like "select * from `schema.table`" or "select * from `db.schema.table`" 
 export function getTablesFromSqlRegex(sql: string): TableAndSchema[] {
   // regex match to find all tables
@@ -33,8 +36,12 @@ export function getTablesFromSqlRegex(sql: string): TableAndSchema[] {
   // table can be in the form of schema.table or just table
   // need to capture both schema (if exists) and table
   // have 2 patterns: one is for schema.table and one for "schema with spaces"."table with spaces"
-  const regex = /(?:FROM|JOIN|INTO)\s+(?:((?:[\w\p{L}]+)|(?:"(?:[\w\s\-\p{L}]+))")\.)?((?:[\w\p{L}]+)|(?:"(?:[\w\s\-\p{L}]+))")\s*/ugi;
-  const matches = Array.from(sql.matchAll(regex));
+  // add 2nd pattern for `schema.table`
+  const regexes = [
+    /(?:FROM|JOIN|INTO)\s+(?:((?:[\w\p{L}]+)|(?:["`](?:[\w\s\-\p{L}]+))["`])\.)?((?:[\w\p{L}]+)|(?:["`](?:[\w\s\-\p{L}]+))["`])\s*/ugi,
+    /(?:FROM|JOIN|INTO)\s+`([\w\s\-\p{L}]+)\.([\w\s\-\p{L}]+)`\s*/ugi
+  ];
+  const matches = regexes.flatMap(regex => Array.from(sql.matchAll(regex)));
   const tables: TableAndSchema[] = [];
   // log if 0 matches when sql is not empty
   if (matches.length === 0 && sql !== '') { 
@@ -42,12 +49,12 @@ export function getTablesFromSqlRegex(sql: string): TableAndSchema[] {
   }
   for (const match of matches) {
     let [, schema, table] = match;
-    // remove surrounding quotes if present
-    if (schema && schema.startsWith('"') && schema.endsWith('"')) {
-      schema = schema.slice(1, -1);
+    // remove surrounding quotes or backticks if present
+    if (schema) {
+      schema = removeSurroundingBackticksAndQuotes(schema);
     }
-    if (table && table.startsWith('"') && table.endsWith('"')) {
-      table = table.slice(1, -1);
+    if (table) {
+      table = removeSurroundingBackticksAndQuotes(table);
     }
     if (schema) {
       tables.push({
@@ -61,5 +68,6 @@ export function getTablesFromSqlRegex(sql: string): TableAndSchema[] {
       });
     }
   }
-  return tables;
+  // remove duplicates
+  return Array.from(new Set(tables));
 }
