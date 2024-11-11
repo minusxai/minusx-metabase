@@ -1,4 +1,4 @@
-import { getTablesFromSqlRegex, type TableAndSchema } from "./parseSql";
+import { getTablesFromSqlRegex, type TableAndSchema, removeSurroundingBackticksAndQuotes } from "./parseSql";
 
 describe('getTablesFromSqlRegex', () => {
   const sqlStatementsAndResults: { sql: string, results: TableAndSchema[] }[] = [
@@ -279,6 +279,27 @@ describe('getTablesFromSqlRegex', () => {
         { schema: 'someschema', name: 'some-table' }
       ]
     },
+    // backticks cases; we can have entire schema.table in backticks as well
+    // or just only table in backticks
+    {
+      sql: `SELECT * from \`someschema\`.\`some-table\`;`,
+      results: [
+        { schema: 'someschema', name: 'some-table' }
+      ]
+    },
+    {
+      sql: `SELECT * from \`someschema.some-table\` as t;`,
+      results: [
+        { schema: 'someschema', name: 'some-table' }
+      ]
+    },
+    {
+      sql: `SELECT * from \`some-table\`;`,
+      results: [
+        { schema: '', name: 'some-table' }
+      ]
+    }
+
   ];
   for (const { sql, results } of sqlStatementsAndResults) {
     it(`should get the correct tables from sql: ${sql}`, () => {
@@ -286,4 +307,18 @@ describe('getTablesFromSqlRegex', () => {
       expect(tables).toEqual(results);
     });
   }
+});
+
+
+describe('removeSurroundingBackticksAndQuotes', () => {
+  it('should remove surrounding backticks and quotes', () => {
+    expect(removeSurroundingBackticksAndQuotes('`some-table`')).toBe('some-table');
+    expect(removeSurroundingBackticksAndQuotes('"some-table"')).toBe('some-table');
+  });
+  it("should not remove surrounding backticks and quotes if they don't exist", () => {
+    expect(removeSurroundingBackticksAndQuotes('some-table')).toBe('some-table');
+  });
+  it("should not remove non-surrounding backticks and quotes", () => {
+    expect(removeSurroundingBackticksAndQuotes('"some-`t`able"')).toBe('some-`t`able');
+  });
 });
