@@ -162,6 +162,9 @@ export const gsheetSetUserToken = (token: string) =>
 // RPCs that exposes MinusX as an API
 export { useAppFromExternal } from './sidechat'
 
+export const startRecording = () => sendMessage('startRecording', [])
+export const stopRecording = () => sendMessage('stopRecording', [])
+
 interface Cell {
   value: string | number | boolean | Date
   type: 'string' | 'number' | 'boolean' | 'date'

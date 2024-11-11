@@ -2,9 +2,9 @@ import { IconButton, HStack, Icon, Tooltip } from '@chakra-ui/react';
 import React from 'react';
 import { BsMic, BsMicMuteFill } from "react-icons/bs";
 
-export function VoiceInputButton({ disabled, onClick, isListening }: { disabled: boolean, onClick: () => void, isListening: boolean }) {
+export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled: boolean, onClick: () => void, isRecording: boolean }) {
 
-  const icon = isListening ? BsMicMuteFill: BsMic;
+  const icon = isRecording ? BsMicMuteFill: BsMic;
 
   let button = (
     <Tooltip hasArrow label="Stop" placement='left' borderRadius={5} openDelay={500}>

@@ -28,7 +28,7 @@ import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
 import { UserConfirmation } from './UserConfirmation'
-import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle, readActiveSpreadsheet, getUserSelectedRange } from '../../app/rpc'
+import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle, readActiveSpreadsheet, getUserSelectedRange, stopRecording, startRecording } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
 import AutosizeTextarea from './AutosizeTextarea'
@@ -43,6 +43,7 @@ import { QuickActionButton } from './QuickActionButton'
 import { ChatSuggestions } from './ChatSuggestions'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { VoiceInputButton } from './VoiceInputButton'
+import { getTranscripts } from '../../helpers/recordings'
 
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
@@ -159,15 +160,25 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     }
   }, [taskInProgress]);
 
+  const isRecording = useSelector((state: RootState) => state.settings.isRecording)
+  const voiceInputOnClick = isRecording ? stopRecording : startRecording
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isRecording) {
+        const transcripts = getTranscripts()
+        setInstructions(transcripts.join(' '))
+      }
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [isRecording])
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       runTask()
     }
   }
-
-  const voiceInputOnClick = () => {}
-  const isListening = false
 
   return (
     <VStack
@@ -300,7 +311,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
               </HStack>
               <HStack>
-                <VoiceInputButton disabled={!taskInProgress} onClick={voiceInputOnClick} isListening={isListening}/>
+                <VoiceInputButton disabled={!taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/>
                 {
                   taskInProgress ? (
                     <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>

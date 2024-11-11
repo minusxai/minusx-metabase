@@ -65,7 +65,6 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
             }
             if (rpcEvent.payload.key == 'recordingInProgress') {
                 const isRecording = rpcEvent.payload.value
-                // @ppsreejith: Backward compatible hack.
                 dispatch(setAppRecording(isRecording))
                 if (!isRecording) {
                     endTranscript()

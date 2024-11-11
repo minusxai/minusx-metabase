@@ -32,7 +32,7 @@ interface Settings {
   confirmChanges: boolean
   demoMode: boolean
   intercomBooted: boolean
-  appRecording: boolean
+  isRecording: boolean
 }
 
 const initialState: Settings = {
@@ -48,7 +48,7 @@ const initialState: Settings = {
   confirmChanges: false,
   demoMode: false,
   intercomBooted: false,
-  appRecording: false
+  isRecording: false
 }
 
 export const settingsSlice = createSlice({
@@ -89,7 +89,7 @@ export const settingsSlice = createSlice({
       state.demoMode = action.payload
     },
     setAppRecording: (state, action: PayloadAction<boolean>) => {
-      state.appRecording = action.payload
+      state.isRecording = action.payload
     },
   }
 })
