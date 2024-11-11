@@ -18,7 +18,7 @@ import { initEventCapture, initEventListener } from '../tracking/init';
 import { getExtensionID } from '../helpers/extensionId';
 import { onSubscription } from '../helpers/documentSubscription';
 import { getApp } from '../helpers/app';
-import { getParsedIframeInfo } from '../helpers/origin';
+import { getParsedIframeInfo, IframeInfoWeb } from '../helpers/origin';
 import { captureEvent, GLOBAL_EVENTS, identifyUser, setGlobalProperties } from '../tracking';
 import { useAppFromExternal } from './rpc';
 import { Button } from '@chakra-ui/react';
@@ -92,7 +92,6 @@ const useMinusXMode = () => {
 }
 
 initEventCapture()
-// identifyUser(getExtensionID())
 
 const checkDiagnostics = async () => {
     const tool = getParsedIframeInfo().tool
@@ -131,6 +130,12 @@ const useInitArgs = (cb: Function, args: any[]) => {
 
 const persistor = persistStore(store);
 
+interface GlobalData extends IframeInfoWeb {
+    IS_DEV: string
+    email?: string
+    profile_id?: string
+}
+
 function ProviderApp() {
     const mode = useMinusXMode()
     const tool = getParsedIframeInfo().tool
@@ -157,22 +162,18 @@ function ProviderApp() {
         }
     }, [session_jwt])
     useInitArgs(() => {
-        if (profileId) {
-            const globalData = {
-                IS_DEV: String(configs.IS_DEV),
-                email,
-                profile_id: profileId,
-                ...getParsedIframeInfo()
-            }
-            if (!globalData.email) {
-                delete globalData.email
-            }
-            if (!globalData.profile_id) {
-                delete globalData.profile_id
-            }
-            identifyUser(profileId, globalData)
-            setGlobalProperties(globalData)
+        const globalData: GlobalData = {
+            IS_DEV: String(configs.IS_DEV),
+            ...getParsedIframeInfo()
         }
+        if (email) {
+            globalData.email = email
+        }
+        if (profileId) {
+            globalData.profile_id = profileId
+            identifyUser(profileId, {...globalData})
+        }
+        setGlobalProperties({...globalData})
     }, [profileId])
     // Hack to fix planning stage
     useInitArgs(() => {
