@@ -85,6 +85,7 @@ You can activate the MinusX Sheets add-on from the extensions menu:
       borderWidth={1.5}
       borderLeftColor={"minusxBW.500"}
       alignItems={"start"}
+      overflowY={"scroll"}
     >
       <Markdown content={instructions}/>
     </VStack>
