@@ -26,12 +26,12 @@ export const captureEvent = (type: string, payload?: object) => {
 
 export const identifyUser = (unique_id: string, kv?: Record<string, string>) => {
     identifyPosthogUser(unique_id, kv)
+    setPosthogPersonProperties({...kv})
 }
 
 export const setGlobalProperties = (kv: Record<string, string>) => {
     setGlobalCustomEventProperties(kv)
     setPosthogGlobalProperties(kv)
-    setPosthogPersonProperties(kv)
 }
 
 export const stopEventCapture = () => {
