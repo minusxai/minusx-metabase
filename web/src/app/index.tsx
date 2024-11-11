@@ -140,6 +140,7 @@ function ProviderApp() {
     const mode = useMinusXMode()
     const tool = getParsedIframeInfo().tool
     const toolVersion = getParsedIframeInfo().toolVersion
+    const extId = getParsedIframeInfo().r
     const isGSheets = tool == 'google' && toolVersion == 'sheets'
     const profileId = useSelector((state: RootState) => state.auth.profile_id)
     const email = useSelector((state: RootState) => state.auth.email)
@@ -164,16 +165,21 @@ function ProviderApp() {
     useInitArgs(() => {
         const globalData: GlobalData = {
             IS_DEV: String(configs.IS_DEV),
-            ...getParsedIframeInfo()
-        }
-        if (email) {
-            globalData.email = email
-        }
-        if (profileId) {
-            globalData.profile_id = profileId
-            identifyUser(profileId, {...globalData})
+            ...getParsedIframeInfo(),
+            email,
+            profile_id: profileId
         }
         setGlobalProperties({...globalData})
+        if (profileId) {
+            const personProperties = {
+                email,
+                profile_id: profileId,
+                [`tool_${tool}`]: true,
+                [`toolVersion_${toolVersion}`]: true,
+                r: extId,
+            }
+            identifyUser(profileId, personProperties)
+        }
     }, [profileId])
     // Hack to fix planning stage
     useInitArgs(() => {
