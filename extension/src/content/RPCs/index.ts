@@ -11,6 +11,7 @@ import { initWindowListener, RPCPayload } from './initListeners'
 import { attachMutationListener, detachMutationListener, initMutationObserver } from "./mutationObserver"
 import { respondToOtherTab, forwardToTab, getPendingMessage } from "./crossInstanceComms"
 import { configs } from "../../constants"
+import { startRecording, stopRecording } from "./microphone"
 export const rpc = {
     log,
     queryDOMMap,
@@ -37,7 +38,9 @@ export const rpc = {
     typeText,
     respondToOtherTab,
     forwardToTab,
-    getPendingMessage
+    getPendingMessage,
+    startRecording,
+    stopRecording
 }
 
 type RPC = typeof rpc

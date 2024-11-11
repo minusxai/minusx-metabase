@@ -4443,13 +4443,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-speech-recognition@npm:*":
-  version: 0.0.4
-  resolution: "@types/dom-speech-recognition@npm:0.0.4"
-  checksum: 10c0/0320bc864360c4e0833574438095b8b5c2dff5086ced72e71a9a089a49c93ad0162de70d6f36e1003bb4462e18abbfce16a23fba9022e92fa65234d031f1469b
-  languageName: node
-  linkType: hard
-
 "@types/eslint-scope@npm:^3.7.3":
   version: 3.7.7
   resolution: "@types/eslint-scope@npm:3.7.7"
@@ -4779,15 +4772,6 @@ __metadata:
   dependencies:
     "@types/react": "npm:*"
   checksum: 10c0/6c90d2ed72c5a0e440d2c75d99287e4b5df3e7b011838cdc03ae5cd518ab52164d86990e73246b9d812eaf02ec351d74e3b4f5bd325bf341e13bf980392fd53b
-  languageName: node
-  linkType: hard
-
-"@types/react-speech-recognition@npm:^3":
-  version: 3.9.5
-  resolution: "@types/react-speech-recognition@npm:3.9.5"
-  dependencies:
-    "@types/dom-speech-recognition": "npm:*"
-  checksum: 10c0/1765821eb7f53196853b5aa668e86060a822cc83c75624b786324851d54082e7d83deb9a141f0f69f3b1e0cff2045024351294616627a5d66f6ac47212a0d44f
   languageName: node
   linkType: hard
 
@@ -12745,15 +12729,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-speech-recognition@npm:^3.10.0":
-  version: 3.10.0
-  resolution: "react-speech-recognition@npm:3.10.0"
-  peerDependencies:
-    react: ">=16.8.0"
-  checksum: 10c0/d992de98130f365237ab8e6bbac08a036937d546554f21a72c36854e2d1852f04202f893850003e4b7848db747ae59892cdfae63bc07b17c9cc0d8224c25a826
-  languageName: node
-  linkType: hard
-
 "react-style-singleton@npm:^2.2.1":
   version: 2.2.1
   resolution: "react-style-singleton@npm:2.2.1"
@@ -14848,7 +14823,6 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/react": "npm:^18.0.26"
     "@types/react-dom": "npm:^18.0.10"
-    "@types/react-speech-recognition": "npm:^3"
     "@types/redux-logger": "npm:^3.0.13"
     "@typescript-eslint/eslint-plugin": "npm:^5.57.0"
     "@typescript-eslint/parser": "npm:^5.57.0"
@@ -14883,7 +14857,6 @@ __metadata:
     react-json-view: "npm:^1.21.3"
     react-markdown: "npm:^9.0.1"
     react-redux: "npm:^9.1.2"
-    react-speech-recognition: "npm:^3.10.0"
     react-textarea-autosize: "npm:^8.5.3"
     react-use-intercom: "npm:^5.4.1"
     react-zoom-pan-pinch: "npm:^3.6.1"

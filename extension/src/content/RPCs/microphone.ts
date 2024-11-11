@@ -1,0 +1,46 @@
+import { sendIFrameMessage } from "./domEvents";
+
+const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+recognition.lang = 'en-US';
+recognition.interimResults = true;
+recognition.continuous = true;
+
+let isListening = false;
+
+recognition.onresult = (event) => {
+  let transcript = [];
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+      const result = event.results[i];
+      transcript.push(result[0].transcript);
+  }
+  sendIFrameMessage({
+    key: 'recordingTranscript',
+    value: JSON.stringify(transcript)
+  })
+};
+
+recognition.onerror = (event) => {
+  console.error("Recognition error:", event.error);
+};
+
+export const startRecording = () => {
+  if (!isListening) {
+    recognition.start();
+    isListening = true;
+    sendIFrameMessage({
+      key: 'recordingInProgress',
+      value: true
+    })
+  }
+}
+
+export const stopRecording = () => {
+  if (isListening) {
+    recognition.stop();
+    isListening = false;
+    sendIFrameMessage({
+      key: 'recordingInProgress',
+      value: false
+    })
+  }
+}
