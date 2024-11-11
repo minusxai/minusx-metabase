@@ -10,7 +10,10 @@ import { ActionStack, ActionStatusView, OngoingActionStack } from './ActionStack
 import { ChatContent } from './ChatContent';
 import { getApp } from '../../helpers/app';
 
-function addStatusInfoToActionPlanMessages(messages: Array<ChatMessage>) {
+// adds tool information like execution status and rendering info
+// this stuff is in the 'tool' messages, but we're ony rendering 'assistant' messages
+// so this copy needs to be done while rendering.
+function addToolInfoToActionPlanMessages(messages: Array<ChatMessage>) {
   const toolMessages = messages.filter(message => message.role == 'tool') as Array<ActionChatMessage>
   const toolMessageMap = new Map(toolMessages.map((message: ActionChatMessage) => [message.action.id, message]))
   return messages.map(message => {
@@ -20,7 +23,8 @@ function addStatusInfoToActionPlanMessages(messages: Array<ChatMessage>) {
         if (toolMessage) {
           return {
             ...toolCall,
-            status: toolMessage.action.status
+            status: toolMessage.action.status,
+            renderInfo: toolMessage.content.renderInfo
           }
         } else {
           return toolCall
@@ -39,7 +43,7 @@ function addStatusInfoToActionPlanMessages(messages: Array<ChatMessage>) {
   })
 }
 
-const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number]> = ({
+const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]> = ({
   index,
   role,
   content,
@@ -63,7 +67,8 @@ const Chat: React.FC<ReturnType<typeof addStatusInfoToActionPlanMessages>[number
       actions.push({
         finished: true,
         function: toolCall.function,
-        status: toolCall.status
+        status: toolCall.status,
+        renderInfo: toolCall.renderInfo
       })
     })
     const latency = ('latency' in debug)? Math.round(debug.latency as number /100)/10 : 0
@@ -175,7 +180,7 @@ export const ChatSection = () => {
   // just create a map of all role='tool' messages by their id, and for each
   // tool call in each assistant message, add the status from the corresponding
   // tool message
-  const messagesWithStatus = addStatusInfoToActionPlanMessages(messages)
+  const messagesWithStatus = addToolInfoToActionPlanMessages(messages)
   const Chats = isEmpty(messagesWithStatus) ?
     <HelperMessage /> :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))

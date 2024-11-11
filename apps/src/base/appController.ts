@@ -26,6 +26,10 @@ export function Action(metadata: ActionMetadata) {
     Reflect.defineMetadata('actionMetadata', metadata, target, propertyKey);
   };
 }
+
+// export type ActionReturn = string | void | Promise<string | void>
+// export type CheckMethods<T> = { [K in keyof T]: T[K] extends Function ?
+//   ((...args: any) => ActionReturn) : T[K] }
 export abstract class AppController<T> {
   protected app: App<T>;
 
@@ -109,8 +113,26 @@ export abstract class AppController<T> {
   }
 
   async runAction(fn: string, args: any) {
+    let renderInfo = {
+      text: null,
+      code: null,
+      oldCode: null
+    }
+    // get render info if it exists
+    const metadata = Reflect.getMetadata('actionMetadata', this, fn);
+    if (metadata) {
+      let renderBody = metadata['renderBody']
+      if (typeof renderBody === 'function') {
+        renderInfo = await renderBody(args, await this.app.getState())
+      }
+    }
     // @ts-ignore: Check if controller has function and execute!
-    return await this[fn](args);
+    let result = await this[fn](args);
+    return {
+      type: 'BLANK',
+      ...result,
+      renderInfo
+    }
   }
 }
 

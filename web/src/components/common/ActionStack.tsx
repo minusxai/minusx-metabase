@@ -15,6 +15,7 @@ import { getApp } from "../../helpers/app";
 import 'reflect-metadata';
 import { parseArguments } from '../../planner/plannerActions';
 import { CodeBlock } from './CodeBlock';
+import { ActionRenderInfo } from '../../state/chat/reducer';
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
@@ -25,7 +26,10 @@ function extractMessageContent(input: string): string {
   return match ? match[1] : "";
 }
 
-export type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'>
+export type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'> & {
+  renderInfo: ActionRenderInfo
+}
+
 export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusView>, index:number, content: string, latency: number}> = ({
   actions,
   status,
@@ -46,16 +50,6 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     return action;
   }
 
-  const renderActionArgs = (action: string, args: string) => {
-    if (controller) {
-      const metadata = Reflect.getMetadata('actionMetadata', controller, action);
-      if (metadata) {
-        return metadata['renderBody'](parseArguments(args, action));
-      }
-    }
-    return {text: null, code: null};
-  }
-  
   let title: string = "";
   if (status == 'FINISHED') {
     let titles = actions.map(action => getActionLabels(action.function.name, 'labelDone')) 
@@ -116,7 +110,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           
         </HStack>
         {isExpanded && actions.map((action, index) => {
-          const { text, code } = renderActionArgs(action.function.name, action.function.arguments)
+          const { text, code, oldCode } = action.renderInfo || {text: null, code: null, oldCode: undefined}
           return (
           <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
             <HStack>
@@ -132,7 +126,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-              <CodeBlock code={code || ""} tool={currentTool} oldCode={undefined}/>
+              <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode || undefined}/>
              </Box>
             }
             

@@ -41,8 +41,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Updating SQL query",
     labelDone: "Updated query",
     description: "Updates the SQL query in the Metabase SQL editor and executes it.",
-    renderBody: ({ sql }: { sql: string }) => {
-      return {text: null, code: sql}
+    renderBody: ({ sql }: { sql: string }, appState: MetabaseAppStateSQLEditor) => {
+      const sqlQuery = appState?.sqlQuery
+      return {text: null, code: sql, oldCode: sqlQuery}
     }
   })
   async updateSQLQuery({ sql, executeImmediately = true }: { sql: string, executeImmediately?: boolean }) {

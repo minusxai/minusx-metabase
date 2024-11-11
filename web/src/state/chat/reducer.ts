@@ -83,7 +83,16 @@ export interface ActionPlanChatMessage extends BaseChatMessage {
   content: ActionPlanMessageContent
 }
 
-export type ActionChatMessageContent = Subset<ChatMessageContent, DefaultMessageContent | BlankMessageContent>
+
+export type ActionRenderInfo = {
+  text: string | null,
+  code: string | null,
+  oldCode?: string | null
+}
+
+export type ActionChatMessageContent = Subset<ChatMessageContent, DefaultMessageContent | BlankMessageContent> & {
+  renderInfo: ActionRenderInfo
+}
 export interface ActionChatMessage extends BaseChatMessage {
   role: 'tool'
   action: Action
@@ -220,6 +229,11 @@ export const chatSlice = createSlice({
           index: actionMessageID,
           content: {
             type: 'BLANK',
+            renderInfo: {
+              text: null,
+              code: null,
+              oldCode: null
+            }
           },
           createdAt: timestamp,
           updatedAt: timestamp,
