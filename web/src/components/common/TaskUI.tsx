@@ -42,6 +42,8 @@ import { ImageContext } from '../../state/chat/types'
 import { QuickActionButton } from './QuickActionButton'
 import { ChatSuggestions } from './ChatSuggestions'
 import { getParsedIframeInfo } from '../../helpers/origin'
+import { VoiceInputButton } from './VoiceInputButton'
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
@@ -157,6 +159,21 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       ref.current.focus();
     }
   }, [taskInProgress]);
+
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition
+  } = useSpeechRecognition();
+  const voiceInputOnClick = listening ? SpeechRecognition.stopListening : () => SpeechRecognition.startListening({continuous: true});
+  console.log('Is listening', listening, transcript)
+
+  useEffect(() => {
+    if (listening && transcript) {
+      setInstructions(transcript)
+    }
+  }, [transcript])
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -296,6 +313,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
               </HStack>
               <HStack>
+                {browserSupportsSpeechRecognition && <VoiceInputButton disabled={!taskInProgress} onClick={voiceInputOnClick} isListening={listening}/>}
                 {
                   taskInProgress ? (
                     <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
