@@ -71,7 +71,7 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
                 }
             }
             if (rpcEvent.payload.key == 'recordingTranscript') {
-                const transcript = JSON.parse(rpcEvent.payload.value)
+                const transcript = rpcEvent.payload.value
                 storeTranscripts(transcript)
             }
         } else if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {

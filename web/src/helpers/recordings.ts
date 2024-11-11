@@ -1,7 +1,7 @@
 let _transcripts: string[] = []
 
-export const storeTranscripts = (transcripts: string[]) => {
-  _transcripts.push(...transcripts)
+export const storeTranscripts = (transcript: string) => {
+  _transcripts.push(transcript)
 }
 
 export const getTranscripts = () => {

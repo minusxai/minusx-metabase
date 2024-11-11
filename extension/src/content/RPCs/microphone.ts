@@ -7,15 +7,27 @@ recognition.continuous = true;
 
 let isListening = false;
 
+let previousTranscript = '';
+let currentResultIndex = -1;
 recognition.onresult = (event) => {
   let transcript = [];
   for (let i = event.resultIndex; i < event.results.length; i++) {
       const result = event.results[i];
       transcript.push(result[0].transcript);
   }
+  const completeTranscript = transcript.join('');
+  let transcriptDiff = ''
+  if (event.resultIndex > currentResultIndex) {
+    currentResultIndex = event.resultIndex;
+    previousTranscript = completeTranscript;
+    transcriptDiff = completeTranscript;
+  } else {
+    transcriptDiff = completeTranscript.substring(previousTranscript.length);
+    previousTranscript = completeTranscript
+  }
   sendIFrameMessage({
     key: 'recordingTranscript',
-    value: JSON.stringify(transcript)
+    value: transcriptDiff
   })
 };
 
@@ -27,20 +39,20 @@ export const startRecording = () => {
   if (!isListening) {
     recognition.start();
     isListening = true;
-    sendIFrameMessage({
-      key: 'recordingInProgress',
-      value: true
-    })
   }
+  sendIFrameMessage({
+    key: 'recordingInProgress',
+    value: true
+  })
 }
 
 export const stopRecording = () => {
   if (isListening) {
     recognition.stop();
     isListening = false;
-    sendIFrameMessage({
-      key: 'recordingInProgress',
-      value: false
-    })
   }
+  sendIFrameMessage({
+    key: 'recordingInProgress',
+    value: false
+  })
 }

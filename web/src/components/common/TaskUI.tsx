@@ -167,9 +167,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     const interval = setInterval(() => {
       if (isRecording) {
         const transcripts = getTranscripts()
-        setInstructions(transcripts.join(' '))
+        setInstructions(transcripts.join(''))
       }
-    }, 3000)
+    }, 200)
     return () => clearInterval(interval)
   }, [isRecording])
 
