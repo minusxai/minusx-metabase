@@ -157,14 +157,22 @@ function ProviderApp() {
         }
     }, [session_jwt])
     useInitArgs(() => {
-        const globalData = {
-            IS_DEV: String(configs.IS_DEV),
-            email: email ?? '',
-            profile_id: profileId ?? '',
-            ...getParsedIframeInfo()
+        if (profileId) {
+            const globalData = {
+                IS_DEV: String(configs.IS_DEV),
+                email,
+                profile_id: profileId,
+                ...getParsedIframeInfo()
+            }
+            if (!globalData.email) {
+                delete globalData.email
+            }
+            if (!globalData.profile_id) {
+                delete globalData.profile_id
+            }
+            identifyUser(profileId, globalData)
+            setGlobalProperties(globalData)
         }
-        identifyUser(getExtensionID(), globalData)
-        setGlobalProperties(globalData)
     }, [profileId])
     // Hack to fix planning stage
     useInitArgs(() => {
