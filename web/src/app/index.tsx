@@ -18,7 +18,7 @@ import { initEventCapture, initEventListener } from '../tracking/init';
 import { getExtensionID } from '../helpers/extensionId';
 import { onSubscription } from '../helpers/documentSubscription';
 import { getApp } from '../helpers/app';
-import { getParsedIframeInfo } from '../helpers/origin';
+import { getParsedIframeInfo, IframeInfoWeb } from '../helpers/origin';
 import { captureEvent, GLOBAL_EVENTS, identifyUser, setGlobalProperties } from '../tracking';
 import { useAppFromExternal } from './rpc';
 import { Button } from '@chakra-ui/react';
@@ -92,7 +92,6 @@ const useMinusXMode = () => {
 }
 
 initEventCapture()
-// identifyUser(getExtensionID())
 
 const checkDiagnostics = async () => {
     const tool = getParsedIframeInfo().tool
@@ -131,10 +130,17 @@ const useInitArgs = (cb: Function, args: any[]) => {
 
 const persistor = persistStore(store);
 
+interface GlobalData extends IframeInfoWeb {
+    IS_DEV: string
+    email?: string
+    profile_id?: string
+}
+
 function ProviderApp() {
     const mode = useMinusXMode()
     const tool = getParsedIframeInfo().tool
     const toolVersion = getParsedIframeInfo().toolVersion
+    const extId = getParsedIframeInfo().r
     const isGSheets = tool == 'google' && toolVersion == 'sheets'
     const profileId = useSelector((state: RootState) => state.auth.profile_id)
     const email = useSelector((state: RootState) => state.auth.email)
@@ -157,14 +163,23 @@ function ProviderApp() {
         }
     }, [session_jwt])
     useInitArgs(() => {
-        const globalData = {
+        const globalData: GlobalData = {
             IS_DEV: String(configs.IS_DEV),
-            email: email ?? '',
-            profile_id: profileId ?? '',
-            ...getParsedIframeInfo()
+            ...getParsedIframeInfo(),
+            email,
+            profile_id: profileId
         }
-        identifyUser(getExtensionID(), globalData)
-        setGlobalProperties(globalData)
+        setGlobalProperties({...globalData})
+        if (profileId) {
+            const personProperties = {
+                email,
+                profile_id: profileId,
+                [`tool_${tool}`]: true,
+                [`toolVersion_${toolVersion}`]: true,
+                r: extId,
+            }
+            identifyUser(profileId, personProperties)
+        }
     }, [profileId])
     // Hack to fix planning stage
     useInitArgs(() => {
