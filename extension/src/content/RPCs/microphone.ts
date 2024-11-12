@@ -11,7 +11,7 @@ let previousTranscript = '';
 let currentResultIndex = -1;
 recognition.onresult = (event) => {
   let transcript = [];
-  for (let i = event.resultIndex; i < event.results.length; i++) {
+  for (let i = 0; i < event.results.length; i++) {
       const result = event.results[i];
       transcript.push(result[0].transcript);
   }
