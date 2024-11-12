@@ -39,6 +39,7 @@ const AppInstructions = () => {
   const addonsSearch = `${configs.WEB_URL}/screenshots/addons-search.png`
   const addonsInstall = `${configs.WEB_URL}/screenshots/addons-install.png`
   const addonsActivate = `${configs.WEB_URL}/screenshots/addons-activate.png`
+  const addonsUnavailable = `${configs.WEB_URL}/screenshots/addons-unavailable.png`
   const addOnStatus = useAppStore((state) => state.addOnStatus)
   useEffect(() => {
     if (addOnStatus == 'activated') {
@@ -66,10 +67,17 @@ You can activate the MinusX Sheets add-on from the extensions menu:
 
 ![Add-ons activate](${addonsActivate})
 `
+
+  const unavailableInstructions = `### MinusX is unavailable in this document.
+  This may be due to the following reasons:
+  1. Document is of type .XLSX . Google only supports extensions on native Google Sheets so you'll have to convert the document to Google Sheets using the 'Save as Google Sheets' button in the File menu (creates a copy):
+![Add-ons unavailable](${addonsUnavailable})
+`
   const loadingInstructions = `### Evaluating.`
   const activatedInstructions = `### MinusX is fully active!`
   const instructions = addOnStatus == undefined ?
    loadingInstructions :
+   addOnStatus == 'unavailable' ? unavailableInstructions :
    addOnStatus == 'uninstalled' ? installInstructions : 
    addOnStatus == 'deactivated' ? activateInstructions : activatedInstructions
   return (

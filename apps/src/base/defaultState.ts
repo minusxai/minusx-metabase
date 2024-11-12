@@ -47,7 +47,7 @@ export type CoTPlannerConfig = {
 
 export type ToolPlannerConfig = SimplePlannerConfig | CoTPlannerConfig;
 
-export type AddOnStatus = 'uninstalled' | 'deactivated' | 'activated'
+export type AddOnStatus = 'unavailable' | 'uninstalled' | 'deactivated' | 'activated'
 
 export interface InternalState {
   isEnabled: {
