@@ -1,12 +1,15 @@
 import { IconButton, HStack, Icon, Tooltip } from '@chakra-ui/react';
 import React from 'react';
 import { BsMic, BsMicMuteFill } from "react-icons/bs";
+import { configs } from '../../constants';
 
 export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled: boolean, onClick: () => void, isRecording: boolean }) {
 
   const icon = isRecording ? BsMicMuteFill: BsMic;
   const variant = isRecording ? 'solid' : 'ghost';
-  const label = isRecording ? 'Stop recording' : 'Send a voice message';
+  const labelMessage = isRecording ? 'Stop recording' : 'Type using voice';
+  const comingSoon = !configs.IS_DEV ? ' (Coming Soon!)' : ''
+  const label = `${labelMessage}${comingSoon}`;
 
   let button = (
     <Tooltip hasArrow label={label} placement='right' borderRadius={5} openDelay={500}>
@@ -14,7 +17,7 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
       isRound={true}
       onClick={onClick}
       aria-label='Voice Input'
-      disabled={disabled}
+      isDisabled={disabled || !configs.IS_DEV}
       variant={variant}
       colorScheme='minusxGreen'
       size={'sm'}
