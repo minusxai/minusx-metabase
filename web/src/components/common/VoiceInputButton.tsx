@@ -5,6 +5,7 @@ import { BsMic, BsMicMuteFill } from "react-icons/bs";
 export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled: boolean, onClick: () => void, isRecording: boolean }) {
 
   const icon = isRecording ? BsMicMuteFill: BsMic;
+  const variant = isRecording ? 'solid' : 'ghost';
 
   let button = (
     <Tooltip hasArrow label="Stop" placement='left' borderRadius={5} openDelay={500}>
@@ -13,8 +14,8 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
       onClick={onClick}
       aria-label='Voice Input'
       disabled={disabled}
-      variant={'ghost'}
-      colorScheme="minusxGreen"
+      variant={variant}
+      colorScheme='minusxGreen'
       size={'sm'}
       icon={<Icon as={icon} boxSize={5} />}
       _disabled={{

@@ -169,7 +169,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         const transcripts = getTranscripts()
         setInstructions(transcripts.join(''))
       }
-    }, 200)
+    }, 100)
     return () => clearInterval(interval)
   }, [isRecording])
 
@@ -298,7 +298,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             autoFocus
             aria-label='Enter Instructions'
             value={instructions}
-            isDisabled={taskInProgress}
+            isDisabled={taskInProgress || isRecording}
             onChange={(e) => setInstructions(e.target.value)}
             onKeyDown={onKeyDown}
             style={{ width: '100%', height: "100%" }}
