@@ -20,7 +20,12 @@ export const GLOBAL_EVENTS = {
 }
 
 export const captureEvent = (type: string, payload?: object) => {
-    capturePosthogEvent(type, payload)
+    const clientTimestamp = Date.now()
+    const eventPayload = {
+        ...payload,
+        clientTimestamp
+    }
+    capturePosthogEvent(type, eventPayload)
     // captureCustomEvent(type, payload)
 }
 

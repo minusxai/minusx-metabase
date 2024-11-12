@@ -157,6 +157,7 @@ const Auth = () => {
  
   const session_jwt = useSelector(state => state.auth.session_jwt)
   const [email, setEmail] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
   const [authJWT, setAuthJWT] = useState("");
   const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
   const [otp, setOTP] = useState("");
@@ -208,14 +209,36 @@ const Auth = () => {
 
   const handleSignin = () => {
     // capture email_entered event
+    let processingCanceled = false
+    setIsProcessing(true)
     captureEvent(GLOBAL_EVENTS.email_entered, { email })
+    // Adding this because I don't want to host users hostage
+    const clearProcessing = setTimeout(() => {
+      toast({
+        title: 'Email sending failed',
+        description: "Please try again",
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      })
+      processingCanceled = true
+      setIsProcessing(false)
+    }, 5000)
     authModule.verifyEmail(email).then(({auth_jwt, first}) => {
+      captureEvent(GLOBAL_EVENTS.otp_received, { email, auth_jwt })
+      if (processingCanceled) {
+        return
+      }
       setAuthJWT(auth_jwt)
       setIsFirstTimeUser(first)
-      captureEvent(GLOBAL_EVENTS.otp_received, { email, auth_jwt })
     }).catch((error) => {
       captureEvent(GLOBAL_EVENTS.otp_sending_failed, { email })
+      setIsProcessing(false)
+      clearTimeout(clearProcessing)
     }).then(() => {
+      setIsProcessing(false)
+      clearTimeout(clearProcessing)
       setTimeout(() => {
         otpInputRef.current?.focus();
       }, 0);
@@ -285,8 +308,8 @@ const Auth = () => {
           }}
           borderColor={"minusxBW.600"}
         />
-        <Button colorScheme="minusxGreen" onClick={isOTPMode ? resetLogin : handleSignin} width="100%" aria-label={isOTPMode ? "Change Email" : "Sign in / Sign up"} isDisabled={!isValidEmail(email)}>
-          {isOTPMode ? "Change Email" : "Sign in / Sign up"}
+        <Button colorScheme="minusxGreen" onClick={isOTPMode ? resetLogin : handleSignin} width="100%" aria-label={isOTPMode ? "Change Email" : "Sign in / Sign up"} isDisabled={!isValidEmail(email) || isProcessing}>
+          {isOTPMode ? "Change Email" : isProcessing ? "Sending email" : "Sign in / Sign up"}
         </Button>
         {!isOTPMode && <Text textAlign={"center"} fontSize={"xs"} color={"minusxBW.900"}>We'll send you a code to verify your email address. We promise you'll start using MinusX in {"<"}30 secs!</Text>}
         {isOTPMode  && (
