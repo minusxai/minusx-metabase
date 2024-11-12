@@ -2,6 +2,7 @@ import { getDescriptionsForEventDefinitions } from "./operations";
 import { PosthogAppStateSchema } from "./stateSchema";
 import hardcodedEventDefinitions from "./docs/hardcoded-event-definitions.json";
 import { formatEventDescriptionsAsYaml } from "./operations";
+import expressionsMd from "./docs/expressions.md?raw";
 
 export const DEFAULT_SYSTEM_PROMPT = `You are a master of Posthog and HogQL (which is a flavor of SQL for ClickHouse databases).
 
@@ -21,7 +22,6 @@ Routine to follow:
 4. Determine if you need to add HogQL, if so call the updateHogQLQueryAndExecute tool.
 5. If you estimate that the task can be accomplished with the tool calls selected in the current call, include the markTaskDone tool call at the end. Do not wait for everything to be executed.
 6. If you are waiting for the user's clarification, also mark the task as done.
-7. If you feel you need help with writing HogQL, call the getHogQLExpressionsDocumentation tool.
 
 For your reference, there is a description of the data model.
 
@@ -43,6 +43,12 @@ Here is a detailed list of event definitions and their descriptions.
 <EventDefinitions>
 ${formatEventDescriptionsAsYaml(getDescriptionsForEventDefinitions(hardcodedEventDefinitions))}
 </EventDefinitions>
+
+Here is documentation for HogQL expressions:
+
+<HogQLExpressionsDocs>
+${expressionsMd}
+</HogQLExpressionsDocs>
 
 <AppStateSchema>
 ${JSON.stringify(PosthogAppStateSchema)}

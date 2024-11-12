@@ -79,19 +79,33 @@ export class PosthogController extends AppController<PosthogAppState> {
     }
     return actionContent;
   }
-  async getHogQLExpressionsDocumentation() {
-    const actionContent: BlankMessageContent = {
-      type: "BLANK",
-    };
-    actionContent.content = expressionsMd;
-    return actionContent;
-  }
+  // NOTE(@arpit): adding this to default system prompt for now.
+  // async getHogQLExpressionsDocumentation() {
+  //   const actionContent: BlankMessageContent = {
+  //     type: "BLANK",
+  //   };
+  //   actionContent.content = expressionsMd;
+  //   return actionContent;
+  // }
+
+  // NOTE(@arpit): sometimes minusx calls this tool with a property name instead of event names;
+  // we should probably have another tool to look for common properties?
+  // eg. user asks for split on device; we don't know which event specifically has the device property
+  // minusx should be able to look up for a property similar to 'device' and then just
+  // write a query like 'select count(*), properties.$device_type from events' 
   async getEventCommonProperties({event_names}: {event_names: string[]}) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
     const commonProperties = await getEventCommonProperties(event_names);
-    actionContent.content = JSON.stringify(commonProperties, null, 2);
+    if (commonProperties) {
+      // omit id, is_seen_on_filtered_events, tags
+      let results = commonProperties.results.map((result) => {
+       const {id, is_seen_on_filtered_events, tags, ...rest} = result
+       return rest
+      })
+      actionContent.content = JSON.stringify(results, null, 2);
+    }
     return actionContent;
   }
   async runBackgroundHogqlQuery({query}: {query: string}) {

@@ -13,6 +13,8 @@ HogQL expressions can access data like:
 
 Properties can be accessed with dot notation like `person.properties.$initial_browser` which also works for nested or JSON properties. They can also be accessed with bracket notation like `properties['$feature/cool-flag']`.
 
+> **Note:** `properties["$feature/cool-flag"]` is invalid syntax. You need to use single quotes like `properties['$feature/cool-flag']`.
+
 > **Note:** PostHog's properties always include `$` as a prefix, while custom properties do not (unless you add it).
 
 Property identifiers must be known at query time. For dynamic access, use the JSON manipulation functions from below on the `properties` field directly.

@@ -235,15 +235,15 @@ export interface CommonPropertiesResponse {
     property_type: string;
     is_seen_on_filtered_events: boolean;
     tags: string[];
-  }
+  }[]
 }
 
 export const getEventCommonProperties = async (eventNames: string[]) => {
   const projectId = await memoizedGetCurrentProjectId()
   if (projectId) {
     // a very shitty url but whatever
-    const commonPropertiesUrl = `/api/projects/${projectId}/property_definitions?limit=5&event_names=${JSON.stringify(eventNames.join(','))}&excluded_properties=${JSON.stringify(excluded_properties.join(','))}&is_feature_flag=false `
-    const response = await RPCs.fetchData(
+    const commonPropertiesUrl = `/api/projects/${projectId}/property_definitions?limit=20&event_names=${JSON.stringify(eventNames.join(','))}&excluded_properties=${JSON.stringify(excluded_properties.join(','))}&is_feature_flag=false `
+    const response: CommonPropertiesResponse = await RPCs.fetchData(
       commonPropertiesUrl,
       'GET', 
       undefined,
@@ -251,7 +251,7 @@ export const getEventCommonProperties = async (eventNames: string[]) => {
     ) as CommonPropertiesResponse
     return response
   } else {
-    console.warn("No current project found")
-    return []
+    console.warn("[minusx] No current project found in getEventCommonProperties")
+    return 
   }
 }

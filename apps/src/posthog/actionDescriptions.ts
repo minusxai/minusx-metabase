@@ -40,11 +40,12 @@ export const ACTION_DESCRIPTIONS: ActionDescription[] = [
     },
     description: 'Gets the schemas of the specified tables by their ids in the database.',
   },
-  {
-    name: "getHogQLExpressionsDocumentation",
-    args: {},
-    description: "Gets the documentation for HogQL expressions. Use this tool if you need help with writing HogQL.",
-  },
+  // NOTE(@arpit): adding this to default system prompt for now.
+  // {
+  //   name: "getHogQLExpressionsDocumentation",
+  //   args: {},
+  //   description: "Gets the documentation for HogQL expressions. Use this tool if you need help with writing HogQL.",
+  // },
   {
     name: "getEventCommonProperties",
     args: {
