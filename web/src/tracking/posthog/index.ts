@@ -65,8 +65,16 @@ export const capturePosthogEvent = async (event: string, kv?: object) => {
         return
     }
     try {
-        await RPC.capturePosthogEvent(event, kv)
-        posthog.capture(event, kv)
+        const webData = {
+            ...kv,
+            eventSource: 'web'
+        }
+        posthog.capture(event, webData)
+        const rpcData = {
+            ...kv,
+            eventSource: 'app'
+        }
+        await RPC.capturePosthogEvent(event, rpcData)
     } catch (err) {
         console.error('Error while capturing posthog event', err)
     }
