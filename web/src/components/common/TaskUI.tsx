@@ -309,9 +309,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/>
                 <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/>
                 <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
+                <VoiceInputButton disabled={!taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/>
               </HStack>
               <HStack>
-                <VoiceInputButton disabled={!taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/>
                 {
                   taskInProgress ? (
                     <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>

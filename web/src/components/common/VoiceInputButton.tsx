@@ -11,12 +11,21 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
       <IconButton
       isRound={true}
       onClick={onClick}
-      variant='solid'
-      colorScheme='minusxGreen'
       aria-label='Voice Input'
-      size={"sm"}
-      icon={<Icon as={icon} boxSize={5} />}
       disabled={disabled}
+      variant={'ghost'}
+      colorScheme="minusxGreen"
+      size={'sm'}
+      icon={<Icon as={icon} boxSize={5} />}
+      _disabled={{
+        _hover: {
+          bg: '#eee',
+          color: 'minusxBW.500',
+          cursor: 'not-allowed',
+        },
+        bg: 'transparent',
+        color: 'minusxBW.500',
+      }}
       />
     </Tooltip>
   );
