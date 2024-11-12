@@ -14,6 +14,8 @@ interface ENV {
     IS_DEV: boolean
 }
 
+const IS_DEV = process.env.IS_PROD == 'true' ? false : process.env.NODE_ENV == 'development'
+
 const conf: ENV = {
     BASE_SERVER_URL: process.env.BASE_SERVER_URL || defaults.BASE_SERVER_URL,
     SERVER_PATH: process.env.SERVER_PATH || defaults.SERVER_PATH,
@@ -25,7 +27,7 @@ const conf: ENV = {
     POSTHOG_CONFIGS: process.env.POSTHOG_CONFIGS || defaults.POSTHOG_CONFIGS,
     GIT_COMMIT_ID: process.env.GIT_COMMIT_ID || '',
     NPM_PACKAGE_VERSION: process.env.npm_package_version || '',
-    IS_DEV: process.env.IS_PROD == 'true' ? false : process.env.NODE_ENV == 'development',
+    IS_DEV: IS_DEV,
 }
 
 interface Configs extends ENV {
@@ -44,5 +46,5 @@ export const configs: Configs = {
     AUTH_BASE_URL: SERVER_BASE_URL + conf.AUTH_PATH,
     PLANNER_BASE_URL: SERVER_BASE_URL + conf.PLANNER_PATH,
     LOGGING_BASE_URL: SERVER_BASE_URL + conf.LOGGING_PATH,
-    VOICE_ENABLED: false
+    VOICE_ENABLED: false || IS_DEV,
 }
