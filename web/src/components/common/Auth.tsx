@@ -156,6 +156,7 @@ shuffle(defaultDiscoverySources)
 const Auth = () => {
  
   const session_jwt = useSelector(state => state.auth.session_jwt)
+  const discoveryRef = useRef(null)
   const [email, setEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [authJWT, setAuthJWT] = useState("");
@@ -175,6 +176,9 @@ const Auth = () => {
       })
     }
     if (isFirstTimeUser && !discoverySource) {
+      if (discoveryRef && discoveryRef.current) {
+        discoveryRef.current.focus()
+      }
       return toast({
         title: 'Please fill all the fields',
         description: "Please tell us how you found us!",
@@ -334,6 +338,7 @@ const Auth = () => {
             Please tell us how you found us :)
             <CreatableSelect
               chakraStyles={{container: (base) => ({...base, width: "100%"})}}
+              ref={discoveryRef}
               tagColorScheme="purple"
               placeholder="How did you find us?"
               onChange={(option) => setDiscoverySource(get(option, 'value', ''))}
