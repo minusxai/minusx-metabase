@@ -50,7 +50,11 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
           }
         }
       }, async ({elements, url}) => {
-        if (!isEmpty(elements.extensionMenu) && isEmpty(elements.menuButton)) {
+        if (isEmpty(elements.extensionMenu)) {
+          this.useStore().setState({
+            addOnStatus: 'unavailable'
+          })
+        } else if (isEmpty(elements.menuButton)) {
           this.useStore().setState({
             addOnStatus: 'uninstalled'
           })
