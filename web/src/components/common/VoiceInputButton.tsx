@@ -6,9 +6,10 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
 
   const icon = isRecording ? BsMicMuteFill: BsMic;
   const variant = isRecording ? 'solid' : 'ghost';
+  const label = isRecording ? 'Stop recording' : 'Send a voice message';
 
   let button = (
-    <Tooltip hasArrow label="Stop" placement='left' borderRadius={5} openDelay={500}>
+    <Tooltip hasArrow label={label} placement='right' borderRadius={5} openDelay={500}>
       <IconButton
       isRound={true}
       onClick={onClick}
