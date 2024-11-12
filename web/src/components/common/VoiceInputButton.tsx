@@ -8,7 +8,7 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
   const icon = isRecording ? BsMicMuteFill: BsMic;
   const variant = isRecording ? 'solid' : 'ghost';
   const labelMessage = isRecording ? 'Stop recording' : 'Type using voice';
-  const comingSoon = !configs.IS_DEV ? ' (Coming Soon!)' : ''
+  const comingSoon = !configs.VOICE_ENABLED ? ' (Coming Soon!)' : ''
   const label = `${labelMessage}${comingSoon}`;
 
   let button = (
@@ -17,7 +17,7 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
       isRound={true}
       onClick={onClick}
       aria-label='Voice Input'
-      isDisabled={disabled || !configs.IS_DEV}
+      isDisabled={disabled || !configs.VOICE_ENABLED}
       variant={variant}
       colorScheme='minusxGreen'
       size={'sm'}

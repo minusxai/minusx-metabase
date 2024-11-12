@@ -44,6 +44,7 @@ import { ChatSuggestions } from './ChatSuggestions'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { VoiceInputButton } from './VoiceInputButton'
 import { getTranscripts } from '../../helpers/recordings'
+import { configs } from '../../constants'
 
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
@@ -157,6 +158,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   useEffect(() => {
     if (!taskInProgress && ref?.current) {
       ref.current.focus();
+    }
+    if (configs.VOICE_ENABLED) {
+      stopRecording()
     }
   }, [taskInProgress]);
 
