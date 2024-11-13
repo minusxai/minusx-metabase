@@ -28,6 +28,7 @@ interface ExtractedTable {
 
 
 export interface MetabaseAppStateSQLEditor {
+  type: 'sqlEditor',
   availableDatabases?: string[];
   selectedDatabaseInfo?: ExtractedDataBase;
   relevantTables: ExtractedTable[];
@@ -49,7 +50,9 @@ export interface MetabaseAppStateSQLEditor {
 }
 
 // make this DashboardInfo
-export interface MetabaseAppStateDashboard extends DashboardInfo {}
+export interface MetabaseAppStateDashboard extends DashboardInfo {
+  type: 'dashboard'
+}
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard
 
@@ -71,6 +74,7 @@ export async function convertDOMtoStateSQLQuery() {
   const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
   const sqlVariables = await getSqlVariables();
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
+    type: 'sqlEditor',
     availableDatabases,
     selectedDatabaseInfo,
     relevantTables: tables,

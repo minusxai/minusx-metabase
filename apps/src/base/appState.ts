@@ -1,6 +1,7 @@
 import { createStore } from "./appHook";
 import { defaultInternalState, InternalState } from "./defaultState";
 import { AppController } from "./appController";
+import { Prediction } from "../../../web/src/helpers/LLM/types";
 
 // Runs in web context
 export abstract class AppState<T extends InternalState, K> {
@@ -43,6 +44,11 @@ export abstract class AppState<T extends InternalState, K> {
   // Get query selectors
   public async getQuerySelectorMap() {
     return this.useStore().getState().querySelectorMap;
+  }
+
+  // Get prediction. default is undefined
+  public getPrediction(appState: K): Prediction | undefined {
+    return undefined;
   }
 }
 

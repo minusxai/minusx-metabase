@@ -8,11 +8,13 @@ export async function planActionsRemote({
   actions,
   llmSettings,
   signal,
+  prediction
 }: PlanActionsParams): Promise<LLMResponse> {
   const payload = {
     messages,
     actions,
     llmSettings,
+    prediction
   }
   const response = await getLLMResponse(payload, signal)
   // throw error if aborted

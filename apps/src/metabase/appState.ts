@@ -8,6 +8,7 @@ import { isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
+import { MetabaseAppStateSQLEditor } from "./helpers/DOMToState";
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
@@ -42,6 +43,18 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       return internalState.llmConfigs.dashboard;
     }
     return internalState.llmConfigs.default;
+  }
+
+  public getPrediction(appState: MetabaseAppState) {
+    if (appState.type == 'sqlEditor') {
+      const { sqlQuery } = appState;
+      if (sqlQuery && sqlQuery.length > 0) {
+        return {
+          type: "content",
+          content: sqlQuery
+        }
+      }
+    }
   }
 }
 
