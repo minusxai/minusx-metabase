@@ -19,3 +19,8 @@ export type LLMSettings = {
   response_format: {type: 'text' | 'json_object'},
   tool_choice: string,
 }
+
+export type Prediction = {
+  type: string,
+  content: string
+}

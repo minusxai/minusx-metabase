@@ -81,5 +81,8 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   if (!dashboardInfo.description) {
     delete dashboardInfo.description;
   }
-  return dashboardInfo;
-}
+  return {
+    type: 'dashboard',
+    ...dashboardInfo
+  }
+} 
