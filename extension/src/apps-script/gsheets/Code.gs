@@ -34,14 +34,18 @@ function gsheetSetUserToken(token) {
 function queryContent(content, query){
   const scriptProperties = PropertiesService.getScriptProperties();
   const userToken = scriptProperties.getProperty('userToken');
-  systemMessage = `You are used as a google apps script function. You will be given an array of cell values and a query and your response will be used to set the current cell value.
-<CellValues>${content}</CellValues>
+  const systemMessage = `You are used as a google apps script function. You will be given an array of cell values and a query and your response will be used to set the current cell value.`
+  const userMessage = `<CellValues>${content}</CellValues>
 <Query>${query}</Query>`
   let payload = {
     "messages": [
         {
             "role": "system",
             "content": systemMessage
+        },
+        {
+            "role": "user",
+            "content": userMessage
         }
     ],
     "actions": [],
