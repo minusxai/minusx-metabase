@@ -150,11 +150,17 @@ const migrations = {
     newState.settings.intercomBooted = false
     return newState;
   },
+  // add aiRules
+  12: (state: any) => {
+    let newState = {...state}
+    newState.settings.aiRules = ''
+    return newState;
+  },
 }
 
 const persistConfig = {
   key: 'root',
-  version: 10,
+  version: 12,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),

@@ -15,6 +15,9 @@ General instructions:
 - Use 'coalesce' to return a default value if a column is null, especially in nested json fields.
 - You can see the output of every query as a table. Use that to answer the user's questions, if required.
 
+Special Instructions:
+{{ aiRules }}
+
 Routine to follow:
 1. If there are any images in the last user message, focus on the image
 2. Determine if you need to talk to the user. If yes, call the talkToUser tool.

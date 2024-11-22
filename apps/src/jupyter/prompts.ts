@@ -8,6 +8,9 @@ General instructions:
 - Use plotly for plotting.
 - If any cell is selected (isSelected is true), give extra attention to that cell.
 
+Special instructions:
+{{ aiRules }}
+
 Routine to follow:
 1. If there are any images in the last user message, focus on the image
 2. Determine if you need to talk to the user. If yes, call the talkToUser tool.

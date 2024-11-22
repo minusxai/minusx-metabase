@@ -33,6 +33,7 @@ interface Settings {
   demoMode: boolean
   intercomBooted: boolean
   isRecording: boolean
+  aiRules: string
 }
 
 const initialState: Settings = {
@@ -48,7 +49,8 @@ const initialState: Settings = {
   confirmChanges: false,
   demoMode: false,
   intercomBooted: false,
-  isRecording: false
+  isRecording: false,
+  aiRules: ''
 }
 
 export const settingsSlice = createSlice({
@@ -91,6 +93,9 @@ export const settingsSlice = createSlice({
     setAppRecording: (state, action: PayloadAction<boolean>) => {
       state.isRecording = action.payload
     },
+    setAiRules: (state, action: PayloadAction<string>) => {
+      state.aiRules = action.payload
+    },
   }
 })
 
@@ -98,7 +103,7 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
