@@ -5,6 +5,7 @@ import { renderString } from '../helpers/templatize';
 import { formatLLMMessageHistory } from '../helpers/LLM/context';
 import _ from 'lodash';
 import { AppState } from 'apps/types';
+import { getState } from '../state/store';
 
 
 type LLMPrompts = {
@@ -27,6 +28,7 @@ export function getLLMContextFromState(
 
   const promptContext = {
     state: JSON.stringify(userAppState),
+    aiRules: getState().settings.aiRules || "no special instructions.",
     instructions: lastUserMessage.content.text
   }
   const systemMessage = renderString(prompts.system, promptContext);
