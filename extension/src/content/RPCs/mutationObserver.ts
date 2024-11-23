@@ -1,4 +1,4 @@
-import { debounce, isEqual } from "lodash";
+import { debounce, isEqual, memoize } from "lodash";
 import { DOMQuery, DOMQueryMap, DOMQueryMapResponse, DOMQueryResponse, queryDOMMap, queryDOMSingle } from "./getElements";
 import { sendIFrameMessage } from "./domEvents";
 import { QuerySelector } from "../../helpers/pageParse/querySelectorTypes";
@@ -11,7 +11,6 @@ const domQueries: Array<DOMQueryMap> = []
 interface EventListener {
     querySelector: QuerySelector,
     events: string[],
-    eventHandler: () => void
 }
 const eventListeners: Array<EventListener> = []
 
@@ -24,6 +23,18 @@ export type SubscriptionPayload = {
 type SubscriptionResults = Omit<SubscriptionPayload, 'id'>[]
 
 let oldResponses: SubscriptionResults = []
+
+const notifyNativeEvent = (event: string, eventID: number) => {
+    return memoize(() => {
+        sendIFrameMessage({
+            key: 'nativeEvent',
+            value: {
+                event,
+                eventID
+            }
+        })
+    })
+}
 
 const _masterCallback = () => {
     const newResponses: SubscriptionResults = domQueries.map((query) => {
@@ -44,12 +55,11 @@ const _masterCallback = () => {
             oldResponses[i] = newResponses[i]
         }
     }
-    eventListeners.forEach(({querySelector, events, eventHandler}) => {
+    eventListeners.forEach(({querySelector, events}, index) => {
         const elements = getElementsFromQuerySelector(querySelector)
         elements.forEach(element => {
             events.forEach(event => {
-                console.log('Adding event listener', event, element)
-                element.addEventListener(event, eventHandler)
+                element.addEventListener(event, notifyNativeEvent(event, index))
             })
         })
     })
@@ -73,9 +83,9 @@ export const attachMutationListener = (domQueryMap: DOMQueryMap) => {
     return domQueries.length - 1
 }
 
-export const attachEventsListener = (selector: QuerySelector, eventHandler: () => void, events: string[]=['click']) => {
+export const attachEventsListener = (selector: QuerySelector, events: string[]=['click']) => {
     const eventID = eventListeners.length 
-    eventListeners.push({querySelector: selector, events, eventHandler})
+    eventListeners.push({querySelector: selector, events})
     return eventID
 }
 

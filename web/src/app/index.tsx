@@ -26,6 +26,7 @@ import { convertToMarkdown } from '../helpers/LLM/remote';
 import { setInstructions } from '../state/thumbnails/reducer';
 import { IntercomProvider, useIntercom } from 'react-use-intercom';
 import { endTranscript, storeTranscripts } from '../helpers/recordings';
+import { onNativeEvent } from '../helpers/nativeEvents';
 
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
@@ -62,6 +63,11 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
                 } else {
                     onSubscription(payload)
                 }
+            }
+            if (rpcEvent.payload.key == 'nativeEvent') {
+                const payload = rpcEvent.payload.value
+                // @ppsreejith: Backward compatible hack.
+                onNativeEvent(payload)
             }
             if (rpcEvent.payload.key == 'recordingInProgress') {
                 const isRecording = rpcEvent.payload.value

@@ -32,8 +32,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message']
-    addNativeEventListener(errorMessageSelector, () => {
-      console.log('Error Message Click recorded in web')
+    addNativeEventListener(errorMessageSelector, (event) => {
+      console.log('Event recorded for web', event, errorMessageSelector)
     })
   }
 

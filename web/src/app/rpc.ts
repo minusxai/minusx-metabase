@@ -160,9 +160,9 @@ export const gsheetGetState = () =>
 export const gsheetSetUserToken = (token: string) =>
   sendMessage('gsheetSetUserToken', [token], { direct: true })
 
-export const attachNativeElementsListener = (
+export const attachEventsListener = (
   selector: QuerySelector, events?: string[]
-) => sendMessage('attachNativeElementsListener', [selector, events], { log_rpc: true })
+) => sendMessage('attachEventsListener', [selector, events], { log_rpc: true })
 
 export const addNativeElements = (
   selector: QuerySelector, htmlElement: object, attachType: AttachType
