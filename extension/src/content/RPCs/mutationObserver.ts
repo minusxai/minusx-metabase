@@ -1,10 +1,19 @@
 import { debounce, isEqual } from "lodash";
 import { DOMQuery, DOMQueryMap, DOMQueryMapResponse, DOMQueryResponse, queryDOMMap, queryDOMSingle } from "./getElements";
 import { sendIFrameMessage } from "./domEvents";
+import { QuerySelector } from "../../helpers/pageParse/querySelectorTypes";
+import { getElementsFromQuerySelector } from "../../helpers/pageParse/getElements";
 
 const OBSERVER_INTERVAL = 100
 
 const domQueries: Array<DOMQueryMap> = []
+
+interface EventListener {
+    querySelector: QuerySelector,
+    events: string[],
+    eventHandler: () => void
+}
+const eventListeners: Array<EventListener> = []
 
 export type SubscriptionPayload = {
     id: number
@@ -35,6 +44,15 @@ const _masterCallback = () => {
             oldResponses[i] = newResponses[i]
         }
     }
+    eventListeners.forEach(({querySelector, events, eventHandler}) => {
+        const elements = getElementsFromQuerySelector(querySelector)
+        elements.forEach(element => {
+            events.forEach(event => {
+                console.log('Adding event listener', event, element)
+                element.addEventListener(event, eventHandler)
+            })
+        })
+    })
 }
 
 const masterCallback = debounce(_masterCallback, OBSERVER_INTERVAL, {
@@ -53,6 +71,12 @@ export const attachMutationListener = (domQueryMap: DOMQueryMap) => {
     domQueries.push(domQueryMap)
     masterCallback()
     return domQueries.length - 1
+}
+
+export const attachEventsListener = (selector: QuerySelector, eventHandler: () => void, events: string[]=['click']) => {
+    const eventID = eventListeners.length 
+    eventListeners.push({querySelector: selector, events, eventHandler})
+    return eventID
 }
 
 export const detachMutationListener = (id: number) => {

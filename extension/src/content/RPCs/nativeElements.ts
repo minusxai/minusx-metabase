@@ -1,18 +1,10 @@
-import { getElementsFromQuerySelector } from "../../helpers/pageParse/getElements";
-import { QuerySelector } from "../../types";
-
-let _eventID = 0
+import { QuerySelector } from "../../helpers/pageParse/querySelectorTypes";
+import { attachEventsListener } from "./mutationObserver";
 
 export const attachNativeElementsListener = (selector: QuerySelector, events: string[]=['click']) => {
-  const elements = getElementsFromQuerySelector(selector)
-  const eventID = _eventID++
-  elements.forEach(element => {
-    events.forEach(event => {
-      element.addEventListener(event, () => {
-        console.log('Element clicked', element, eventID)
-      })
-    })
-  })
+  const eventID = attachEventsListener(selector, () => {
+    console.log('Element clicked')
+  }, events)
   return eventID
 }
 
