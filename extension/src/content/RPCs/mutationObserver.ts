@@ -24,8 +24,8 @@ type SubscriptionResults = Omit<SubscriptionPayload, 'id'>[]
 
 let oldResponses: SubscriptionResults = []
 
-const notifyNativeEvent = (event: string, eventID: number) => {
-    return memoize(() => {
+const notifyNativeEvent = memoize((event: string, eventID: number) => {
+    return () => {
         sendIFrameMessage({
             key: 'nativeEvent',
             value: {
@@ -33,8 +33,8 @@ const notifyNativeEvent = (event: string, eventID: number) => {
                 eventID
             }
         })
-    })
-}
+    }
+})
 
 const _masterCallback = () => {
     const newResponses: SubscriptionResults = domQueries.map((query) => {
