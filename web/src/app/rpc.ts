@@ -6,6 +6,7 @@ import {
   AttachType,
   DOMQuery,
   DOMQueryMap,
+  HTMLJSONNode,
   HttpMethod,
   QuerySelector,
   RPC,
@@ -165,7 +166,7 @@ export const attachEventsListener = (
 ) => sendMessage('attachEventsListener', [selector, events], { log_rpc: true })
 
 export const addNativeElements = (
-  selector: QuerySelector, htmlElement: object, attachType: AttachType
+  selector: QuerySelector, htmlElement: HTMLJSONNode, attachType: AttachType='lastChild'
 ) => sendMessage('addNativeElements', [selector, htmlElement, attachType], { log_rpc: true })
 
 // RPCs that exposes MinusX as an API

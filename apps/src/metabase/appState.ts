@@ -35,6 +35,14 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     addNativeEventListener(errorMessageSelector, (event) => {
       console.log('Event recorded for web', event, errorMessageSelector)
     })
+    RPCs.addNativeElements(errorMessageSelector, {
+      tag: 'button',
+      attributes: {
+        id: 'minusx-error',
+        class: 'Button Button--primary',
+      },
+      children: ['Report Error']
+    })
   }
 
   public async getState(): Promise<MetabaseAppState> {
