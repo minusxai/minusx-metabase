@@ -12,6 +12,7 @@ import { attachMutationListener, detachMutationListener, initMutationObserver } 
 import { respondToOtherTab, forwardToTab, getPendingMessage } from "./crossInstanceComms"
 import { configs } from "../../constants"
 import { startRecording, stopRecording } from "./microphone"
+import { addNativeElements, attachNativeElementsListener } from "./nativeElements"
 export const rpc = {
     log,
     queryDOMMap,
@@ -40,7 +41,9 @@ export const rpc = {
     forwardToTab,
     getPendingMessage,
     startRecording,
-    stopRecording
+    stopRecording,
+    attachNativeElementsListener,
+    addNativeElements,
 }
 
 type RPC = typeof rpc
