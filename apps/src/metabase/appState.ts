@@ -32,16 +32,19 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message']
-    addNativeEventListener(errorMessageSelector, (event) => {
-      console.log('Event recorded for web', event, errorMessageSelector)
-    })
-    RPCs.addNativeElements(errorMessageSelector, {
+    const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
       tag: 'button',
       attributes: {
-        id: 'minusx-error',
         class: 'Button Button--primary',
+        style: 'width: 100px; height: 50px; background-color: black; color: white;font-size: 20px;',
       },
       children: ['Report Error']
+    })
+    addNativeEventListener({
+      type: "CSS",
+      selector: `#${uniqueID}`,
+    }, (event) => {
+      console.log('Fix It button event', event)
     })
   }
 

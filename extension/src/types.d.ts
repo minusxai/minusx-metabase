@@ -38,4 +38,4 @@ export type { HttpMethod } from './content/RPCs/fetchData'
 export type { ValidMinusxRootClass, ToolMatcher } from './content/RPCs/domEvents'
 
 export type { IframeInfo } from './content/types'
-export type { AttachType, HTMLJSONNode } from './content/RPCs/nativeElements'
+export type { AttachType, HTMLJSONNode } from './content/RPCs/mutationObserver'

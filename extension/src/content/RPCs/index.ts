@@ -8,11 +8,10 @@ import { getElementScreenCapture } from "./elementScreenCapture"
 import ripple from "./ripple"
 import { fetchData } from "./fetchData"
 import { initWindowListener, RPCPayload } from './initListeners'
-import { attachEventsListener, attachMutationListener, detachMutationListener, initMutationObserver } from "./mutationObserver"
+import { addNativeElements, attachEventsListener, attachMutationListener, detachMutationListener, initMutationObserver } from "./mutationObserver"
 import { respondToOtherTab, forwardToTab, getPendingMessage } from "./crossInstanceComms"
 import { configs } from "../../constants"
 import { startRecording, stopRecording } from "./microphone"
-import { addNativeElements } from "./nativeElements"
 export const rpc = {
     log,
     queryDOMMap,
