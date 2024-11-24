@@ -31,21 +31,21 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     await getRelevantTablesForSelectedDb('');
 
     // Listen to clicks on Error Message
-    const errorMessageSelector = querySelectorMap['error_message']
-    const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
-      tag: 'button',
-      attributes: {
-        class: 'Button Button--primary',
-        style: 'width: 100px; height: 50px; background-color: black; color: white;font-size: 20px;',
-      },
-      children: ['Report Error']
-    })
-    addNativeEventListener({
-      type: "CSS",
-      selector: `#${uniqueID}`,
-    }, (event) => {
-      console.log('Fix It button event', event)
-    })
+    // const errorMessageSelector = querySelectorMap['error_message']
+    // const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
+    //   tag: 'button',
+    //   attributes: {
+    //     class: 'Button Button--primary',
+    //     style: 'width: 100px; height: 50px; background-color: black; color: white;font-size: 20px;',
+    //   },
+    //   children: ['Report Error']
+    // })
+    // addNativeEventListener({
+    //   type: "CSS",
+    //   selector: `#${uniqueID}`,
+    // }, (event) => {
+    //   console.log('Fix It button event', event)
+    // })
   }
 
   public async getState(): Promise<MetabaseAppState> {
