@@ -37,7 +37,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       tag: 'button',
       attributes: {
         class: 'Button Button--primary',
-        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
       },
       children: ['✨ Fix with MinusX']
     })
