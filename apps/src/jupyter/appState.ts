@@ -10,7 +10,7 @@ export class JupyterState extends DefaultAppState<JupyterNotebookState> {
     initialInternalState = jupyterInternalState
     actionController = new JupyterController(this)
 
-    public async setup(retryNo = 1) {
+    public async setup(isDev: boolean, retryNo = 1) {
         // Subscribe & update internal state
         // for jupyter version checking, just do a getState once here and see if it
         // errors out. kind of hacky
@@ -35,7 +35,7 @@ export class JupyterState extends DefaultAppState<JupyterNotebookState> {
                 return
             }
             setTimeout(() => {
-                this.setup(retryNo + 1)
+                this.setup(isDev, retryNo + 1)
             }, Math.pow(2, retryNo) * 1000) // Implement exponential backoff to check Jupyter status
         }
     }

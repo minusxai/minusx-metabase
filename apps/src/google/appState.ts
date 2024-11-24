@@ -12,7 +12,7 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
     initialInternalState = googleSheetInternalState
     actionController = new GoogleController(this)
 
-    public async setup() {
+    public async setup(isDev: boolean) {
       // Subscribe & update internal state
       // setInterval(async () => {
       //   try {
