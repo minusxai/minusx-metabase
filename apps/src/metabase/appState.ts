@@ -1,4 +1,4 @@
-import { addNativeEventListener, RPCs } from "web";
+import { addNativeEventListener, RPCs, chatModule } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { metabaseInternalState } from "./defaultState";
@@ -9,6 +9,7 @@ import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
+
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
@@ -31,21 +32,28 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     await getRelevantTablesForSelectedDb('');
 
     // Listen to clicks on Error Message
-    // const errorMessageSelector = querySelectorMap['error_message']
-    // const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
-    //   tag: 'button',
-    //   attributes: {
-    //     class: 'Button Button--primary',
-    //     style: 'width: 100px; height: 50px; background-color: black; color: white;font-size: 20px;',
-    //   },
-    //   children: ['Report Error']
-    // })
-    // addNativeEventListener({
-    //   type: "CSS",
-    //   selector: `#${uniqueID}`,
-    // }, (event) => {
-    //   console.log('Fix It button event', event)
-    // })
+    const errorMessageSelector = querySelectorMap['error_message_head']
+    const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
+      tag: 'button',
+      attributes: {
+        class: 'Button Button--primary',
+        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+      },
+      children: ['✨ Fix with MinusX']
+    })
+    addNativeEventListener({
+      type: "CSS",
+      selector: `#${uniqueID}`,
+    }, (event) => {
+      RPCs.toggleMinusXRoot('closed', false)
+      chatModule.addUserMessage({
+        content: {
+          type: "DEFAULT",
+          text: "Fix the error",
+          images: []
+        },
+      });
+    })
   }
 
   public async getState(): Promise<MetabaseAppState> {

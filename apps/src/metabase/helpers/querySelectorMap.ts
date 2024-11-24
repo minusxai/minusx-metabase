@@ -53,6 +53,10 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//div[contains(text(), "An error occurred in your query")]/../../div[2]'
   },
+  error_message_head: {
+    type: 'XPATH',
+    selector: '//div[contains(text(), "An error occurred in your query")]'
+  },
   selected_database: {
     type: 'XPATH',
     selector: "//*[@data-testid='native-query-top-bar']/div[1]"
