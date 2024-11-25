@@ -13,7 +13,7 @@ export class PosthogState extends DefaultAppState<PosthogAppState> {
     initialInternalState = posthogInternalState
     actionController = new PosthogController(this)
 
-    public async setup(isDev: boolean) {
+    public async setup() {
         // Subscribe & update internal state
         const state = this.useStore().getState();
         const whitelistQuery = state.whitelistQuery

@@ -3,6 +3,4 @@ export * as utils from './helpers/utils';
 export { memoize } from './cache/cache'
 export { subscribe } from './helpers/documentSubscription';
 export { addNativeEventListener } from './helpers/nativeEvents';
-import chat from './chat/chat';
-
-export const chatModule = chat
+export { configs } from './constants';

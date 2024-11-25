@@ -1,4 +1,4 @@
-import { addNativeEventListener, RPCs, chatModule } from "web";
+import { addNativeEventListener, RPCs, configs } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { metabaseInternalState } from "./defaultState";
@@ -15,7 +15,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
-  public async setup(isDev: boolean) {
+  public async setup() {
     const state = this.useStore().getState();
     const whitelistQuery = state.whitelistQuery
     if (!whitelistQuery) {
@@ -32,7 +32,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     await getRelevantTablesForSelectedDb('');
 
     // Listen to clicks on Error Message
-    if (isDev) {
+    if (configs.IS_DEV) {
       const errorMessageSelector = querySelectorMap['error_message_head']
       const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
         tag: 'button',
@@ -47,7 +47,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         selector: `#${uniqueID}`,
       }, (event) => {
         RPCs.toggleMinusXRoot('closed', false)
-        chatModule.addUserMessage({
+        RPCs.addUserMessage({
           content: {
             type: "DEFAULT",
             text: "Fix the error",

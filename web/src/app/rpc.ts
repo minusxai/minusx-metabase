@@ -186,3 +186,6 @@ export interface GoogleState {
   region: string
   cells: Cell[][]
 }
+
+import chat from '../chat/chat';
+export const { addUserMessage } = chat;

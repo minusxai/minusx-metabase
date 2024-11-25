@@ -125,7 +125,7 @@ const checkDiagnostics = async () => {
 const init = _.once((mode: string, ref: React.RefObject<HTMLInputElement>, isAppOpen: boolean) => {
     initEventListener();
     dispatch(setIframeInfo(getParsedIframeInfo()))
-    getApp().setup(configs.IS_DEV)
+    getApp().setup()
     initRPCSync(ref)
     setMinusxMode(mode)
     toggleMinusX(!isAppOpen)
