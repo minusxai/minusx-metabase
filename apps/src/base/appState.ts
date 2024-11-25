@@ -9,7 +9,7 @@ export abstract class AppState<T extends InternalState, K> {
   _stateCache: Record<string, K> = {};
 
   // 1. Handles setup
-  async setup(isDev: boolean = false) {}
+  async setup() {}
 
   // 2. Get diagnostics
   async getDiagnostics(): Promise<object> {
