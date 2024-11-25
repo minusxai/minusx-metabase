@@ -11,8 +11,9 @@ import {
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
 import Settings, {DevToolsToggle} from './Settings'
+import AddtionalContext from './AdditionalContext'
 import TaskUI from './TaskUI'
-import { BiCog, BiMessage } from 'react-icons/bi'
+import { BiCog, BiMessage, BiFolder, BiFolderOpen } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { register } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
@@ -152,6 +153,16 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 onClick={() => dispatch(updateSidePanelTabName('chat'))}
               />
             </Tooltip>
+            <Tooltip hasArrow label="Additional Context" placement='bottom' borderRadius={5} openDelay={500}>
+              <IconButton
+                variant={sidePanelTabName === 'context' ? 'solid' : 'ghost'}
+                colorScheme="minusxGreen"
+                aria-label="Additional Context"
+                size={'sm'}
+                icon={<Icon as={BiFolderOpen} boxSize={5} />}
+                onClick={() => dispatch(updateSidePanelTabName('context'))}
+              />
+            </Tooltip>
             <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
               variant={sidePanelTabName === 'settings' ? 'solid' : 'ghost'}
@@ -165,7 +176,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           </HStack>
         </HStack>
       </VStack>
-      {sidePanelTabName === 'settings' ? <Settings /> : <TaskUI ref={ref}/>}
+      {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
+      {sidePanelTabName === 'context' ? <AddtionalContext /> : null}
+      {sidePanelTabName === 'settings' ? <Settings /> : null}
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
