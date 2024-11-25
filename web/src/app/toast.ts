@@ -7,7 +7,7 @@ const width = getParsedIframeInfo().width
 const toast = (props: ToastParams) => {
     return toastRaw({
         containerStyle: {
-            width: `${width}px`
+            width: `${parseInt(width) - 20}px`
         },
         ...props
     })

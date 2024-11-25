@@ -150,7 +150,7 @@ export const LLMContext: React.FC<null> = () => {
     const systemMessage = messages.length ? messages[0] : {}
     const nonSystemMessages = messages.length ? messages.slice(1, messages.length - 1) : []
     
-    const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px"}
+    const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px", overflow: "scroll"}
     const reloadAppState = async () => {
       const app = getApp()
       const appState = await app.getState() as AppState
