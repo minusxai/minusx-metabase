@@ -32,7 +32,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const heatUpCache = async (times = 0) => {
       const tables = await getRelevantTablesForSelectedDb('');
       if (isEmpty(tables)) {
-        console.log('Tables empty retrying')
         setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
       }
     }

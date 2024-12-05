@@ -166,12 +166,38 @@ function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchem
   return dedupeTables(lowered);
 }
 
-const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
+const getQueriesFromTop500Cards = async (dbId: number) => {
   const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${500}`, 'GET') as SearchApiResponse;
-  console.log('Table search response', jsonResponse);
-  let tableAndSchemas: TableAndSchema[] = [];
+  let queries: string[] = [];
   for (const card of _.get(jsonResponse, 'data', [])) {
     const query = _.get(card, 'dataset_query.native.query');
+    if (query) {
+      queries.push(query);
+    }
+  }
+  return queries;
+}
+
+export const memoizeGetQueriesFromTop500Cards = memoize(getQueriesFromTop500Cards, DEFAULT_TTL);
+
+const CHAR_BUDGET = 100000
+
+const getCleanedTopQueries = async (dbId: number) => {
+  const queries = await memoizeGetQueriesFromTop500Cards(dbId);
+  queries.sort((a,b) => a.length - b.length);
+  let totalChars = queries.reduce((acc, query) => acc + query.length, 0);
+  while (totalChars > CHAR_BUDGET && queries.length > 0) {
+    totalChars -= queries.pop()?.length || 0;
+  }
+  return queries
+}
+
+export const memoizeGetCleanedTopQueries = _.memoize(getCleanedTopQueries);
+
+const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
+  const queries = await memoizeGetQueriesFromTop500Cards(dbId);
+  let tableAndSchemas: TableAndSchema[] = [];
+  for (const query of queries) {
     if (query) {
       const tablesInfo = getTablesFromSqlRegex(query);
       tableAndSchemas.push(...tablesInfo);
@@ -179,8 +205,6 @@ const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
   }
   return lowerAndDefaultSchemaAndDedupe(tableAndSchemas);
 }
-
-export const memoizedGetTablesAndSchemasFromTop500Cards = memoize(getTablesAndSchemasFromTop500Cards, DEFAULT_TTL);
 
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
@@ -190,7 +214,7 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   }
   // do all fetching at once?
   const [tablesFromCards, {tables: top200}, {tables: allTables}] = await Promise.all([
-    memoizedGetTablesAndSchemasFromTop500Cards(dbId),
+    getTablesAndSchemasFromTop500Cards(dbId),
     memoizedGetTop200TablesWithoutFields(dbId),
     memoizedGetDatabaseTablesWithoutFields(dbId)
   ]).catch(err => {
