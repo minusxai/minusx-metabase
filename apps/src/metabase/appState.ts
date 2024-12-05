@@ -32,31 +32,28 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     await getRelevantTablesForSelectedDb('');
 
     // Listen to clicks on Error Message
-    // if (configs.IS_DEV) {
-    if (true) {
-      const errorMessageSelector = querySelectorMap['error_message_head']
-      const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
-        tag: 'button',
-        attributes: {
-          class: 'Button Button--primary',
-          style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+    const errorMessageSelector = querySelectorMap['error_message_head']
+    const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
+      tag: 'button',
+      attributes: {
+        class: 'Button Button--primary',
+        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+      },
+      children: ['✨ Fix with MinusX']
+    })
+    addNativeEventListener({
+      type: "CSS",
+      selector: `#${uniqueID}`,
+    }, (event) => {
+      RPCs.toggleMinusXRoot('closed', false)
+      RPCs.addUserMessage({
+        content: {
+          type: "DEFAULT",
+          text: "Fix the error",
+          images: []
         },
-        children: ['✨ Fix with MinusX']
-      })
-      addNativeEventListener({
-        type: "CSS",
-        selector: `#${uniqueID}`,
-      }, (event) => {
-        RPCs.toggleMinusXRoot('closed', false)
-        RPCs.addUserMessage({
-          content: {
-            type: "DEFAULT",
-            text: "Fix the error",
-            images: []
-          },
-        });
-      })
-    }
+      });
+    })
   }
 
   public async getState(): Promise<MetabaseAppState> {
