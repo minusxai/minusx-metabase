@@ -38,6 +38,10 @@ Routine to follow:
 5. If you estimate that the task can be accomplished with the tool calls selected in the current call, include the markTaskDone tool call at the end. Do not wait for everything to be executed.
 6. If you are waiting for the user's clarification, also mark the task as done.
 
+<SavedQueries>
+{{ savedQueries }}
+</SavedQueries>
+
 <SqlVariablesDocs>
 ${SqlVariablesDocs}
 </SqlVariablesDocs>

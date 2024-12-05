@@ -1,13 +1,13 @@
-import { addNativeEventListener, RPCs, configs } from "web";
+import { addNativeEventListener, RPCs, configs, renderString } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPage } from "./helpers/dashboard/util";
-import { isEmpty } from "lodash";
+import { cloneDeep, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
-import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
+import { getRelevantTablesForSelectedDb, getSelectedDbId, memoizeGetCleanedTopQueries } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 
 
@@ -73,7 +73,21 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if (isDashboardPage(url)) {
       return internalState.llmConfigs.dashboard;
     }
-    return internalState.llmConfigs.default;
+    const defaultConfig = internalState.llmConfigs.default;
+    if ('systemPrompt' in defaultConfig) {
+      const dbId = await getSelectedDbId();
+      let savedQueries: string[] = []
+      if (dbId) {
+        savedQueries = await memoizeGetCleanedTopQueries(dbId)
+      }
+      return {
+        ...defaultConfig,
+        systemPrompt: renderString(defaultConfig.systemPrompt, {
+          savedQueries: savedQueries.join('\n--END_OF_QUERY\n')
+        })
+      }
+    }
+    return defaultConfig
   }
 }
 
