@@ -168,6 +168,7 @@ function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchem
 
 const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
   const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${500}`, 'GET') as SearchApiResponse;
+  console.log('Table search response', jsonResponse);
   let tableAndSchemas: TableAndSchema[] = [];
   for (const card of _.get(jsonResponse, 'data', [])) {
     const query = _.get(card, 'dataset_query.native.query');

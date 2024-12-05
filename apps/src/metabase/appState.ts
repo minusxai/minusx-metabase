@@ -29,7 +29,14 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       });
     })
     // heat up cache
-    await getRelevantTablesForSelectedDb('');
+    const heatUpCache = async (times = 0) => {
+      const tables = await getRelevantTablesForSelectedDb('');
+      if (isEmpty(tables)) {
+        console.log('Tables empty retrying')
+        setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
+      }
+    }
+    heatUpCache();
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']
