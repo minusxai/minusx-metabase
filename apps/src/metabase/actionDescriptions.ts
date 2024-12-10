@@ -34,7 +34,7 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
       }
     },
     description: `Updates the SQL Query in a metabase SQL editor and executes it. This also sets the "queryExecuted" state to true after execution (if executeImmediately is true).
-    Make sure you know the column names for the tables you are using. If you don't know the column names, use the getTableSchemasById tool to get the column names and other information about tables.
+    Make sure you know the column names for the tables you are using.
     Use the executeImmediately parameter to control whether to execute the query immediately after updating it. If you want to execute the query immediately, set this parameter to true. If you want to wait for the user's clarification, or perform other actions
     such as setting a variable, set this parameter to false.
     `,
@@ -72,19 +72,19 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     },
     description: 'Sets the visualization type in the visualization settings. "queryExecuted" state must be true to use this tool. Always have at least one dimension and one metric.',
   },
-  {
-    name: 'getTableSchemasById',
-    args: {
-      ids: {
-        type: 'array',
-        items: {
-          type: 'number'
-        },
-        description: "The ids of the tables to get the schemas for."
-      }
-    },
-    description: 'Gets the schemas of the specified tables by their ids in the database. Can pass multiple ids to get multiple tables in a single call.',
-  },
+  // {
+  //   name: 'getTableSchemasById',
+  //   args: {
+  //     ids: {
+  //       type: 'array',
+  //       items: {
+  //         type: 'number'
+  //       },
+  //       description: "The ids of the tables to get the schemas for."
+  //     }
+  //   },
+  //   description: 'Gets the schemas of the specified tables by their ids in the database. Can pass multiple ids to get multiple tables in a single call.',
+  // },
   {
     name: 'searchTableSchemas',
     args: {
