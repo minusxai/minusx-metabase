@@ -98,6 +98,9 @@ export const settingsSlice = createSlice({
     setAiRules: (state, action: PayloadAction<string>) => {
       state.aiRules = action.payload
     },
+    setSavedQueries: (state, action: PayloadAction<boolean>) => {
+      state.savedQueries = action.payload
+    },
   }
 })
 
@@ -105,7 +108,7 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
