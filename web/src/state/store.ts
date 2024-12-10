@@ -156,6 +156,11 @@ const migrations = {
     newState.settings.aiRules = ''
     return newState;
   },
+  13: (state: any) => {
+    let newState = {...state}
+    newState.settings.savedQueries = false
+    return newState;
+  }
 }
 
 const persistConfig = {

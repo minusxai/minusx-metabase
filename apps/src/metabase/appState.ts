@@ -77,6 +77,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if ('systemPrompt' in defaultConfig) {
       const dbId = await getSelectedDbId();
       let savedQueries: string[] = []
+      const appSettings = RPCs.getAppSettings()
+      console.log('App Settings are', appSettings)
       if (dbId) {
         savedQueries = await memoizeGetCleanedTopQueries(dbId)
       }

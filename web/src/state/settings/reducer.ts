@@ -34,6 +34,7 @@ interface Settings {
   intercomBooted: boolean
   isRecording: boolean
   aiRules: string
+  savedQueries: boolean
 }
 
 const initialState: Settings = {
@@ -50,7 +51,8 @@ const initialState: Settings = {
   demoMode: false,
   intercomBooted: false,
   isRecording: false,
-  aiRules: ''
+  aiRules: '',
+  savedQueries: false
 }
 
 export const settingsSlice = createSlice({
