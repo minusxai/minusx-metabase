@@ -286,7 +286,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return await this.getTableSchemasById({ 
         ids: map(data, (table: any) => table.id).slice(
           0,
-          10
+          20
         )
       })
     }
