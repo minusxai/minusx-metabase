@@ -217,12 +217,7 @@ const getTablesAndSchemasFromTop1000Cards = async (dbId: number) => {
   return lowerAndDefaultSchemaAndDedupe(tableAndSchemas);
 }
 
-export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
-  const dbId = await getSelectedDbId();
-  if (!dbId) {
-    console.warn("[minusx] No database selected when getting relevant tables");
-    return [];
-  }
+const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => { 
   // do all fetching at once?
   const [tablesFromCards, {tables: top200}, {tables: allTables}] = await Promise.all([
     getTablesAndSchemasFromTop1000Cards(dbId),
@@ -243,6 +238,28 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   }))
   // merge top200 and validTables, prioritizing validTables
   const relevantTables = dedupeAndCountTables([...validTables, ...top200]);
+  return relevantTables
+}
+
+const getMemoizedRelevantTablesForSelectedDb = _.memoize(getAllRelevantTablesForSelectedDb, (dbId: number, sql: string) => `${dbId}:${sql}`);
+
+export const getTopSchemasForSelectedDb = async (sql = ''): Promise<string[]> => {
+  const dbId = await getSelectedDbId();
+  if (!dbId) {
+    console.warn("[minusx] No database selected when getting relevant tables");
+    return [];
+  }
+  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
+  return _.chain(relevantTables).map('schema').uniq().value();
+}
+
+export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
+  const dbId = await getSelectedDbId();
+  if (!dbId) {
+    console.warn("[minusx] No database selected when getting relevant tables");
+    return [];
+  }
+  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
   const relevantTablesTop200 = relevantTables.slice(0, 200);
   return relevantTablesTop200;
 }
