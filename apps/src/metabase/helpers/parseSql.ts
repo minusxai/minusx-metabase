@@ -4,6 +4,7 @@ import { uniqBy } from 'lodash';
 export interface TableAndSchema {
   name: string;
   schema: string;
+  count?: number;
 }
 
 // using regex version so we don't have to deal with metabase filters syntax

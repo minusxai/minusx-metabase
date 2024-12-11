@@ -154,16 +154,27 @@ function getTableKey<T extends TableAndSchema>(tableInfo: T): string {
   return `${tableInfo.schema?.toLowerCase()}.${tableInfo.name.toLowerCase()}`;
 }
 
-function dedupeTables<T extends TableAndSchema>(tables: T[]): T[] {
-  return _.uniqBy(tables, (tableInfo) => getTableKey(tableInfo));
+function dedupeAndCountTables<T extends TableAndSchema>(tables: T[]): T[] {
+  const counts: Record<string, T> = {}
+  tables.forEach(tableInfo => {
+    const key = getTableKey(tableInfo);
+    const existingCount = tableInfo.count || 1;
+    const totalCounts = counts[key]?.count || 0;
+    counts[key] = {
+      ...tableInfo,
+      count: totalCounts + existingCount
+    }
+  })
+  return _.chain(counts).toArray().orderBy(['count'], ['desc']).value();
 }
 
 function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchema[] {
   let lowered = tables.map(tableInfo => ({
     name: tableInfo.name.toLowerCase(),
-    schema: tableInfo.schema?.toLowerCase() || 'public'
+    schema: tableInfo.schema?.toLowerCase() || 'public',
+    count: tableInfo.count
   }));
-  return dedupeTables(lowered);
+  return dedupeAndCountTables(lowered);
 }
 
 const getQueriesFromTop1000Cards = async (dbId: number) => {
@@ -222,18 +233,16 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     throw err;
   });
   const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
-  const tablesToTest = dedupeTables([...tablesFromSql, ...tablesFromCards]);
+  const tablesToTest = dedupeAndCountTables([...tablesFromSql, ...tablesFromCards]);
   const allTablesAsMap = _.fromPairs(allTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
-  const validTables = tablesToTest.flatMap(tableInfo => {
-    const tableKey = getTableKey(tableInfo);
-    if (allTablesAsMap[tableKey]) {
-      return [allTablesAsMap[tableKey]];
-    } else {
-      return [];
-    }
-  })
+  const validTables = tablesToTest.filter(
+    tableInfo => getTableKey(tableInfo) in allTablesAsMap
+  ).map(tableInfo => ({
+    ...tableInfo,
+    ...allTablesAsMap[getTableKey(tableInfo)]
+  }))
   // merge top200 and validTables, prioritizing validTables
-  const relevantTables = dedupeTables([...validTables, ...top200]);
+  const relevantTables = dedupeAndCountTables([...validTables, ...top200]);
   const relevantTablesTop200 = relevantTables.slice(0, 200);
   return relevantTablesTop200;
 }
