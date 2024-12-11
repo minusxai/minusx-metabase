@@ -1,8 +1,10 @@
-import { getState } from "../state/store"
+import { getState, RootState } from "../state/store"
 
 export const getAppSettings = () => {
-  const settings = getState().settings
+  const state: RootState = getState()
+  const settings = state.settings
   return {
-    savedQueries: settings.savedQueries
+    savedQueries: settings.savedQueries,
+    newSearch: settings.newSearch
   }
 }

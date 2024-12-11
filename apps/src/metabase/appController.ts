@@ -281,10 +281,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     );
     // only get top 10 tables
     const data = get(resp, "data", []);
-    // const ids = map(data, (table: any) => table.id).slice(
-    //   0,
-    //   10
-    // );
+    const appSettings = RPCs.getAppSettings()
+    if (!appSettings.newSearch) {
+      return await this.getTableSchemasById({ 
+        ids: map(data, (table: any) => table.id).slice(
+          0,
+          10
+        )
+      })
+    }
     const top_schemas = await getTopSchemasForSelectedDb()
     const top5schemas = new Set(top_schemas.slice(0, 5))
     const top10schemas = new Set(top_schemas.slice(0, 10))

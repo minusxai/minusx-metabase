@@ -160,6 +160,11 @@ const migrations = {
     let newState = {...state}
     newState.settings.savedQueries = false
     return newState;
+  },
+  14: (state: any) => {
+    let newState = {...state}
+    newState.settings.newSearch = false
+    return newState;
   }
 }
 
