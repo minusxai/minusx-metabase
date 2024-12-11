@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setNewSearch } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -69,6 +69,8 @@ const SettingsPage = () => {
   const discordLink = 'https://discord.gg/jtFeyPMDcH'
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+  const savedQueries = useSelector((state: RootState) => state.settings.savedQueries)
+  const newSearch = useSelector((state: RootState) => state.settings.newSearch)
   const auth = useSelector((state: RootState) => state.auth)
   const billing = useSelector((state: RootState) => state.billing)
   useEffect(() => {
@@ -90,6 +92,12 @@ const SettingsPage = () => {
   })
   const updateConfirmChanges = (value: boolean) => {
     dispatch(setConfirmChanges(value))
+  }
+  const updateSavedQueries = (value: boolean) => {
+    dispatch(setSavedQueries(value))
+  }
+  const updateNewSearch = (value: boolean) => {
+    dispatch(setNewSearch(value))
   }
   const updateDemoMode = (value: boolean) => {
     dispatch(setDemoMode(value))
@@ -153,6 +161,14 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">User Confirmation</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
           </HStack>
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Saved Queries</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={savedQueries} onChange={(e) => updateSavedQueries(e.target.checked)} />
+          </HStack>}
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">New Search</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={newSearch} onChange={(e) => updateNewSearch(e.target.checked)} />
+          </HStack>}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Demo Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={demoMode} onChange={(e) => updateDemoMode(e.target.checked)} />

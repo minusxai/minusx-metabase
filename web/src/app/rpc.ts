@@ -142,7 +142,6 @@ export const typeText = (
   index: number = 0
 ) => sendMessage('typeText', [selector, value, index], { log_rpc: true })
 
-export { getUserConfirmation } from './userConfirmation'
 export const gdocReadSelected = () =>
   sendMessage('gdocReadSelected', [], { direct: true })
 export const gdocRead = () => sendMessage('gdocRead', [], { direct: true })
@@ -169,9 +168,6 @@ export const addNativeElements = (
   selector: QuerySelector, htmlElement: HTMLJSONNode, attachType: AttachType='lastChild'
 ) => sendMessage('addNativeElements', [selector, htmlElement, attachType], { log_rpc: true })
 
-// RPCs that exposes MinusX as an API
-export { useAppFromExternal } from './sidechat'
-
 export const startRecording = () => sendMessage('startRecording', [])
 export const stopRecording = () => sendMessage('stopRecording', [])
 
@@ -187,5 +183,10 @@ export interface GoogleState {
   cells: Cell[][]
 }
 
+// RPCs that exposes MinusX as an API
+
+export { useAppFromExternal } from './sidechat'
 import chat from '../chat/chat';
 export const { addUserMessage } = chat;
+export { getUserConfirmation } from './userConfirmation'
+export { getAppSettings } from './appSettings'

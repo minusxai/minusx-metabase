@@ -5,39 +5,55 @@ import {
   Button,
   Textarea,
 } from '@chakra-ui/react'
-import { ActionPlanChatMessage, ChatMessage } from '../../state/chat/reducer'
+import { ActionChatMessage, ActionPlanChatMessage, ChatMessage } from '../../state/chat/reducer'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { getApp } from '../../helpers/app'
 import { ActionDescription } from 'apps/types'
 import { executeAction, ExecutableAction } from '../../planner/plannerActions'
+import ReactJson from 'react-json-view'
 
+interface ExecutableActionWithOutput extends ExecutableAction {
+  output: ActionChatMessage
+}
 
 export const ActionsView: React.FC<null> = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
   const actionPlans: ActionPlanChatMessage[] = []
+  const toolMap: Record<string, ActionChatMessage> = {}
   activeThread.messages.forEach((message: ChatMessage) => {
     if (message.role == 'assistant') {
       actionPlans.push(message)
     }
+    if (message.role == 'tool') {
+      toolMap[message.action.id] = message
+    }
   })
   const allActions = actionPlans.map((actionPlan) => {
-    const actions: ExecutableAction[] = []
+    
+    const actions: ExecutableActionWithOutput[] = []
     actionPlan.content.toolCalls.forEach((tool, index) => {
       actions.push({
         index: index,
         function: tool.function.name,
         args: tool.function.arguments,
+        output: toolMap[tool.id]
       })
     })
     return actions
   })
   const actionButtons = allActions.map((actions, index) => {
     const actionDisplay = actions.map((action, jindex) => {
+      let jsonOutput = action.output.content
+      try {
+        jsonOutput = JSON.parse(action.output.content.content)
+      } catch (e) {}
       return (
         <Box key={jindex}>
           <Text>Function: {action.function}</Text>
           <Text>Args: {action.args}</Text>
+          <Text>Output:</Text>
+          <ReactJson src={jsonOutput} collapsed={true}/>
           <Button colorScheme={"minusxGreen"} mt={2} onClick={() => executeAction(action)}>Execute</Button>
         </Box>
       )

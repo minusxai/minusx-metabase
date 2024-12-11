@@ -13,6 +13,7 @@ import {
 import {
   extractTableInfo,
   getSelectedDbId,
+  getTopSchemasForSelectedDb,
 } from "./helpers/getDatabaseSchema";
 import { get, map, set, truncate } from "lodash";
 import {
@@ -278,11 +279,45 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       `/api/search?models=table&table_db_id=${selectedDbId}&filters_items_in_personal_collection=only&q=${query}`,
       "GET"
     );
-    // only get top 20 tables
-    const ids = map(get(resp, "data", []), (table: any) => table.id).slice(
-      0,
-      20
-    );
+    // only get top 10 tables
+    const data = get(resp, "data", []);
+    const appSettings = RPCs.getAppSettings()
+    if (!appSettings.newSearch) {
+      return await this.getTableSchemasById({ 
+        ids: map(data, (table: any) => table.id).slice(
+          0,
+          20
+        )
+      })
+    }
+    const top_schemas = await getTopSchemasForSelectedDb()
+    const top5schemas = new Set(top_schemas.slice(0, 5))
+    const top10schemas = new Set(top_schemas.slice(0, 10))
+    const top20schemas = new Set(top_schemas.slice(0, 20))
+    const tableInfos = map(data, (table: any) => ({
+      id: table.id,
+      schema: table.table_schema,
+    }))
+    const top10searchResults: any[] = []
+    const top5SchemaResults: any[] = []
+    const top10SchemaResults: any[] = []
+    const top20SchemaResults: any[] = []
+    for (let i = 0; i < tableInfos.length; i++) {
+      const totalLength = top10searchResults.length + top5SchemaResults.length + top10SchemaResults.length + top20SchemaResults.length
+      if (totalLength >= 25) {
+        break;
+      } else if (top5schemas.has(tableInfos[i].schema)) {
+        top5SchemaResults.push(tableInfos[i])
+      } else if (top10schemas.has(tableInfos[i].schema) && top10SchemaResults.length < 5) {
+        top10SchemaResults.push(tableInfos[i])
+      } else if (top20schemas.has(tableInfos[i].schema) && top20SchemaResults.length < 5) {
+        top20SchemaResults.push(tableInfos[i])
+      } else if (top10searchResults.length < 10) {
+        top10searchResults.push(tableInfos[i])
+      }
+    }
+    const searchResults = top5SchemaResults.concat(top10SchemaResults).concat(top20SchemaResults).concat(top10searchResults)
+    const ids: number[] = map(searchResults, (table: any) => table.id)
     const content = await this.getTableSchemasById({ ids });
     return content;
   }

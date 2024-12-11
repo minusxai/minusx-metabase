@@ -154,23 +154,61 @@ function getTableKey<T extends TableAndSchema>(tableInfo: T): string {
   return `${tableInfo.schema?.toLowerCase()}.${tableInfo.name.toLowerCase()}`;
 }
 
-function dedupeTables<T extends TableAndSchema>(tables: T[]): T[] {
-  return _.uniqBy(tables, (tableInfo) => getTableKey(tableInfo));
+function dedupeAndCountTables<T extends TableAndSchema>(tables: T[]): T[] {
+  const counts: Record<string, T> = {}
+  tables.forEach(tableInfo => {
+    const key = getTableKey(tableInfo);
+    const existingCount = tableInfo.count || 1;
+    const totalCounts = counts[key]?.count || 0;
+    counts[key] = {
+      ...tableInfo,
+      count: totalCounts + existingCount
+    }
+  })
+  return _.chain(counts).toArray().orderBy(['count'], ['desc']).value();
 }
 
 function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchema[] {
   let lowered = tables.map(tableInfo => ({
     name: tableInfo.name.toLowerCase(),
-    schema: tableInfo.schema?.toLowerCase() || 'public'
+    schema: tableInfo.schema?.toLowerCase() || 'public',
+    count: tableInfo.count
   }));
-  return dedupeTables(lowered);
+  return dedupeAndCountTables(lowered);
 }
 
-const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
-  const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${500}`, 'GET') as SearchApiResponse;
-  let tableAndSchemas: TableAndSchema[] = [];
+const getQueriesFromTop1000Cards = async (dbId: number) => {
+  const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${1000}`, 'GET') as SearchApiResponse;
+  let queries: string[] = [];
   for (const card of _.get(jsonResponse, 'data', [])) {
     const query = _.get(card, 'dataset_query.native.query');
+    if (query) {
+      queries.push(query);
+    }
+  }
+  return queries;
+}
+
+export const memoizeGetQueriesFromTop1000Cards = memoize(getQueriesFromTop1000Cards, DEFAULT_TTL);
+
+const CHAR_BUDGET = 200000
+
+const getCleanedTopQueries = async (dbId: number) => {
+  const queries = await memoizeGetQueriesFromTop1000Cards(dbId);
+  queries.sort((a,b) => a.length - b.length);
+  let totalChars = queries.reduce((acc, query) => acc + query.length, 0);
+  while (totalChars > CHAR_BUDGET && queries.length > 0) {
+    totalChars -= queries.pop()?.length || 0;
+  }
+  return queries
+}
+
+export const memoizeGetCleanedTopQueries = _.memoize(getCleanedTopQueries);
+
+const getTablesAndSchemasFromTop1000Cards = async (dbId: number) => {
+  const queries = await memoizeGetQueriesFromTop1000Cards(dbId);
+  let tableAndSchemas: TableAndSchema[] = [];
+  for (const query of queries) {
     if (query) {
       const tablesInfo = getTablesFromSqlRegex(query);
       tableAndSchemas.push(...tablesInfo);
@@ -179,17 +217,10 @@ const getTablesAndSchemasFromTop500Cards = async (dbId: number) => {
   return lowerAndDefaultSchemaAndDedupe(tableAndSchemas);
 }
 
-export const memoizedGetTablesAndSchemasFromTop500Cards = memoize(getTablesAndSchemasFromTop500Cards, DEFAULT_TTL);
-
-export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
-  const dbId = await getSelectedDbId();
-  if (!dbId) {
-    console.warn("[minusx] No database selected when getting relevant tables");
-    return [];
-  }
+const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => { 
   // do all fetching at once?
   const [tablesFromCards, {tables: top200}, {tables: allTables}] = await Promise.all([
-    memoizedGetTablesAndSchemasFromTop500Cards(dbId),
+    getTablesAndSchemasFromTop1000Cards(dbId),
     memoizedGetTop200TablesWithoutFields(dbId),
     memoizedGetDatabaseTablesWithoutFields(dbId)
   ]).catch(err => {
@@ -197,18 +228,38 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     throw err;
   });
   const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
-  const tablesToTest = dedupeTables([...tablesFromSql, ...tablesFromCards]);
+  const tablesToTest = dedupeAndCountTables([...tablesFromSql, ...tablesFromCards]);
   const allTablesAsMap = _.fromPairs(allTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
-  const validTables = tablesToTest.flatMap(tableInfo => {
-    const tableKey = getTableKey(tableInfo);
-    if (allTablesAsMap[tableKey]) {
-      return [allTablesAsMap[tableKey]];
-    } else {
-      return [];
-    }
-  })
+  const validTables = tablesToTest.filter(
+    tableInfo => getTableKey(tableInfo) in allTablesAsMap
+  ).map(tableInfo => ({
+    ...tableInfo,
+    ...allTablesAsMap[getTableKey(tableInfo)]
+  }))
   // merge top200 and validTables, prioritizing validTables
-  const relevantTables = dedupeTables([...validTables, ...top200]);
+  const relevantTables = dedupeAndCountTables([...validTables, ...top200]);
+  return relevantTables
+}
+
+const getMemoizedRelevantTablesForSelectedDb = _.memoize(getAllRelevantTablesForSelectedDb, (dbId: number, sql: string) => `${dbId}:${sql}`);
+
+export const getTopSchemasForSelectedDb = async (sql = ''): Promise<string[]> => {
+  const dbId = await getSelectedDbId();
+  if (!dbId) {
+    console.warn("[minusx] No database selected when getting relevant tables");
+    return [];
+  }
+  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
+  return _.chain(relevantTables).map('schema').uniq().value();
+}
+
+export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
+  const dbId = await getSelectedDbId();
+  if (!dbId) {
+    console.warn("[minusx] No database selected when getting relevant tables");
+    return [];
+  }
+  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
   const relevantTablesTop200 = relevantTables.slice(0, 200);
   return relevantTablesTop200;
 }

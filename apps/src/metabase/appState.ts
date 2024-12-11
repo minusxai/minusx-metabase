@@ -1,13 +1,13 @@
-import { addNativeEventListener, RPCs, configs } from "web";
+import { addNativeEventListener, RPCs, configs, renderString } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPage } from "./helpers/dashboard/util";
-import { isEmpty } from "lodash";
+import { cloneDeep, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
-import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
+import { getRelevantTablesForSelectedDb, getSelectedDbId, memoizeGetCleanedTopQueries } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 
 
@@ -29,34 +29,38 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       });
     })
     // heat up cache
-    await getRelevantTablesForSelectedDb('');
+    const heatUpCache = async (times = 0) => {
+      const tables = await getRelevantTablesForSelectedDb('');
+      // console.log('Relevant Tables:', tables)
+      if (isEmpty(tables)) {
+        setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
+      }
+    }
+    heatUpCache();
 
     // Listen to clicks on Error Message
-    // if (configs.IS_DEV) {
-    if (true) {
-      const errorMessageSelector = querySelectorMap['error_message_head']
-      const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
-        tag: 'button',
-        attributes: {
-          class: 'Button Button--primary',
-          style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+    const errorMessageSelector = querySelectorMap['error_message_head']
+    const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
+      tag: 'button',
+      attributes: {
+        class: 'Button Button--primary',
+        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+      },
+      children: ['✨ Fix with MinusX']
+    })
+    addNativeEventListener({
+      type: "CSS",
+      selector: `#${uniqueID}`,
+    }, (event) => {
+      RPCs.toggleMinusXRoot('closed', false)
+      RPCs.addUserMessage({
+        content: {
+          type: "DEFAULT",
+          text: "Fix the error",
+          images: []
         },
-        children: ['✨ Fix with MinusX']
-      })
-      addNativeEventListener({
-        type: "CSS",
-        selector: `#${uniqueID}`,
-      }, (event) => {
-        RPCs.toggleMinusXRoot('closed', false)
-        RPCs.addUserMessage({
-          content: {
-            type: "DEFAULT",
-            text: "Fix the error",
-            images: []
-          },
-        });
-      })
-    }
+      });
+    })
   }
 
   public async getState(): Promise<MetabaseAppState> {
@@ -70,7 +74,22 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if (isDashboardPage(url)) {
       return internalState.llmConfigs.dashboard;
     }
-    return internalState.llmConfigs.default;
+    const defaultConfig = internalState.llmConfigs.default;
+    if ('systemPrompt' in defaultConfig) {
+      const dbId = await getSelectedDbId();
+      let savedQueries: string[] = []
+      const appSettings = RPCs.getAppSettings()
+      if (dbId && appSettings.savedQueries) {
+        savedQueries = await memoizeGetCleanedTopQueries(dbId)
+      }
+      return {
+        ...defaultConfig,
+        systemPrompt: renderString(defaultConfig.systemPrompt, {
+          savedQueries: savedQueries.join('\n--END_OF_QUERY\n')
+        })
+      }
+    }
+    return defaultConfig
   }
 }
 
