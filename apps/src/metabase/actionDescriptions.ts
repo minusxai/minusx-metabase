@@ -72,19 +72,19 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     },
     description: 'Sets the visualization type in the visualization settings. "queryExecuted" state must be true to use this tool. Always have at least one dimension and one metric.',
   },
-  // {
-  //   name: 'getTableSchemasById',
-  //   args: {
-  //     ids: {
-  //       type: 'array',
-  //       items: {
-  //         type: 'number'
-  //       },
-  //       description: "The ids of the tables to get the schemas for."
-  //     }
-  //   },
-  //   description: 'Gets the schemas of the specified tables by their ids in the database. Can pass multiple ids to get multiple tables in a single call.',
-  // },
+  {
+    name: 'getTableSchemasById',
+    args: {
+      ids: {
+        type: 'array',
+        items: {
+          type: 'number'
+        },
+        description: "The ids of the tables to get the schemas for."
+      }
+    },
+    description: 'Gets the schemas of the specified tables by their ids in the database. Can pass multiple ids to get multiple tables in a single call.',
+  },
   {
     name: 'searchTableSchemas',
     args: {
