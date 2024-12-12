@@ -246,6 +246,7 @@ const getTableMapFromTop1000Cards = async (dbId: number) => {
       });
     }
   }
+  // Optimisation to remove long tail of table assocs
   for (const tableID in relatedTableIDMap) {
     const relatedTableCounts = relatedTableIDMap[tableID];
     if (Object.keys(relatedTableCounts).length <= 10) {
@@ -296,7 +297,17 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
   }))
   // merge top200 and validTables, prioritizing validTables
   const relevantTables = dedupeAndCountTables([...validTables, ...top200]);
-  return relevantTables
+  // Add related table IDs if available
+  const tableMap = await memoizedGetTableMapFromTop1000Cards(dbId)
+  const relevantTablesWithRelated = relevantTables.map(tableInfo => {
+    return ({
+      ...tableInfo,
+      ...(tableInfo.id in tableMap ? {
+        related_tables_freq: tableMap[tableInfo.id]
+      } : {}),
+    })
+  })
+  return relevantTablesWithRelated
 }
 
 const getMemoizedRelevantTablesForSelectedDb = _.memoize(getAllRelevantTablesForSelectedDb, (dbId: number, sql: string) => `${dbId}:${sql}`);
