@@ -217,7 +217,65 @@ const getTablesAndSchemasFromTop1000Cards = async (dbId: number) => {
   return lowerAndDefaultSchemaAndDedupe(tableAndSchemas);
 }
 
-const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => { 
+const getTableMapFromTop1000Cards = async (dbId: number) => {
+  const queries = await memoizeGetQueriesFromTop1000Cards(dbId);
+  let relatedTableAndSchemas: TableAndSchema[][] = [];
+  for (const query of queries) {
+    if (query) {
+      relatedTableAndSchemas.push(getTablesFromSqlRegex(query));
+    }
+  }
+  const { tables: allTables } = await memoizedGetDatabaseTablesWithoutFields(dbId)
+  const tableIDMap = _.fromPairs(allTables.map(tableInfo => [getTableKey(tableInfo), tableInfo.id]));
+  const relatedTableIDMap: Record<number, Record<number, number>> = {};
+  for (const tablesInfo of relatedTableAndSchemas) {
+    const tablesInfoIDs = tablesInfo.map(tableInfo => tableIDMap[getTableKey(tableInfo)]).filter(_.isNumber);
+    for (const tableID of tablesInfoIDs) {
+      if (!(tableID in relatedTableIDMap)) {
+        relatedTableIDMap[tableID] = {}
+      }
+      tablesInfoIDs.forEach(relatedTableID => {
+        if (relatedTableID == tableID) {
+          return
+        }
+        if (relatedTableID in relatedTableIDMap[tableID]) {
+          relatedTableIDMap[tableID][relatedTableID] += 1;
+        } else {
+          relatedTableIDMap[tableID][relatedTableID] = 1;
+        }
+      });
+    }
+  }
+  for (const tableID in relatedTableIDMap) {
+    const relatedTableCounts = relatedTableIDMap[tableID];
+    if (Object.keys(relatedTableCounts).length <= 10) {
+      continue
+    }
+    for (const relatedTableID in relatedTableCounts) {
+      if (relatedTableCounts[relatedTableID] < 2) {
+        delete relatedTableIDMap[tableID][relatedTableID]
+      }
+    }
+  }
+  return relatedTableIDMap
+  // interface TableCount {
+  //   id: number;
+  //   count: number
+  // }
+  // const relatedTableCounts: Record<number, TableCount[]> = {}
+  // for (const tableID in relatedTableIDMap) {
+  //   // Store TableCounts in descending order by count
+  //   relatedTableCounts[tableID] = _.chain(relatedTableIDMap[tableID]).map((count, relatedTableID) => ({
+  //     id: parseInt(relatedTableID),
+  //     count
+  //   })).orderBy(['count'], ['desc']).value().slice(0, 20)
+  // }
+  // return relatedTableCounts
+}
+
+export const memoizedGetTableMapFromTop1000Cards = _.memoize(getTableMapFromTop1000Cards);
+
+const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => {
   // do all fetching at once?
   const [tablesFromCards, {tables: top200}, {tables: allTables}] = await Promise.all([
     getTablesAndSchemasFromTop1000Cards(dbId),
