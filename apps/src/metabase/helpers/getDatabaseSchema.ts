@@ -125,6 +125,20 @@ const getTop200TablesWithoutFields = async (dbId: number) => {
   return dbId? await memoizedGetTop200TablesWithoutFields(dbId) : undefined;
 }
 
+const fetchTableData = async (tableId: number) => {
+  const resp: any = await RPCs.fetchData(
+    `/api/table/${tableId}/query_metadata`,
+    "GET"
+  );
+  if (!resp) {
+    console.warn("Failed to get table schema", tableId, resp);
+    return "missing";
+  }
+  return extractTableInfo(resp, true);
+}
+
+export const memoizedFetchTableData = memoize(fetchTableData, DEFAULT_TTL);
+
 // only database info, no table info at all
 const getDatabaseInfo = async (dbId: number) => {
   const jsonResponse = await fetchData(`/api/database/${dbId}`, 'GET');
