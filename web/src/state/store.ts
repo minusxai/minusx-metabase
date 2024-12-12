@@ -163,7 +163,7 @@ const migrations = {
   },
   14: (state: any) => {
     let newState = {...state}
-    newState.settings.newSearch = false
+    newState.settings.newSearch = true
     return newState;
   }
 }
