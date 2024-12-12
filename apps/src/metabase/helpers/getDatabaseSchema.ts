@@ -262,30 +262,26 @@ const getTableMapFromTop1000Cards = async (dbId: number) => {
   }
   // Optimisation to remove long tail of table assocs
   for (const tableID in relatedTableIDMap) {
-    const relatedTableCounts = relatedTableIDMap[tableID];
-    if (Object.keys(relatedTableCounts).length <= 10) {
-      continue
-    }
-    for (const relatedTableID in relatedTableCounts) {
-      if (relatedTableCounts[relatedTableID] < 2) {
-        delete relatedTableIDMap[tableID][relatedTableID]
+    const relatedTableCounts = relatedTableIDMap[tableID]; 
+    if (Object.keys(relatedTableCounts).length > 10) {
+      for (const relatedTableID in relatedTableCounts) {
+        if (relatedTableCounts[relatedTableID] < 2) {
+          delete relatedTableCounts[relatedTableID]
+        }
       }
     }
+    relatedTableIDMap[tableID] = relatedTableCounts;
   }
-  return relatedTableIDMap
-  // interface TableCount {
-  //   id: number;
-  //   count: number
-  // }
-  // const relatedTableCounts: Record<number, TableCount[]> = {}
-  // for (const tableID in relatedTableIDMap) {
-  //   // Store TableCounts in descending order by count
-  //   relatedTableCounts[tableID] = _.chain(relatedTableIDMap[tableID]).map((count, relatedTableID) => ({
-  //     id: parseInt(relatedTableID),
-  //     count
-  //   })).orderBy(['count'], ['desc']).value().slice(0, 20)
-  // }
-  // return relatedTableCounts
+  const sortedRelatedTableIDMap: Record<number, number[][]> = {}
+  for (const tableID in relatedTableIDMap) {
+    const relatedTableCounts = _.chain(relatedTableIDMap[tableID])
+        .toPairs()
+        .orderBy(1, 'desc')
+        .map(([relatedTableID, count]) => [parseInt(relatedTableID), count])
+        .value();
+    sortedRelatedTableIDMap[tableID] = relatedTableCounts;
+  }
+  return sortedRelatedTableIDMap
 }
 
 export const memoizedGetTableMapFromTop1000Cards = _.memoize(getTableMapFromTop1000Cards);
