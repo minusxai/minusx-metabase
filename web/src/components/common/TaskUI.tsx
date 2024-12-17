@@ -45,6 +45,89 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { VoiceInputButton } from './VoiceInputButton'
 import { getTranscripts } from '../../helpers/recordings'
 import { configs } from '../../constants'
+import axios from 'axios'
+
+const SEMANTIC_PROPERTIES_API = configs.SERVER_BASE_URL + "/semantic/properties"
+const SEMANTIC_QUERY_API = configs.SERVER_BASE_URL + "/semantic/query"
+
+const SemanticLayer = () => {
+  const [measures, setMeasures] = useState<string[]>([])
+  const [dimensions, setDimensions] = useState<string[]>([])
+  const [appliedMeasures, setAppliedMeasures] = useState<Set>(new Set())
+  const [appliedDimensions, setAppliedDimensions] = useState<Set>(new Set())
+  const [query, setQuery] = useState<string>('')
+  const applyMeasure = (measure: string) => {
+    if (appliedMeasures.has(measure)) {
+      appliedMeasures.delete(measure)
+      setAppliedMeasures(new Set(appliedMeasures))
+    } else {
+      setAppliedMeasures(new Set(appliedMeasures.add(measure)))
+    }
+  }
+  const applyDimension = (dimension: string) => {
+    if (appliedDimensions.has(dimension)) {
+      appliedDimensions.delete(dimension)
+      setAppliedDimensions(new Set(appliedDimensions))
+    } else {
+      setAppliedDimensions(new Set(appliedDimensions.add(dimension)))
+    }
+  }
+  useEffect(() => {
+    const fetchData = async () => {
+      const payload = {
+        measures: Array.from(appliedMeasures),
+        dimensions: Array.from(appliedDimensions),
+      }
+      const response = await axios.post(SEMANTIC_QUERY_API, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await response.data
+      const query = data.query
+      if (query) {
+        setQuery(query)
+      }
+    }
+    try {
+      if (appliedMeasures.size > 0 || appliedDimensions.size > 0) {
+        fetchData()
+      }
+    } catch (err) {
+      console.log('Error is', err)
+    }
+  }, [appliedMeasures, appliedDimensions])
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await axios.get(SEMANTIC_PROPERTIES_API, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await response.data
+      setMeasures(data.measures || [])
+      setDimensions(data.dimensions || [])
+    }
+    try {
+      fetchData()
+    } catch (err) {
+      console.log('Error is', err)
+    }
+  }, [])
+  return (
+    <VStack>
+      <HStack>
+        <Text>Measures</Text>
+        {measures.map((measure) => <Button style={{border: appliedMeasures.has(measure) ? '1px solid red' : ''}} key={measure} onClick={() => applyMeasure(measure)}>{measure}</Button>)}
+      </HStack>
+      <HStack>
+        <Text>Dimensions</Text>
+        {dimensions.map((dimension) => <Button style={{border: appliedDimensions.has(dimension) ? '1px solid red' : ''}} key={dimension} onClick={() => applyDimension(dimension)}>{dimension}</Button>)}
+      </HStack>
+      <Text>Query: {query}</Text>
+    </VStack>
+  )
+}
 
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
@@ -296,6 +379,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           }
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         } */}
+        {
+          configs.IS_DEV && <SemanticLayer />
+        }
         <Stack position={"relative"}>
           <AutosizeTextarea
             ref={ref}
