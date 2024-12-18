@@ -32,6 +32,7 @@ import { UserConfirmation } from './UserConfirmation'
 import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle, readActiveSpreadsheet, getUserSelectedRange, stopRecording, startRecording } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
+import { semanticPlanner } from '../../planner/semanticPlan'
 import AutosizeTextarea from './AutosizeTextarea'
 import { setMinusxMode } from '../../app/rpc'
 import { updateAppMode } from '../../state/settings/reducer'
@@ -251,9 +252,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       if (demoMode) {
         setMetaQuestion(instructions)
         if (currentTool === "jupyter") {
-          await metaPlanner({text: instructions})
-        }
-        else if (currentTool === "metabase") {
           await metaPlanner({text: instructions})
         }
         setMetaQuestion('')

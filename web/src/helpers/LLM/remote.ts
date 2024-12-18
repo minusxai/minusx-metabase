@@ -121,7 +121,7 @@ export const getMetaPlan = async(text: string, steps: string[], messageHistory: 
   return parsed.steps;
 }
 
-export const getSemanticQuery = async(text: string, semanticLayer: any): Promise<string[]> => {
+export const getSemanticQuery = async(text: string, semanticLayer: any): Promise<any> => {
   const app = getApp()
   
   const llmSettings = {
@@ -130,8 +130,7 @@ export const getSemanticQuery = async(text: string, semanticLayer: any): Promise
     tool_choice: "none",
     response_format: {
       type: "json_schema",
-      json_schema: 'semantic_query',
-      strict: true
+      json_schema: {"name": "semantic_query"}
     }
   }
   //ToDo vivek: move all this to apps, as a new prompt config (part of llm config)

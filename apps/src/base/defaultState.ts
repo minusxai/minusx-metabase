@@ -23,6 +23,16 @@ export type ActionDescription = {
       type: string;
       items?: {
         type: string;
+        properties?: {
+          [key: string]: {
+            type: string;
+            description: string;
+            enum?: string[];
+            items?: {
+              type: string;
+            };
+          };
+        };
       };
       description?: string;
       enum?: string[];
