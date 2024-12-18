@@ -51,7 +51,16 @@ export interface MetabaseAppStateSQLEditor {
 // make this DashboardInfo
 export interface MetabaseAppStateDashboard extends DashboardInfo {}
 
-export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard
+export interface SemanticMember {
+  name: string;
+  description?: string;
+}
+export interface MetabaseSemanticQueryAppState {
+  measures: SemanticMember[];
+  dimensions: SemanticMember[];
+}
+
+export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
 
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
@@ -95,13 +104,27 @@ export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDash
     return dashboardInfo as MetabaseAppStateDashboard;
 };
 
+export async function semanticQueryState() {
+  const appSettings = RPCs.getAppSettings()
+  const measures = appSettings.measures
+  const dimensions = appSettings.dimensions
+  const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {
+    measures,
+    dimensions
+  }
+  return metabaseSemanticQueryAppState;
+}
+
 export async function convertDOMtoState() {
   const url = await queryURL();
   if (isDashboardPage(url)) {
     return await convertDOMtoStateDashboard();
-  } else {
-    return await convertDOMtoStateSQLQuery();
   }
+  const appSettings = RPCs.getAppSettings()
+  if(appSettings.semanticPlanner) {
+    return await semanticQueryState();
+  }
+  return await convertDOMtoStateSQLQuery();
 }
 async function getSqlVariables() {
   const currentCard = await RPCs.getMetabaseState("qb.card") as Card;

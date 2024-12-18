@@ -1,7 +1,8 @@
 import { InternalState } from "../base/defaultState";
 import {
   ACTION_DESCRIPTIONS_DASHBOARD,
-  ACTION_DESCRIPTIONS_PLANNER
+  ACTION_DESCRIPTIONS_PLANNER,
+  ACTION_DESCRIPTIONS_SEMANTIC_QUERY
 } from "./actionDescriptions";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 
@@ -12,6 +13,8 @@ import {
   DEFAULT_PLANNER_USER_PROMPT,
   DEFAULT_SUGGESTIONS_SYSTEM_PROMPT,
   DEFAULT_SUGGESTIONS_USER_PROMPT,
+  SEMANTIC_QUERY_SYSTEM_PROMPT,
+  SEMANTIC_QUERY_USER_PROMPT
 } from "./prompts";
 
 export const metabaseInternalState: InternalState = {
@@ -58,6 +61,18 @@ export const metabaseInternalState: InternalState = {
       userPrompt: DASHBOARD_PLANNER_USER_PROMPT,
       actionDescriptions: ACTION_DESCRIPTIONS_DASHBOARD,
     },
+    semanticQuery: {
+      type: "simple",
+      llmSettings: {
+        model: "gpt-4o",
+        temperature: 0,
+        response_format: { type: "text" },
+        tool_choice: "required",
+      },
+      systemPrompt: SEMANTIC_QUERY_SYSTEM_PROMPT,
+      userPrompt: SEMANTIC_QUERY_USER_PROMPT,
+      actionDescriptions: ACTION_DESCRIPTIONS_SEMANTIC_QUERY,
+    }
   },
   querySelectorMap,
   whitelistQuery: {

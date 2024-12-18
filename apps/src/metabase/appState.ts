@@ -74,11 +74,14 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if (isDashboardPage(url)) {
       return internalState.llmConfigs.dashboard;
     }
+    const appSettings = RPCs.getAppSettings()
+    if(appSettings.semanticPlanner) {
+      return internalState.llmConfigs.semanticQuery;
+    }
     const defaultConfig = internalState.llmConfigs.default;
     if ('systemPrompt' in defaultConfig) {
       const dbId = await getSelectedDbId();
       let savedQueries: string[] = []
-      const appSettings = RPCs.getAppSettings()
       if (dbId && appSettings.savedQueries) {
         savedQueries = await memoizeGetCleanedTopQueries(dbId)
       }

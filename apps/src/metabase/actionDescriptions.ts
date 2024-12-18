@@ -172,3 +172,56 @@ export const ACTION_DESCRIPTIONS_DASHBOARD: ActionDescription[] = [
     description: 'Gets more detailed information about the specified dashcards, including the visualization type, the query, and the data displayed. Can pass multiple ids to get multiple dashcards.',
   }
 ];
+
+export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
+  ...COMMON_ACTION_DESCRIPTIONS,
+  {
+    name: 'getSemanticQuery',
+    args: {
+      reasoning: {
+        type: 'string',
+        description: "The reasoning behind the measures, dimensions and filters used in the query based on the user's request."
+      },
+      measures: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "The measures to use in the query."
+      },
+      dimensions: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "The dimensions to use in the query."
+      },
+      filters: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            member: {
+              type: 'string',
+              description: "The dimension or measure to filter on."
+            },
+            operator: {
+              type: 'string',
+              enum: ['equals', 'notEquals', 'gt', 'gte', 'lt', 'lte', 'contains', 'notContains'],
+              description: "The operator to use for the filter."
+            },
+            values: {
+              type: 'array',
+              items: {
+                type: 'string',
+              },
+              description: "The values to filter on."
+            }
+          }
+        }
+      }
+    },
+    description: 'Generates SQL using cube.js semantic query API based on the measures, dimensions and filters provided.',
+    required: ["reasoning", "measures", "dimensions", "filters"],
+  }
+];
