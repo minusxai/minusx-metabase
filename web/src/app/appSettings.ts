@@ -14,11 +14,11 @@ export const getAppSettings = () => {
   }
 }
 
-export const setUsedMeasuresAction = (measures: SemanticMember[]) => {
+export const setUsedMeasuresAction = (measures: string[]) => {
   dispatch(setUsedMeasures(measures))
 }
 
-export const setUsedDimensionsAction = (measures: SemanticMember[]) => {
+export const setUsedDimensionsAction = (measures: string[]) => {
   dispatch(setUsedDimensions(measures))
 }
 

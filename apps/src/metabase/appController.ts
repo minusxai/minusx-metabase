@@ -473,34 +473,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: JSON.stringify({measures, dimensions, filters, reasoning})}
     }
   })
-  async getSemanticQuery({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: SemanticMember[], dimensions: SemanticMember[], filters: SemanticFilter[] }) {
+  async getSemanticQuery({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: SemanticFilter[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
-
     RPCs.setUsedMeasuresAction(measures);
     RPCs.setUsedDimensionsAction(dimensions);
     RPCs.setUsedFiltersAction(filters);
-
-    const fetchData = async () => {
-      const payload = {
-        measures: Array.from(measures),
-        dimensions: Array.from(dimensions),
-        filters: Array.from(filters),
-        limit: 100
-      }
-      const response = await axios.post(SEMANTIC_QUERY_API, payload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      const data = await response.data
-      const query = data.query
-      return query
-    }
-    const query = await fetchData()
-    await this.updateSQLQuery({ sql: query, executeImmediately: true });
+    return await this.applySemanticQuery({measures, dimensions, filters});
   }
 
   // 1. Internal actions -------------------------------------------
@@ -527,6 +507,33 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = tableOutput;
     }
     return actionContent;
+  }
+  async applySemanticQuery({measures, dimensions, filters} : {measures: string[], dimensions: string[], filters: SemanticFilter[]}) {
+    const fetchData = async () => {
+      const payload = {
+        measures: Array.from(measures),
+        dimensions: Array.from(dimensions),
+        filters: Array.from(filters),
+        limit: 100
+      }
+      const response = await axios.post(SEMANTIC_QUERY_API, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await response.data
+      const query = data.query
+      return query
+    }
+    try{
+      const query = await fetchData()
+      return await this.updateSQLQuery({ sql: query, executeImmediately: true });
+    }
+    catch(error){
+      console.error("Failed to get query from semantic layer", error)
+      return;
+    }
+    
   }
 
   // 2. Deprecated or unused actions -------------------------------

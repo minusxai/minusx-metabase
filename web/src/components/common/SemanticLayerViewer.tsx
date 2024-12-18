@@ -11,6 +11,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { setUsedMeasures, setUsedDimensions, setUsedFilters } from '../../state/settings/reducer'
 import { dispatch } from "../../state/dispatch"
+import  { executeAction, ExecutableAction } from '../../planner/plannerActions'
 
 
 const colorMap: Record<'Measures' | 'Dimensions' | 'Filters', {color: string, setter: any}> = {
@@ -47,6 +48,32 @@ export const SemanticLayerViewer = () => {
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
   const usedDimensions = useSelector((state: RootState) => state.settings.usedDimensions) || []
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
+
+  useEffect(() => {
+    console.log('Applying semantic query')
+    console.log(usedMeasures, usedDimensions, usedFilters)
+    executeAction({
+      index: -1,
+      function: 'applySemanticQuery',
+      args: JSON.stringify({
+        measures: usedMeasures,
+        dimensions: usedDimensions,
+        filters: usedFilters
+      })
+    })
+  }, [usedMeasures, usedDimensions, usedFilters])
+
+  // useEffect(() => {
+  //   executeAction({
+  //     index: -1,
+  //     function: 'updateSQLQuery',
+  //     args: {
+  //       sql: 'SELECT * FROM profiles limit 10',
+  //       executeImmediately: true
+  //     }
+  //   })
+  // }, [usedMeasures, usedDimensions, usedFilters])
+  
 
   return (
     <VStack>

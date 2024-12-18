@@ -51,8 +51,8 @@ interface Settings {
   newSearch: boolean
   availableMeasures: SemanticMember[]
   availableDimensions: SemanticMember[]
-  usedMeasures: SemanticMember[]
-  usedDimensions: SemanticMember[]
+  usedMeasures: string[]
+  usedDimensions: string[]
   usedFilters: SemanticFilter[]
 }
 
@@ -135,10 +135,10 @@ export const settingsSlice = createSlice({
     setAvailableDimensions: (state, action: PayloadAction<SemanticMember[]>) => {
       state.availableDimensions = action.payload
     },
-    setUsedMeasures: (state, action: PayloadAction<SemanticMember[]>) => {
+    setUsedMeasures: (state, action: PayloadAction<string[]>) => {
       state.usedMeasures = action.payload
     },
-    setUsedDimensions: (state, action: PayloadAction<SemanticMember[]>) => {
+    setUsedDimensions: (state, action: PayloadAction<string[]>) => {
       state.usedDimensions = action.payload
     },
     setUsedFilters: (state, action: PayloadAction<SemanticFilter[]>) => {
