@@ -1,9 +1,10 @@
 import { BlankMessageContent } from "web/types";
-import { RPCs } from "web";
+import { RPCs, configs } from "web";
 import { AppController, Action } from "../base/appController";
 import {
   MetabaseAppState,
   MetabaseAppStateSQLEditor,
+  MetabaseSemanticQueryAppState
 } from "./helpers/DOMToState";
 import {
   getAndFormatOutputTable,
@@ -36,7 +37,9 @@ import {
   getParameters,
   getVariablesAndUuidsInQuery
 } from "./helpers/sqlQuery";
+import axios from 'axios'
 
+const SEMANTIC_QUERY_API = configs.SERVER_BASE_URL + "/semantic/query"
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------
@@ -462,6 +465,51 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+  @Action({
+    labelRunning: "Getting SQL from Semantic Query",
+    labelDone: "Semantic Query Retrieved",
+    description: "Gets the SQL query from the semantic query.",
+    renderBody: ({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: any[] }) => {
+      return {text: reasoning, code: JSON.stringify({measures, dimensions, filters})}
+    }
+  })
+  async getSemanticQuery({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: any[] }) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+    console.log({ reasoning, measures, dimensions, filters })
+
+    const fetchData = async () => {
+      const payload = {
+        measures: Array.from(measures),
+        dimensions: Array.from(dimensions),
+        filters: Array.from(filters),
+        limit: 100
+      }
+      const response = await axios.post(SEMANTIC_QUERY_API, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await response.data
+      const query = data.query
+      if (query) {
+        currentCard.dataset_query.native.query = query;
+        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+        return await this._executeSQLQueryInternal();
+      } else {
+        actionContent.content = "OK";
+        return actionContent;
+      }
+    }
+    try {
+      fetchData()
+    } catch (err) {
+      console.log('Error is', err)
+    }
+  }
 
   // 1. Internal actions -------------------------------------------
   async toggleSQLEditor(mode: "open" | "close") {

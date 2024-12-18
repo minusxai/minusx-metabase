@@ -248,11 +248,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     if (instructions) {
       const text = instructions
       setInstructions('')
-      if (demoMode) {
+      if (demoMode && currentTool === "jupyter") {
         setMetaQuestion(instructions)
-        if (currentTool === "jupyter") {
-          await metaPlanner({text: instructions})
-        }
+        await metaPlanner({text: instructions})
         setMetaQuestion('')
       } 
       else {
