@@ -50,8 +50,6 @@ export const SemanticLayerViewer = () => {
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
 
   useEffect(() => {
-    console.log('Applying semantic query')
-    console.log(usedMeasures, usedDimensions, usedFilters)
     executeAction({
       index: -1,
       function: 'applySemanticQuery',
@@ -63,22 +61,13 @@ export const SemanticLayerViewer = () => {
     })
   }, [usedMeasures, usedDimensions, usedFilters])
 
-  // useEffect(() => {
-  //   executeAction({
-  //     index: -1,
-  //     function: 'updateSQLQuery',
-  //     args: {
-  //       sql: 'SELECT * FROM profiles limit 10',
-  //       executeImmediately: true
-  //     }
-  //   })
-  // }, [usedMeasures, usedDimensions, usedFilters])
-  
-
+  const usedFiltersView = usedFilters.map((f: any)=> `${f.member} = ${JSON.stringify(f.values)}`)
   return (
     <VStack>
+      <Text fontSize='md' fontWeight={800}>Semantic Layer Viewer</Text>
       <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
       <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
+      {/* <Members members={usedFiltersView} selectedMembers={usedFiltersView} memberType='Filters' /> */}
     </VStack>
   )
 }
