@@ -24,7 +24,7 @@ import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, setDemoMode } from '../../state/settings/reducer'
+import { setSuggestQueries, setDemoMode, setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
@@ -130,19 +130,19 @@ const SEMANTIC_QUERY_API = configs.SERVER_BASE_URL + "/semantic/query"
 //   )
 // }
 
-const SemanticLayerViewer = ({semanticLayer}: {semanticLayer: any}) => {
-  if (!semanticLayer.measures || !semanticLayer.dimensions) {
-    return null
-  }
+const SemanticLayerViewer = () => {
+  const availableMeasures = useSelector((state: RootState) => state.settings.availableMeasures) || []
+  const availableDimensions = useSelector((state: RootState) => state.settings.availableDimensions) || []
+
   return (
     <VStack>
       <VStack>
         <Text fontWeight={900}>Measures</Text>
-        {semanticLayer.measures.map((measure: string) => <Text key={measure}>{measure}</Text>)}
+        {availableMeasures.map((measure: string) => <Text key={measure}>{measure}</Text>)}
       </VStack>
       <VStack>
         <Text fontWeight={900}>Dimensions</Text>
-        {semanticLayer.dimensions.map((dimension: string) => <Text key={dimension}>{dimension}</Text>)}
+        {availableDimensions.map((dimension: string) => <Text key={dimension}>{dimension}</Text>)}
       </VStack>
     </VStack>
   )
@@ -165,7 +165,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const dispatch = useDispatch()
   const taskInProgress = !(activeThread.status == 'FINISHED')
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const [semanticLayer, setSemanticLayer] = useState<any>({})
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
@@ -184,7 +183,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         },
       })
       const data = await response.data
-      setSemanticLayer(data || {})
+      dispatch(setAvailableMeasures(data.measures || []))
+      dispatch(setAvailableDimensions(data.dimensions || []))
     }
     try {
       fetchData()
@@ -363,7 +363,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           // />
         }
         {
-          demoMode && currentTool === "metabase" && <SemanticLayerViewer semanticLayer={semanticLayer}/>
+          demoMode && currentTool === "metabase" && <SemanticLayerViewer/>
         }
         <Divider borderColor={"minusxBW.500"}/>
         </>

@@ -201,21 +201,31 @@ export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
         items: {
           type: 'object',
           properties: {
+            or: {
+              type: "array",
+              items: { $ref: "#" },
+              description: "The OR filter conditions."
+            },
+            and: {
+              type: "array",
+              items: { $ref: "#" },
+              description: "The AND filter conditions."
+            },
             member: {
-              type: 'string',
+              type: "string",
               description: "The dimension or measure to filter on."
             },
             operator: {
-              type: 'string',
+              type: "string",
               enum: ['equals', 'notEquals', 'gt', 'gte', 'lt', 'lte', 'contains', 'notContains'],
-              description: "The operator to use for the filter."
+              description: "The operator used in the filter."
             },
             values: {
-              type: 'array',
+              type: "array",
               items: {
-                type: 'string',
+                type: "string"
               },
-              description: "The values to filter on."
+              "description": "The values for the filter."
             }
           }
         }

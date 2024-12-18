@@ -29,7 +29,8 @@ export type ActionDescription = {
             description: string;
             enum?: string[];
             items?: {
-              type: string;
+              type?: string;
+              $ref?: string;
             };
           };
         };

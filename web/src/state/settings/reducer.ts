@@ -19,6 +19,19 @@ export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Availa
 //   |     '-- width: 100%
 //   '--no
 
+interface SemanticMember { 
+  name: string
+  description: string
+}
+
+interface SemanticFilter {
+  or?: SemanticFilter[]
+  and?: SemanticFilter[]
+  member?: string
+  operator?: string
+  values?: string[]
+}
+
 interface Settings {
   isLocal: boolean,
   uploadLogs: boolean,
@@ -36,6 +49,11 @@ interface Settings {
   aiRules: string
   savedQueries: boolean
   newSearch: boolean
+  availableMeasures: SemanticMember[]
+  availableDimensions: SemanticMember[]
+  usedMeasures: SemanticMember[]
+  usedDimensions: SemanticMember[]
+  usedFilters: SemanticFilter[]
 }
 
 const initialState: Settings = {
@@ -54,7 +72,12 @@ const initialState: Settings = {
   isRecording: false,
   aiRules: '',
   savedQueries: false,
-  newSearch: false
+  newSearch: false,
+  availableMeasures: [],
+  availableDimensions: [],
+  usedMeasures: [],
+  usedDimensions: [],
+  usedFilters: []
 }
 
 export const settingsSlice = createSlice({
@@ -106,6 +129,21 @@ export const settingsSlice = createSlice({
     setNewSearch: (state, action: PayloadAction<boolean>) => {
       state.newSearch = action.payload
     },
+    setAvailableMeasures: (state, action: PayloadAction<SemanticMember[]>) => {
+      state.availableMeasures = action.payload
+    },
+    setAvailableDimensions: (state, action: PayloadAction<SemanticMember[]>) => {
+      state.availableDimensions = action.payload
+    },
+    setUsedMeasures: (state, action: PayloadAction<SemanticMember[]>) => {
+      state.usedMeasures = action.payload
+    },
+    setUsedDimensions: (state, action: PayloadAction<SemanticMember[]>) => {
+      state.usedDimensions = action.payload
+    },
+    setUsedFilters: (state, action: PayloadAction<SemanticFilter[]>) => {
+      state.usedFilters = action.payload
+    }
   }
 })
 
@@ -113,7 +151,8 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries, setNewSearch
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries, setNewSearch,
+  setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
