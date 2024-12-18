@@ -1,4 +1,4 @@
-import { BlankMessageContent } from "web/types";
+import { BlankMessageContent, SemanticMember, SemanticFilter } from "web/types";
 import { RPCs, configs } from "web";
 import { AppController, Action } from "../base/appController";
 import {
@@ -470,15 +470,18 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelDone: "Semantic Query Retrieved",
     description: "Gets the SQL query from the semantic query.",
     renderBody: ({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: any[] }) => {
-      return {text: reasoning, code: JSON.stringify({measures, dimensions, filters})}
+      return {text: null, code: JSON.stringify({measures, dimensions, filters, reasoning})}
     }
   })
-  async getSemanticQuery({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: any[] }) {
+  async getSemanticQuery({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: SemanticMember[], dimensions: SemanticMember[], filters: SemanticFilter[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
     const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
-    console.log({ reasoning, measures, dimensions, filters })
+
+    RPCs.setUsedMeasuresAction(measures);
+    RPCs.setUsedDimensionsAction(dimensions);
+    RPCs.setUsedFiltersAction(filters);
 
     const fetchData = async () => {
       const payload = {
