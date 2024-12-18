@@ -7,7 +7,7 @@ export const getAppSettings = () => {
     savedQueries: settings.savedQueries,
     newSearch: settings.newSearch,
     semanticPlanner: settings.demoMode,
-    measures: settings.measures,
-    dimensions: settings.dimensions
+    measures: settings.availableMeasures,
+    dimensions: settings.availableDimensions
   }
 }

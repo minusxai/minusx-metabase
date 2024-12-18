@@ -106,12 +106,8 @@ export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDash
 
 export async function semanticQueryState() {
   const appSettings = RPCs.getAppSettings()
-  const measures = appSettings.measures
-  const dimensions = appSettings.dimensions
-  const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {
-    measures,
-    dimensions
-  }
+  const { measures, dimensions } = appSettings
+  const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {measures, dimensions}
   return metabaseSemanticQueryAppState;
 }
 
