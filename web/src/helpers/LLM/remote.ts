@@ -121,59 +121,6 @@ export const getMetaPlan = async(text: string, steps: string[], messageHistory: 
   return parsed.steps;
 }
 
-export const getSemanticQuery = async(text: string, semanticLayer: any): Promise<any> => {
-  const app = getApp()
-  
-  const llmSettings = {
-    model: "gpt-4o",
-    temperature: 0,
-    tool_choice: "none",
-    response_format: {
-      type: "json_schema",
-      json_schema: {"name": "semantic_query"}
-    }
-  }
-  //ToDo vivek: move all this to apps, as a new prompt config (part of llm config)
-  const systemMessage = `You are an expert data analyst, and a master of metabase and SQL. 
-  Todays date: ${new Date().toISOString().split('T')[0]}
-  General instructions:
-  - We are using cube.js's semantic query format.
-  - Given a user query, and available measures and dimensions, return the semantic query.
-  - Only return the semantic query, not the SQL query.
-  - The output should be JSON formatted.
-  - This cube query will be used to generate the SQL query.
-  `
-  
-  const userMessage = `
-  <SemanticLayerMeasures>
-  ${semanticLayer.measures}
-  </SemanticLayerMeasures>
-  <SemanticLayerDimensions>
-  ${semanticLayer.dimensions}
-  </SemanticLayerDimensions>
-
-  <UserInstructions>
-  ${text}
-  </UserInstructions>
-  `
-
-  const response = await getLLMResponse({
-    messages: [{
-      role: "system",
-      content: systemMessage,
-    }, {
-      role: "user",
-      content: userMessage,
-    }],
-    llmSettings: llmSettings,
-    actions: []
-  });
-  const jsonResponse = await response.data;
-  const parsed: any = JSON.parse(jsonResponse.content);
-  
-  return parsed;
-}
-
 export const convertToMarkdown = async(appState, imgs): Promise<string[]> => {
   console.log('Converting', appState, imgs)
   const llmSettings = {
