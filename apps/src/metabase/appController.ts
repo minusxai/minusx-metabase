@@ -466,7 +466,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Getting SQL from Semantic Query",
+    labelRunning: "SQL from Semantic Layer",
     labelDone: "Semantic Query Retrieved",
     description: "Gets the SQL query from the semantic query.",
     renderBody: ({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: any[] }) => {
@@ -497,21 +497,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       })
       const data = await response.data
       const query = data.query
-      if (query) {
-        currentCard.dataset_query.native.query = query;
-        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
-        await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
-        return await this._executeSQLQueryInternal();
-      } else {
-        actionContent.content = "OK";
-        return actionContent;
-      }
+      return query
     }
-    try {
-      fetchData()
-    } catch (err) {
-      console.log('Error is', err)
-    }
+    const query = await fetchData()
+    await this.updateSQLQuery({ sql: query, executeImmediately: true });
   }
 
   // 1. Internal actions -------------------------------------------

@@ -19,12 +19,12 @@ export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Availa
 //   |     '-- width: 100%
 //   '--no
 
-interface SemanticMember { 
+export interface SemanticMember { 
   name: string
   description: string
 }
 
-interface SemanticFilter {
+export interface SemanticFilter {
   or?: SemanticFilter[]
   and?: SemanticFilter[]
   member?: string
