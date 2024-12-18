@@ -138,11 +138,11 @@ const SemanticLayerViewer = () => {
     <VStack>
       <VStack>
         <Text fontWeight={900}>Measures</Text>
-        {availableMeasures.map((measure: string) => <Text key={measure}>{measure}</Text>)}
+        {availableMeasures.map((measure: any) => <Text key={measure.name}>{measure.name}</Text>)}
       </VStack>
       <VStack>
         <Text fontWeight={900}>Dimensions</Text>
-        {availableDimensions.map((dimension: string) => <Text key={dimension}>{dimension}</Text>)}
+        {availableDimensions.map((dimension: any) => <Text key={dimension.name}>{dimension.name}</Text>)}
       </VStack>
     </VStack>
   )
