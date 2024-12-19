@@ -484,8 +484,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     RPCs.setUsedFiltersAction(filters);
     RPCs.setUsedTimeDimensionsAction(timeDimensions);
     RPCs.setUsedOrderAction(order);
-    
-    return await this.applySemanticQuery({measures, dimensions, filters, timeDimensions, order});
+    await this.applySemanticQuery();
+    return actionContent;
   }
 
   // 1. Internal actions -------------------------------------------
@@ -513,14 +513,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     return actionContent;
   }
-  async applySemanticQuery({measures, dimensions, filters, timeDimensions, order} : {measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[], order: Order[]}) {
+  async applySemanticQuery() {
+    const state = (await this.app.getState()) as MetabaseSemanticQueryAppState;
     const fetchData = async () => {
+      if ((state.currentSemanticQuery.measures.length === 0) && (state.currentSemanticQuery.dimensions.length === 0)) {
+        return "";
+      }
       const payload = {
-        measures: Array.from(measures),
-        dimensions: Array.from(dimensions),
-        filters: Array.from(filters),
-        timeDimensions: Array.from(timeDimensions),
-        order: Array.from(order),
+        ...state.currentSemanticQuery,
+        dialect: state.dialect,
       }
       const response = await axios.post(SEMANTIC_QUERY_API, payload, {
         headers: {
@@ -532,10 +533,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return query
     }
     try{
-      let query = ""
-      if (measures.length > 0 || dimensions.length > 0){
-        query = await fetchData()
-      }
+      const query = await fetchData();
       return await this.updateSQLQuery({ sql: query, executeImmediately: true });
     }
     catch(error){

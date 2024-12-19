@@ -145,13 +145,7 @@ export const SemanticLayerViewer = () => {
       await executeAction({
         index: -1,
         function: 'applySemanticQuery',
-        args: JSON.stringify({
-          measures: usedMeasures,
-          dimensions: usedDimensions,
-          filters: usedFilters,
-          timeDimensions: usedTimeDimensions,
-          order: usedOrder
-        })
+        args: "{}"
       });
     } finally {
       setIsLoading(false);
