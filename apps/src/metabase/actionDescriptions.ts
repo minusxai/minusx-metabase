@@ -229,9 +229,34 @@ export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
             }
           }
         }
+      },
+      timeDimensions: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            dimension: {
+              type: "string",
+              description: "The time dimension to filter on."
+            },
+            granularity: {
+              type: "string",
+              description: "The granularity of the time dimension.",
+              enum: ['day', 'week', 'month', 'quarter', 'year']
+            },
+            dateRange: {
+              type: "array",
+              items: {
+                type: "string"
+              },
+              description: "The date range to filter on. Should be in the [start_date, end_date], YYYY-MM-DD format."
+            }
+          }
+        }
       }
+
     },
     description: 'Generates SQL using cube.js semantic query API based on the measures, dimensions and filters provided.',
-    required: ["reasoning", "measures", "dimensions", "filters"],
+    required: ["reasoning", "measures", "dimensions", "filters", "timeDimensions"],
   }
 ];
