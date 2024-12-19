@@ -57,6 +57,7 @@ export interface MetabaseSemanticQueryAppState {
   availableDimensions: Dimension[];
   currentSemanticQuery: SemanticQuery;
   dialect?: string;
+  outputTableMarkdown?: string;
 }
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
@@ -107,6 +108,7 @@ export async function semanticQueryState() {
   const appSettings = RPCs.getAppSettings()
   const { availableMeasures, availableDimensions, usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder } = appSettings
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
+  const outputTableMarkdown = await getAndFormatOutputTable();
   
   const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {
     availableMeasures,
@@ -118,7 +120,8 @@ export async function semanticQueryState() {
       timeDimensions: usedTimeDimensions,
       order: usedOrder
     },
-    dialect: selectedDatabaseInfo?.dialect
+    dialect: selectedDatabaseInfo?.dialect,
+    outputTableMarkdown
   }
   return metabaseSemanticQueryAppState;
 }
