@@ -241,7 +241,7 @@ export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
             },
             granularity: {
               type: "string",
-              description: "The granularity of the time dimension.",
+              description: "The granularity of the time dimension. This is optional. If no granularity is provided, the query will not be grouped by time.",
               enum: ['day', 'week', 'month', 'quarter', 'year']
             },
             dateRange: {

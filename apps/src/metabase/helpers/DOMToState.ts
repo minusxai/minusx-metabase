@@ -6,7 +6,7 @@ import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
 const { getMetabaseState, queryURL } = RPCs;
-import { SemanticMember, SemanticQuery } from "web/types";
+import { Measure, Dimension, SemanticQuery } from "web/types";
 
 interface ExtractedDataBase {
   name: string;
@@ -53,8 +53,8 @@ export interface MetabaseAppStateSQLEditor {
 export interface MetabaseAppStateDashboard extends DashboardInfo {}
 
 export interface MetabaseSemanticQueryAppState {
-  availableMeasures: SemanticMember[];
-  availableDimensions: SemanticMember[];
+  availableMeasures: Measure[];
+  availableDimensions: Dimension[];
   currentSemanticQuery: SemanticQuery;
   dialect?: string;
 }
