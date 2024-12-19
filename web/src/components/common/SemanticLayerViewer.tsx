@@ -99,15 +99,15 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
   const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
   const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
     if (memberType === 'Filters') {
-      return { value: member, label: member.member }
+      return { value: member, label: member.member.split(".").at(-1) }
     }
     else if (memberType === 'TimeDimensions') {
-      return { value: member, label: `${member.dimension} | ${member.granularity}` }
+      return { value: member, label: `${member.dimension.split(".").at(-1)} | ${member.granularity}` }
     }
     else if (memberType === 'Order') {
-      return { value: member, label: `${member[0]} | ${member[1]}` }
+      return { value: member, label: `${member[0].split(".").at(-1)} | ${member[1]}` }
     }
-    return { value: member, label: member }
+    return { value: member, label: member.split(".").at(-1) }
   })
   
   const setterFn = (selectedOptions: any) => dispatch(colorMap[memberType].setter(selectedOptions.map((option: any) => option.value)))
