@@ -34,6 +34,9 @@ export type ActionDescription = {
             };
           };
         };
+        items?: {
+          type: string;
+        }
       };
       description?: string;
       enum?: string[];
