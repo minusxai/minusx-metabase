@@ -9,8 +9,13 @@ export const getAppSettings = () => {
     savedQueries: settings.savedQueries,
     newSearch: settings.newSearch,
     semanticPlanner: settings.demoMode,
-    measures: settings.availableMeasures,
-    dimensions: settings.availableDimensions
+    availableMeasures: settings.availableMeasures,
+    availableDimensions: settings.availableDimensions,
+    usedMeasures: settings.usedMeasures,
+    usedDimensions: settings.usedDimensions,
+    usedFilters: settings.usedFilters,
+    usedTimeDimensions: settings.usedTimeDimensions,
+    usedOrder: settings.usedOrder
   }
 }
 

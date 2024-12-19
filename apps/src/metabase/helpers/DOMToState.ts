@@ -6,6 +6,7 @@ import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
 const { getMetabaseState, queryURL } = RPCs;
+import { SemanticMember, SemanticQuery } from "web/types";
 
 interface ExtractedDataBase {
   name: string;
@@ -51,13 +52,10 @@ export interface MetabaseAppStateSQLEditor {
 // make this DashboardInfo
 export interface MetabaseAppStateDashboard extends DashboardInfo {}
 
-export interface SemanticMember {
-  name: string;
-  description?: string;
-}
 export interface MetabaseSemanticQueryAppState {
-  measures: SemanticMember[];
-  dimensions: SemanticMember[];
+  availableMeasures: SemanticMember[];
+  availableDimensions: SemanticMember[];
+  currentSemanticQuery: SemanticQuery;
 }
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
@@ -106,8 +104,18 @@ export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDash
 
 export async function semanticQueryState() {
   const appSettings = RPCs.getAppSettings()
-  const { measures, dimensions } = appSettings
-  const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {measures, dimensions}
+  const { availableMeasures, availableDimensions, usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder } = appSettings
+  const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {
+    availableMeasures,
+    availableDimensions,
+    currentSemanticQuery: {
+      measures: usedMeasures,
+      dimensions: usedDimensions,
+      filters: usedFilters,
+      timeDimensions: usedTimeDimensions,
+      order: usedOrder
+    }
+  }
   return metabaseSemanticQueryAppState;
 }
 

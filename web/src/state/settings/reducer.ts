@@ -40,6 +40,14 @@ export interface TimeDimension {
 
 export type Order = [string, 'asc' | 'desc']
 
+export interface SemanticQuery {
+  measures: string[]
+  dimensions: string[]
+  filters: SemanticFilter[]
+  timeDimensions: TimeDimension[]
+  order: Order[]
+}
+
 interface Settings {
   isLocal: boolean,
   uploadLogs: boolean,
