@@ -173,6 +173,7 @@ const migrations = {
     newState.settings.usedMeasures = []
     newState.settings.usedDimensions = []
     newState.settings.usedFilters = []
+    newState.settings.usedTimeDimensions = []
   }
 }
 

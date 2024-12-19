@@ -1,6 +1,6 @@
 import { dispatch } from "../state/dispatch"
 import { getState, RootState } from "../state/store"
-import { setUsedMeasures, setUsedDimensions, setUsedFilters, SemanticFilter, SemanticMember } from '../state/settings/reducer'
+import { setUsedMeasures, setUsedDimensions, setUsedFilters, SemanticFilter, SemanticMember, TimeDimension, setUsedTimeDimensions } from '../state/settings/reducer'
 
 export const getAppSettings = () => {
   const state: RootState = getState()
@@ -24,4 +24,8 @@ export const setUsedDimensionsAction = (measures: string[]) => {
 
 export const setUsedFiltersAction = (filters: SemanticFilter[]) => {
   dispatch(setUsedFilters(filters))
+}
+
+export const setUsedTimeDimensionsAction = (timeDimensions: TimeDimension[]) => {
+  dispatch(setUsedTimeDimensions(timeDimensions))
 }

@@ -116,6 +116,7 @@ export const SemanticLayerViewer = () => {
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
   const usedDimensions = useSelector((state: RootState) => state.settings.usedDimensions) || []
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
+  const usedTimeDimensions = useSelector((state: RootState) => state.settings.usedTimeDimensions) || []
 
   useEffect(() => {
     if (!hasMounted) {
@@ -132,7 +133,8 @@ export const SemanticLayerViewer = () => {
           args: JSON.stringify({
             measures: usedMeasures,
             dimensions: usedDimensions,
-            filters: usedFilters
+            filters: usedFilters,
+            timeDimensions: usedTimeDimensions,
           })
         });
       } finally {
@@ -141,7 +143,7 @@ export const SemanticLayerViewer = () => {
     };
 
     applyQuery();
-  }, [usedMeasures, usedDimensions, usedFilters]);
+  }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions]);
 
   return (
     <ResizableBox

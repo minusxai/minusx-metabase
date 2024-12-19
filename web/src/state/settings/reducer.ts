@@ -32,6 +32,12 @@ export interface SemanticFilter {
   values?: string[]
 }
 
+export interface TimeDimension {
+  dimension: string
+  granularity?: 'day' | 'week' | 'month' | 'quarter' | 'year'
+  dateRange?: string[] // [start, end], YYYY-MM-DD format
+}
+
 interface Settings {
   isLocal: boolean,
   uploadLogs: boolean,
@@ -54,6 +60,7 @@ interface Settings {
   usedMeasures: string[]
   usedDimensions: string[]
   usedFilters: SemanticFilter[]
+  usedTimeDimensions: TimeDimension[]
 }
 
 const initialState: Settings = {
@@ -77,7 +84,8 @@ const initialState: Settings = {
   availableDimensions: [],
   usedMeasures: [],
   usedDimensions: [],
-  usedFilters: []
+  usedFilters: [],
+  usedTimeDimensions: []
 }
 
 export const settingsSlice = createSlice({
@@ -143,6 +151,9 @@ export const settingsSlice = createSlice({
     },
     setUsedFilters: (state, action: PayloadAction<SemanticFilter[]>) => {
       state.usedFilters = action.payload
+    },
+    setUsedTimeDimensions: (state, action: PayloadAction<TimeDimension[]>) => {
+      state.usedTimeDimensions = action.payload
     }
   }
 })
@@ -152,7 +163,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries, setNewSearch,
-  setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters
+  setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

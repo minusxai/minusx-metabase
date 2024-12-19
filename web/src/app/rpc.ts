@@ -189,4 +189,4 @@ export { useAppFromExternal } from './sidechat'
 import chat from '../chat/chat';
 export const { addUserMessage } = chat;
 export { getUserConfirmation } from './userConfirmation'
-export { getAppSettings, setUsedMeasuresAction, setUsedDimensionsAction, setUsedFiltersAction } from './appSettings'
+export { getAppSettings, setUsedMeasuresAction, setUsedDimensionsAction, setUsedFiltersAction, setUsedTimeDimensionsAction } from './appSettings'
