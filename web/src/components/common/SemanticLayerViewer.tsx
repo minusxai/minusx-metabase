@@ -37,7 +37,9 @@ interface Option {
   description?: string;
 }
 
-const colorMap: Record<'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions' | 'Order', {color: string, setter: any}> = {
+type MemberType = 'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions' | 'Order'
+
+const SemanticMemberMap: Record<'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions' | 'Order', {color: string, setter: any}> = {
   Measures: {color: 'yellow', setter: setUsedMeasures},
   Dimensions: {color: 'blue', setter: setUsedDimensions},
   Filters: {color: 'red', setter: setUsedFilters},
@@ -95,7 +97,7 @@ const LoadingOverlay = () => (
   </Box>
 );
 
-const Members = ({ members, selectedMembers, memberType }: { members: any[], selectedMembers: string[], memberType: string }) => {
+const Members = ({ members, selectedMembers, memberType }: { members: any[], selectedMembers: string[], memberType: MemberType }) => {
   const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
   const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
     if (memberType === 'Filters') {
@@ -110,7 +112,7 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
     return { value: member, label: member.split(".").at(-1) }
   })
   
-  const setterFn = (selectedOptions: any) => dispatch(colorMap[memberType].setter(selectedOptions.map((option: any) => option.value)))
+  const setterFn = (selectedOptions: any) => dispatch(SemanticMemberMap[memberType].setter(selectedOptions.map((option: any) => option.value)))
   return (<FormControl px={2} py={1}>
     <FormLabel fontSize={"sm"}>
       <HStack width={"100%"} justifyContent={"space-between"}>
@@ -125,7 +127,7 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
       placeholder={`No ${memberType} selected`}
       variant='filled'
       tagVariant='solid'
-      tagColorScheme={colorMap[memberType].color}
+      tagColorScheme={SemanticMemberMap[memberType].color}
       size={'sm'}
       value={createUsedOptions(selectedMembers, memberType)}
       onChange={setterFn}
@@ -136,7 +138,8 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
 
 export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [buttonIsDisabled, setButtonIsDisabled] = useState(true);
+  const [runButton, setRunButton] = useState(false);
+  const [clearButton, setClearButton] = useState(false);
   const availableMeasures = useSelector((state: RootState) => state.settings.availableMeasures) || []
   const availableDimensions = useSelector((state: RootState) => state.settings.availableDimensions) || []
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
@@ -155,11 +158,25 @@ export const SemanticLayerViewer = () => {
       });
     } finally {
       setIsLoading(false);
-      setButtonIsDisabled(true);
+      setRunButton(false);
     }
   };
+
+  const clearQuery = async () => {
+    for (const memberType in SemanticMemberMap) {
+      dispatch(SemanticMemberMap[memberType as MemberType].setter([]))
+    }
+    setRunButton(false);
+  };
+  
   useEffect(() => {
-    setButtonIsDisabled(false);
+    setRunButton(true);
+    if (usedMeasures.length || usedDimensions.length || usedFilters.length || usedTimeDimensions.length || usedOrder.length) {
+      setClearButton(true);
+    }
+    else {
+      setClearButton(false);
+    }
   }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder]);
 
   useEffect(() => {
@@ -202,7 +219,8 @@ export const SemanticLayerViewer = () => {
       { isLoading && <LoadingOverlay />}
       <SettingsBlock title='Semantic Layer'>
         <HStack pt={2}>
-          <Button size={"sm"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={buttonIsDisabled} flex={1}>Run Query</Button>
+          <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={!runButton} flex={3}>Run Query</Button>
+          <Button size={"xs"} onClick={() => clearQuery()} colorScheme="minusxGreen" isDisabled={!clearButton} flex={1}>Clear</Button>
         </HStack>
         <VStack>
           <Box>
