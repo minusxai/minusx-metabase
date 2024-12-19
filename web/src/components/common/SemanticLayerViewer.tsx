@@ -1,11 +1,13 @@
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import {
   VStack,
+  HStack,
   Text,
   FormControl, FormLabel, Tooltip,
   Spinner,
   Box,
-  Center
+  Center,
+  Button
 } from '@chakra-ui/react'
 import {
   GroupBase,
@@ -49,7 +51,7 @@ const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
   MultiValueLabel: ({ children, ...props }) => {
     return (
       <chakraComponents.MultiValueLabel {...props}>
-        <Tooltip label={JSON.stringify(props.data.value)} placement="top" hasArrow>
+        <Tooltip label={JSON.stringify(props.data.value)} placement="top" hasArrow maxWidth={200}>
           <span>{children}</span>
         </Tooltip>
       </chakraComponents.MultiValueLabel>
@@ -101,7 +103,10 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
   const setterFn = (selectedOptions: any) => dispatch(colorMap[memberType].setter(selectedOptions.map((option: any) => option.value)))
   return (<FormControl px={2} py={1}>
     <FormLabel fontSize={"sm"}>
-      {memberType}
+      <HStack width={"100%"} justifyContent={"space-between"}>
+        <Box>{memberType}</Box>
+        <Text fontSize={'xs'}>{`(${selectedMembers.length} / ${members.length})`}</Text>
+      </HStack>
     </FormLabel>
     <Select
       isMulti
@@ -121,7 +126,7 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
 
 export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
+  const [buttonIsDisabled, setButtonIsDisabled] = useState(true);
   const availableMeasures = useSelector((state: RootState) => state.settings.availableMeasures) || []
   const availableDimensions = useSelector((state: RootState) => state.settings.availableDimensions) || []
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
@@ -129,31 +134,26 @@ export const SemanticLayerViewer = () => {
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
   const usedTimeDimensions = useSelector((state: RootState) => state.settings.usedTimeDimensions) || []
 
-  useEffect(() => {
-    if (!hasMounted) {
-      // Todo Sreejith: is this correct?
-      setHasMounted(true);
-      return;
+  const applyQuery = async () => {
+    setIsLoading(true);
+    try {
+      await executeAction({
+        index: -1,
+        function: 'applySemanticQuery',
+        args: JSON.stringify({
+          measures: usedMeasures,
+          dimensions: usedDimensions,
+          filters: usedFilters,
+          timeDimensions: usedTimeDimensions,
+        })
+      });
+    } finally {
+      setIsLoading(false);
+      setButtonIsDisabled(true);
     }
-    const applyQuery = async () => {
-      setIsLoading(true);
-      try {
-        await executeAction({
-          index: -1,
-          function: 'applySemanticQuery',
-          args: JSON.stringify({
-            measures: usedMeasures,
-            dimensions: usedDimensions,
-            filters: usedFilters,
-            timeDimensions: usedTimeDimensions,
-          })
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    applyQuery();
+  };
+  useEffect(() => {
+    setButtonIsDisabled(usedMeasures.length === 0 && usedDimensions.length === 0 && usedFilters.length === 0 && usedTimeDimensions.length === 0);  
   }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions]);
 
   return (
@@ -177,6 +177,9 @@ export const SemanticLayerViewer = () => {
     <Box position='relative' overflow={"scroll"} height={"100%"}>
       { isLoading && <LoadingOverlay />}
       <SettingsBlock title='Semantic Layer'>
+        <HStack pt={2}>
+          <Button size={"sm"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={buttonIsDisabled} flex={1}>Run Query</Button>
+        </HStack>
         <VStack>
           <Box>
             <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
