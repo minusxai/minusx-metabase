@@ -180,7 +180,7 @@ export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
     args: {
       reasoning: {
         type: 'string',
-        description: "The reasoning behind the measures, dimensions and filters used in the query based on the user's request."
+        description: "The reasoning behind the measures, dimensions and filters used in the query based on the user's request. This should be in first person."
       },
       measures: {
         type: 'array',

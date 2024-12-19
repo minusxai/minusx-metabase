@@ -242,31 +242,26 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <ChatSection />
       </VStack>
       <VStack alignItems={"stretch"}>
-        { !taskInProgress && !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
+        { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
-        <Divider borderColor={"minusxBW.500"}/>
-        {isMessageTooLong() ? 
-          <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease speed and impact accuracy. Consider <HiOutlineRefresh style={{display:"inline-block", verticalAlign: "middle"}}/> this thread.</Text> : 
-          null
-          // <ChatSuggestions
-          //   suggestQueries={suggestQueries}
-          //   toggleSuggestions={toggleSuggestions}
-          //   suggestions={suggestions} 
-          //   onSuggestionClick={(suggestion) => {
-          //     chat.addUserMessage({
-          //       content: {
-          //         type: "DEFAULT",
-          //         text: suggestion,
-          //         images: []
-          //       },
-          //     })
-          //   }} 
-          // />
-        }
-        {
-          demoMode && currentTool === "metabase" && <SemanticLayerViewer/>
-        }
-        <Divider borderColor={"minusxBW.500"}/>
+          <Divider borderColor={"minusxBW.500"}/>
+          {isMessageTooLong() && <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease speed and impact accuracy. Consider <HiOutlineRefresh style={{display:"inline-block", verticalAlign: "middle"}}/> this thread.</Text>}
+            {/* <ChatSuggestions
+              suggestQueries={suggestQueries}
+              toggleSuggestions={toggleSuggestions}
+              suggestions={suggestions} 
+              onSuggestionClick={(suggestion) => {
+                chat.addUserMessage({
+                  content: {
+                    type: "DEFAULT",
+                    text: suggestion,
+                    images: []
+                  },
+                })
+              }} 
+            /> */}
+          { demoMode && currentTool === "metabase" && <SemanticLayerViewer/> }
+          <Divider borderColor={"minusxBW.500"}/>
         </>
         }
         <Thumbnails thumbnails={thumbnails} />
