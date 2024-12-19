@@ -39,7 +39,7 @@ const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
   Option: ({ children, ...props }) => {
     return (
       <chakraComponents.Option {...props}>
-        <Tooltip label={props.data.description} placement="right-start" hasArrow maxWidth={100}>
+        <Tooltip label={props.data.description} placement="top" hasArrow maxWidth={200}>
           <span>{children}</span>
         </Tooltip>
       </chakraComponents.Option>
