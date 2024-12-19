@@ -528,7 +528,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return query
     }
     try{
-      const query = await fetchData()
+      let query = ""
+      if (measures.length > 0 || dimensions.length > 0){
+        query = await fetchData()
+      }
       return await this.updateSQLQuery({ sql: query, executeImmediately: true });
     }
     catch(error){
