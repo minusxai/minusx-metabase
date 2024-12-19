@@ -19,9 +19,15 @@ export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Availa
 //   |     '-- width: 100%
 //   '--no
 
-export interface SemanticMember { 
+export interface Measure { 
   name: string
   description: string
+}
+
+export interface Dimension {
+  name: string
+  description: string
+  unique_values?: string[]
 }
 
 export interface SemanticFilter {
@@ -65,8 +71,8 @@ interface Settings {
   aiRules: string
   savedQueries: boolean
   newSearch: boolean
-  availableMeasures: SemanticMember[]
-  availableDimensions: SemanticMember[]
+  availableMeasures: Measure[]
+  availableDimensions: Dimension[]
   usedMeasures: string[]
   usedDimensions: string[]
   usedFilters: SemanticFilter[]
@@ -149,10 +155,10 @@ export const settingsSlice = createSlice({
     setNewSearch: (state, action: PayloadAction<boolean>) => {
       state.newSearch = action.payload
     },
-    setAvailableMeasures: (state, action: PayloadAction<SemanticMember[]>) => {
+    setAvailableMeasures: (state, action: PayloadAction<Measure[]>) => {
       state.availableMeasures = action.payload
     },
-    setAvailableDimensions: (state, action: PayloadAction<SemanticMember[]>) => {
+    setAvailableDimensions: (state, action: PayloadAction<Dimension[]>) => {
       state.availableDimensions = action.payload
     },
     setUsedMeasures: (state, action: PayloadAction<string[]>) => {

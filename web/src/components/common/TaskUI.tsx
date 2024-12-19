@@ -24,7 +24,7 @@ import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, setDemoMode, setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters } from '../../state/settings/reducer'
+import { setSuggestQueries, setDemoMode } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
@@ -46,10 +46,7 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { VoiceInputButton } from './VoiceInputButton'
 import { getTranscripts } from '../../helpers/recordings'
 import { configs } from '../../constants'
-import axios from 'axios'
 import { SemanticLayerViewer } from './SemanticLayerViewer'
-
-const SEMANTIC_PROPERTIES_API = configs.SERVER_BASE_URL + "/semantic/properties"
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = getParsedIframeInfo().tool
@@ -77,24 +74,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     debouncedSetInstruction(instructions);
     return () => debouncedSetInstruction.cancel();
   }, [instructions, debouncedSetInstruction]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await axios.get(SEMANTIC_PROPERTIES_API, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      const data = await response.data
-      dispatch(setAvailableMeasures(data.measures || []))
-      dispatch(setAvailableDimensions(data.dimensions || []))
-    }
-    try {
-      fetchData()
-    } catch (err) {
-      console.log('Error is', err)
-    }
-  }, [])
 
   const clearMessages = () => {
     dispatch(startNewThread())

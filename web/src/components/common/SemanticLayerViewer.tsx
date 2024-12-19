@@ -19,12 +19,18 @@ import {
 
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
+import { setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { SettingsBlock } from './SettingsBlock';
+import axios from 'axios';
+import { configs } from '../../constants'
+
+
+const SEMANTIC_PROPERTIES_API = configs.SERVER_BASE_URL + "/semantic/properties"
+
 interface Option {
   label: string;
   value: string;
@@ -153,8 +159,26 @@ export const SemanticLayerViewer = () => {
     }
   };
   useEffect(() => {
-    setButtonIsDisabled(usedMeasures.length === 0 && usedDimensions.length === 0 && usedFilters.length === 0 && usedTimeDimensions.length === 0 && usedOrder.length === 0);  
+    setButtonIsDisabled(false);
   }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await axios.get(SEMANTIC_PROPERTIES_API, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await response.data
+      dispatch(setAvailableMeasures(data.measures || []))
+      dispatch(setAvailableDimensions(data.dimensions || []))
+    }
+    try {
+      fetchData()
+    } catch (err) {
+      console.log('Error is', err)
+    }
+  }, [])
 
   return (
     <ResizableBox
