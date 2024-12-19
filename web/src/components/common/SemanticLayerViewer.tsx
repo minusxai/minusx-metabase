@@ -129,7 +129,7 @@ export const SemanticLayerViewer = () => {
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
   const usedTimeDimensions = useSelector((state: RootState) => state.settings.usedTimeDimensions) || []
 
-  useEffect((hasMounted) => {
+  useEffect(() => {
     if (!hasMounted) {
       // Todo Sreejith: is this correct?
       setHasMounted(true);
@@ -154,7 +154,7 @@ export const SemanticLayerViewer = () => {
     };
 
     applyQuery();
-  }, [hasMounted, usedMeasures, usedDimensions, usedFilters, usedTimeDimensions]);
+  }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions]);
 
   return (
     <ResizableBox
