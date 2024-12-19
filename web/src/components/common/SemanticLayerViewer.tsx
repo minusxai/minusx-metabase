@@ -208,6 +208,7 @@ export const SemanticLayerViewer = () => {
           <Box>
             <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
             <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
+            {/* Todo: Vivek: Filters is precarious. The below component assumes the simple list form and not the complex object form.*/}
             <Members members={usedFilters} selectedMembers={usedFilters} memberType='Filters' />
             <Members members={usedTimeDimensions} selectedMembers={usedTimeDimensions} memberType='TimeDimensions' />
             <Members members={usedOrder} selectedMembers={usedOrder} memberType='Order' />
