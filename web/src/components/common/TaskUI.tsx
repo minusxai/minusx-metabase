@@ -244,7 +244,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       <VStack alignItems={"stretch"}>
         { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
-          <Divider borderColor={"minusxBW.500"}/>
+          {/* <Divider borderColor={"minusxBW.500"}/> */}
           {isMessageTooLong() && <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease speed and impact accuracy. Consider <HiOutlineRefresh style={{display:"inline-block", verticalAlign: "middle"}}/> this thread.</Text>}
             {/* <ChatSuggestions
               suggestQueries={suggestQueries}

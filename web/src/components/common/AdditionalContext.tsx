@@ -5,23 +5,7 @@ import { setAiRules } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { toast } from '../../app/toast';
-
-const SettingsHeader = ({ text }: { text: string }) => (
-  <Box position='relative' marginTop={2}>
-    <Divider borderColor="minusxGreen.800" />
-    <AbsoluteCenter bg='minusxBW.300' px='4' color="minusxGreen.800">
-      {text}
-    </AbsoluteCenter>
-  </Box>
-)
-
-const SettingsBlock = ({title, children}: {title: string, children: React.ReactNode}) => (
-  <VStack borderRadius={10} bg="minusxBW.300" alignItems={"stretch"} padding={3}>
-    <SettingsHeader text={title} />
-    {children}
-  </VStack>
-)
-
+import { SettingsBlock } from './SettingsBlock';
 
 const AdditionalContext = () => {
   const aiRules = useSelector((state: RootState) => state.settings.aiRules)

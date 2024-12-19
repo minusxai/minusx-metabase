@@ -12,6 +12,7 @@ import {
   Select,
   SelectComponentsConfig,
   chakraComponents,
+  ChakraStylesConfig,
 } from 'chakra-react-select';
 
 import { useSelector } from 'react-redux'
@@ -19,7 +20,9 @@ import { RootState } from '../../state/store'
 import { setUsedMeasures, setUsedDimensions, setUsedFilters } from '../../state/settings/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
-
+import { ResizableBox } from 'react-resizable';
+import 'react-resizable/css/styles.css';
+import { SettingsBlock } from './SettingsBlock';
 interface Option {
   label: string;
   value: string;
@@ -36,7 +39,7 @@ const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
   Option: ({ children, ...props }) => {
     return (
       <chakraComponents.Option {...props}>
-        <Tooltip label={props.data.description} placement="right" hasArrow>
+        <Tooltip label={props.data.description} placement="right-start" hasArrow maxWidth={100}>
           <span>{children}</span>
         </Tooltip>
       </chakraComponents.Option>
@@ -61,7 +64,7 @@ const LoadingOverlay = () => (
     left={0}
     right={0}
     bottom={0}
-    backgroundColor="rgba(220, 220, 220, 0.7)"
+    backgroundColor="rgba(250, 250, 250, 0.7)"
     zIndex={1000}
     display="flex"
     alignItems="center"
@@ -135,14 +138,35 @@ export const SemanticLayerViewer = () => {
   }, [usedMeasures, usedDimensions, usedFilters]);
 
   return (
-    <Box position="relative">
-      {isLoading && <LoadingOverlay />}
-      <VStack>
-        <Text fontSize='md' fontWeight={800}>Semantic Layer Viewer</Text>
-        <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
-        <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
-        <Members members={usedFilters} selectedMembers={usedFilters} memberType='Filters' />
-      </VStack>
+    <ResizableBox
+      width={Infinity}
+      height={300}
+      minConstraints={[Infinity, 200]}
+      maxConstraints={[Infinity, 400]}
+      resizeHandles={['n']}
+      handle={<div className="resizer" style={{
+        position: "absolute",
+        top: "0",
+        width: "100%",
+        height: "1px",
+        background: "#d6d3d1",
+        cursor: "ns-resize",
+      }}/>}
+      axis="y"
+      style={{ paddingTop: '10px', position: 'relative'}}
+    >
+    <Box position='relative' overflow={"scroll"} height={"100%"}>
+      { isLoading && <LoadingOverlay />}
+      <SettingsBlock title='Semantic Layer'>
+        <VStack>
+          <Box>
+            <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
+            <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
+            <Members members={usedFilters} selectedMembers={usedFilters} memberType='Filters' />
+          </Box>
+        </VStack>
+      </SettingsBlock>
     </Box>
+    </ResizableBox>
   )
 }

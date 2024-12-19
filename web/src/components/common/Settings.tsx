@@ -13,22 +13,7 @@ import { getBillingInfo } from '../../app/api/billing';
 import { setBillingInfo } from '../../state/billing/reducer';
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from './CreditsPill';
-
-const SettingsHeader = ({ text }: { text: string }) => (
-  <Box position='relative' marginTop={2}>
-    <Divider borderColor="minusxGreen.800" />
-    <AbsoluteCenter bg='minusxBW.300' px='4' color="minusxGreen.800">
-      {text}
-    </AbsoluteCenter>
-  </Box>
-)
-
-const SettingsBlock = ({title, children}: {title: string, children: React.ReactNode}) => (
-  <VStack borderRadius={10} bg="minusxBW.300" alignItems={"stretch"} padding={3}>
-    <SettingsHeader text={title} />
-    {children}
-  </VStack>
-)
+import { SettingsBlock } from './SettingsBlock';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
