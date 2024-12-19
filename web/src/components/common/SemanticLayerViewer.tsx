@@ -19,7 +19,7 @@ import {
 
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions } from '../../state/settings/reducer'
+import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
@@ -31,11 +31,12 @@ interface Option {
   description?: string;
 }
 
-const colorMap: Record<'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions', {color: string, setter: any}> = {
+const colorMap: Record<'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions' | 'Order', {color: string, setter: any}> = {
   Measures: {color: 'yellow', setter: setUsedMeasures},
   Dimensions: {color: 'blue', setter: setUsedDimensions},
   Filters: {color: 'red', setter: setUsedFilters},
   TimeDimensions: {color: 'purple', setter: setUsedTimeDimensions},
+  Order: {color: 'gray', setter: setUsedOrder}
 }
 
 const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
@@ -97,6 +98,9 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
     else if (memberType === 'TimeDimensions') {
       return { value: member, label: `${member.dimension} | ${member.granularity}` }
     }
+    else if (memberType === 'Order') {
+      return { value: member, label: `${member[0]} | ${member[1]}` }
+    }
     return { value: member, label: member }
   })
   
@@ -133,6 +137,7 @@ export const SemanticLayerViewer = () => {
   const usedDimensions = useSelector((state: RootState) => state.settings.usedDimensions) || []
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
   const usedTimeDimensions = useSelector((state: RootState) => state.settings.usedTimeDimensions) || []
+  const usedOrder = useSelector((state: RootState) => state.settings.usedOrder) || []
 
   const applyQuery = async () => {
     setIsLoading(true);
@@ -145,6 +150,7 @@ export const SemanticLayerViewer = () => {
           dimensions: usedDimensions,
           filters: usedFilters,
           timeDimensions: usedTimeDimensions,
+          order: usedOrder
         })
       });
     } finally {
@@ -153,8 +159,8 @@ export const SemanticLayerViewer = () => {
     }
   };
   useEffect(() => {
-    setButtonIsDisabled(usedMeasures.length === 0 && usedDimensions.length === 0 && usedFilters.length === 0 && usedTimeDimensions.length === 0);  
-  }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions]);
+    setButtonIsDisabled(usedMeasures.length === 0 && usedDimensions.length === 0 && usedFilters.length === 0 && usedTimeDimensions.length === 0 && usedOrder.length === 0);  
+  }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder]);
 
   return (
     <ResizableBox
@@ -186,6 +192,7 @@ export const SemanticLayerViewer = () => {
             <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
             <Members members={usedFilters} selectedMembers={usedFilters} memberType='Filters' />
             <Members members={usedTimeDimensions} selectedMembers={usedTimeDimensions} memberType='TimeDimensions' />
+            <Members members={usedOrder} selectedMembers={usedOrder} memberType='Order' />
           </Box>
         </VStack>
       </SettingsBlock>
