@@ -110,6 +110,7 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
 
 export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const availableMeasures = useSelector((state: RootState) => state.settings.availableMeasures) || []
   const availableDimensions = useSelector((state: RootState) => state.settings.availableDimensions) || []
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
@@ -117,6 +118,11 @@ export const SemanticLayerViewer = () => {
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
 
   useEffect(() => {
+    if (!hasMounted) {
+      // Todo Sreejith: is this correct?
+      setHasMounted(true);
+      return;
+    }
     const applyQuery = async () => {
       setIsLoading(true);
       try {
