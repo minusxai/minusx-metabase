@@ -17,7 +17,7 @@ import {
 
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { setUsedMeasures, setUsedDimensions, setUsedFilters } from '../../state/settings/reducer'
+import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions } from '../../state/settings/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
@@ -29,10 +29,11 @@ interface Option {
   description?: string;
 }
 
-const colorMap: Record<'Measures' | 'Dimensions' | 'Filters', {color: string, setter: any}> = {
+const colorMap: Record<'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions', {color: string, setter: any}> = {
   Measures: {color: 'yellow', setter: setUsedMeasures},
   Dimensions: {color: 'blue', setter: setUsedDimensions},
-  Filters: {color: 'red', setter: setUsedFilters}
+  Filters: {color: 'red', setter: setUsedFilters},
+  TimeDimensions: {color: 'purple', setter: setUsedTimeDimensions},
 }
 
 const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
@@ -70,6 +71,8 @@ const LoadingOverlay = () => (
     alignItems="center"
     justifyContent="center"
     borderRadius={5}
+    // Todo: Sreejith: The Loading overlay is not covering the full screen. Need to fix this!!!
+    // height={500}
   >
     <Center>
       <Spinner
@@ -85,7 +88,15 @@ const LoadingOverlay = () => (
 
 const Members = ({ members, selectedMembers, memberType }: { members: any[], selectedMembers: string[], memberType: string }) => {
   const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
-  const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => ({ value: member, label: memberType === 'Filters' ? member.member : member }))
+  const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
+    if (memberType === 'Filters') {
+      return { value: member, label: member.member }
+    }
+    else if (memberType === 'TimeDimensions') {
+      return { value: member, label: `${member.dimension} | ${member.granularity}` }
+    }
+    return { value: member, label: member }
+  })
   
   const setterFn = (selectedOptions: any) => dispatch(colorMap[memberType].setter(selectedOptions.map((option: any) => option.value)))
   return (<FormControl px={2} py={1}>
@@ -171,6 +182,7 @@ export const SemanticLayerViewer = () => {
             <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
             <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
             <Members members={usedFilters} selectedMembers={usedFilters} memberType='Filters' />
+            <Members members={usedTimeDimensions} selectedMembers={usedTimeDimensions} memberType='TimeDimensions' />
           </Box>
         </VStack>
       </SettingsBlock>
