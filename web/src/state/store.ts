@@ -174,6 +174,7 @@ const migrations = {
     newState.settings.usedDimensions = []
     newState.settings.usedFilters = []
     newState.settings.usedTimeDimensions = []
+    newState.settings.usedOrder = []
   }
 }
 
