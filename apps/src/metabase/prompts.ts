@@ -129,7 +129,7 @@ General instructions:
 
 Routine to follow:
 1. Determine if you need to talk to the user. If yes, call the talkToUser tool.
-2. Determine if the user is asking for a semantic query. If so, pass the appropriate measures, dimensions, filters and timeDimensions to the getSemanticQuery tool.
+2. Determine if the user is asking for a semantic query. If so, pass the appropriate measures, dimensions, filters, timeDimensions and order to the getSemanticQuery tool.
 3. If you estimate that the task can be accomplished with the tool calls selected in the current call, include the markTaskDone tool call at the end. Do not wait for everything to be executed
 4. If you are waiting for the user's clarification, also mark the task as done. 
 `

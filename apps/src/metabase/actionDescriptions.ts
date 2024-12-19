@@ -253,10 +253,20 @@ export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
             }
           }
         }
+      },
+      order: {
+        type: 'array',
+        items: {
+          type: 'array',
+          items: {
+            type: 'string'
+          },
+        },
+        description: "The order of the results. Should be an array of arrays, where each inner array is [measure | dimension, 'asc' | 'desc']."
       }
 
     },
     description: 'Generates SQL using cube.js semantic query API based on the measures, dimensions and filters provided.',
-    required: ["reasoning", "measures", "dimensions", "filters", "timeDimensions"],
+    required: ["reasoning", "measures", "dimensions", "filters", "timeDimensions", "order"],
   }
 ];

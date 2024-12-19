@@ -1,4 +1,4 @@
-import { BlankMessageContent, SemanticMember, SemanticFilter, DefaultMessageContent, TimeDimension } from "web/types";
+import { BlankMessageContent, SemanticMember, SemanticFilter, DefaultMessageContent, TimeDimension, Order } from "web/types";
 import { RPCs, configs } from "web";
 import { AppController, Action } from "../base/appController";
 import {
@@ -469,11 +469,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "SQL from Semantic Layer",
     labelDone: "Semantic Query Retrieved",
     description: "Gets the SQL query from the semantic query.",
-    renderBody: ({ reasoning, measures, dimensions, filters, timeDimensions }: { reasoning: string, measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[] }) => {
-      return {text: null, code: JSON.stringify({measures, dimensions, filters, reasoning, timeDimensions})}
+    renderBody: ({ reasoning, measures, dimensions, filters, timeDimensions, order }: { reasoning: string, measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[], order: Order[] }) => {
+      return {text: null, code: JSON.stringify({measures, dimensions, filters, reasoning, timeDimensions, order})}
     }
   })
-  async getSemanticQuery({ reasoning, measures, dimensions, filters, timeDimensions }: { reasoning: string, measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[] }) {
+  async getSemanticQuery({ reasoning, measures, dimensions, filters, timeDimensions, order }: { reasoning: string, measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[], order: Order[] }) {
     const actionContent: DefaultMessageContent = {
       type: "DEFAULT",
       text: reasoning,
@@ -483,7 +483,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     RPCs.setUsedDimensionsAction(dimensions);
     RPCs.setUsedFiltersAction(filters);
     RPCs.setUsedTimeDimensionsAction(timeDimensions);
-    return actionContent;
+    RPCs.setUsedOrderAction(order);
+    
+    return await this.applySemanticQuery({measures, dimensions, filters, timeDimensions, order});
   }
 
   // 1. Internal actions -------------------------------------------
@@ -511,13 +513,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     return actionContent;
   }
-  async applySemanticQuery({measures, dimensions, filters, timeDimensions} : {measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[]}){
+  async applySemanticQuery({measures, dimensions, filters, timeDimensions, order} : {measures: string[], dimensions: string[], filters: SemanticFilter[], timeDimensions: TimeDimension[], order: Order[]}) {
     const fetchData = async () => {
       const payload = {
         measures: Array.from(measures),
         dimensions: Array.from(dimensions),
         filters: Array.from(filters),
         timeDimensions: Array.from(timeDimensions),
+        order: Array.from(order),
       }
       const response = await axios.post(SEMANTIC_QUERY_API, payload, {
         headers: {
