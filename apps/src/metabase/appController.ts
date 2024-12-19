@@ -1,4 +1,4 @@
-import { BlankMessageContent, SemanticMember, SemanticFilter } from "web/types";
+import { BlankMessageContent, SemanticMember, SemanticFilter, DefaultMessageContent } from "web/types";
 import { RPCs, configs } from "web";
 import { AppController, Action } from "../base/appController";
 import {
@@ -474,13 +474,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async getSemanticQuery({ reasoning, measures, dimensions, filters }: { reasoning: string, measures: string[], dimensions: string[], filters: SemanticFilter[] }) {
-    const actionContent: BlankMessageContent = {
-      type: "BLANK",
+    const actionContent: DefaultMessageContent = {
+      type: "DEFAULT",
+      text: reasoning,
+      images: [],
     };
     RPCs.setUsedMeasuresAction(measures);
     RPCs.setUsedDimensionsAction(dimensions);
     RPCs.setUsedFiltersAction(filters);
-    return await this.applySemanticQuery({measures, dimensions, filters});
+    return actionContent;
   }
 
   // 1. Internal actions -------------------------------------------
