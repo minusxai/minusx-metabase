@@ -192,7 +192,7 @@ const migrations = {
 
 const persistConfig = {
   key: 'root',
-  version: 12,
+  version: 15,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),
