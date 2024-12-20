@@ -177,11 +177,15 @@ const migrations = {
         availableDimensions: []
       }
     }
-    newState.settings.usedMeasures = []
-    newState.settings.usedDimensions = []
-    newState.settings.usedFilters = []
-    newState.settings.usedTimeDimensions = []
-    newState.settings.usedOrder = []
+    if (!newState.thumbnails.semanticQuery) {
+      newState.thumbnails.semanticQuery = {
+        measures: [],
+        dimensions: [],
+        filters: [],
+        timeDimensions: [],
+        order: []
+      }
+    }
   }
 }
 

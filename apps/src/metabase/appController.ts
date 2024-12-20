@@ -486,7 +486,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       timeDimensions,
       order
     }
-    RPCs.setSemanticQuery(semanticQuery);
+    RPCs.applySemanticQuery(semanticQuery);
     await this.applySemanticQuery();
     return actionContent;
   }

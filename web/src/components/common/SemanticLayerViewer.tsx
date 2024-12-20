@@ -19,12 +19,13 @@ import {
 
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
+import { resetSemanticQuery, SemanticQuery, setSemanticQuery } from '../../state/thumbnails/reducer';
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { SettingsBlock } from './SettingsBlock';
+import _, { isEmpty } from 'lodash';
 
 interface Option {
   label: string;
@@ -32,14 +33,14 @@ interface Option {
   description?: string;
 }
 
-type MemberType = 'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions' | 'Order'
+type MemberType = keyof SemanticQuery
 
-const SemanticMemberMap: Record<'Measures' | 'Dimensions' | 'Filters' | 'TimeDimensions' | 'Order', {color: string, setter: any}> = {
-  Measures: {color: 'yellow', setter: setUsedMeasures},
-  Dimensions: {color: 'blue', setter: setUsedDimensions},
-  Filters: {color: 'red', setter: setUsedFilters},
-  TimeDimensions: {color: 'purple', setter: setUsedTimeDimensions},
-  Order: {color: 'gray', setter: setUsedOrder}
+const SemanticMemberMap: Record<MemberType, {color: string}> = {
+  measures: {color: 'yellow'},
+  dimensions: {color: 'blue'},
+  filters: {color: 'red'},
+  timeDimensions: {color: 'purple'},
+  order: {color: 'gray'}
 }
 
 const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
@@ -92,22 +93,24 @@ const LoadingOverlay = () => (
   </Box>
 );
 
-const Members = ({ members, selectedMembers, memberType }: { members: any[], selectedMembers: string[], memberType: MemberType }) => {
+const Members = ({ members, memberType }: { members: any[], memberType: MemberType }) => {
+  const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
+  const selectedMembers = semanticQuery[memberType]
   const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
   const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
-    if (memberType === 'Filters') {
+    if (memberType === 'filters') {
       return { value: member, label: member.member?.split(".").at(-1) }
     }
-    else if (memberType === 'TimeDimensions') {
+    else if (memberType === 'timeDimensions') {
       return { value: member, label: `${member.dimension?.split(".").at(-1)} | ${member.granularity}` }
     }
-    else if (memberType === 'Order') {
+    else if (memberType === 'order') {
       return { value: member, label: `${member[0]?.split(".").at(-1)} | ${member[1]}` }
     }
     return { value: member, label: member?.split(".").at(-1) }
   })
   
-  const setterFn = (selectedOptions: any) => dispatch(SemanticMemberMap[memberType].setter(selectedOptions.map((option: any) => option.value)))
+  const setterFn = (selectedOptions: any) => dispatch(setSemanticQuery({[memberType]: selectedOptions.map((option: any) => option.value)}))
   return (<FormControl px={2} py={1}>
     <FormLabel fontSize={"sm"}>
       <HStack width={"100%"} justifyContent={"space-between"}>
@@ -134,14 +137,10 @@ const Members = ({ members, selectedMembers, memberType }: { members: any[], sel
 export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [runButton, setRunButton] = useState(false);
-  const [clearButton, setClearButton] = useState(false);
   const availableMeasures = useSelector((state: RootState) => state.semanticLayer.availableMeasures) || []
   const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
-  const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
-  const usedDimensions = useSelector((state: RootState) => state.settings.usedDimensions) || []
-  const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []
-  const usedTimeDimensions = useSelector((state: RootState) => state.settings.usedTimeDimensions) || []
-  const usedOrder = useSelector((state: RootState) => state.settings.usedOrder) || []
+  const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
+  const isEmptySemanticQuery = _.every(_.values(semanticQuery).map(_.isEmpty))
 
   const applyQuery = async () => {
     setIsLoading(true);
@@ -156,23 +155,6 @@ export const SemanticLayerViewer = () => {
       setRunButton(false);
     }
   };
-
-  const clearQuery = async () => {
-    for (const memberType in SemanticMemberMap) {
-      dispatch(SemanticMemberMap[memberType as MemberType].setter([]))
-    }
-    setRunButton(false);
-  };
-  
-  useEffect(() => {
-    setRunButton(true);
-    if (usedMeasures.length || usedDimensions.length || usedFilters.length || usedTimeDimensions.length || usedOrder.length) {
-      setClearButton(true);
-    }
-    else {
-      setClearButton(false);
-    }
-  }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder]);
 
   return (
     <ResizableBox
@@ -197,16 +179,16 @@ export const SemanticLayerViewer = () => {
       <SettingsBlock title='Semantic Layer'>
         <HStack pt={2}>
           <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={!runButton} flex={3}>Run Query</Button>
-          <Button size={"xs"} onClick={() => clearQuery()} colorScheme="minusxGreen" isDisabled={!clearButton} flex={1}>Clear</Button>
+          <Button size={"xs"} onClick={() => dispatch(resetSemanticQuery())} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery} flex={1}>Clear</Button>
         </HStack>
         <VStack>
           <Box>
-            <Members members={availableMeasures} selectedMembers={usedMeasures} memberType='Measures' />
-            <Members members={availableDimensions} selectedMembers={usedDimensions} memberType='Dimensions' />
+            <Members members={availableMeasures} memberType='measures' />
+            <Members members={availableDimensions} memberType='dimensions' />
             {/* Todo: Vivek: Filters is precarious. The below component assumes the simple list form and not the complex object form.*/}
-            <Members members={usedFilters} selectedMembers={usedFilters} memberType='Filters' />
-            <Members members={usedTimeDimensions} selectedMembers={usedTimeDimensions} memberType='TimeDimensions' />
-            <Members members={usedOrder} selectedMembers={usedOrder} memberType='Order' />
+            <Members members={semanticQuery.filters} memberType='filters' />
+            <Members members={semanticQuery.timeDimensions} memberType='timeDimensions' />
+            <Members members={semanticQuery.order} memberType='order' />
           </Box>
         </VStack>
       </SettingsBlock>
