@@ -237,7 +237,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 })
               }} 
             /> */}
-          { demoMode && currentTool === "metabase" && <SemanticLayerViewer/> }
+          { configs.IS_DEV && demoMode && currentTool === "metabase" && <SemanticLayerViewer/> }
           <Divider borderColor={"minusxBW.500"}/>
         </>
         }
