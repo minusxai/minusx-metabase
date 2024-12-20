@@ -35,7 +35,6 @@ interface Configs extends ENV {
     AUTH_BASE_URL: string
     PLANNER_BASE_URL: string
     LOGGING_BASE_URL: string
-    VOICE_ENABLED: boolean
 }
 
 const SERVER_BASE_URL = conf.BASE_SERVER_URL + conf.SERVER_PATH
@@ -46,5 +45,4 @@ export const configs: Configs = {
     AUTH_BASE_URL: SERVER_BASE_URL + conf.AUTH_PATH,
     PLANNER_BASE_URL: SERVER_BASE_URL + conf.PLANNER_PATH,
     LOGGING_BASE_URL: SERVER_BASE_URL + conf.LOGGING_PATH,
-    VOICE_ENABLED: true,
 }

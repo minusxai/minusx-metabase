@@ -170,9 +170,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     if (!taskInProgress && ref?.current) {
       ref.current.focus();
     }
-    if (configs.VOICE_ENABLED) {
-      stopRecording()
-    }
+    stopRecording()
   }, [taskInProgress]);
 
   const isRecording = useSelector((state: RootState) => state.settings.isRecording)

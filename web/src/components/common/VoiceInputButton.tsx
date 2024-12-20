@@ -7,9 +7,7 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
 
   const icon = isRecording ? BsMicMuteFill: BsMic;
   const variant = isRecording ? 'solid' : 'ghost';
-  const labelMessage = isRecording ? 'Stop recording' : 'Type using voice';
-  const comingSoon = !configs.VOICE_ENABLED ? ' (Coming Soon!)' : ''
-  const label = `${labelMessage}${comingSoon}`;
+  const label = isRecording ? 'Stop recording' : 'Type using voice';
 
   let button = (
     <Tooltip hasArrow label={label} placement='right' borderRadius={5} openDelay={500}>
@@ -17,7 +15,7 @@ export function VoiceInputButton({ disabled, onClick, isRecording }: { disabled:
       isRound={true}
       onClick={onClick}
       aria-label='Voice Input'
-      isDisabled={disabled || !configs.VOICE_ENABLED}
+      isDisabled={disabled}
       variant={variant}
       colorScheme='minusxGreen'
       size={'sm'}
