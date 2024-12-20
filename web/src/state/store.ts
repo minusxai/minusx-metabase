@@ -9,7 +9,7 @@ import logger from 'redux-logger'
 import { configs } from '../constants'
 import { plannerListener } from '../planner/planner'
 import billing from './billing/reducer'
-import semantic from './semantic/reducer'
+import semanticLayer from './semantic-layer/reducer'
 
 const combinedReducer = combineReducers({
   chat,
@@ -17,7 +17,7 @@ const combinedReducer = combineReducers({
   settings,
   thumbnails,
   billing,
-  semantic
+  semanticLayer
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -171,8 +171,8 @@ const migrations = {
   },
   15: (state: any) => {
     let newState = {...state}
-    if (!newState.semantic) {
-      newState.semantic = {
+    if (!newState.semanticLayer) {
+      newState.semanticLayer = {
         availableMeasures: [],
         availableDimensions: []
       }

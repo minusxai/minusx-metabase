@@ -12,18 +12,18 @@ export interface Dimension {
   unique_values?: string[]
 }
 
-interface SemanticState {
+interface SemanticLayerState {
   availableMeasures: Measure[]
   availableDimensions: Dimension[]
 }
 
-const initialState: SemanticState = {
+const initialState: SemanticLayerState = {
   availableMeasures: [],
   availableDimensions: [],
 }
 
-export const semanticSlice = createSlice({
-  name: 'semantic',
+export const semanticLayerSlice = createSlice({
+  name: 'semanticLayer',
   initialState,
   reducers: {
     setAvailableMeasures: (state, action: PayloadAction<Measure[]>) => {
@@ -36,6 +36,6 @@ export const semanticSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setAvailableMeasures, setAvailableDimensions } = semanticSlice.actions
+export const { setAvailableMeasures, setAvailableDimensions } = semanticLayerSlice.actions
 
-export default semanticSlice.reducer
+export default semanticLayerSlice.reducer

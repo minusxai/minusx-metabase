@@ -135,8 +135,8 @@ export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [runButton, setRunButton] = useState(false);
   const [clearButton, setClearButton] = useState(false);
-  const availableMeasures = useSelector((state: RootState) => state.semantic.availableMeasures) || []
-  const availableDimensions = useSelector((state: RootState) => state.semantic.availableDimensions) || []
+  const availableMeasures = useSelector((state: RootState) => state.semanticLayer.availableMeasures) || []
+  const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
   const usedDimensions = useSelector((state: RootState) => state.settings.usedDimensions) || []
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []

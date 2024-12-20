@@ -479,11 +479,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       text: reasoning,
       images: [],
     };
-    RPCs.setUsedMeasuresAction(measures);
-    RPCs.setUsedDimensionsAction(dimensions);
-    RPCs.setUsedFiltersAction(filters);
-    RPCs.setUsedTimeDimensionsAction(timeDimensions);
-    RPCs.setUsedOrderAction(order);
+    const semanticQuery = {
+      measures,
+      dimensions,
+      filters,
+      timeDimensions,
+      order
+    }
+    RPCs.setSemanticQuery(semanticQuery);
     await this.applySemanticQuery();
     return actionContent;
   }
