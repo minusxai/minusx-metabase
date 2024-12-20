@@ -28,10 +28,14 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
+import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic/reducer'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
+import axios from 'axios'
+
+const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
 
 const useAppStore = getApp().useStore()
 
@@ -241,6 +245,32 @@ const AppBody = forwardRef((_props, ref) => {
         console.log('register error is', err)
       })
     }
+  }, [auth.session_jwt])
+  useEffect(() => {
+      const fetchData = async () => {
+          const response = await axios.get(SEMANTIC_PROPERTIES_API, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+          const data = await response.data
+          dispatch(setAvailableMeasures(data.measures || []))
+          dispatch(setAvailableDimensions(data.dimensions || []))
+      }
+      if (auth.session_jwt) {
+        const MAX_TRIES = 3
+        const tryFetchingSemanticLayer = async (tries = 1) => {
+          if (tries <= MAX_TRIES) {
+            try {
+              await fetchData()
+            } catch (err) {
+              console.warn(`Failed to retrieve semantic properties, try ${tries}`, err)
+              setTimeout(() => tryFetchingSemanticLayer(tries + 1), 1000*tries)
+            }
+          }
+        }
+        tryFetchingSemanticLayer()
+      }
   }, [auth.session_jwt])
   // const IFrameButton = (<IconButton 
   //   borderRightRadius={0} aria-label="Home"

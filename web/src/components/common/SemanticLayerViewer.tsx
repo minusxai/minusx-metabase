@@ -20,17 +20,11 @@ import {
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
-import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { SettingsBlock } from './SettingsBlock';
-import axios from 'axios';
-import { configs } from '../../constants'
-
-
-const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
 
 interface Option {
   label: string;
@@ -179,24 +173,6 @@ export const SemanticLayerViewer = () => {
       setClearButton(false);
     }
   }, [usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const response = await axios.get(SEMANTIC_PROPERTIES_API, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      const data = await response.data
-      dispatch(setAvailableMeasures(data.measures || []))
-      dispatch(setAvailableDimensions(data.dimensions || []))
-    }
-    try {
-      fetchData()
-    } catch (err) {
-      console.log('Error is', err)
-    }
-  }, [])
 
   return (
     <ResizableBox
