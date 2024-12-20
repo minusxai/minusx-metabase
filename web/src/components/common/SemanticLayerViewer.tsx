@@ -136,7 +136,6 @@ const Members = ({ members, memberType }: { members: any[], memberType: MemberTy
 
 export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [runButton, setRunButton] = useState(false);
   const availableMeasures = useSelector((state: RootState) => state.semanticLayer.availableMeasures) || []
   const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
   const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
@@ -152,7 +151,6 @@ export const SemanticLayerViewer = () => {
       });
     } finally {
       setIsLoading(false);
-      setRunButton(false);
     }
   };
 
@@ -178,7 +176,7 @@ export const SemanticLayerViewer = () => {
       { isLoading && <LoadingOverlay />}
       <SettingsBlock title='Semantic Layer'>
         <HStack pt={2}>
-          <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={!runButton} flex={3}>Run Query</Button>
+          <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery} flex={3}>Run Query</Button>
           <Button size={"xs"} onClick={() => dispatch(resetSemanticQuery())} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery} flex={1}>Clear</Button>
         </HStack>
         <VStack>

@@ -186,6 +186,7 @@ const migrations = {
         order: []
       }
     }
+    return newState
   }
 }
 
