@@ -29,7 +29,7 @@ import axios from 'axios';
 import { configs } from '../../constants'
 
 
-const SEMANTIC_PROPERTIES_API = configs.SERVER_BASE_URL + "/semantic/properties"
+const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
 
 interface Option {
   label: string;

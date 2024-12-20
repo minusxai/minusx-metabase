@@ -39,7 +39,7 @@ import {
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 
-const SEMANTIC_QUERY_API = configs.SERVER_BASE_URL + "/semantic/query"
+const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------
