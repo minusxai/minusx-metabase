@@ -106,7 +106,8 @@ export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDash
 
 export async function semanticQueryState() {
   const appSettings = RPCs.getAppSettings()
-  const { availableMeasures, availableDimensions, usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder } = appSettings
+  const { semantic, usedMeasures, usedDimensions, usedFilters, usedTimeDimensions, usedOrder } = appSettings
+  const { availableMeasures, availableDimensions } = semantic
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const outputTableMarkdown = await getAndFormatOutputTable();
   

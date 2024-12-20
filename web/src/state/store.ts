@@ -9,12 +9,15 @@ import logger from 'redux-logger'
 import { configs } from '../constants'
 import { plannerListener } from '../planner/planner'
 import billing from './billing/reducer'
+import semantic from './semantic/reducer'
+
 const combinedReducer = combineReducers({
   chat,
   auth,
   settings,
   thumbnails,
-  billing
+  billing,
+  semantic
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -168,8 +171,12 @@ const migrations = {
   },
   15: (state: any) => {
     let newState = {...state}
-    newState.settings.availableMeasures = []
-    newState.settings.availableDimensions = []
+    if (!newState.semantic) {
+      newState.semantic = {
+        availableMeasures: [],
+        availableDimensions: []
+      }
+    }
     newState.settings.usedMeasures = []
     newState.settings.usedDimensions = []
     newState.settings.usedFilters = []

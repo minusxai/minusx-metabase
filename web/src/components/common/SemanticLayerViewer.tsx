@@ -19,7 +19,8 @@ import {
 
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
-import { setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
+import { setUsedMeasures, setUsedDimensions, setUsedFilters, setUsedTimeDimensions, setUsedOrder } from '../../state/settings/reducer'
+import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
@@ -140,8 +141,8 @@ export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [runButton, setRunButton] = useState(false);
   const [clearButton, setClearButton] = useState(false);
-  const availableMeasures = useSelector((state: RootState) => state.settings.availableMeasures) || []
-  const availableDimensions = useSelector((state: RootState) => state.settings.availableDimensions) || []
+  const availableMeasures = useSelector((state: RootState) => state.semantic.availableMeasures) || []
+  const availableDimensions = useSelector((state: RootState) => state.semantic.availableDimensions) || []
   const usedMeasures = useSelector((state: RootState) => state.settings.usedMeasures) || []
   const usedDimensions = useSelector((state: RootState) => state.settings.usedDimensions) || []
   const usedFilters = useSelector((state: RootState) => state.settings.usedFilters) || []

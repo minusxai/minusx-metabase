@@ -19,17 +19,6 @@ export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Availa
 //   |     '-- width: 100%
 //   '--no
 
-export interface Measure { 
-  name: string
-  description: string
-}
-
-export interface Dimension {
-  name: string
-  description: string
-  unique_values?: string[]
-}
-
 export interface SemanticFilter {
   or?: SemanticFilter[]
   and?: SemanticFilter[]
@@ -71,8 +60,6 @@ interface Settings {
   aiRules: string
   savedQueries: boolean
   newSearch: boolean
-  availableMeasures: Measure[]
-  availableDimensions: Dimension[]
   usedMeasures: string[]
   usedDimensions: string[]
   usedFilters: SemanticFilter[]
@@ -97,8 +84,6 @@ const initialState: Settings = {
   aiRules: '',
   savedQueries: false,
   newSearch: false,
-  availableMeasures: [],
-  availableDimensions: [],
   usedMeasures: [],
   usedDimensions: [],
   usedFilters: [],
@@ -155,12 +140,6 @@ export const settingsSlice = createSlice({
     setNewSearch: (state, action: PayloadAction<boolean>) => {
       state.newSearch = action.payload
     },
-    setAvailableMeasures: (state, action: PayloadAction<Measure[]>) => {
-      state.availableMeasures = action.payload
-    },
-    setAvailableDimensions: (state, action: PayloadAction<Dimension[]>) => {
-      state.availableDimensions = action.payload
-    },
     setUsedMeasures: (state, action: PayloadAction<string[]>) => {
       state.usedMeasures = action.payload
     },
@@ -184,7 +163,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries, setNewSearch,
-  setAvailableMeasures, setAvailableDimensions, setUsedMeasures, setUsedDimensions, setUsedFilters,
+  setUsedMeasures, setUsedDimensions, setUsedFilters,
   setUsedTimeDimensions, setUsedOrder
 } = settingsSlice.actions
 
