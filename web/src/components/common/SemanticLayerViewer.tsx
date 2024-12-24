@@ -7,7 +7,8 @@ import {
   Spinner,
   Box,
   Center,
-  Button
+  Button,
+  Editable, EditablePreview, EditableTextarea
 } from '@chakra-ui/react'
 import {
   GroupBase,
@@ -75,7 +76,7 @@ const LoadingOverlay = () => (
     backgroundColor="rgba(250, 250, 250, 0.7)"
     zIndex={1000}
     display="flex"
-    alignItems="center"
+    alignItems="start"
     justifyContent="center"
     borderRadius={5}
     // Todo: Sreejith: The Loading overlay is not covering the full screen. Need to fix this!!!
@@ -88,6 +89,7 @@ const LoadingOverlay = () => (
         emptyColor="gray.200"
         color={"minusxGreen.500"}
         size="xl"
+        mt={16}
       />
     </Center>
   </Box>
@@ -130,6 +132,7 @@ const Members = ({ members, memberType }: { members: any[], memberType: MemberTy
       value={createUsedOptions(selectedMembers, memberType)}
       onChange={setterFn}
       components={components}
+      menuPosition='fixed'
     />
   </FormControl>)
 }
@@ -140,6 +143,8 @@ export const SemanticLayerViewer = () => {
   const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
   const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
   const isEmptySemanticQuery = _.every(_.values(semanticQuery).map(_.isEmpty))
+
+  const showSemanticQueryJSON = true;
 
   const applyQuery = async () => {
     setIsLoading(true);
@@ -153,6 +158,14 @@ export const SemanticLayerViewer = () => {
       setIsLoading(false);
     }
   };
+
+  const updateSemanticQueryFromJson = (value: string) => {
+    try {
+      dispatch(setSemanticQuery(JSON.parse(value)))
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   return (
     <ResizableBox
@@ -172,14 +185,14 @@ export const SemanticLayerViewer = () => {
       axis="y"
       style={{ paddingTop: '10px', position: 'relative'}}
     >
-    <Box position='relative' overflow={"scroll"} height={"100%"}>
-      { isLoading && <LoadingOverlay />}
+    <Box position='relative' overflow="scroll" height={"100%"}>
       <SettingsBlock title='Semantic Layer'>
         <HStack pt={2}>
-          <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery} flex={3}>Run Query</Button>
-          <Button size={"xs"} onClick={() => dispatch(resetSemanticQuery())} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery} flex={1}>Clear</Button>
+          <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery || isLoading} flex={3}>Run Query</Button>
+          <Button size={"xs"} onClick={() => dispatch(resetSemanticQuery())} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery || isLoading} flex={1}>Clear</Button>
         </HStack>
-        <VStack>
+        <VStack overflow={"scroll"} position={"relative"}>
+          { isLoading && <LoadingOverlay />}
           <Box>
             <Members members={availableMeasures} memberType='measures' />
             <Members members={availableDimensions} memberType='dimensions' />
@@ -187,6 +200,15 @@ export const SemanticLayerViewer = () => {
             <Members members={semanticQuery.filters} memberType='filters' />
             <Members members={semanticQuery.timeDimensions} memberType='timeDimensions' />
             <Members members={semanticQuery.order} memberType='order' />
+            { showSemanticQueryJSON && <Editable value={JSON.stringify(semanticQuery, null, 2)}
+              mt={3} width={"100%"} justifyContent={"center"} display={"flex"}
+              alignItems={"stretch"} borderRadius={5} borderColor={"#aaa"} borderWidth={1}
+              bg="#fefefe" onChange={updateSemanticQueryFromJson}
+              >
+              <EditablePreview whiteSpace="pre-wrap" fontFamily="monospace" p={3} minHeight={300}/>
+              <EditableTextarea whiteSpace="pre-wrap" fontFamily="monospace" p={3} minHeight={300}/>
+            </Editable>
+            }
           </Box>
         </VStack>
       </SettingsBlock>
