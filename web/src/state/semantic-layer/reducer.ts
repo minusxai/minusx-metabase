@@ -39,7 +39,7 @@ export const semanticLayerSlice = createSlice({
     setAvailableDimensions: (state, action: PayloadAction<Dimension[]>) => {
       state.availableDimensions = action.payload
     },
-    setAvailableLayers: (state, action: PayloadAction<Dimension[]>) => {
+    setAvailableLayers: (state, action: PayloadAction<Layer[]>) => {
       state.availableLayers = action.payload
     },
   },

@@ -227,6 +227,7 @@ const AppBody = forwardRef((_props, ref) => {
   const auth = useSelector((state: RootState) => state.auth)
   const appMode = useSelector((state: RootState) => state.settings.appMode)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+  const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const toolEnabled = useAppStore((state) => state.isEnabled)
   const variant = getParsedIframeInfo().variant
   useEffect(() => {
@@ -256,7 +257,7 @@ const AppBody = forwardRef((_props, ref) => {
           const data = await response.data
           dispatch(setAvailableLayers(data.layers || []))
       }
-      if (auth.session_jwt) {
+      if (auth.session_jwt && demoMode) {
         const MAX_TRIES = 3
         const tryFetchingSemanticLayer = async (tries = 1) => {
           if (tries <= MAX_TRIES) {
