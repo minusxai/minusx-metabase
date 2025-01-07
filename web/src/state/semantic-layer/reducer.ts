@@ -1,6 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
+export interface Layer {
+  name: string
+  description: string
+}
+
 export interface Measure { 
   name: string
   description: string
@@ -15,11 +20,13 @@ export interface Dimension {
 interface SemanticLayerState {
   availableMeasures: Measure[]
   availableDimensions: Dimension[]
+  availableLayers: Layer[]
 }
 
 const initialState: SemanticLayerState = {
   availableMeasures: [],
   availableDimensions: [],
+  availableLayers: [],
 }
 
 export const semanticLayerSlice = createSlice({
@@ -32,10 +39,13 @@ export const semanticLayerSlice = createSlice({
     setAvailableDimensions: (state, action: PayloadAction<Dimension[]>) => {
       state.availableDimensions = action.payload
     },
+    setAvailableLayers: (state, action: PayloadAction<Dimension[]>) => {
+      state.availableLayers = action.payload
+    },
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { setAvailableMeasures, setAvailableDimensions } = semanticLayerSlice.actions
+export const { setAvailableMeasures, setAvailableDimensions, setAvailableLayers } = semanticLayerSlice.actions
 
 export default semanticLayerSlice.reducer

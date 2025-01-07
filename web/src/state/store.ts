@@ -187,6 +187,13 @@ const migrations = {
       }
     }
     return newState
+  },
+  16: (state: any) => {
+    let newState = {...state}
+    if (!newState.semanticLayer.availableLayers) {
+      newState.semanticLayer.availableLayers = []
+    }
+    return newState
   }
 }
 
