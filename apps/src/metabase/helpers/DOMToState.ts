@@ -58,6 +58,7 @@ export interface MetabaseSemanticQueryAppState {
   currentSemanticQuery: SemanticQuery;
   dialect?: string;
   outputTableMarkdown?: string;
+  currentSemanticLayer?: string;
 }
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
@@ -105,7 +106,7 @@ export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDash
 };
 
 export async function semanticQueryState() {
-  const { semanticLayer, semanticQuery } = RPCs.getSemanticInfo()
+  const { semanticLayer, semanticQuery, currentSemanticLayer } = RPCs.getSemanticInfo()
   const { availableMeasures, availableDimensions } = semanticLayer
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const outputTableMarkdown = await getAndFormatOutputTable();
@@ -115,7 +116,8 @@ export async function semanticQueryState() {
     availableDimensions,
     currentSemanticQuery: semanticQuery,
     dialect: selectedDatabaseInfo?.dialect,
-    outputTableMarkdown
+    outputTableMarkdown,
+    currentSemanticLayer
   }
   return metabaseSemanticQueryAppState;
 }

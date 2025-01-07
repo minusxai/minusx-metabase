@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { resetSemanticQuery, SemanticQuery, setSemanticQuery } from '../../state/thumbnails/reducer';
 import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic-layer/reducer'
+import { setSemanticLayer } from '../../state/thumbnails/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
@@ -149,6 +150,7 @@ export const SemanticLayerViewer = () => {
   const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
   const availableLayers = useSelector((state: RootState) => state.semanticLayer.availableLayers) || []
   const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
+  const semanticLayer = useSelector((state: RootState) => state.thumbnails.semanticLayer)
   const isEmptySemanticQuery = _.every(_.values(semanticQuery).map(_.isEmpty))
 
   const showSemanticQueryJSON = true;
@@ -174,24 +176,28 @@ export const SemanticLayerViewer = () => {
     }
   }
 
-  const fetchLayer = async (layer: Option) => {
+  const fetchLayer = async (layer: any) => {
     const measures = []
     const dimensions = []
+    let semanticLayer = null
     if (layer) {
+      semanticLayer = layer.value
       const response = await axios.get(SEMANTIC_PROPERTIES_API, {
         headers: {
           'Content-Type': 'application/json',
         },
         params: {
-          layer: layer.value
+          layer: semanticLayer
         }
       })
       const data = await response.data
       measures.push(...data.measures)
       dimensions.push(...data.dimensions)
     }
+    dispatch(setSemanticLayer(semanticLayer))
     dispatch(setAvailableMeasures(measures))
     dispatch(setAvailableDimensions(dimensions))
+
   }
 
   return (
@@ -221,7 +227,7 @@ export const SemanticLayerViewer = () => {
         placeholder={`No semantic layer selected`}
         variant='filled'
         size={'sm'}
-        // value={createUsedOptions(selectedMembers, memberType)}
+        value={{ value: semanticLayer, label: semanticLayer }}
         onChange={fetchLayer}
         components={components}
         menuPosition='fixed'

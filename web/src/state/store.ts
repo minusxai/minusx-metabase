@@ -193,6 +193,9 @@ const migrations = {
     if (!newState.semanticLayer.availableLayers) {
       newState.semanticLayer.availableLayers = []
     }
+    if (!newState.thumbnails.semanticLater) {
+      newState.thumbnails.semanticLayer = null
+    }
     return newState
   }
 }
