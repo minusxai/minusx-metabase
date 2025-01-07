@@ -21,12 +21,18 @@ import {
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { resetSemanticQuery, SemanticQuery, setSemanticQuery } from '../../state/thumbnails/reducer';
+import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic-layer/reducer'
+import { setSemanticLayer } from '../../state/thumbnails/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { ResizableBox } from 'react-resizable';
 import 'react-resizable/css/styles.css';
 import { SettingsBlock } from './SettingsBlock';
-import _, { isEmpty } from 'lodash';
+import _, { create, isEmpty } from 'lodash';
+import axios from 'axios'
+import { configs } from '../../constants'
+
+const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
 
 interface Option {
   label: string;
@@ -95,22 +101,23 @@ const LoadingOverlay = () => (
   </Box>
 );
 
+const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
+const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
+  if (memberType === 'filters') {
+    return { value: member, label: member.member?.split(".").at(-1) }
+  }
+  else if (memberType === 'timeDimensions') {
+    return { value: member, label: `${member.dimension?.split(".").at(-1)} | ${member.granularity}` }
+  }
+  else if (memberType === 'order') {
+    return { value: member, label: `${member[0]?.split(".").at(-1)} | ${member[1]}` }
+  }
+  return { value: member, label: member?.split(".").at(-1) }
+})
+
 const Members = ({ members, memberType }: { members: any[], memberType: MemberType }) => {
   const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
   const selectedMembers = semanticQuery[memberType]
-  const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
-  const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
-    if (memberType === 'filters') {
-      return { value: member, label: member.member?.split(".").at(-1) }
-    }
-    else if (memberType === 'timeDimensions') {
-      return { value: member, label: `${member.dimension?.split(".").at(-1)} | ${member.granularity}` }
-    }
-    else if (memberType === 'order') {
-      return { value: member, label: `${member[0]?.split(".").at(-1)} | ${member[1]}` }
-    }
-    return { value: member, label: member?.split(".").at(-1) }
-  })
   
   const setterFn = (selectedOptions: any) => dispatch(setSemanticQuery({[memberType]: selectedOptions.map((option: any) => option.value)}))
   return (<FormControl px={2} py={1}>
@@ -141,7 +148,9 @@ export const SemanticLayerViewer = () => {
   const [isLoading, setIsLoading] = useState(false);
   const availableMeasures = useSelector((state: RootState) => state.semanticLayer.availableMeasures) || []
   const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
+  const availableLayers = useSelector((state: RootState) => state.semanticLayer.availableLayers) || []
   const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
+  const semanticLayer = useSelector((state: RootState) => state.thumbnails.semanticLayer)
   const isEmptySemanticQuery = _.every(_.values(semanticQuery).map(_.isEmpty))
 
   const showSemanticQueryJSON = true;
@@ -167,6 +176,30 @@ export const SemanticLayerViewer = () => {
     }
   }
 
+  const fetchLayer = async (layer: any) => {
+    const measures = []
+    const dimensions = []
+    let semanticLayer = null
+    if (layer) {
+      semanticLayer = layer.value
+      const response = await axios.get(SEMANTIC_PROPERTIES_API, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        params: {
+          layer: semanticLayer
+        }
+      })
+      const data = await response.data
+      measures.push(...data.measures)
+      dimensions.push(...data.dimensions)
+    }
+    dispatch(setSemanticLayer(semanticLayer))
+    dispatch(setAvailableMeasures(measures))
+    dispatch(setAvailableDimensions(dimensions))
+
+  }
+
   return (
     <ResizableBox
       width={Infinity}
@@ -187,13 +220,25 @@ export const SemanticLayerViewer = () => {
     >
     <Box position='relative' overflow="scroll" height={"100%"}>
       <SettingsBlock title='Semantic Layer'>
-        <HStack pt={2}>
+      <Select
+        isClearable
+        name={'layers'}
+        options={createAvailableOptions(availableLayers)}
+        placeholder={`No semantic layer selected`}
+        variant='filled'
+        size={'sm'}
+        value={{ value: semanticLayer, label: semanticLayer }}
+        onChange={fetchLayer}
+        components={components}
+        menuPosition='fixed'
+      />
+        <HStack>
           <Button size={"xs"} onClick={() => applyQuery()} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery || isLoading} flex={3}>Run Query</Button>
           <Button size={"xs"} onClick={() => dispatch(resetSemanticQuery())} colorScheme="minusxGreen" isDisabled={isEmptySemanticQuery || isLoading} flex={1}>Clear</Button>
         </HStack>
         <VStack overflow={"scroll"} position={"relative"}>
           { isLoading && <LoadingOverlay />}
-          <Box>
+          <Box width={"100%"}>
             <Members members={availableMeasures} memberType='measures' />
             <Members members={availableDimensions} memberType='dimensions' />
             {/* Todo: Vivek: Filters is precarious. The below component assumes the simple list form and not the complex object form.*/}
@@ -205,8 +250,8 @@ export const SemanticLayerViewer = () => {
               alignItems={"stretch"} borderRadius={5} borderColor={"#aaa"} borderWidth={1}
               bg="#fefefe" onChange={updateSemanticQueryFromJson}
               >
-              <EditablePreview whiteSpace="pre-wrap" fontFamily="monospace" p={3} minHeight={300}/>
-              <EditableTextarea whiteSpace="pre-wrap" fontFamily="monospace" p={3} minHeight={300}/>
+              <EditablePreview whiteSpace="pre-wrap" fontFamily="monospace" p={3} minHeight={150} width={"100%"}/>
+              <EditableTextarea whiteSpace="pre-wrap" fontFamily="monospace" p={3} minHeight={150}/>
             </Editable>
             }
           </Box>

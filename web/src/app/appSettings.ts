@@ -18,6 +18,7 @@ export const getSemanticInfo = () => {
   return {
     semanticLayer: state.semanticLayer,
     semanticQuery: state.thumbnails.semanticQuery,
+    currentSemanticLayer: state.thumbnails.semanticLayer
   }
 }
 

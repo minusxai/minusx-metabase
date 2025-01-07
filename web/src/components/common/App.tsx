@@ -28,14 +28,14 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
-import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic-layer/reducer'
+import { setAvailableLayers } from '../../state/semantic-layer/reducer'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import axios from 'axios'
 
-const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
+const SEMANTIC_LAYERS_API = `${configs.SEMANTIC_BASE_URL}/layers`
 
 const useAppStore = getApp().useStore()
 
@@ -227,6 +227,7 @@ const AppBody = forwardRef((_props, ref) => {
   const auth = useSelector((state: RootState) => state.auth)
   const appMode = useSelector((state: RootState) => state.settings.appMode)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+  const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const toolEnabled = useAppStore((state) => state.isEnabled)
   const variant = getParsedIframeInfo().variant
   useEffect(() => {
@@ -248,16 +249,15 @@ const AppBody = forwardRef((_props, ref) => {
   }, [auth.session_jwt])
   useEffect(() => {
       const fetchData = async () => {
-          const response = await axios.get(SEMANTIC_PROPERTIES_API, {
+          const response = await axios.get(SEMANTIC_LAYERS_API, {
             headers: {
               'Content-Type': 'application/json',
             },
           })
           const data = await response.data
-          dispatch(setAvailableMeasures(data.measures || []))
-          dispatch(setAvailableDimensions(data.dimensions || []))
+          dispatch(setAvailableLayers(data.layers || []))
       }
-      if (auth.session_jwt) {
+      if (auth.session_jwt && demoMode) {
         const MAX_TRIES = 3
         const tryFetchingSemanticLayer = async (tries = 1) => {
           if (tries <= MAX_TRIES) {

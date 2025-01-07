@@ -525,6 +525,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       const payload = {
         ...state.currentSemanticQuery,
         dialect: state.dialect,
+        layer: state.currentSemanticLayer,
       }
       const response = await axios.post(SEMANTIC_QUERY_API, payload, {
         headers: {

@@ -30,6 +30,7 @@ export interface ThumbnailsState {
   thumbnails: Image[]
   instructions: string
   semanticQuery: SemanticQuery
+  semanticLayer: string | null
 }
 
 const initialState: ThumbnailsState = {
@@ -41,7 +42,8 @@ const initialState: ThumbnailsState = {
     filters: [],
     timeDimensions: [],
     order: []
-  }
+  },
+  semanticLayer: null
 }
 
 export const thumbnailsSlice = createSlice({
@@ -79,11 +81,14 @@ export const thumbnailsSlice = createSlice({
     },
     resetSemanticQuery: (state) => {
       state.semanticQuery = initialState.semanticQuery
+    },
+    setSemanticLayer: (state, action: PayloadAction<string | null>) => {
+      state.semanticLayer = action.payload
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { addThumbnail, removeThumbnail, resetThumbnails, setInstructions, setSemanticQuery, resetSemanticQuery } = thumbnailsSlice.actions
+export const { addThumbnail, removeThumbnail, resetThumbnails, setInstructions, setSemanticQuery, resetSemanticQuery, setSemanticLayer } = thumbnailsSlice.actions
 
 export default thumbnailsSlice.reducer
