@@ -12,14 +12,13 @@ import { configs } from '../../constants';
 
 const Monitors: MonitorDef[] = [
   {
-    title: "Custom Instructions",
-    component: CustomInstructions,
+    title: "General Settings",
+    component: Settings,
     tags: ['production']
   },
-
   {
-    title: "Settings",
-    component: Settings,
+    title: "Custom Instructions",
+    component: CustomInstructions,
     tags: ['production']
   },
   {
@@ -69,7 +68,7 @@ export const DevToolsBox: React.FC = () => {
       >
       <DockSwitcher monitors={monitors} />
       <HStack justifyContent="space-between" alignItems="center" width="100%" p="1" borderTop={"1px solid"} borderTopColor={"minusxBW.500"}>
-        <Text fontSize={"xs"}>DevTools</Text>
+        <Text fontSize={"xs"}>Settings</Text>
       </HStack>
     </VStack>
   )

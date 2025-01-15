@@ -41,7 +41,7 @@ export const DevToolsToggle: React.FC<{size: 'micro' | 'mini'}> = ({size}) => {
   }
   return (
   <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
-    <Text color={"minusxBW.800"} fontSize={size=='micro'?"xs":"sm"}>DevTools</Text>
+    <Text color={"minusxBW.800"} fontSize={size=='micro'?"xs":"sm"}>Settings</Text>
     <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size={size=="micro"?"sm":"md"} isChecked={devTools} onChange={(e) => setshowDevTools(e.target.checked)} />
   </Stack>
   )
