@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { toast } from '../../app/toast';
 import { SettingsBlock } from './SettingsBlock';
+import { getParsedIframeInfo } from '../../helpers/origin';
 
 const AdditionalContext = () => {
   const aiRules = useSelector((state: RootState) => state.settings.aiRules)
@@ -25,6 +26,12 @@ const AdditionalContext = () => {
     setCustomInstructions(aiRules)
   }
 
+  const tool = getParsedIframeInfo().tool
+  let placeholder = `Example:\n1. Only use tables from "public" schema\n2. Always use plotly for plotting`
+  if (tool == 'metabase') {
+    placeholder = `Examples:\n## Project Name. \n\nProject Description \n\n\`\`\`sql\nSELECT * from MY_TABLE\nJOIN OTHER_TABLE\nWHERE CONDITION = VALUE\n\`\`\`\n\n## Project 2\n\nProject 2 Description\n...`
+  }
+
   return (
     <VStack className='settings-body'
     justifyContent="start"
@@ -35,16 +42,13 @@ const AdditionalContext = () => {
     overflow={"scroll"}
     pt={2}
     >
-      <VStack alignItems={"start"} gap={1}>
-        <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Custom Instructions</Text>
-        <Text color={"minusxBW.600"} fontSize="xs">Custom instructions allow you to share anything you'd like MinusX to consider while thinking.
-        The instructions are specific to the app you're using (Metabase, Sheets, etc.).</Text>
+      <VStack alignItems={"start"} gap={1}> 
         <Textarea
           marginTop={2}
           value={customInstructions}
           // onChange={(e) => dispatch(setAiRules(e.target.value))}
           onChange={(e) => setCustomInstructions(e.target.value)}
-          placeholder={`Examples:\n1. Only use tables from "public" schema\n2. Always use plotly for plotting`}
+          placeholder={placeholder}
           size="sm"
           _focus={{
             border: '1.5px solid #16a085',
