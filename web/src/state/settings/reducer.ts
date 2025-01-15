@@ -4,7 +4,7 @@ import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
-export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools'
+export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Add Instructions'
 
 
 //--isAppOpen

@@ -5,6 +5,7 @@ import { LLMContext } from './LLMContext'
 // import { LLMContextHistory } from './LLMContextHistory'
 import { PlannerConfigs } from './PlannerConfigs'
 import { Testing } from './Testing'
+import { CustomInstructions } from './CustomInstructions'
 import { ActionsView } from './ActionDebug';
 import { configs } from '../../constants';
 
@@ -31,6 +32,10 @@ const Monitors: MonitorDef[] = [
     title: "Testing Tools",
     component: Testing
   },
+  {
+    title: "Add Instructions",
+    component: CustomInstructions
+  },
 ]
 
 export const DevToolsBox: React.FC = () => {
@@ -45,7 +50,7 @@ export const DevToolsBox: React.FC = () => {
       px="4"
       pt="4"
       fontSize="sm"
-      w="500px"
+      w="700px"
       height="100%"
       gap={0}
       backgroundColor={"minusxBW.200"}

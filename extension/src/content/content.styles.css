@@ -42,7 +42,7 @@
   height: 100%;
   position: absolute;
   right: 0;
-  width: 850px;
+  width: 1050px;
   border: none;
   user-select: none;
 }
@@ -68,7 +68,7 @@
 }
 
 .mode-open-sidepanel-devtools {
-  width: 850px;
+  width: 1050px;
 }
 
 #minusx-root.closed {

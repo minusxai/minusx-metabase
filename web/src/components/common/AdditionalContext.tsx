@@ -30,44 +30,40 @@ const AdditionalContext = () => {
     justifyContent="start"
     alignItems="stretch"
     flex={1}
-    height={'80vh'}
+    height={'100%'}
     width={"100%"}
     overflow={"scroll"}
     pt={2}
     >
-      <SettingsBlock title="More Context" >
-        <VStack pt={3}>
-          <VStack alignItems={"start"} gap={1}>
-            <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Custom Instructions</Text>
-            <Text color={"minusxBW.600"} fontSize="xs">Custom instructions allow you to share anything you'd like MinusX to consider while thinking.
-            The instructions are specific to the app you're using (Metabase, Sheets, etc.).</Text>
-            <Textarea
-              marginTop={2}
-              value={customInstructions}
-              // onChange={(e) => dispatch(setAiRules(e.target.value))}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-              placeholder={`Examples:\n1. Only use tables from "public" schema\n2. Always use plotly for plotting`}
-              size="sm"
-              _focus={{
-                border: '1.5px solid #16a085',
-                boxShadow: 'none',
-                bg: "#fefefe"
-              }}
-              border='1px solid #aaa'
-              borderRadius='lg'
-              minHeight={150}
-              bg={"#eee"}
-            />
-            <HStack justify={"space-between"} width={"100%"} alignItems={"center"} pt={2}>
-              <HStack spacing={2}>
-                <Button size="sm" colorScheme="minusxGreen" onClick={handleSave} isDisabled={aiRules === customInstructions}>Save</Button>
-                <Button size="sm" colorScheme="minusxGreen" onClick={handleReset} isDisabled={aiRules === customInstructions}>Reset</Button>
-              </HStack>
-              {aiRules != customInstructions ? <Text color={"minusxBW.600"} fontSize="xs">unsaved changes</Text> : null}
-            </HStack>
-          </VStack>
-        </VStack>
-      </SettingsBlock>
+      <VStack alignItems={"start"} gap={1}>
+        <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Custom Instructions</Text>
+        <Text color={"minusxBW.600"} fontSize="xs">Custom instructions allow you to share anything you'd like MinusX to consider while thinking.
+        The instructions are specific to the app you're using (Metabase, Sheets, etc.).</Text>
+        <Textarea
+          marginTop={2}
+          value={customInstructions}
+          // onChange={(e) => dispatch(setAiRules(e.target.value))}
+          onChange={(e) => setCustomInstructions(e.target.value)}
+          placeholder={`Examples:\n1. Only use tables from "public" schema\n2. Always use plotly for plotting`}
+          size="sm"
+          _focus={{
+            border: '1.5px solid #16a085',
+            boxShadow: 'none',
+            bg: "#fefefe"
+          }}
+          border='1px solid #aaa'
+          borderRadius='lg'
+          minHeight={450}
+          bg={"#eee"}
+        />
+        <HStack justify={"space-between"} width={"100%"} alignItems={"center"} pt={2}>
+          <HStack spacing={2}>
+            <Button size="sm" colorScheme="minusxGreen" onClick={handleSave} isDisabled={aiRules === customInstructions}>Save</Button>
+            <Button size="sm" colorScheme="minusxGreen" onClick={handleReset} isDisabled={aiRules === customInstructions}>Reset</Button>
+          </HStack>
+          {aiRules != customInstructions ? <Text color={"minusxBW.600"} fontSize="xs">unsaved changes</Text> : null}
+        </HStack>
+      </VStack>
     </VStack>
   );
 };
