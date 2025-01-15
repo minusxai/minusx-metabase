@@ -50,7 +50,7 @@ export const DevToolsBox: React.FC = () => {
       px="4"
       pt="4"
       fontSize="sm"
-      w="700px"
+      w="500px"
       height="100%"
       gap={0}
       backgroundColor={"minusxBW.200"}

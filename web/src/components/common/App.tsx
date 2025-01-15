@@ -212,7 +212,7 @@ function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: st
       position: 'absolute',
       top: 0,
       right: 0,
-      width: isDevToolsOpen ? '1050px' : `${width}px`, // Hack to fix Disabled Overlay
+      width: isDevToolsOpen ? '850px' : `${width}px`, // Hack to fix Disabled Overlay
       height: '100%',
       backgroundColor: 'rgba(255, 255, 255, 0.7)',
       zIndex: 1000,
