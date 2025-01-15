@@ -25,8 +25,6 @@ import { setAvailableMeasures, setAvailableDimensions } from '../../state/semant
 import { setSemanticLayer } from '../../state/thumbnails/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
-import { ResizableBox } from 'react-resizable';
-import 'react-resizable/css/styles.css';
 import { SettingsBlock } from './SettingsBlock';
 import _, { create, isEmpty } from 'lodash';
 import axios from 'axios'
@@ -201,23 +199,6 @@ export const SemanticLayerViewer = () => {
   }
 
   return (
-    <ResizableBox
-      width={Infinity}
-      height={300}
-      minConstraints={[Infinity, 200]}
-      maxConstraints={[Infinity, 400]}
-      resizeHandles={['n']}
-      handle={<div className="resizer" style={{
-        position: "absolute",
-        top: "0",
-        width: "100%",
-        height: "1px",
-        background: "#d6d3d1",
-        cursor: "ns-resize",
-      }}/>}
-      axis="y"
-      style={{ paddingTop: '10px', position: 'relative'}}
-    >
     <Box position='relative' overflow="scroll" height={"100%"}>
       <SettingsBlock title='Semantic Layer'>
       <Select
@@ -258,6 +239,5 @@ export const SemanticLayerViewer = () => {
         </VStack>
       </SettingsBlock>
     </Box>
-    </ResizableBox>
   )
 }
