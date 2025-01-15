@@ -34,7 +34,8 @@ const Monitors: MonitorDef[] = [
   },
   {
     title: "Add Instructions",
-    component: CustomInstructions
+    component: CustomInstructions,
+    tags: ['production']
   },
 ]
 
