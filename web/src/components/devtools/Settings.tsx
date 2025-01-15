@@ -8,12 +8,12 @@ import { configs } from '../../constants';
 import { BiLinkExternal } from 'react-icons/bi'
 import { setMinusxMode } from '../../app/rpc';
 import { BsDiscord } from "react-icons/bs";
-import { PortalButton, SubscribeButton, PricingPlans } from './Subscription';
+import { PortalButton, SubscribeButton, PricingPlans } from '../common/Subscription';
 import { getBillingInfo } from '../../app/api/billing';
 import { setBillingInfo } from '../../state/billing/reducer';
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
-import CreditsPill from './CreditsPill';
-import { SettingsBlock } from './SettingsBlock';
+import CreditsPill from '../common/CreditsPill';
+import { SettingsBlock } from '../common/SettingsBlock';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
@@ -98,10 +98,10 @@ const SettingsPage = () => {
     justifyContent="start"
     alignItems="stretch"
     flex={1}
-    height={'80vh'}
+    // height={'80vh'}
     width={"100%"}
     overflow={"scroll"}
-    pt={2}
+    // pt={2}
     >
       <SettingsBlock title="Profile">
         <VStack alignItems={"stretch"}>

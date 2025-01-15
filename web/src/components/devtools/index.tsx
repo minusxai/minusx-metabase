@@ -7,9 +7,21 @@ import { PlannerConfigs } from './PlannerConfigs'
 import { Testing } from './Testing'
 import { CustomInstructions } from './CustomInstructions'
 import { ActionsView } from './ActionDebug';
+import Settings from './Settings'
 import { configs } from '../../constants';
 
 const Monitors: MonitorDef[] = [
+  {
+    title: "Custom Instructions",
+    component: CustomInstructions,
+    tags: ['production']
+  },
+
+  {
+    title: "Settings",
+    component: Settings,
+    tags: ['production']
+  },
   {
     title: "Planner Configs",
     component: PlannerConfigs,
@@ -18,7 +30,7 @@ const Monitors: MonitorDef[] = [
   {
     title: "Context",
     component: LLMContext,
-    tags: ['production']
+    // tags: ['production']
   },
   {
     title: "Action History",
@@ -31,11 +43,6 @@ const Monitors: MonitorDef[] = [
   {
     title: "Testing Tools",
     component: Testing
-  },
-  {
-    title: "Add Instructions",
-    component: CustomInstructions,
-    tags: ['production']
   },
 ]
 

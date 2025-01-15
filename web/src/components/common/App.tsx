@@ -11,8 +11,7 @@ import {
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
-import Settings, {DevToolsToggle} from './Settings'
-import AdditionalContext from './AdditionalContext'
+import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
 import { BiCog, BiMessage, BiFolder, BiFolderOpen } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
@@ -131,7 +130,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     } else {
       await setMinusxMode('open-sidepanel-devtools')
       dispatch(updateIsDevToolsOpen(true))
-      dispatch(updateDevToolsTabName("Add Instructions"))
+      dispatch(updateDevToolsTabName("Custom Instructions"))
     }
   }
 
@@ -178,7 +177,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 onClick={() => dispatch(updateSidePanelTabName('context'))}
               />
             </Tooltip> */}
-            <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
+            {/* <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
               variant={sidePanelTabName === 'settings' ? 'solid' : 'ghost'}
               colorScheme="minusxGreen"
@@ -187,18 +186,18 @@ const AppLoggedIn = forwardRef((_props, ref) => {
               icon={<Icon as={BiCog} boxSize={5} />}
               onClick={() => dispatch(updateSidePanelTabName('settings'))}
               />
-            </Tooltip>
+            </Tooltip> */}
           </HStack>
         </HStack>
       </VStack>
       {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
-      {sidePanelTabName === 'context' ? <AdditionalContext /> : null}
-      {sidePanelTabName === 'settings' ? <Settings /> : null}
+      {/* {sidePanelTabName === 'context' ? <AdditionalContext /> : null} */}
+      {/* {sidePanelTabName === 'settings' ? <Settings /> : null} */}
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
         {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
-        <Button size="xs" colorScheme="minusxBW" variant="outline" onClick={openCustomInstructions}>Add Instructions</Button>
+        <Button size="xs" colorScheme="minusxBW" variant="outline" onClick={openCustomInstructions}>Custom Instructions</Button>
         <SupportButton email={email} />
       </HStack>
     </VStack>

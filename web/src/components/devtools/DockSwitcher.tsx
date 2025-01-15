@@ -43,7 +43,7 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
           <TabList borderColor="transparent" overflowX={"scroll"}>
             {tabHeaders}
           </TabList>
-          <TabPanels overflowY={"scroll"} h="80vh">
+          <TabPanels overflowY={"scroll"} h="85vh">
             {tabPanels}
           </TabPanels>
         </Tabs>

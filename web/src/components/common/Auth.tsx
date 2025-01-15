@@ -10,7 +10,7 @@ import { BsLightbulbFill, BsArrowRight } from "react-icons/bs";
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import { capture } from '../../helpers/screenCapture/extensionCapture';
-import { TelemetryToggle } from './Settings';
+import { TelemetryToggle } from '../devtools/Settings';
 import { getParsedIframeInfo } from '../../helpers/origin';
 import { toast } from '../../app/toast';
 import { get } from 'lodash';
