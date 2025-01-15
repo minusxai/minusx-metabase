@@ -318,8 +318,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           <HStack position={"absolute"} bottom={0} width={"100%"} p={2}>
             <HStack justify={"space-between"}  width={"100%"}>
               <HStack gap={0}>
-                <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/>
-                <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/>
+                {/* <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/> */}
+                {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/>
                 <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/>
                 {configs.IS_DEV && <Checkbox sx={{
@@ -341,7 +341,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                   isChecked={demoMode}
                   onChange={(e) => updateDemoMode(e.target.checked)}
                 >
-                  <Text fontSize={12} color={"minusxBW.600"} p={0} m={0}>?</Text>
                 </Checkbox>
                 }
               </HStack>

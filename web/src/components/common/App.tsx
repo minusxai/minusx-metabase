@@ -6,7 +6,8 @@ import {
   Text,
   Image,
   Tooltip,
-  Spacer
+  Spacer,
+  Button
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
@@ -123,6 +124,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const platformShortcut = getPlatformShortcut()
   const width = getParsedIframeInfo().width
+  const openCustomInstructions = () => {
+    console.log('Open custom instructions')
+  }
 
   return (
     <VStack
@@ -186,7 +190,8 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
-        { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
+        {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
+        <Button size="xs" colorScheme="minusxBW" variant="outline" onClick={openCustomInstructions}>Add Instructions</Button>
         <SupportButton email={email} />
       </HStack>
     </VStack>

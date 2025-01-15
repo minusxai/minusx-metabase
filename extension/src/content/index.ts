@@ -101,6 +101,7 @@ async function _init(localConfigs: Promise<object>) {
 
   const button = document.createElement('div');
   button.id = 'minusx-toggle';
+  button.title = 'Cmd-K to toggle';
   // button.style.backgroundImage = `url(${chrome.runtime.getURL('logo_x.svg')})`
   // enable dragging and toggling the minusx button
   enableButtonDragAndToggle(button)
