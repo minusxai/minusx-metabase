@@ -22,7 +22,7 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
     }
     const tabHeaders = monitors.map((monitor) => {
       const title = monitor['title']
-      return <Tab key={title}>{title}</Tab>
+      return <Tab key={title} style={{whiteSpace: "nowrap"}}>{title}</Tab>
     })
     const tabPanels = monitors.map((monitor) => {
       const title = monitor['title']
