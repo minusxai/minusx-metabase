@@ -8,8 +8,8 @@ export const CustomInstructions: React.FC<null> = () => {
   const tool = getParsedIframeInfo().tool
   if (tool == 'metabase') {
     return <>
-      <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Important Queries</Text>
-      <Text color={"minusxBW.600"} fontSize="xs">Adding important queries (& descriptions) that can be composed allows MinusX to generate correct answers to your questions.</Text>
+      <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Custom Instructions</Text>
+      <Text color={"minusxBW.600"} fontSize="xs">Adding custom instructions (including important queries & descriptions) allows MinusX to generate correct answers to your questions.</Text>
       <AdditionalContext />
     </>
   //   return <>
