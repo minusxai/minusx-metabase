@@ -7,9 +7,20 @@ import { PlannerConfigs } from './PlannerConfigs'
 import { Testing } from './Testing'
 import { CustomInstructions } from './CustomInstructions'
 import { ActionsView } from './ActionDebug';
+import Settings from './Settings'
 import { configs } from '../../constants';
 
 const Monitors: MonitorDef[] = [
+  {
+    title: "General Settings",
+    component: Settings,
+    tags: ['production']
+  },
+  {
+    title: "Custom Instructions",
+    component: CustomInstructions,
+    tags: ['production']
+  },
   {
     title: "Planner Configs",
     component: PlannerConfigs,
@@ -18,7 +29,7 @@ const Monitors: MonitorDef[] = [
   {
     title: "Context",
     component: LLMContext,
-    tags: ['production']
+    // tags: ['production']
   },
   {
     title: "Action History",
@@ -31,11 +42,6 @@ const Monitors: MonitorDef[] = [
   {
     title: "Testing Tools",
     component: Testing
-  },
-  {
-    title: "Add Instructions",
-    component: CustomInstructions,
-    tags: ['production']
   },
 ]
 
@@ -62,7 +68,7 @@ export const DevToolsBox: React.FC = () => {
       >
       <DockSwitcher monitors={monitors} />
       <HStack justifyContent="space-between" alignItems="center" width="100%" p="1" borderTop={"1px solid"} borderTopColor={"minusxBW.500"}>
-        <Text fontSize={"xs"}>DevTools</Text>
+        <Text fontSize={"xs"}>Settings</Text>
       </HStack>
     </VStack>
   )

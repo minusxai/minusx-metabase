@@ -22,7 +22,7 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
     }
     const tabHeaders = monitors.map((monitor) => {
       const title = monitor['title']
-      return <Tab key={title}>{title}</Tab>
+      return <Tab key={title} style={{whiteSpace: "nowrap"}}>{title}</Tab>
     })
     const tabPanels = monitors.map((monitor) => {
       const title = monitor['title']
@@ -43,7 +43,7 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
           <TabList borderColor="transparent" overflowX={"scroll"}>
             {tabHeaders}
           </TabList>
-          <TabPanels overflowY={"scroll"} h="80vh">
+          <TabPanels overflowY={"scroll"} h="85vh">
             {tabPanels}
           </TabPanels>
         </Tabs>

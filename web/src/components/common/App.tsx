@@ -11,10 +11,9 @@ import {
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
-import Settings, {DevToolsToggle} from './Settings'
-import AdditionalContext from './AdditionalContext'
+import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
-import { BiCog, BiMessage, BiFolder, BiFolderOpen } from 'react-icons/bi'
+import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { register } from '../../state/auth/reducer'
 import { dispatch } from '../../state/dispatch'
@@ -35,6 +34,7 @@ import { Markdown } from './Markdown'
 import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import axios from 'axios'
+import { startNewThread } from '../../state/chat/reducer'
 
 const SEMANTIC_LAYERS_API = `${configs.SEMANTIC_BASE_URL}/layers`
 
@@ -131,7 +131,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     } else {
       await setMinusxMode('open-sidepanel-devtools')
       dispatch(updateIsDevToolsOpen(true))
-      dispatch(updateDevToolsTabName("Add Instructions"))
+      dispatch(updateDevToolsTabName("Custom Instructions"))
     }
   }
 
@@ -158,7 +158,19 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         >
           <Image src={logo} alt="MinusX" maxWidth='150px'/>
           <HStack>
-            <Tooltip hasArrow label="Chat" placement='bottom' borderRadius={5} openDelay={500}>
+            
+            <Tooltip hasArrow label="Start New Thread" placement='bottom' borderRadius={5} openDelay={500}>
+              <IconButton
+                variant={'ghost'}
+                colorScheme="minusxGreen"
+                aria-label="Chat"
+                size={'sm'}
+                icon={<Icon as={BiMessageAdd} boxSize={5} />}
+                onClick={() => dispatch(startNewThread())}
+              />
+            </Tooltip>
+            
+            {/* <Tooltip hasArrow label="Chat" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
                 variant={sidePanelTabName === 'chat' ? 'solid' : 'ghost'}
                 colorScheme="minusxGreen"
@@ -167,7 +179,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 icon={<Icon as={BiMessage} boxSize={5} />}
                 onClick={() => dispatch(updateSidePanelTabName('chat'))}
               />
-            </Tooltip>
+            </Tooltip> */}
             {/* <Tooltip hasArrow label="Additional Context" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
                 variant={sidePanelTabName === 'context' ? 'solid' : 'ghost'}
@@ -178,7 +190,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 onClick={() => dispatch(updateSidePanelTabName('context'))}
               />
             </Tooltip> */}
-            <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
+            {/* <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
               variant={sidePanelTabName === 'settings' ? 'solid' : 'ghost'}
               colorScheme="minusxGreen"
@@ -187,18 +199,18 @@ const AppLoggedIn = forwardRef((_props, ref) => {
               icon={<Icon as={BiCog} boxSize={5} />}
               onClick={() => dispatch(updateSidePanelTabName('settings'))}
               />
-            </Tooltip>
+            </Tooltip> */}
           </HStack>
         </HStack>
       </VStack>
       {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
-      {sidePanelTabName === 'context' ? <AdditionalContext /> : null}
-      {sidePanelTabName === 'settings' ? <Settings /> : null}
+      {/* {sidePanelTabName === 'context' ? <AdditionalContext /> : null} */}
+      {/* {sidePanelTabName === 'settings' ? <Settings /> : null} */}
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
         {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
-        <Button size="xs" colorScheme="minusxBW" variant="outline" onClick={openCustomInstructions}>Add Instructions</Button>
+        <Button size="xs" colorScheme="minusxGreen" variant="solid" onClick={openCustomInstructions}>Custom Instructions</Button>
         <SupportButton email={email} />
       </HStack>
     </VStack>

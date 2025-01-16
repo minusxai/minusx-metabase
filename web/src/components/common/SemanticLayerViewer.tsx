@@ -199,7 +199,7 @@ export const SemanticLayerViewer = () => {
   }
 
   return (
-    <Box position='relative' overflow="scroll" height={"100%"}>
+    <Box position='relative' overflow="scroll" maxHeight={"300px"}>
       <SettingsBlock title='Semantic Layer'>
       <Select
         isClearable
