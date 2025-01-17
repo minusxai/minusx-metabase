@@ -21,7 +21,7 @@ import {
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { resetSemanticQuery, SemanticQuery, setSemanticQuery } from '../../state/thumbnails/reducer';
-import { setAvailableMeasures, setAvailableDimensions } from '../../state/semantic-layer/reducer'
+import { setAvailableMeasures, setAvailableDimensions, setAvailableLayers } from '../../state/semantic-layer/reducer'
 import { setSemanticLayer } from '../../state/thumbnails/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
@@ -31,6 +31,7 @@ import axios from 'axios'
 import { configs } from '../../constants'
 
 const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
+const SEMANTIC_LAYERS_API = `${configs.SEMANTIC_BASE_URL}/layers`
 
 interface Option {
   label: string;
@@ -148,7 +149,7 @@ export const SemanticLayerViewer = () => {
   const availableDimensions = useSelector((state: RootState) => state.semanticLayer.availableDimensions) || []
   const availableLayers = useSelector((state: RootState) => state.semanticLayer.availableLayers) || []
   const semanticQuery = useSelector((state: RootState) => state.thumbnails.semanticQuery)
-  const semanticLayer = useSelector((state: RootState) => state.thumbnails.semanticLayer)
+  const semanticLayer = useSelector((state: RootState) => state.thumbnails.semanticLayer) || ''
   const isEmptySemanticQuery = _.every(_.values(semanticQuery).map(_.isEmpty))
 
   const showSemanticQueryJSON = true;
@@ -197,6 +198,32 @@ export const SemanticLayerViewer = () => {
     dispatch(setAvailableDimensions(dimensions))
 
   }
+
+  useEffect(() => {
+    const fetchData = async () => {
+        const response = await axios.get(SEMANTIC_LAYERS_API, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+        const data = await response.data
+        dispatch(setAvailableLayers(data.layers || []))
+        fetchLayer({'value': data.layers[0].name})
+    }
+    const MAX_TRIES = 3
+    const tryFetchingSemanticLayer = async (tries = 1) => {
+      if (tries <= MAX_TRIES) {
+        try {
+          await fetchData()
+        } catch (err) {
+          console.warn(`Failed to retrieve semantic properties, try ${tries}`, err)
+          setTimeout(() => tryFetchingSemanticLayer(tries + 1), 1000*tries)
+        }
+      }
+    }
+    
+    tryFetchingSemanticLayer()
+  }, [])
 
   return (
     <Box position='relative' overflow="scroll" maxHeight={"300px"}>
