@@ -177,22 +177,22 @@ export const SemanticLayerViewer = () => {
   const fetchLayer = async (layer: any) => {
     const measures = []
     const dimensions = []
-    let semanticLayer = null
+    let semanticLayerTemp = null
     if (layer) {
-      semanticLayer = layer.value
+      semanticLayerTemp = layer.value
       const response = await axios.get(SEMANTIC_PROPERTIES_API, {
         headers: {
           'Content-Type': 'application/json',
         },
         params: {
-          layer: semanticLayer
+          layer: semanticLayerTemp
         }
       })
       const data = await response.data
       measures.push(...data.measures)
       dimensions.push(...data.dimensions)
     }
-    dispatch(setSemanticLayer(semanticLayer))
+    dispatch(setSemanticLayer(semanticLayerTemp))
     dispatch(setAvailableMeasures(measures))
     dispatch(setAvailableDimensions(dimensions))
 
@@ -205,7 +205,7 @@ export const SemanticLayerViewer = () => {
         isClearable
         name={'layers'}
         options={createAvailableOptions(availableLayers)}
-        placeholder={`No semantic layer selected`}
+        placeholder={`Select Semantic Layer`}
         variant='filled'
         size={'sm'}
         value={{ value: semanticLayer, label: semanticLayer }}
