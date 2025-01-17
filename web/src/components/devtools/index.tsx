@@ -6,6 +6,7 @@ import { LLMContext } from './LLMContext'
 import { PlannerConfigs } from './PlannerConfigs'
 import { Testing } from './Testing'
 import { CustomInstructions } from './CustomInstructions'
+import { DataCatalog } from './DataCatalog'
 import { ActionsView } from './ActionDebug';
 import Settings from './Settings'
 import { configs } from '../../constants';
@@ -15,6 +16,10 @@ const Monitors: MonitorDef[] = [
     title: "General Settings",
     component: Settings,
     tags: ['production']
+  },
+  {
+    title: "Data Catalog",
+    component: DataCatalog,
   },
   {
     title: "Custom Instructions",
