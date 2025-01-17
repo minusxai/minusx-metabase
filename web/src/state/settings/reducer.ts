@@ -45,7 +45,7 @@ const initialState: Settings = {
   appMode: 'sidePanel',
   isDevToolsOpen: false,
   sidePanelTabName: 'chat',
-  devToolsTabName: 'Context',
+  devToolsTabName: 'General Settings',
   suggestQueries: false,
   iframeInfo: defaultIframeInfoWeb,
   confirmChanges: false,

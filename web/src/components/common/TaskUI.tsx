@@ -18,8 +18,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { HiOutlineRefresh } from 'react-icons/hi'
-import { BiScreenshot, BiPaperclip } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -222,7 +221,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
           {/* <Divider borderColor={"minusxBW.500"}/> */}
-          {isMessageTooLong() && <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease speed and impact accuracy. Consider <HiOutlineRefresh style={{display:"inline-block", verticalAlign: "middle"}}/> this thread.</Text>}
+          {isMessageTooLong() && <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease both speed and accuracy. Consider starting a new thread (click <BiMessageAdd style={{display:"inline-block", verticalAlign: "middle"}}/> at the top right corner).</Text>}
             {/* <ChatSuggestions
               suggestQueries={suggestQueries}
               toggleSuggestions={toggleSuggestions}

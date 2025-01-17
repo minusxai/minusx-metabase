@@ -58,8 +58,13 @@ const SettingsPage = () => {
   const newSearch = useSelector((state: RootState) => state.settings.newSearch)
   const auth = useSelector((state: RootState) => state.auth)
   const billing = useSelector((state: RootState) => state.billing)
+  const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
+
   useEffect(() => {
     const interval = setInterval(() => {
+      if (tabName != 'General Settings'){
+        return null;
+      }
       getBillingInfo().then((billingInfo) => {
         if (billingInfo && billingInfo.subscribed) {
           captureEvent(GLOBAL_EVENTS.billing_subscribed)
