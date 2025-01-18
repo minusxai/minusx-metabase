@@ -169,7 +169,7 @@ const Auth = () => {
 
   useEffect(() => {
     setMinusxMode('open-sidepanel')
-  })
+  }, [])
   const handleVerifyOtp = () => {
     if (!otp) {
       return toast({

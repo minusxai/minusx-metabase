@@ -57,4 +57,21 @@ export default {
       throw error;
     }
   },
+
+  async refresh() {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/refresh`);
+      return response.data;
+    } catch (error) {
+      console.error('Error during refresh:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        if (error.response.status === 401 || error.response.status === 403) {
+          return {
+            expired: true
+          }
+        }
+      }
+      return {}
+    }
+  }
 }

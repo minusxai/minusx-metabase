@@ -15,11 +15,11 @@ import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
 import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
-import { register } from '../../state/auth/reducer'
-import { dispatch } from '../../state/dispatch'
+import { login, register } from '../../state/auth/reducer'
+import { dispatch, logoutState } from '../../state/dispatch'
 import {auth as authModule} from '../../app/api'
 import Auth from './Auth'
-import _ from 'lodash'
+import _, { attempt } from 'lodash'
 import { updateAppMode, updateDevToolsTabName, updateIsDevToolsOpen, updateSidePanelTabName } from '../../state/settings/reducer'
 import { DevToolsBox } from '../devtools';
 import { RootState } from '../../state/store'
@@ -35,6 +35,8 @@ import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import axios from 'axios'
 import { startNewThread } from '../../state/chat/reducer'
+import { toast } from '../../app/toast'
+import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 
 const SEMANTIC_LAYERS_API = `${configs.SEMANTIC_BASE_URL}/layers`
 
@@ -120,6 +122,34 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       }))
     })
   }, [])
+  useEffect(() => {
+    const attemptRefresh = () => {
+      authModule.refresh().then(({ expired, changed, session_jwt, profile_id, email }) => {
+        if (expired) {
+          logoutState()
+          toast({
+            title: 'Logged Out',
+            description: "Please login again",
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+            position: 'bottom-right',
+          })
+        } else if (changed) {
+          dispatch(login({
+            session_jwt,
+            profile_id,
+            email,
+          }))
+          captureEvent(GLOBAL_EVENTS.user_token_refresh, { email, profile_id })
+        }
+      })
+    }
+    // const interval = setInterval(attempt, 10 * 60 * 1000)
+    const interval = setInterval(attemptRefresh, 10000)
+    attemptRefresh()
+    return () => clearInterval(interval)
+  })
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const platformShortcut = getPlatformShortcut()

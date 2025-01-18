@@ -12,6 +12,7 @@ export const GLOBAL_EVENTS = {
     "user_signup": "global/user_signup",
     "user_discovery_source": "global/user_discovery_source",
     "user_login": "global/user_login",
+    "user_token_refresh": "global/token_refresh",
     "billing_checkout": "global/billing_checkout",
     "billing_portal": "global/billing_portal",
     "billing_subscribed": "global/billing_subscribed",
