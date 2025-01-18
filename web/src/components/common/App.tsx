@@ -126,12 +126,12 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const width = getParsedIframeInfo().width
   const openCustomInstructions = async () => {
     if (isDevToolsOpen) {
-      await setMinusxMode('open-sidepanel')
       dispatch(updateIsDevToolsOpen(false))
+      await setMinusxMode('open-sidepanel')
     } else {
-      await setMinusxMode('open-sidepanel-devtools')
       dispatch(updateIsDevToolsOpen(true))
       dispatch(updateDevToolsTabName("Custom Instructions"))
+      await setMinusxMode('open-sidepanel-devtools')
     }
   }
 

@@ -14,6 +14,8 @@ import { TelemetryToggle } from '../devtools/Settings';
 import { getParsedIframeInfo } from '../../helpers/origin';
 import { toast } from '../../app/toast';
 import { get } from 'lodash';
+import { setMinusxMode } from '../../app/rpc';
+import { RootState } from '../../state/store';
 
 interface HighlightItem {
   content: React.ReactNode;
@@ -155,7 +157,7 @@ shuffle(defaultDiscoverySources)
 
 const Auth = () => {
  
-  const session_jwt = useSelector(state => state.auth.session_jwt)
+  const session_jwt = useSelector((state: RootState) => state.auth.session_jwt)
   const discoveryRef = useRef(null)
   const [email, setEmail] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -164,6 +166,10 @@ const Auth = () => {
   const [otp, setOTP] = useState("");
   const [discoverySource, setDiscoverySource] = useState("");
   const isOTPMode = authJWT ? true : false
+
+  useEffect(() => {
+    setMinusxMode('open-sidepanel')
+  })
   const handleVerifyOtp = () => {
     if (!otp) {
       return toast({
