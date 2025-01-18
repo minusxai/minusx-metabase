@@ -145,8 +145,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         }
       })
     }
-    // const interval = setInterval(attempt, 10 * 60 * 1000)
-    const interval = setInterval(attemptRefresh, 10000)
+    const interval = setInterval(attemptRefresh, 10 * 60 * 1000)
     attemptRefresh()
     return () => clearInterval(interval)
   })
