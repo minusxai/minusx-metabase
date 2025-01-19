@@ -61,7 +61,15 @@ export interface MetabaseSemanticQueryAppState {
   currentSemanticLayer?: string;
 }
 
-export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
+export interface MetabaseFuzzySemanticQueryAppState {
+  semanticLayer: string;
+  sqlQuery: string;
+  dialect: string;
+  outputTableMarkdown: string;
+  sqlErrorMessage?: string;
+}
+
+export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseFuzzySemanticQueryAppState;
 
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
@@ -122,6 +130,24 @@ export async function semanticQueryState() {
   return metabaseSemanticQueryAppState;
 }
 
+export async function fuzzySemanticQueryState() {
+  const { semanticLayer } = RPCs.getSemanticInfo()
+  const semanticLayerDump = semanticLayer.fullLayerDump;
+  const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
+  const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
+  const sqlErrorMessage = await getSqlErrorMessage();
+  const outputTableMarkdown = await getAndFormatOutputTable();
+  
+  const metabaseFuzzySemanticQueryAppState: MetabaseFuzzySemanticQueryAppState = {
+    semanticLayer: semanticLayerDump,
+    sqlQuery,
+    dialect: selectedDatabaseInfo?.dialect || 'postgres',
+    outputTableMarkdown,
+    sqlErrorMessage
+  }
+  return metabaseFuzzySemanticQueryAppState;
+}
+
 export async function convertDOMtoState() {
   const url = await queryURL();
   if (isDashboardPage(url)) {
@@ -130,6 +156,9 @@ export async function convertDOMtoState() {
   const appSettings = RPCs.getAppSettings()
   if(appSettings.semanticPlanner) {
     return await semanticQueryState();
+  }
+  if(appSettings.fuzzySemanticPlanner) {
+    return await fuzzySemanticQueryState();
   }
   return await convertDOMtoStateSQLQuery();
 }

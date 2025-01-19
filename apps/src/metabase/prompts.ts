@@ -155,7 +155,7 @@ export const SEMANTIC_QUERY_USER_PROMPT = `
 </UserInstructions>
 `
 
-export const SEMANTIC_QUERY_FUZZZY_SYSTEM_PROMPT =`
+export const SEMANTIC_QUERY_FUZZY_SYSTEM_PROMPT =`
 You are an expert data analyst, and a master of metabase and SQL. 
 Todays date: ${new Date().toISOString().split('T')[0]}
 
@@ -195,9 +195,9 @@ Routine to follow:
 </RoutineToFollow>
 `
 export const SEMANTIC_QUERY_FUZZY_USER_PROMPT = `
-<SemanticLayer>
+<MetabaseStateWithSemanticLayer>
 {{ state }}
-</SemanticLayer>
+</MetabaseStateWithSemanticLayer>
 <UserInstructions>
 {{ instructions }}
 </UserInstructions>

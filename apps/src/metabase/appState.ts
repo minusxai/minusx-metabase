@@ -78,6 +78,9 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if(appSettings.semanticPlanner) {
       return internalState.llmConfigs.semanticQuery;
     }
+    if(appSettings.fuzzySemanticPlanner) {
+      return internalState.llmConfigs.fuzzySemanticQuery;
+    }
     const defaultConfig = internalState.llmConfigs.default;
     if ('systemPrompt' in defaultConfig) {
       const dbId = await getSelectedDbId();
