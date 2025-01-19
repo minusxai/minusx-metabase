@@ -208,7 +208,9 @@ export const SemanticLayerViewer = () => {
         })
         const data = await response.data
         dispatch(setAvailableLayers(data.layers || []))
-        fetchLayer({'value': data.layers[0].name})
+        if (semanticLayer === ''){
+          fetchLayer({'value': data.layers[0].name})
+        }
     }
     const MAX_TRIES = 3
     const tryFetchingSemanticLayer = async (tries = 1) => {
