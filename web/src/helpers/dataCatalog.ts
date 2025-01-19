@@ -1,4 +1,4 @@
-import { setAvailableMeasures, setAvailableDimensions, setAvailableLayers } from '../state/semantic-layer/reducer'
+import { setAvailableMeasures, setAvailableDimensions, setAvailableLayers, setFullLayerDump } from '../state/semantic-layer/reducer'
 import { setSemanticLayer } from '../state/thumbnails/reducer'
 import { configs } from '../constants'
 import axios from 'axios'
@@ -10,6 +10,7 @@ const SEMANTIC_LAYERS_API = `${configs.SEMANTIC_BASE_URL}/layers`
 export const fetchLayer = async (layer: any) => {
   const measures = []
   const dimensions = []
+  let fullLayerDump = '{}'
   let semanticLayerTemp = null
   if (layer) {
     semanticLayerTemp = layer.value
@@ -24,10 +25,12 @@ export const fetchLayer = async (layer: any) => {
     const data = await response.data
     measures.push(...data.measures)
     dimensions.push(...data.dimensions)
+    fullLayerDump = JSON.stringify(data.fullLayerDump)
   }
   dispatch(setSemanticLayer(semanticLayerTemp))
   dispatch(setAvailableMeasures(measures))
   dispatch(setAvailableDimensions(dimensions))
+  dispatch(setFullLayerDump(fullLayerDump))
 
 }
 
