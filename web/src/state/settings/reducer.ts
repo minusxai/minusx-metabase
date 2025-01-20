@@ -36,6 +36,7 @@ interface Settings {
   aiRules: string
   savedQueries: boolean
   newSearch: boolean
+  fuzzyDemoMode: boolean
 }
 
 const initialState: Settings = {
@@ -54,7 +55,8 @@ const initialState: Settings = {
   isRecording: false,
   aiRules: '',
   savedQueries: false,
-  newSearch: false
+  newSearch: false,
+  fuzzyDemoMode: false
 }
 
 export const settingsSlice = createSlice({
@@ -94,6 +96,9 @@ export const settingsSlice = createSlice({
     setDemoMode: (state, action: PayloadAction<boolean>) => {
       state.demoMode = action.payload
     },
+    setFuzzyDemoMode: (state, action: PayloadAction<boolean>) => {
+      state.fuzzyDemoMode = action.payload
+    },
     setAppRecording: (state, action: PayloadAction<boolean>) => {
       state.isRecording = action.payload
     },
@@ -113,7 +118,8 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries, setNewSearch
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, 
+  setSavedQueries, setNewSearch, setFuzzyDemoMode
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

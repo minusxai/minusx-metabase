@@ -197,6 +197,16 @@ const migrations = {
       newState.thumbnails.semanticLayer = null
     }
     return newState
+  },
+  17: (state: any) => {
+    let newState = {...state}
+    if (!newState.semanticLayer.fullLayerDump) {
+      newState.semanticLayer.fullLayerDump = '{}'
+    }
+    if (!newState.settings.fuzzyDemoMode){
+      newState.settings.fuzzyDemoMode = false
+    }
+    return newState
   }
 }
 
