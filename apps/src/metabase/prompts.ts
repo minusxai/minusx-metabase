@@ -200,6 +200,7 @@ you cannot just use 'product_category = high' in the SQL, you have to write out 
 ## views
 - views are basically a way to show all cubes involved in a particular semantic entity. views are what are exposed to the user. They typically contain a subset of the measures and dimensions from the cubes, and specify a particular join strategy.
 - For example, consider cubes "orders" and "users". A view starting with "orders" and joining "users" would be a view that shows orders data with user information, along with the exposed measures and dimensions. A view starting with "users" and joining "orders" would be a view that shows user data with order information, again, along with the exposed measures and dimensions.
+- "applied_segments" are the filters applied mandatorily on the view. They are used to filter only relevant data to the user.
 
 ## exposed
 - exposed are the final views or cubes that are exposed to the user. They are the final entities that the user interacts with.
