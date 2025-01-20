@@ -176,11 +176,34 @@ Todays date: ${new Date().toISOString().split('T')[0]}
 </GeneralInstructions>
 
 <SemanticLayerDocs>
-- The semantic layer has 3 main components: cubes, views, and exposed.
+The semantic layer has 3 main components: cubes, views, and exposed.
+## cubes
 - cubes are the main entities that represent the data model, typically of a single table or query. They contain measures, dimensions, segments, filters and even the join information.
+- The measures, dimensions, segments, filters are described in the cubes through SQL. measure, dimension names are not columns directly available in the tables. Only "available_base_columns" are available directly in the tables. The final SQL query needs to actually contain the full SQL for the measures and dimensions derived using the available_base_columns.
+- For example, if you want to use a measure called total_amount, and it is defined as:
+{
+  "name": "total_amount",
+  "sql": "{CUBE}.price",
+  "type": "sum",
+  "description": "Total amount"
+},
+you cannot just use 'total_amount' in the SQL, you have to write out the corresponding SQL like "SUM(price)"
+- Example 2, if you want to use a dimension called user_category to filter for high value items, and it is defined as:
+{
+  "name": "product_category",
+  "sql": "CASE WHEN {CUBE}.price > 1000 THEN 'high' ELSE 'low' END",
+  "type": "string",
+  "description": "Product price category (>$1000 is high)"
+}, 
+you cannot just use 'product_category = high' in the SQL, you have to write out the corresponding SQL like "CASE WHEN price > 1000 THEN 'high' ELSE 'low' END = 'high'"
+
+## views
 - views are basically a way to show all cubes involved in a particular semantic entity. views are what are exposed to the user. They typically contain a subset of the measures and dimensions from the cubes, and specify a particular join strategy.
 - For example, consider cubes "orders" and "users". A view starting with "orders" and joining "users" would be a view that shows orders data with user information, along with the exposed measures and dimensions. A view starting with "users" and joining "orders" would be a view that shows user data with order information, again, along with the exposed measures and dimensions.
+
+## exposed
 - exposed are the final views or cubes that are exposed to the user. They are the final entities that the user interacts with.
+- When creating a CTE, suffix the CTE name with "_cte" to avoid conflicts with the cube name. Same goes for subquery table names if needed.
 </SemanticLayerDocs>
 
 <RoutineToFollow>
