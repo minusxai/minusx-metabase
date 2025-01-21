@@ -176,34 +176,79 @@ Todays date: ${new Date().toISOString().split('T')[0]}
 </GeneralInstructions>
 
 <SemanticLayerDocs>
-The semantic layer has 3 main components: cubes, views, and exposed.
-## cubes
-- cubes are the main entities that represent the data model, typically of a single table or query. They contain measures, dimensions, segments, filters and even the join information.
-- The measures, dimensions, segments, filters are described in the cubes through SQL. measure, dimension names are not columns directly available in the tables. Only "available_base_columns" are available directly in the tables. The final SQL query needs to actually contain the full SQL for the measures and dimensions derived using the available_base_columns.
-- For example, if you want to use a measure called total_amount, and it is defined as:
-{
-  "name": "total_amount",
-  "sql": "{CUBE}.price",
-  "type": "sum",
-  "description": "Total amount"
-},
-you cannot just use 'total_amount' in the SQL, you have to write out the corresponding SQL like "SUM(price)"
-- Example 2, if you want to use a dimension called user_category to filter for high value items, and it is defined as:
-{
-  "name": "product_category",
-  "sql": "CASE WHEN {CUBE}.price > 1000 THEN 'high' ELSE 'low' END",
-  "type": "string",
-  "description": "Product price category (>$1000 is high)"
-}, 
-you cannot just use 'product_category = high' in the SQL, you have to write out the corresponding SQL like "CASE WHEN price > 1000 THEN 'high' ELSE 'low' END = 'high'"
+The semantic layer is a list of semantic cubes. Each cube has 4 main components: the sql_table or sql that is the underlying data, measures, dimensions ands joins
 
-## views
-- views are basically a way to show all cubes involved in a particular semantic entity. views are what are exposed to the user. They typically contain a subset of the measures and dimensions from the cubes, and specify a particular join strategy.
-- For example, consider cubes "orders" and "users". A view starting with "orders" and joining "users" would be a view that shows orders data with user information, along with the exposed measures and dimensions. A view starting with "users" and joining "orders" would be a view that shows user data with order information, again, along with the exposed measures and dimensions.
-- "applied_segments" are the filters applied mandatorily on the view. They are used to filter only relevant data to the user.
+## sql_table or sql
+This is either the base table, or a query that is derived, and is the underlying data for the cube. It is the starting point for the cube. Only very rarely will you need to change this.
 
-## exposed
-- exposed are the final views or cubes that are exposed to the user. They are the final entities that the user interacts with.
+## measures
+Measures are the columns with aggregations specified in the measure definition. Make sure to output the SQL for the measure if using it.
+Critical  example:
+cubes: 
+[
+  {
+    "name": "Example cube",
+    "dimensions": [
+      {
+        "name": "product_category",
+        "sql": "product_category",
+        "type": "string",
+        "description": "Product category"
+      }
+    ]
+    "measures: [
+      {
+        "name": "total_amount",
+        "sql": "price",
+        "type": "sum",
+        "description": "Total amount"
+      },
+    ]
+  }
+]
+question: get total amount by product category
+correct SQL: SELECT product_category, SUM(price) as total_amount FROM table GROUP BY product_category
+wrong SQL: SELECT product_category, total_amount FROM table GROUP BY product_category
+
+## dimensions
+Dimensions are the columns that you can filter or group by. They are the columns that you can use to slice and dice the data. There may be derived dimensions, so make sure to output the SQL for the derived dimension if using it. 
+Critical  example:
+cubes: 
+[
+  {
+    "name": "Example cube",
+    "dimensions": [
+      {
+        "name": "product_category",
+        "sql": "product_category",
+        "type": "string",
+        "description": "Product category"
+      },
+      {
+        "name": "price_category",
+        "sql": "CASE WHEN price > 1000 THEN 'high' ELSE 'low' END",
+        "type": "string",
+        "description": "Product price category (>$1000 is high)"
+      },
+    ]
+    "measures: [
+      {
+        "name": "unique_product_count",
+        "sql": "product_id",
+        "type": "count_distinct",
+        "description": "Unique product count"
+      },
+    ]
+  }
+]
+question: get unique product count by price category
+correct SQL: SELECT CASE WHEN price > 1000 THEN 'high' ELSE 'low' END as price_category, COUNT(DISTINCT product_id) as unique_product_count FROM table GROUP BY price_category
+wrong SQL: SELECT price_category, unique_product_count FROM table GROUP BY price_category
+
+## joins
+They describe how to join the cubes together. Make sure to use the correct join direction, depending on the question. 
+
+## Final thoughts:
 - When creating a CTE, suffix the CTE name with "_cte" to avoid conflicts with the cube name. Same goes for subquery table names if needed.
 </SemanticLayerDocs>
 
