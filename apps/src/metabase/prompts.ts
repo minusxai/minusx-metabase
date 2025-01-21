@@ -178,6 +178,7 @@ Todays date: ${new Date().toISOString().split('T')[0]}
 <SemanticLayerDocs>
 The semantic layer is a list of semantic cubes. Each cube has 4 main components: the sql_table or sql that is the underlying data, measures, dimensions ands joins
 
+# Layer Components
 ## sql_table or sql
 This is either the base table, or a query that is derived, and is the underlying data for the cube. It is the starting point for the cube. Only very rarely will you need to change this.
 
@@ -209,6 +210,7 @@ cubes:
 question: get total amount by product category
 correct SQL: SELECT product_category, SUM(price) as total_amount FROM table GROUP BY product_category
 wrong SQL: SELECT product_category, total_amount FROM table GROUP BY product_category
+wrong reason: total_amount is a derived measure, so it cannot be used directly
 
 Critical Example 2:
 cubes: 
@@ -248,7 +250,10 @@ cubes:
 question: get discount_percentage by product category
 correct SQL: SELECT product_category, SUM(CASE WHEN discount > 0 THEN discount ELSE 0 END) * 100 / NULLIF(SUM(price), 0) as discount_percentage FROM table GROUP BY product_category
 wrong SQL1: SELECT product_category, discount_percentage FROM table GROUP BY product_category
+wrong reason1: discount_percentage is a derived measure, so it cannot be used directly
+
 wrong SQL2: SELECT product_category, {total_discount} * 100 / NULLIF({total_amount}, 0) as discount_percentage FROM table GROUP BY product_category
+wrong reason2: {total_discount} and {total_amount} are derived measures, so they cannot be used directly
 
 ## dimensions
 Dimensions are the columns that you can filter or group by. They are the columns that you can use to slice and dice the data. There may be derived dimensions, so make sure to output the SQL for the derived dimension if using it. 
@@ -284,12 +289,48 @@ cubes:
 question: get unique product count by price category
 correct SQL: SELECT CASE WHEN price > 1000 THEN 'high' ELSE 'low' END as price_category, COUNT(DISTINCT product_id) as unique_product_count FROM table GROUP BY price_category
 wrong SQL: SELECT price_category, unique_product_count FROM table GROUP BY price_category
+wrong reason: price_category and unique_product_count are derived dimensions, so they cannot be used directly
 
 ## joins
 They describe how to join the cubes together. Make sure to use the correct join direction, depending on the question. 
 
-## Final thoughts:
+# Using CTEs
+- If a question requires multiple queries, use a CTE to create a temporary table that can be used in the main query.
 - When creating a CTE, suffix the CTE name with "_cte" to avoid conflicts with the cube name. Same goes for subquery table names if needed.
+Critical  example:
+cubes: 
+[
+  {
+    "name": "Example cube",
+    "dimensions": [
+      {
+        "name": "product_category",
+        "sql": "product_category",
+        "type": "string",
+        "description": "Product category"
+      },
+      {
+        "name": "price_category",
+        "sql": "CASE WHEN price > 1000 THEN 'high' ELSE 'low' END",
+        "type": "string",
+        "description": "Product price category (>$1000 is high)"
+      },
+    ]
+    "measures: [
+      {
+        "name": "unique_product_count",
+        "sql": "product_id",
+        "type": "count_distinct",
+        "description": "Unique product count"
+      },
+    ]
+  }
+]
+question: how many unique products are there in the high price category
+correct SQL: WITH high_price_cte AS (SELECT product_category, CASE WHEN price > 1000 THEN 'high' ELSE 'low' END as price_category FROM table HAVING price_category = 'high')
+SELECT COUNT(DISTINCT product_category) as unique_product_count FROM high_price_cte
+wrong SQL: SELECT product_category, CASE WHEN price > 1000 THEN 'high' ELSE 'low' END as price_category FROM table GROUP BY product_category, price_category HAVING price_category = 'high'
+wrong reason: The result will be a table with product_category and price_category, but we want the count of unique products.
 </SemanticLayerDocs>
 
 <RoutineToFollow>
