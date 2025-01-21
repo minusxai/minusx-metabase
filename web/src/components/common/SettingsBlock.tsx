@@ -2,7 +2,7 @@ import React from 'react';
 import { VStack, Box, Divider, AbsoluteCenter } from '@chakra-ui/react';
 
 const SettingsHeader = ({ text }: { text: string }) => (
-  <Box position='relative' marginTop={2}>
+  <Box position='relative' mt={2} mb={1}>
     <Divider borderColor="minusxGreen.800" />
     <AbsoluteCenter bg='minusxBW.300' px='4' color="minusxGreen.800">
       {text}

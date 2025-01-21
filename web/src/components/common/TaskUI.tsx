@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiSupport } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -46,6 +46,11 @@ import { VoiceInputButton } from './VoiceInputButton'
 import { getTranscripts } from '../../helpers/recordings'
 import { configs } from '../../constants'
 import { SemanticLayerViewer } from './SemanticLayerViewer'
+import { updateDevToolsTabName, updateIsDevToolsOpen, updateSidePanelTabName } from '../../state/settings/reducer'
+import { executeAction } from '../../planner/plannerActions'
+import { SettingsBlock } from './SettingsBlock'
+import { SupportButton } from './Support'
+
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = getParsedIframeInfo().tool
@@ -64,6 +69,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const dispatch = useDispatch()
   const taskInProgress = !(activeThread.status == 'FINISHED')
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+  const email = useSelector((state: RootState) => state.auth.email)
+  
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
@@ -192,6 +199,25 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     }
   }
 
+  const openCustomInstructions = async () => {
+    if (isDevToolsOpen) {
+      dispatch(updateIsDevToolsOpen(false))
+      await setMinusxMode('open-sidepanel')
+    } else {
+      dispatch(updateIsDevToolsOpen(true))
+      dispatch(updateDevToolsTabName("Custom Instructions"))
+      await setMinusxMode('open-sidepanel-devtools')
+    }
+  }
+
+  const clearSQL = async () => {
+    await executeAction({
+      index: -1,
+      function: 'updateSQLQuery',
+      args: '{"sql":"","executeImmediately":false}'
+    });
+  }
+
   return (
     <VStack
       justifyContent="space-between"
@@ -303,6 +329,14 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           }
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         } */}
+        <SettingsBlock title='Quick Actions'>
+        <HStack flexWrap={"wrap"}>
+          <Button size="xs" leftIcon={<BiEdit size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={openCustomInstructions}>Custom Instructions</Button>
+          { <Button size="xs" leftIcon={<BiMessageAdd size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Thread</Button> }
+          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiTrash size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}> Clear SQL</Button> }
+          <SupportButton email={email} />
+        </HStack>
+        </SettingsBlock>
         <Stack position={"relative"}>
           <AutosizeTextarea
             ref={ref}

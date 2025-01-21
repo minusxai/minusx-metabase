@@ -20,7 +20,7 @@ import { dispatch, logoutState } from '../../state/dispatch'
 import {auth as authModule} from '../../app/api'
 import Auth from './Auth'
 import _, { attempt } from 'lodash'
-import { updateAppMode, updateDevToolsTabName, updateIsDevToolsOpen, updateSidePanelTabName } from '../../state/settings/reducer'
+import { updateAppMode } from '../../state/settings/reducer'
 import { DevToolsBox } from '../devtools';
 import { RootState } from '../../state/store'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
@@ -150,17 +150,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const platformShortcut = getPlatformShortcut()
   const width = getParsedIframeInfo().width
-  const openCustomInstructions = async () => {
-    if (isDevToolsOpen) {
-      dispatch(updateIsDevToolsOpen(false))
-      await setMinusxMode('open-sidepanel')
-    } else {
-      dispatch(updateIsDevToolsOpen(true))
-      dispatch(updateDevToolsTabName("Custom Instructions"))
-      await setMinusxMode('open-sidepanel-devtools')
-    }
-  }
-
+  
   return (
     <VStack
       px="4"
@@ -236,8 +226,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
         {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
-        <Button size="xs" colorScheme="minusxGreen" variant="solid" onClick={openCustomInstructions}>Custom Instructions</Button>
-        <SupportButton email={email} />
+        {/* <SupportButton email={email} /> */}
       </HStack>
     </VStack>
   )
