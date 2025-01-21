@@ -182,8 +182,8 @@ The semantic layer is a list of semantic cubes. Each cube has 4 main components:
 This is either the base table, or a query that is derived, and is the underlying data for the cube. It is the starting point for the cube. Only very rarely will you need to change this.
 
 ## measures
-Measures are the columns with aggregations specified in the measure definition. Make sure to output the SQL for the measure if using it.
-Critical  example:
+Measures are the columns with aggregations specified in the measure definition. Make sure to output the SQL for the measure if using it. If a measure is derived from other measures or dimensions, make sure to include the SQL for those measures/dimensions too!
+Critical Example 1:
 cubes: 
 [
   {
@@ -209,6 +209,46 @@ cubes:
 question: get total amount by product category
 correct SQL: SELECT product_category, SUM(price) as total_amount FROM table GROUP BY product_category
 wrong SQL: SELECT product_category, total_amount FROM table GROUP BY product_category
+
+Critical Example 2:
+cubes: 
+[
+  {
+    "name": "Example cube",
+    "dimensions": [
+      {
+        "name": "product_category",
+        "sql": "product_category",
+        "type": "string",
+        "description": "Product category"
+      }
+    ]
+    "measures: [
+      {
+        "name": "total_amount",
+        "sql": "price",
+        "type": "sum",
+        "description": "Total amount"
+      },
+      {
+        "name": "total_discount",
+        "sql": "CASE WHEN discount > 0 THEN discount ELSE 0 END",
+        "type": "sum",
+        "description": "Total discount"
+      },
+      {
+        "name": "discount_percentage",
+        "sql": "{total_discount} * 100 / NULLIF({total_amount}, 0)",
+        "type": "sum",
+        "description": "Total sales"
+      }
+    ]
+  }
+]
+question: get discount_percentage by product category
+correct SQL: SELECT product_category, SUM(CASE WHEN discount > 0 THEN discount ELSE 0 END) * 100 / NULLIF(SUM(price), 0) as discount_percentage FROM table GROUP BY product_category
+wrong SQL1: SELECT product_category, discount_percentage FROM table GROUP BY product_category
+wrong SQL2: SELECT product_category, {total_discount} * 100 / NULLIF({total_amount}, 0) as discount_percentage FROM table GROUP BY product_category
 
 ## dimensions
 Dimensions are the columns that you can filter or group by. They are the columns that you can use to slice and dice the data. There may be derived dimensions, so make sure to output the SQL for the derived dimension if using it. 
