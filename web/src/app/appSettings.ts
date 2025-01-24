@@ -10,6 +10,7 @@ export const getAppSettings = () => {
     savedQueries: settings.savedQueries,
     newSearch: settings.newSearch,
     semanticPlanner: settings.demoMode,
+    fuzzySemanticPlanner: settings.fuzzyDemoMode,
   }
 }
 

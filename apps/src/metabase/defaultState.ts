@@ -2,7 +2,8 @@ import { InternalState } from "../base/defaultState";
 import {
   ACTION_DESCRIPTIONS_DASHBOARD,
   ACTION_DESCRIPTIONS_PLANNER,
-  ACTION_DESCRIPTIONS_SEMANTIC_QUERY
+  ACTION_DESCRIPTIONS_SEMANTIC_QUERY,
+  ACTION_DESCRIPTIONS_SEMANTIC_QUERY_FUZZY
 } from "./actionDescriptions";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 
@@ -14,7 +15,9 @@ import {
   DEFAULT_SUGGESTIONS_SYSTEM_PROMPT,
   DEFAULT_SUGGESTIONS_USER_PROMPT,
   SEMANTIC_QUERY_SYSTEM_PROMPT,
-  SEMANTIC_QUERY_USER_PROMPT
+  SEMANTIC_QUERY_USER_PROMPT,
+  SEMANTIC_QUERY_FUZZY_SYSTEM_PROMPT,
+  SEMANTIC_QUERY_FUZZY_USER_PROMPT
 } from "./prompts";
 
 export const metabaseInternalState: InternalState = {
@@ -72,6 +75,18 @@ export const metabaseInternalState: InternalState = {
       systemPrompt: SEMANTIC_QUERY_SYSTEM_PROMPT,
       userPrompt: SEMANTIC_QUERY_USER_PROMPT,
       actionDescriptions: ACTION_DESCRIPTIONS_SEMANTIC_QUERY,
+    },
+    fuzzySemanticQuery: {
+      type: "simple",
+      llmSettings: {
+        model: "gpt-4o",
+        temperature: 0,
+        response_format: { type: "text" },
+        tool_choice: "required",
+      },
+      systemPrompt: SEMANTIC_QUERY_FUZZY_SYSTEM_PROMPT,
+      userPrompt: SEMANTIC_QUERY_FUZZY_USER_PROMPT,
+      actionDescriptions: ACTION_DESCRIPTIONS_SEMANTIC_QUERY_FUZZY
     }
   },
   querySelectorMap,

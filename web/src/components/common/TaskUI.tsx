@@ -23,7 +23,7 @@ import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, setDemoMode } from '../../state/settings/reducer'
+import { setSuggestQueries, setDemoMode, setFuzzyDemoMode } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
@@ -64,6 +64,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+  const fuzzyDemoMode = useSelector((state: RootState) => state.settings.fuzzyDemoMode)
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
@@ -130,6 +131,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const updateDemoMode = (value: boolean) => {
     dispatch(setDemoMode(value))
+  }
+  const updateFuzzyDemoMode = (value: boolean) => {
+    dispatch(setFuzzyDemoMode(value))
   }
 
   const runTask = async () => {
@@ -355,27 +359,51 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 {/* <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/> */}
                 {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
-                {configs.IS_DEV && <Checkbox sx={{
-                  '& input:not(:checked) + span': {
-                    borderColor: 'minusxBW.500',
-                  },
-                  '& input:checked + span': {
-                    bg: 'minusxGreen.500',
-                    borderColor: 'minusxGreen.500',
-                  },
-                  '& input:checked:hover + span': {
-                    bg: 'minusxGreen.500',
-                    borderColor: 'minusxGreen.500',
-                  },
-                  span:{
-                    marginLeft: 1,
-                  }
-                  }}
-                  isChecked={demoMode}
-                  onChange={(e) => updateDemoMode(e.target.checked)}
-                >
-                  <Text fontSize="xs">Advanced Mode</Text>
-                </Checkbox>
+                {configs.IS_DEV && 
+                <>
+                  <Checkbox sx={{
+                    '& input:not(:checked) + span': {
+                      borderColor: 'minusxBW.500',
+                    },
+                    '& input:checked + span': {
+                      bg: 'minusxGreen.500',
+                      borderColor: 'minusxGreen.500',
+                    },
+                    '& input:checked:hover + span': {
+                      bg: 'minusxGreen.500',
+                      borderColor: 'minusxGreen.500',
+                    },
+                    span:{
+                      marginLeft: 1,
+                    }
+                    }}
+                    isChecked={demoMode}
+                    onChange={(e) => updateDemoMode(e.target.checked)}
+                  >
+                    <Text fontSize="xs">Adv. Mode</Text>
+                  </Checkbox>
+                  <Checkbox sx={{
+                    '& input:not(:checked) + span': {
+                      borderColor: 'minusxBW.500',
+                    },
+                    '& input:checked + span': {
+                      bg: 'minusxGreen.500',
+                      borderColor: 'minusxGreen.500',
+                    },
+                    '& input:checked:hover + span': {
+                      bg: 'minusxGreen.500',
+                      borderColor: 'minusxGreen.500',
+                    },
+                    span:{
+                      marginLeft: 1,
+                    }
+                    }}
+                    isChecked={fuzzyDemoMode}
+                    onChange={(e) => updateFuzzyDemoMode(e.target.checked)}
+                  >
+                    <Text fontSize="xs">Fuzzy Adv. Mode</Text>
+                  </Checkbox>
+                </>
                 }
               </HStack>
               <HStack>

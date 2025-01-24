@@ -10,34 +10,19 @@ import {
   Button,
   Editable, EditablePreview, EditableTextarea
 } from '@chakra-ui/react'
-import {
-  GroupBase,
-  Select,
-  SelectComponentsConfig,
-  chakraComponents,
-  ChakraStylesConfig,
-} from 'chakra-react-select';
+import { Select } from 'chakra-react-select';
 
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { resetSemanticQuery, SemanticQuery, setSemanticQuery } from '../../state/thumbnails/reducer';
-import { setAvailableMeasures, setAvailableDimensions, setAvailableLayers } from '../../state/semantic-layer/reducer'
-import { setSemanticLayer } from '../../state/thumbnails/reducer'
 import { dispatch } from "../../state/dispatch"
 import { executeAction } from '../../planner/plannerActions'
 import { SettingsBlock } from './SettingsBlock';
-import _, { create, isEmpty } from 'lodash';
-import axios from 'axios'
-import { configs } from '../../constants'
+import _ from 'lodash';
+import { components, createAvailableOptions } from './SelectComponent'
 
-const SEMANTIC_PROPERTIES_API = `${configs.SEMANTIC_BASE_URL}/properties`
-const SEMANTIC_LAYERS_API = `${configs.SEMANTIC_BASE_URL}/layers`
+import { fetchLayer, tryFetchingSemanticLayer } from '../../helpers/dataCatalog'
 
-interface Option {
-  label: string;
-  value: string;
-  description?: string;
-}
 
 type MemberType = keyof SemanticQuery
 
@@ -48,27 +33,6 @@ const SemanticMemberMap: Record<MemberType, {color: string}> = {
   timeDimensions: {color: 'purple'},
   order: {color: 'gray'}
 }
-
-const components: SelectComponentsConfig<Option, true, GroupBase<Option>> = {
-  Option: ({ children, ...props }) => {
-    return (
-      <chakraComponents.Option {...props}>
-        <Tooltip label={props.data.description} placement="top" hasArrow maxWidth={200}>
-          <span>{children}</span>
-        </Tooltip>
-      </chakraComponents.Option>
-    );
-  },
-  MultiValueLabel: ({ children, ...props }) => {
-    return (
-      <chakraComponents.MultiValueLabel {...props}>
-        <Tooltip label={JSON.stringify(props.data.value)} placement="top" hasArrow maxWidth={200}>
-          <span>{children}</span>
-        </Tooltip>
-      </chakraComponents.MultiValueLabel>
-    );
-  },
-};
 
 const LoadingOverlay = () => (
   <Box
@@ -100,7 +64,6 @@ const LoadingOverlay = () => (
   </Box>
 );
 
-const createAvailableOptions = (members: any[]) => members.map((member: any) => ({ value: member.name, label: member.name, description: member.description }))
 const createUsedOptions = (members: string[], memberType: string) => members.map((member: any) => {
   if (memberType === 'filters') {
     return { value: member, label: member.member?.split(".").at(-1) }
@@ -175,56 +138,8 @@ export const SemanticLayerViewer = () => {
     }
   }
 
-  const fetchLayer = async (layer: any) => {
-    const measures = []
-    const dimensions = []
-    let semanticLayerTemp = null
-    if (layer) {
-      semanticLayerTemp = layer.value
-      const response = await axios.get(SEMANTIC_PROPERTIES_API, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        params: {
-          layer: semanticLayerTemp
-        }
-      })
-      const data = await response.data
-      measures.push(...data.measures)
-      dimensions.push(...data.dimensions)
-    }
-    dispatch(setSemanticLayer(semanticLayerTemp))
-    dispatch(setAvailableMeasures(measures))
-    dispatch(setAvailableDimensions(dimensions))
-
-  }
-
   useEffect(() => {
-    const fetchData = async () => {
-        const response = await axios.get(SEMANTIC_LAYERS_API, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-        const data = await response.data
-        dispatch(setAvailableLayers(data.layers || []))
-        if (semanticLayer === ''){
-          fetchLayer({'value': data.layers[0].name})
-        }
-    }
-    const MAX_TRIES = 3
-    const tryFetchingSemanticLayer = async (tries = 1) => {
-      if (tries <= MAX_TRIES) {
-        try {
-          await fetchData()
-        } catch (err) {
-          console.warn(`Failed to retrieve semantic properties, try ${tries}`, err)
-          setTimeout(() => tryFetchingSemanticLayer(tries + 1), 1000*tries)
-        }
-      }
-    }
-    
-    tryFetchingSemanticLayer()
+    tryFetchingSemanticLayer(semanticLayer)
   }, [])
 
   return (

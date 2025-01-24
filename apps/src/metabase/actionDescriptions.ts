@@ -19,8 +19,7 @@ export const COMMON_ACTION_DESCRIPTIONS: ActionDescription[] = [
   },
 ]
 
-export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
-  ...COMMON_ACTION_DESCRIPTIONS,
+const SQL_ACTION_DESCRIPTIONS: ActionDescription[] = [
   {
     name: 'updateSQLQuery',
     args: {
@@ -47,31 +46,9 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     description: `Executes the SQL query in the metabase SQL editor. This also sets the "queryExecuted" state to true after execution.
     `,
   },
-  {
-    name: 'setVisualizationType',
-    args: {
-      visualization_type: {
-        type: 'string',
-        enum: visualizationTypes,
-        description: "The type of visualization to set in the visualization settings."
-      },
-      dimensions: {
-        type: 'array',
-        items: {
-          type: 'string',
-        },
-        description: "The dimensions to set in the visualization settings. This is usually columns name for the x-axis, and the column to split the data by."
-      },
-      metrics: {
-        type: 'array',
-        items: {
-          type: 'string',
-        },
-        description: "The metrics to set in the visualization settings. This is usually the column name for the y-axis, or the metric to plot."
-      }
-    },
-    description: 'Sets the visualization type in the visualization settings. "queryExecuted" state must be true to use this tool. Always have at least one dimension and one metric.',
-  },
+]
+
+const FETCH_SCHEMA_ACTION_DESCRIPTIONS: ActionDescription[] = [
   {
     name: 'getTableSchemasById',
     args: {
@@ -131,6 +108,37 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
   //   },
   //   description: "Gets the documentation for the specified query.",
   // },
+];
+
+export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
+  ...COMMON_ACTION_DESCRIPTIONS,
+  ...SQL_ACTION_DESCRIPTIONS,
+  ...FETCH_SCHEMA_ACTION_DESCRIPTIONS,
+  {
+    name: 'setVisualizationType',
+    args: {
+      visualization_type: {
+        type: 'string',
+        enum: visualizationTypes,
+        description: "The type of visualization to set in the visualization settings."
+      },
+      dimensions: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "The dimensions to set in the visualization settings. This is usually columns name for the x-axis, and the column to split the data by."
+      },
+      metrics: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        description: "The metrics to set in the visualization settings. This is usually the column name for the y-axis, or the metric to plot."
+      }
+    },
+    description: 'Sets the visualization type in the visualization settings. "queryExecuted" state must be true to use this tool. Always have at least one dimension and one metric.',
+  },
   {
     name: "setSqlVariable",
     args: {
@@ -269,4 +277,9 @@ export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [
     description: 'Generates SQL using cube.js semantic query API based on the measures, dimensions and filters provided.',
     required: ["reasoning", "measures", "dimensions", "filters", "timeDimensions", "order"],
   }
+];
+
+export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY_FUZZY: ActionDescription[] = [
+  ...COMMON_ACTION_DESCRIPTIONS,
+  ...SQL_ACTION_DESCRIPTIONS,
 ];

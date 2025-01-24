@@ -14,19 +14,20 @@ export interface Measure {
 export interface Dimension {
   name: string
   description: string
-  unique_values?: string[]
 }
 
 interface SemanticLayerState {
   availableMeasures: Measure[]
   availableDimensions: Dimension[]
   availableLayers: Layer[]
+  fullLayerDump: string
 }
 
 const initialState: SemanticLayerState = {
   availableMeasures: [],
   availableDimensions: [],
   availableLayers: [],
+  fullLayerDump: '',
 }
 
 export const semanticLayerSlice = createSlice({
@@ -42,10 +43,13 @@ export const semanticLayerSlice = createSlice({
     setAvailableLayers: (state, action: PayloadAction<Layer[]>) => {
       state.availableLayers = action.payload
     },
+    setFullLayerDump: (state, action: PayloadAction<string>) => {
+      state.fullLayerDump = action.payload
+    },
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { setAvailableMeasures, setAvailableDimensions, setAvailableLayers } = semanticLayerSlice.actions
+export const { setAvailableMeasures, setAvailableDimensions, setAvailableLayers, setFullLayerDump } = semanticLayerSlice.actions
 
 export default semanticLayerSlice.reducer
