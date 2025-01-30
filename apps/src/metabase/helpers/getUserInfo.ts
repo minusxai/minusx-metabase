@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { memoize, RPCs } from 'web'
+import { getTablesFromSqlRegex } from './parseSql';
 const { getMetabaseState, fetchData } = RPCs;
 
 interface UserInfo {
@@ -31,9 +32,12 @@ export const getUserTables = async () => {
     console.warn("[minusx] Error getting relevant tables", err);
     throw err;
   });
-  return []
+  const queries = _.uniq([...edits, ...creations])
+  const tables = queries.map(getTablesFromSqlRegex).flat()
+  return tables
 }
 
+// For future reference
 export const getUserTableMap = async () => {
   return {}
 }
@@ -46,7 +50,7 @@ async function getUserBookmarks(id: number) {
 
 async function getUserQueries(api_endpoint: string) {
   const jsonResponse = await fetchData(api_endpoint, 'GET');
-  const queries = _.get(
+  const queries: string[] = _.get(
     jsonResponse, 'data', []
   ).map((entity: any) => {
     return _.get(entity, "dataset_query.native.query")

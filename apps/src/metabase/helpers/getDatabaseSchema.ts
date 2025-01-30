@@ -319,7 +319,8 @@ const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTabl
 }
 
 const memoizedGetUserTables = memoize(getUserTables, DEFAULT_TTL);
-const memoizedGetUserTableMap = memoize(getUserTableMap, DEFAULT_TTL);
+// const memoizedGetUserTableMap = memoize(getUserTableMap, DEFAULT_TTL);
+const memoizedGetUserTableMap = getUserTableMap // Unused for now
 
 const addTableJoins = (tables: FormattedTable[], tableMap: Record<number, number[][]>) => {
   return tables.map(tableInfo => {
@@ -346,10 +347,12 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
   const validTables = validateTablesInDB(allUserTables, allDBTables);
   const dedupedTables = dedupeAndCountTables(validTables)
   const fullTableInfo = addTableJoins(dedupedTables, tableMap);
+  console.log('User Tables are', fullTableInfo)
   return fullTableInfo
 }
 
-const getMemoizedRelevantTablesForSelectedDb = memoize(getAllRelevantTablesForSelectedDb, DEFAULT_TTL);
+// const getMemoizedRelevantTablesForSelectedDb = memoize(getAllRelevantTablesForSelectedDb, DEFAULT_TTL);
+const getMemoizedRelevantTablesForSelectedDb = getAllRelevantTablesForSelectedDb
 
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
