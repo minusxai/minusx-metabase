@@ -365,7 +365,6 @@ export const searchTables = async (userId: number, dbId: number, query: string):
 }
 
 // const getMemoizedRelevantTablesForSelectedDb = memoize(getAllRelevantTablesForSelectedDb, DEFAULT_TTL);
-const getMemoizedRelevantTablesForSelectedDb = getAllRelevantTablesForSelectedDb
 
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
@@ -373,7 +372,7 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     console.warn("[minusx] No database selected when getting relevant tables");
     return [];
   }
-  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
+  const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
   const relevantTablesTop200 = relevantTables.slice(0, 200);
   return relevantTablesTop200;
 }
