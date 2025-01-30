@@ -11,7 +11,7 @@ interface UserInfo {
   personal_collection_id: number;
 }
 
-const getUserInfo = async () => {
+export const getUserInfo = async () => {
   const userInfo = await getMetabaseState('currentUser') as UserInfo;
   if (_.isEmpty(userInfo)) {
     console.error('Failed to load user info');
@@ -64,6 +64,19 @@ async function getUserEdits(id: number) {
 
 async function getUserCreations(id: number) {
   return getUserQueries(`/api/search?created_by=${id}`)
+}
+
+export async function searchUserQueries(id: number, dbId: number, query: string) {
+  const [edits, creations] = await Promise.all([
+    getUserQueries(`/api/search?table_db_id=${dbId}&q=${query}&edited_by=${id}`),
+    getUserQueries(`/api/search?table_db_id=${dbId}&q=${query}&created_by=${id}`),
+  ]).catch(err => {
+    console.warn("[minusx] Error getting relevant tables", err);
+    throw err;
+  });
+  const queries = _.uniq([...edits, ...creations])
+  const tables = queries.map(getTablesFromSqlRegex).flat()
+  return tables
 }
 
 const DEFAULT_TTL = 60 * 5;

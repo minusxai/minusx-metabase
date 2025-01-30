@@ -17,8 +17,9 @@ import {
   getTopSchemasForSelectedDb,
   memoizedFetchTableData,
   memoizedGetTableMapFromTop1000Cards,
+  searchTables,
 } from "./helpers/getDatabaseSchema";
-import { get, map, set, truncate } from "lodash";
+import { get, isEmpty, map, set, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -38,6 +39,7 @@ import {
   getVariablesAndUuidsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
+import { getUserInfo } from "./helpers/getUserInfo";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 
@@ -281,14 +283,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const resp: any = await RPCs.fetchData(
-      `/api/search?models=table&table_db_id=${selectedDbId}&filters_items_in_personal_collection=only&q=${query}`,
-      "GET"
-    );
-    // only get top 10 tables
-    const data = get(resp, "data", []);
+    const userInfo = await getUserInfo()
+    if (isEmpty(userInfo)) {
+      actionContent.content = "Failed to load user info";
+      return actionContent;
+    }
+    const searchResults = await searchTables(userInfo.id, selectedDbId, query);
     return await this.getTableSchemasById({ 
-      ids: map(data, (table: any) => table.id).slice(
+      ids: map(searchResults, (table) => table.id).slice(
         0,
         20
       )

@@ -2,7 +2,7 @@ import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
-import { getUserTableMap, getUserTables } from './getUserInfo';
+import { getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 
 const { getMetabaseState, fetchData } = RPCs;
 
@@ -347,8 +347,21 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
   const validTables = validateTablesInDB(allUserTables, allDBTables);
   const dedupedTables = dedupeAndCountTables(validTables)
   const fullTableInfo = addTableJoins(dedupedTables, tableMap);
-  console.log('User Tables are', fullTableInfo)
   return fullTableInfo
+}
+
+export const searchTables = async (userId: number, dbId: number, query: string): Promise<FormattedTable[]> => {
+  const [userTables, {tables: allDBTables}] = await Promise.all([
+    searchUserQueries(userId, dbId, query),
+    memoizedGetDatabaseTablesWithoutFields(dbId),
+  ]).catch(err => {
+    console.warn("[minusx] Error getting search tables", err);
+    throw err;
+  });
+  const allUserTables = dedupeAndCountTables(userTables);
+  const validTables = validateTablesInDB(allUserTables, allDBTables);
+  const dedupedTables = dedupeAndCountTables(validTables)
+  return dedupedTables
 }
 
 // const getMemoizedRelevantTablesForSelectedDb = memoize(getAllRelevantTablesForSelectedDb, DEFAULT_TTL);
