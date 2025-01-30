@@ -35,7 +35,6 @@ interface Settings {
   isRecording: boolean
   aiRules: string
   savedQueries: boolean
-  newSearch: boolean
 }
 
 const initialState: Settings = {
@@ -54,7 +53,6 @@ const initialState: Settings = {
   isRecording: false,
   aiRules: '',
   savedQueries: false,
-  newSearch: false
 }
 
 export const settingsSlice = createSlice({
@@ -102,10 +100,7 @@ export const settingsSlice = createSlice({
     },
     setSavedQueries: (state, action: PayloadAction<boolean>) => {
       state.savedQueries = action.payload
-    },
-    setNewSearch: (state, action: PayloadAction<boolean>) => {
-      state.newSearch = action.payload
-    } 
+    }
   }
 })
 
@@ -113,7 +108,7 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries, setNewSearch
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries 
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
