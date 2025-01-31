@@ -13,12 +13,12 @@ import {
 } from "./helpers/operations";
 import {
   extractTableInfo,
-  getSelectedDbId,
   getTopSchemasForSelectedDb,
   memoizedFetchTableData,
   memoizedGetTableMapFromTop1000Cards,
+  searchTables,
 } from "./helpers/getDatabaseSchema";
-import { get, map, set, truncate } from "lodash";
+import { get, isEmpty, map, set, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -38,6 +38,7 @@ import {
   getVariablesAndUuidsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
+import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 
@@ -250,17 +251,17 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     // need to fetch schemas
     const tablesPromises = ids.map(memoizedFetchTableData);
     const tables = await Promise.all(tablesPromises);
-    const dbId = await getSelectedDbId();
-    if (dbId) {
-      const tableMap = await memoizedGetTableMapFromTop1000Cards(dbId)
-      tables.forEach(tableInfo => {
-        if (tableInfo != "missing") {
-          if (tableInfo.id in tableMap) {
-            tableInfo.related_tables_freq = tableMap[tableInfo.id]
-          }
-        }
-      })
-    }
+    // const dbId = await getSelectedDbId();
+    // if (dbId) {
+    //   const tableMap = await memoizedGetTableMapFromTop1000Cards(dbId)
+    //   tables.forEach(tableInfo => {
+    //     if (tableInfo != "missing") {
+    //       if (tableInfo.id in tableMap) {
+    //         tableInfo.related_tables_freq = tableMap[tableInfo.id]
+    //       }
+    //     }
+    //   })
+    // }
     const tableSchemasContent = JSON.stringify(tables);
     actionContent.content = tableSchemasContent;
     return actionContent;
@@ -281,51 +282,22 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const resp: any = await RPCs.fetchData(
-      `/api/search?models=table&table_db_id=${selectedDbId}&filters_items_in_personal_collection=only&q=${query}`,
-      "GET"
-    );
-    // only get top 10 tables
-    const data = get(resp, "data", []);
-    const appSettings = RPCs.getAppSettings()
-    if (!appSettings.newSearch) {
-      return await this.getTableSchemasById({ 
-        ids: map(data, (table: any) => table.id).slice(
-          0,
-          20
-        )
-      })
+    const userInfo = await getUserInfo()
+    if (isEmpty(userInfo)) {
+      actionContent.content = "Failed to load user info";
+      return actionContent;
     }
-    const top_schemas = await getTopSchemasForSelectedDb()
-    const top5schemas = new Set(top_schemas.slice(0, 5))
-    const top10schemas = new Set(top_schemas.slice(0, 10))
-    const top20schemas = new Set(top_schemas.slice(0, 20))
-    const tableInfos = map(data, (table: any) => ({
-      id: table.id,
-      schema: table.table_schema,
-    }))
-    const top10searchResults: any[] = []
-    const top5SchemaResults: any[] = []
-    const top10SchemaResults: any[] = []
-    const top20SchemaResults: any[] = []
-    for (let i = 0; i < tableInfos.length; i++) {
-      const totalLength = top10searchResults.length + top5SchemaResults.length + top10SchemaResults.length + top20SchemaResults.length
-      if (totalLength >= 25) {
-        break;
-      } else if (top5schemas.has(tableInfos[i].schema)) {
-        top5SchemaResults.push(tableInfos[i])
-      } else if (top10schemas.has(tableInfos[i].schema) && top10SchemaResults.length < 5) {
-        top10SchemaResults.push(tableInfos[i])
-      } else if (top20schemas.has(tableInfos[i].schema) && top20SchemaResults.length < 5) {
-        top20SchemaResults.push(tableInfos[i])
-      } else if (top10searchResults.length < 10) {
-        top10searchResults.push(tableInfos[i])
+    const searchResults = await searchTables(userInfo.id, selectedDbId, query);
+    const tableIds = map(searchResults, (table) => table.id);
+    const tablesPromises = tableIds.slice(0, 20).map(memoizedFetchTableData);
+    const tableSchemas = await Promise.all(tablesPromises);
+    tableSchemas.forEach((tableInfo, index) => {
+      if (tableInfo != "missing") {
+        tableInfo.count = searchResults[index].count;
       }
-    }
-    const searchResults = top5SchemaResults.concat(top10SchemaResults).concat(top20SchemaResults).concat(top10searchResults)
-    const ids: number[] = map(searchResults, (table: any) => table.id)
-    const content = await this.getTableSchemasById({ ids });
-    return content;
+    })
+    actionContent.content = JSON.stringify(tableSchemas);
+    return actionContent
   }
 
   @Action({

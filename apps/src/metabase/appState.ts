@@ -7,8 +7,9 @@ import { isDashboardPage } from "./helpers/dashboard/util";
 import { cloneDeep, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
-import { getRelevantTablesForSelectedDb, getSelectedDbId, memoizeGetCleanedTopQueries } from "./helpers/getDatabaseSchema";
+import { getRelevantTablesForSelectedDb, memoizeGetCleanedTopQueries } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
+import { getSelectedDbId } from "./helpers/getUserInfo";
 
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {

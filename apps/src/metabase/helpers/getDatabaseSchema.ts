@@ -2,6 +2,7 @@ import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
+import { getSelectedDbId, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 
 const { getMetabaseState, fetchData } = RPCs;
 
@@ -32,15 +33,6 @@ export async function getDatabaseIds(): Promise<number[]> {
   return _.map(resp.data, (db: any) => db.id);
 }
 
-export async function getSelectedDbId(): Promise<number | undefined> {
-  const dbId = await getMetabaseState('qb.card.dataset_query.database')
-  if (!dbId || !Number(dbId)) {
-    console.error('Failed to find database id', JSON.stringify(dbId));
-    return undefined;
-  }
-  return  Number(dbId);
-}
-
 const extractDbInfo = (db: any) => ({
   name: _.get(db, 'name', ''),
   description: _.get(db, 'description', ''),
@@ -58,6 +50,9 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
   ...(_.get(table, 'description', null) != null && { description: _.get(table, 'description', null) }),
   schema: _.get(table, schemaKey, ''),
   id: _.get(table, 'id', 0),
+  ...(
+    _.get(table, 'count') ? { count: _.get(table, 'count') } : {}
+  ),
   ...(
     includeFields
     ? {
@@ -307,30 +302,22 @@ const getTableMapFromTop1000Cards = async (dbId: number) => {
 
 export const memoizedGetTableMapFromTop1000Cards = memoize(getTableMapFromTop1000Cards, DEFAULT_TTL);
 
-const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => {
-  // do all fetching at once?
-  const [tablesFromCards, {tables: top200}, {tables: allTables}] = await Promise.all([
-    getTablesAndSchemasFromTop1000Cards(dbId),
-    memoizedGetTop200TablesWithoutFields(dbId),
-    memoizedGetDatabaseTablesWithoutFields(dbId)
-  ]).catch(err => {
-    console.warn("[minusx] Error getting relevant tables", err);
-    throw err;
-  });
-  const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
-  const tablesToTest = dedupeAndCountTables([...tablesFromSql, ...tablesFromCards]);
-  const allTablesAsMap = _.fromPairs(allTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
-  const validTables = tablesToTest.filter(
+const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTable[]) => {
+  const allTablesAsMap = _.fromPairs(allDBTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
+  return tables.filter(
     tableInfo => getTableKey(tableInfo) in allTablesAsMap
   ).map(tableInfo => ({
     ...tableInfo,
     ...allTablesAsMap[getTableKey(tableInfo)]
   }))
-  // merge top200 and validTables, prioritizing validTables
-  const relevantTables = dedupeAndCountTables([...validTables, ...top200]);
-  // Add related table IDs if available
-  const tableMap = await memoizedGetTableMapFromTop1000Cards(dbId)
-  const relevantTablesWithRelated = relevantTables.map(tableInfo => {
+}
+
+const memoizedGetUserTables = memoize(getUserTables, DEFAULT_TTL);
+// const memoizedGetUserTableMap = memoize(getUserTableMap, DEFAULT_TTL);
+const memoizedGetUserTableMap = getUserTableMap // Unused for now
+
+const addTableJoins = (tables: FormattedTable[], tableMap: Record<number, number[][]>) => {
+  return tables.map(tableInfo => {
     return ({
       ...tableInfo,
       ...(tableInfo.id in tableMap ? {
@@ -338,20 +325,40 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
       } : {}),
     })
   })
-  return relevantTablesWithRelated
 }
 
-const getMemoizedRelevantTablesForSelectedDb = memoize(getAllRelevantTablesForSelectedDb, DEFAULT_TTL);
-
-export const getTopSchemasForSelectedDb = async (sql = ''): Promise<string[]> => {
-  const dbId = await getSelectedDbId();
-  if (!dbId) {
-    console.warn("[minusx] No database selected when getting relevant tables");
-    return [];
-  }
-  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
-  return _.chain(relevantTables).map('schema').uniq().value();
+const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => {
+  const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
+  const [userTables, {tables: allDBTables}, tableMap] = await Promise.all([
+    memoizedGetUserTables(),
+    memoizedGetDatabaseTablesWithoutFields(dbId),
+    memoizedGetUserTableMap()
+  ]).catch(err => {
+    console.warn("[minusx] Error getting relevant tables", err);
+    throw err;
+  });
+  const allUserTables = dedupeAndCountTables([...tablesFromSql, ...userTables]);
+  const validTables = validateTablesInDB(allUserTables, allDBTables);
+  const dedupedTables = dedupeAndCountTables(validTables)
+  const fullTableInfo = addTableJoins(dedupedTables, tableMap);
+  return fullTableInfo
 }
+
+export const searchTables = async (userId: number, dbId: number, query: string): Promise<FormattedTable[]> => {
+  const [userTables, {tables: allDBTables}] = await Promise.all([
+    searchUserQueries(userId, dbId, query),
+    memoizedGetDatabaseTablesWithoutFields(dbId),
+  ]).catch(err => {
+    console.warn("[minusx] Error getting search tables", err);
+    throw err;
+  });
+  const allUserTables = dedupeAndCountTables(userTables);
+  const validTables = validateTablesInDB(allUserTables, allDBTables);
+  const dedupedTables = dedupeAndCountTables(validTables)
+  return dedupedTables
+}
+
+// const getMemoizedRelevantTablesForSelectedDb = memoize(getAllRelevantTablesForSelectedDb, DEFAULT_TTL);
 
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
@@ -359,7 +366,12 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     console.warn("[minusx] No database selected when getting relevant tables");
     return [];
   }
-  const relevantTables = await getMemoizedRelevantTablesForSelectedDb(dbId, sql);
+  const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
   const relevantTablesTop200 = relevantTables.slice(0, 200);
   return relevantTablesTop200;
+}
+
+// Empty Placeholder
+export const getTopSchemasForSelectedDb = async () => {
+  return []
 }

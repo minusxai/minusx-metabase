@@ -13,6 +13,7 @@ export interface FormattedTable {
   schema: string;
   columns?: { [key: number]: FormattedColumn };
   related_tables_freq?: number[][];
+  count?: number;
 }
 
 export const visualizationTypes = ["Table", "Bar", "Line", "Pie", "Row", "Area", "Combo", "Trend", "Funnel", "Detail", "Scatter", "Waterfall", "Number", "Gauge", "Progress", "Map", "PivotTable"]

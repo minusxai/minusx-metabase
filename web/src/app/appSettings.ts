@@ -8,7 +8,6 @@ export const getAppSettings = () => {
   const settings = state.settings
   return {
     savedQueries: settings.savedQueries,
-    newSearch: settings.newSearch,
     semanticPlanner: settings.demoMode,
   }
 }
