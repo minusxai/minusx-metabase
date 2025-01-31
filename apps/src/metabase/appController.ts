@@ -288,12 +288,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
     const searchResults = await searchTables(userInfo.id, selectedDbId, query);
-    return await this.getTableSchemasById({ 
-      ids: map(searchResults, (table) => table.id).slice(
-        0,
-        20
-      )
+    const tableIds = map(searchResults, (table) => table.id);
+    const tablesPromises = tableIds.slice(0, 20).map(memoizedFetchTableData);
+    const tableSchemas = await Promise.all(tablesPromises);
+    tableSchemas.forEach((tableInfo, index) => {
+      if (tableInfo != "missing") {
+        tableInfo.count = searchResults[index].count;
+      }
     })
+    actionContent.content = JSON.stringify(tableSchemas);
+    return actionContent
   }
 
   @Action({

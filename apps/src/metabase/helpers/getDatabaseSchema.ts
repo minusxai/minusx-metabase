@@ -51,6 +51,9 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
   schema: _.get(table, schemaKey, ''),
   id: _.get(table, 'id', 0),
   ...(
+    _.get(table, 'count') ? { count: _.get(table, 'count') } : {}
+  ),
+  ...(
     includeFields
     ? {
       columns: _.map(_.get(table, 'fields', []), (field: any) => ({
