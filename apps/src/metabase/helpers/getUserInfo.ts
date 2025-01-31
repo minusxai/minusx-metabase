@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _, { isEmpty } from 'lodash';
 import { memoize, RPCs } from 'web'
 import { getTablesFromSqlRegex } from './parseSql';
 const { getMetabaseState, fetchData } = RPCs;
@@ -33,8 +33,12 @@ export const getUserTables = async () => {
     throw err;
   });
   const queries = _.uniq([...edits, ...creations])
-  const tables = queries.map(getTablesFromSqlRegex).flat()
-  return tables
+  if (!isEmpty(queries)) {
+    return queries.map(getTablesFromSqlRegex).flat()
+  }
+  const allQueries = await getUserQueries(`/api/search?models=card`)
+  const uniqQueries = _.uniq(allQueries)
+  return uniqQueries.map(getTablesFromSqlRegex).flat()
 }
 
 // For future reference
@@ -75,8 +79,11 @@ export async function searchUserQueries(id: number, dbId: number, query: string)
     throw err;
   });
   const queries = _.uniq([...edits, ...creations])
-  const tables = queries.map(getTablesFromSqlRegex).flat()
-  return tables
+  if (!isEmpty(queries)) {
+    return queries.map(getTablesFromSqlRegex).flat()
+  }
+  const allQueries = await getUserQueries(`/api/search?models=card&table_db_id=${dbId}&q=${query}`)
+  return allQueries.map(getTablesFromSqlRegex).flat()
 }
 
 const DEFAULT_TTL = 60 * 5;
