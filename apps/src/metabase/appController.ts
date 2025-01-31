@@ -13,7 +13,6 @@ import {
 } from "./helpers/operations";
 import {
   extractTableInfo,
-  getSelectedDbId,
   getTopSchemasForSelectedDb,
   memoizedFetchTableData,
   memoizedGetTableMapFromTop1000Cards,
@@ -39,7 +38,7 @@ import {
   getVariablesAndUuidsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getUserInfo } from "./helpers/getUserInfo";
+import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 

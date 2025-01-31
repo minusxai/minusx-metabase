@@ -2,7 +2,7 @@ import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
-import { getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
+import { getSelectedDbId, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 
 const { getMetabaseState, fetchData } = RPCs;
 
@@ -31,15 +31,6 @@ export async function getDatabaseIds(): Promise<number[]> {
     return [];
   }
   return _.map(resp.data, (db: any) => db.id);
-}
-
-export async function getSelectedDbId(): Promise<number | undefined> {
-  const dbId = await getMetabaseState('qb.card.dataset_query.database')
-  if (!dbId || !Number(dbId)) {
-    console.error('Failed to find database id', JSON.stringify(dbId));
-    return undefined;
-  }
-  return  Number(dbId);
 }
 
 const extractDbInfo = (db: any) => ({
