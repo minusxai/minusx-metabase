@@ -17,7 +17,15 @@ import {
   SEMANTIC_QUERY_USER_PROMPT
 } from "./prompts";
 
-export const metabaseInternalState: InternalState = {
+interface MetabaseContext {
+  dbId: number;
+}
+
+interface MetabaseInternalState extends InternalState {
+  toolContext: MetabaseContext
+}
+
+export const metabaseInternalState: MetabaseInternalState = {
   isEnabled: {
     value: false,
     reason: "Loading...",
@@ -81,6 +89,7 @@ export const metabaseInternalState: InternalState = {
       attrs: ["class"],
     },
   },
+  toolContext: {},
   helperMessage: `Here's a [user manual](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) to get you started.
 
   **tl;dr:** MinusX has 3 modes:

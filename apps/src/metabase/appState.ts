@@ -4,13 +4,15 @@ import { MetabaseController } from "./appController";
 import { metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPage } from "./helpers/dashboard/util";
-import { cloneDeep, isEmpty } from "lodash";
+import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
 import { getCleanedTopQueries, getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
+import { createRunner } from "../common/utils";
 
+const runStoreTasks = createRunner()
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
@@ -28,6 +30,19 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       state.update({
         isEnabled: toolEnabledNew,
       });
+      runStoreTasks(async () => {
+        console.log('Running async task')
+        const dbId = await getSelectedDbId();
+        const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
+        if (dbId !== oldDbId) {
+          console.log('New DB ID:', dbId)
+          state.update({
+            toolContext: {
+              dbId
+            }
+          })
+        }
+      })
     })
     // heat up cache
     const heatUpCache = async (times = 0) => {

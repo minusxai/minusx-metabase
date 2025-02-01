@@ -1,11 +1,20 @@
 import { Text } from '@chakra-ui/react';
-import React from "react"
+import React, { useEffect } from "react"
 import AdditionalContext from "../common/AdditionalContext"
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { SemanticLayer } from '../common/SemanticLayer';
+import { getApp } from '../../helpers/app';
+
+const useAppStore = getApp().useStore()
 
 export const CustomInstructions: React.FC<null> = () => {
   const tool = getParsedIframeInfo().tool
+  const toolContext = useAppStore((state) => state.toolContext)
+  useEffect(() => {
+    if (tool == 'metabase') {
+      console.log('tool Context is', toolContext)
+    }
+  })
   if (tool == 'metabase') {
     return <>
       <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Custom Instructions</Text>

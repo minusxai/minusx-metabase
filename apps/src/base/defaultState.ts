@@ -75,6 +75,7 @@ export interface InternalState {
   querySelectorMap: QuerySelectorMap;
   whitelistQuery?: DOMQueryMap;
   helperMessage?: string;
+  toolContext?: any;
   addOnStatus?: AddOnStatus
 }
 

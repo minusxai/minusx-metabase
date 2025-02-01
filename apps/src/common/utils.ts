@@ -25,3 +25,28 @@ export async function handlePromise<T> (promise: Promise<T>, errMessage: string,
     return defaultReturn
   }
 }
+
+export function createRunner() {
+  let running = false;
+  let nextTask: (() => Promise<void>) | null = null;
+
+  async function run(task: () => Promise<void>): Promise<void> {
+    if (running) {
+      nextTask = task;
+      return;
+    }
+    running = true;
+    try {
+      await task();
+    } finally {
+      running = false;
+      if (nextTask) {
+        const taskToRun = nextTask;
+        nextTask = null;
+        await run(taskToRun);
+      }
+    }
+  }
+
+  return run;
+}
