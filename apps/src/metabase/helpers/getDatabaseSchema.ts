@@ -2,10 +2,10 @@ import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
-import { getSelectedDbId, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
+import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { handlePromise } from '../../common/utils';
 
-const { getMetabaseState, fetchData } = RPCs;
+const { fetchData } = RPCs;
 
 // 5 minutes
 const DEFAULT_TTL = 60 * 5;
@@ -70,17 +70,7 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
     : {}
   ),
 })
-async function getFullDatabaseSchema(dbId: number) {
-  // the other endpoint (/api/database/${dbId}?include=tables.fields) is pretty much the same
-  // with slightly less data (21.3M vs 21.2M for somu's bigquery) so letting it be for now
-  const jsonResponse = await fetchData(`/api/database/${dbId}/metadata`, 'GET');
-  return {
-    ...extractDbInfo(jsonResponse),
-    tables: _.map(_.get(jsonResponse, 'tables', []), (table: any) => (extractTableInfo(table, true)))
-  };
-}
-// Not using this function, too big
-/*export*/ const memoizedGetFullDatabaseSchema = memoize(getFullDatabaseSchema, -1);
+
 /**
  * Get the database tables without their fields
  * @param dbId id of the database
@@ -95,31 +85,6 @@ async function getDatabaseTablesWithoutFields(dbId: number) {
 }
 // only memoize for DEFAULT_TTL seconds
 const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
-
-const getSelectedFullDatabaseSchema = async () => {
-  const dbId = await getSelectedDbId();
-  return dbId? await memoizedGetFullDatabaseSchema(dbId) : undefined;
-}
-
-// not using this either, too big
-const getSelectedDatabaseTablesWithoutFields = async () => {
-  const dbId = await getSelectedDbId();
-  return dbId? await memoizedGetDatabaseTablesWithoutFields(dbId) : undefined;
-}
-
-const getTop200TablesWithoutFields = async (dbId: number) => {
-  const jsonResponse = await fetchData(`/api/search?models=table&table_db_id=${dbId}&filters_items_in_personal_collection=only&limit=200`, 'GET');
-  return {
-    tables: _.map(_.get(jsonResponse, 'data', []), (table: any) => (extractTableInfo(table, false, 'table_schema'))).slice(0, 200)
-  }
-};
-
-/*export*/ const memoizedGetTop200TablesWithoutFields = memoize(getTop200TablesWithoutFields, DEFAULT_TTL);
-
-/*export*/ const getTop200TablesWithoutFieldsForSelectedDb = async () => {
-  const dbId = await getSelectedDbId();
-  return dbId? await memoizedGetTop200TablesWithoutFields(dbId) : undefined;
-}
 
 const fetchTableData = async (tableId: number) => {
   const resp: any = await RPCs.fetchData(
@@ -187,20 +152,6 @@ function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchem
   return dedupeAndCountTables(lowered);
 }
 
-const getQueriesFromTop1000Cards = async (dbId: number) => {
-  const jsonResponse  = await fetchData(`/api/search?models=card&table_db_id=${dbId}&limit=${1000}`, 'GET') as SearchApiResponse;
-  let queries: string[] = [];
-  for (const card of _.get(jsonResponse, 'data', [])) {
-    const query = _.get(card, 'dataset_query.native.query');
-    if (query) {
-      queries.push(query);
-    }
-  }
-  return queries;
-}
-
-export const memoizeGetQueriesFromTop1000Cards = memoize(getQueriesFromTop1000Cards, DEFAULT_TTL);
-
 const CHAR_BUDGET = 200000
 
 const removeLowValueQueries = (queries: string[]) => {
@@ -223,7 +174,7 @@ const replaceLongLiterals = (query: string) => {
 }
 
 const getCleanedTopQueries = async (dbId: number) => {
-  let queries = await memoizeGetQueriesFromTop1000Cards(dbId);
+  let queries = await getUserQueries()
   queries = queries.map(replaceLongLiterals);
   queries.sort((a,b) => a.length - b.length);
   queries = removeLowValueQueries(queries);
@@ -235,73 +186,6 @@ const getCleanedTopQueries = async (dbId: number) => {
 }
 
 export const memoizeGetCleanedTopQueries = memoize(getCleanedTopQueries, DEFAULT_TTL);
-
-const getTablesAndSchemasFromTop1000Cards = async (dbId: number) => {
-  const queries = await memoizeGetQueriesFromTop1000Cards(dbId);
-  let tableAndSchemas: TableAndSchema[] = [];
-  for (const query of queries) {
-    if (query) {
-      const tablesInfo = getTablesFromSqlRegex(query);
-      tableAndSchemas.push(...tablesInfo);
-    }
-  }
-  return lowerAndDefaultSchemaAndDedupe(tableAndSchemas);
-}
-
-const getTableMapFromTop1000Cards = async (dbId: number) => {
-  const queries = await memoizeGetQueriesFromTop1000Cards(dbId);
-  let relatedTableAndSchemas: TableAndSchema[][] = [];
-  for (const query of queries) {
-    if (query) {
-      relatedTableAndSchemas.push(getTablesFromSqlRegex(query));
-    }
-  }
-  const { tables: allTables } = await memoizedGetDatabaseTablesWithoutFields(dbId)
-  const tableIDMap = _.fromPairs(allTables.map(tableInfo => [getTableKey(tableInfo), tableInfo.id]));
-  const relatedTableIDMap: Record<number, Record<number, number>> = {};
-  for (const tablesInfo of relatedTableAndSchemas) {
-    const tablesInfoIDs = tablesInfo.map(tableInfo => tableIDMap[getTableKey(tableInfo)]).filter(_.isNumber);
-    for (const tableID of tablesInfoIDs) {
-      if (!(tableID in relatedTableIDMap)) {
-        relatedTableIDMap[tableID] = {}
-      }
-      tablesInfoIDs.forEach(relatedTableID => {
-        if (relatedTableID == tableID) {
-          return
-        }
-        if (relatedTableID in relatedTableIDMap[tableID]) {
-          relatedTableIDMap[tableID][relatedTableID] += 1;
-        } else {
-          relatedTableIDMap[tableID][relatedTableID] = 1;
-        }
-      });
-    }
-  }
-  // Optimisation to remove long tail of table assocs
-  for (const tableID in relatedTableIDMap) {
-    const relatedTableCounts = relatedTableIDMap[tableID]; 
-    if (Object.keys(relatedTableCounts).length > 10) {
-      for (const relatedTableID in relatedTableCounts) {
-        if (relatedTableCounts[relatedTableID] < 2) {
-          delete relatedTableCounts[relatedTableID]
-        }
-      }
-    }
-    relatedTableIDMap[tableID] = relatedTableCounts;
-  }
-  const sortedRelatedTableIDMap: Record<number, number[][]> = {}
-  for (const tableID in relatedTableIDMap) {
-    const relatedTableCounts = _.chain(relatedTableIDMap[tableID])
-        .toPairs()
-        .orderBy(1, 'desc')
-        .map(([relatedTableID, count]) => [parseInt(relatedTableID), count])
-        .value();
-    sortedRelatedTableIDMap[tableID] = relatedTableCounts;
-  }
-  return sortedRelatedTableIDMap
-}
-
-export const memoizedGetTableMapFromTop1000Cards = memoize(getTableMapFromTop1000Cards, DEFAULT_TTL);
 
 const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTable[]) => {
   const allTablesAsMap = _.fromPairs(allDBTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));

@@ -30,7 +30,7 @@ export const getUserInfo = async () => {
   return userInfo
 }
 
-export const getUserTables = async () => {
+export const getUserQueries = async () => {
   const userInfo = await getUserInfo()
   if (userInfo == undefined) {
     return []
@@ -40,7 +40,11 @@ export const getUserTables = async () => {
     handlePromise(memoizedGetUserEdits(id), "[minusx] Error getting user edits", []),
     handlePromise(memoizedGetUserCreations(id), "[minusx] Error getting user creations", []),
   ]);
-  const queries = _.uniq([...edits, ...creations])
+  return _.uniq([...edits, ...creations])
+}
+
+export const getUserTables = async () => {
+  const queries = await getUserQueries()
   if (!isEmpty(queries)) {
     return queries.map(getTablesFromSqlRegex).flat()
   }
