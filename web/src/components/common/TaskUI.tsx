@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiSupport } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -330,11 +330,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         } */}
         <SettingsBlock title='Quick Actions'>
-        <HStack flexWrap={"wrap"}>
+        <HStack flexWrap={"wrap"} gap={1}>
           <Button size="xs" leftIcon={<BiEdit size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={openCustomInstructions}>Custom Instructions</Button>
           { <Button size="xs" leftIcon={<BiMessageAdd size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Thread</Button> }
-          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiTrash size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}> Clear SQL</Button> }
+          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiTrash size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> }
           <SupportButton email={email} />
+          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={16}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
+
         </HStack>
         </SettingsBlock>
         <Stack position={"relative"}>
@@ -355,7 +357,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 {/* <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/> */}
                 {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
-                {configs.IS_DEV && <Checkbox sx={{
+                {configs.IS_DEV && false && <Checkbox sx={{
                   '& input:not(:checked) + span': {
                     borderColor: 'minusxBW.500',
                   },

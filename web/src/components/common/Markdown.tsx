@@ -25,6 +25,12 @@ function ModifiedUL(props: any) {
   )
 }
 
+function ModifiedOL(props: any) {
+  return (
+    <ol style={{padding: '0px 20px', margin: '5px'}}>{props.children}</ol>
+  )
+}
+
 function ZoomableImage({src, alt}: {src: string, alt: string}) {
   return <div style={{cursor: "grabbing"}}>
     <TransformWrapper initialScale={1} doubleClick={{disabled: true}}>
@@ -44,6 +50,6 @@ function ImageComponent(props: any) {
 
 export function Markdown({content}: {content: string}) {
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, img: ImageComponent}}>{content}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent}}>{content}</MarkdownComponent>
   )
 }

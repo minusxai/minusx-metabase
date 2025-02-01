@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, HStack, VStack, IconButton, Stack } from '@chakra-ui/react'
+import { Box, HStack, VStack, IconButton, Stack, Text } from '@chakra-ui/react'
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, deleteUserMessage, ActionChatMessage } from '../../state/chat/reducer'
@@ -9,6 +9,9 @@ import { RootState } from '../../state/store';
 import { ActionStack, ActionStatusView, OngoingActionStack } from './ActionStack';
 import { ChatContent } from './ChatContent';
 import { getApp } from '../../helpers/app';
+import { SettingsBlock } from './SettingsBlock'
+import { Markdown } from './Markdown';
+
 
 // adds tool information like execution status and rendering info
 // this stuff is in the 'tool' messages, but we're ony rendering 'assistant' messages
@@ -162,7 +165,9 @@ const HelperMessage = () => {
   if (!helperMessage) {
     return null
   }
-  return <Chat role='assistant' index={-1} content={{type: 'DEFAULT', text: helperMessage, images: []}} />
+  // return <Chat role='user' index={-1} content={{type: 'DEFAULT', text: helperMessage, images: []}} />
+  // return <SettingsBlock title={"Welcome"}><Markdown content={helperMessage}/></SettingsBlock>
+  return 
 }
 
 export const ChatSection = () => {

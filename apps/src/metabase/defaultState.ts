@@ -81,10 +81,12 @@ export const metabaseInternalState: InternalState = {
       attrs: ["class"],
     },
   },
-//   helperMessage: `### Hello, welcome to MinusX!
-// Here's a quick MinusX manual to get you started:
-// 1. MinusX works best when you provide a clear prompt with the table name you're interested in.
-// 2. If you do not provide the table name, tell MinusX to figure out the correct table.
+  helperMessage: `Here's a quick user manual to get you started: [MinusX in Metabase.]()
 
-// That's it. You're all set! For more info, you can check our [FAQ](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase).`,
+  **TL;DR:** MinusX works in 3 broad modes:
+1. **Basic Mode**: Best-effort answers based on common tables and historical queries. [Read More.]()
+2. **Custom Mode**: Focused queries based on custom instructions (details on tables, joins, custom fields, etc.). [Read More.]()
+3. **Advanced Mode**: Automated data modeling that drastically reduces query complexity and length. [Read More.]()
+
+You're all set! Feel free to contact **Live Support** in case of any questions.`,
 };
