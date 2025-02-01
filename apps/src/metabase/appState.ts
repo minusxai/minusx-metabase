@@ -31,11 +31,9 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
       });
       runStoreTasks(async () => {
-        console.log('Running async task')
         const dbId = await getSelectedDbId();
         const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
         if (dbId !== oldDbId) {
-          console.log('New DB ID:', dbId)
           const relevantTables = await getRelevantTablesForSelectedDb('');
           state.update({
             toolContext: {
