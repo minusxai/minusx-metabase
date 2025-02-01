@@ -12,10 +12,7 @@ import {
   waitForQueryExecution,
 } from "./helpers/operations";
 import {
-  extractTableInfo,
-  getTopSchemasForSelectedDb,
   memoizedFetchTableData,
-  memoizedGetTableMapFromTop1000Cards,
   searchTables,
 } from "./helpers/getDatabaseSchema";
 import { get, isEmpty, map, set, truncate } from "lodash";
@@ -251,17 +248,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     // need to fetch schemas
     const tablesPromises = ids.map(memoizedFetchTableData);
     const tables = await Promise.all(tablesPromises);
-    // const dbId = await getSelectedDbId();
-    // if (dbId) {
-    //   const tableMap = await memoizedGetTableMapFromTop1000Cards(dbId)
-    //   tables.forEach(tableInfo => {
-    //     if (tableInfo != "missing") {
-    //       if (tableInfo.id in tableMap) {
-    //         tableInfo.related_tables_freq = tableMap[tableInfo.id]
-    //       }
-    //     }
-    //   })
-    // }
     const tableSchemasContent = JSON.stringify(tables);
     actionContent.content = tableSchemasContent;
     return actionContent;
