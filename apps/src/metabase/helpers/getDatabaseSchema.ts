@@ -173,7 +173,7 @@ const replaceLongLiterals = (query: string) => {
   return query
 }
 
-const getCleanedTopQueries = async (dbId: number) => {
+export const getCleanedTopQueries = async (dbId: number) => {
   let queries = await getUserQueries()
   queries = queries.map(replaceLongLiterals);
   queries.sort((a,b) => a.length - b.length);
@@ -184,8 +184,6 @@ const getCleanedTopQueries = async (dbId: number) => {
   }
   return queries
 }
-
-export const memoizeGetCleanedTopQueries = memoize(getCleanedTopQueries, DEFAULT_TTL);
 
 const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTable[]) => {
   const allTablesAsMap = _.fromPairs(allDBTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
@@ -251,8 +249,8 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     return [];
   }
   const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
-  const relevantTablesTop200 = relevantTables.slice(0, 200);
-  return relevantTablesTop200;
+  const relevantTablesTop50 = relevantTables.slice(0, 50);
+  return relevantTablesTop50;
 }
 
 // Empty Placeholder

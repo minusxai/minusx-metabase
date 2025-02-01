@@ -7,7 +7,7 @@ import { isDashboardPage } from "./helpers/dashboard/util";
 import { cloneDeep, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe } from "web";
-import { getRelevantTablesForSelectedDb, memoizeGetCleanedTopQueries } from "./helpers/getDatabaseSchema";
+import { getCleanedTopQueries, getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 
@@ -84,7 +84,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       const dbId = await getSelectedDbId();
       let savedQueries: string[] = []
       if (dbId && appSettings.savedQueries) {
-        savedQueries = await memoizeGetCleanedTopQueries(dbId)
+        savedQueries = await getCleanedTopQueries(dbId)
       }
       return {
         ...defaultConfig,
