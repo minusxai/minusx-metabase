@@ -6,6 +6,7 @@ import { SemanticLayer } from '../common/SemanticLayer';
 import { getApp } from '../../helpers/app';
 import { FormattedTable, MetabaseContext } from 'apps/types';
 import { Table, Thead, Tbody, Tr, Th, Td, TableContainer } from "@chakra-ui/react";
+import { configs } from '../../constants';
 
 const useAppStore = getApp().useStore()
 
@@ -53,7 +54,7 @@ export const CustomInstructions: React.FC<null> = () => {
   const tool = getParsedIframeInfo().tool
   if (tool == 'metabase') {
     return <>
-      <MetabaseContextFC />
+      {configs.IS_DEV && <MetabaseContextFC />}
       <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Custom Instructions</Text>
       <Text color={"minusxBW.600"} fontSize="xs">Adding custom instructions (including important queries & descriptions) allows MinusX to generate correct answers to your questions.</Text>
       <AdditionalContext />
