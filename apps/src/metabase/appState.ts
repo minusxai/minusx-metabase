@@ -36,9 +36,11 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
         if (dbId !== oldDbId) {
           console.log('New DB ID:', dbId)
+          const relevantTables = await getRelevantTablesForSelectedDb('');
           state.update({
             toolContext: {
-              dbId
+              dbId,
+              relevantTables
             }
           })
         }

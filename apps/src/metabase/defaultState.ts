@@ -5,6 +5,7 @@ import {
   ACTION_DESCRIPTIONS_SEMANTIC_QUERY
 } from "./actionDescriptions";
 import { querySelectorMap } from "./helpers/querySelectorMap";
+import { FormattedTable } from "./helpers/types";
 
 import {
   DASHBOARD_PLANNER_SYSTEM_PROMPT,
@@ -17,8 +18,9 @@ import {
   SEMANTIC_QUERY_USER_PROMPT
 } from "./prompts";
 
-interface MetabaseContext {
+export interface MetabaseContext {
   dbId: number;
+  relevantTables: FormattedTable[]
 }
 
 interface MetabaseInternalState extends InternalState {
