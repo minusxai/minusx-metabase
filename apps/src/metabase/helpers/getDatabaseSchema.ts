@@ -3,6 +3,7 @@ import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
 import { getSelectedDbId, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
+import { handlePromise } from '../../common/utils';
 
 const { getMetabaseState, fetchData } = RPCs;
 
@@ -93,15 +94,15 @@ async function getDatabaseTablesWithoutFields(dbId: number) {
   }
 }
 // only memoize for DEFAULT_TTL seconds
-/*export*/ const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
+const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
 
-/*export*/ const getSelectedFullDatabaseSchema = async () => {
+const getSelectedFullDatabaseSchema = async () => {
   const dbId = await getSelectedDbId();
   return dbId? await memoizedGetFullDatabaseSchema(dbId) : undefined;
 }
 
 // not using this either, too big
-/*export*/ const getSelectedDatabaseTablesWithoutFields = async () => {
+const getSelectedDatabaseTablesWithoutFields = async () => {
   const dbId = await getSelectedDbId();
   return dbId? await memoizedGetDatabaseTablesWithoutFields(dbId) : undefined;
 }
@@ -312,7 +313,6 @@ const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTabl
   }))
 }
 
-const memoizedGetUserTables = memoize(getUserTables, DEFAULT_TTL);
 // const memoizedGetUserTableMap = memoize(getUserTableMap, DEFAULT_TTL);
 const memoizedGetUserTableMap = getUserTableMap // Unused for now
 
@@ -330,13 +330,13 @@ const addTableJoins = (tables: FormattedTable[], tableMap: Record<number, number
 const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => {
   const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
   const [userTables, {tables: allDBTables}, tableMap] = await Promise.all([
-    memoizedGetUserTables(),
-    memoizedGetDatabaseTablesWithoutFields(dbId),
+    getUserTables(),
+    handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database tables", {
+      ...extractDbInfo({}),
+      tables: []
+    }),
     memoizedGetUserTableMap()
-  ]).catch(err => {
-    console.warn("[minusx] Error getting relevant tables", err);
-    throw err;
-  });
+  ]);
   const allUserTables = dedupeAndCountTables([...tablesFromSql, ...userTables]);
   const validTables = validateTablesInDB(allUserTables, allDBTables);
   const dedupedTables = dedupeAndCountTables(validTables)
