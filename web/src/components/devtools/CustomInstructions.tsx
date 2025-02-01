@@ -7,6 +7,7 @@ import { getApp } from '../../helpers/app';
 import { FormattedTable, MetabaseContext } from 'apps/types';
 import { Table, Thead, Tbody, Tr, Th, Td, TableContainer } from "@chakra-ui/react";
 import { configs } from '../../constants';
+import { isEmpty } from 'lodash';
 
 const useAppStore = getApp().useStore()
 
@@ -39,13 +40,23 @@ const DataTable = ({ data }: {data: FormattedTable[]}) => {
 const MetabaseContextFC = () => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const tool = getParsedIframeInfo().tool
-  if (tool != 'metabase') {
+  if (tool != 'metabase' || isEmpty(toolContext)) {
     return null
   }
   const relevantTables = toolContext.relevantTables
+  const dbInfo = toolContext.dbInfo
+  const allTables = dbInfo.tables
+  console.log('All tables in DB', allTables)
   return <>
     <Text color={"minusxBW.800"} fontSize="sm" fontWeight={"bold"}>Metabase Context</Text>
-    <Text color={"minusxBW.600"} fontSize="xs">Visible tables from database ID: {toolContext.dbId}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB Name: {dbInfo.name}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB Description: {dbInfo.description}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB Dialect: {dbInfo.dialect}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB Version: {dbInfo.dbms_version.version}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB Flavor: {dbInfo.dbms_version.flavor}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB Semantic Version: {dbInfo.dbms_version.semantic_version.join('.')}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">DB ID: {toolContext.dbId}</Text>
+    <Text color={"minusxBW.600"} fontSize="xs">Visible tables from database:</Text>
     <DataTable data={relevantTables} />
   </>
 }

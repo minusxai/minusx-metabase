@@ -34,7 +34,23 @@ export async function getDatabaseIds(): Promise<number[]> {
   return _.map(resp.data, (db: any) => db.id);
 }
 
-const extractDbInfo = (db: any) => ({
+interface DatabaseInfo {
+  name: string;
+  description: string;
+  id: number;
+  dialect: string;
+  dbms_version: {
+    flavor: string;
+    version: string;
+    semantic_version: number[];
+  }
+}
+
+export interface DatabaseInfoWithTables extends DatabaseInfo {
+  tables: FormattedTable[];
+}
+
+const extractDbInfo = (db: any): DatabaseInfo => ({
   name: _.get(db, 'name', ''),
   description: _.get(db, 'description', ''),
   id: _.get(db, 'id', 0),
@@ -76,7 +92,7 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
  * @param dbId id of the database
  * @returns tables without their fields
  */
-async function getDatabaseTablesWithoutFields(dbId: number) {
+async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
   const jsonResponse = await fetchData(`/api/database/${dbId}?include=tables`, 'GET');
   return {
     ...extractDbInfo(jsonResponse),
@@ -84,7 +100,7 @@ async function getDatabaseTablesWithoutFields(dbId: number) {
   }
 }
 // only memoize for DEFAULT_TTL seconds
-const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
+export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
 
 const fetchTableData = async (tableId: number) => {
   const resp: any = await RPCs.fetchData(

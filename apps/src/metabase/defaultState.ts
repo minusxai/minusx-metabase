@@ -4,6 +4,7 @@ import {
   ACTION_DESCRIPTIONS_PLANNER,
   ACTION_DESCRIPTIONS_SEMANTIC_QUERY
 } from "./actionDescriptions";
+import { DatabaseInfoWithTables } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { FormattedTable } from "./helpers/types";
 
@@ -21,6 +22,7 @@ import {
 export interface MetabaseContext {
   dbId: number;
   relevantTables: FormattedTable[]
+  dbInfo: DatabaseInfoWithTables
 }
 
 interface MetabaseInternalState extends InternalState {
