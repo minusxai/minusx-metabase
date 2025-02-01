@@ -16,3 +16,12 @@ export function escapeKeyboardCharacters(text: string) {
   // replace [ with [[,  { with {{, 
   return text.replace(/\[/g, '[[').replace(/\{/g, '{{');
 }
+
+export async function handlePromise<T> (promise: Promise<T>, errMessage: string, defaultReturn: T): Promise<T> {
+  try {
+    return await promise
+  } catch (err) {
+    console.error(errMessage);
+    return defaultReturn
+  }
+}

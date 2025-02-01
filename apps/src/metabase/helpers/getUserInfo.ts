@@ -1,6 +1,7 @@
 import _, { isEmpty } from 'lodash';
 import { memoize, RPCs } from 'web'
 import { getTablesFromSqlRegex } from './parseSql';
+import { handlePromise } from '../../common/utils';
 const { getMetabaseState, fetchData } = RPCs;
 
 interface UserInfo {
@@ -36,12 +37,9 @@ export const getUserTables = async () => {
   }
   const { id } = userInfo
   const [edits, creations] = await Promise.all([
-    memoizedGetUserEdits(id),
-    memoizedGetUserCreations(id)
-  ]).catch(err => {
-    console.warn("[minusx] Error getting relevant tables", err);
-    throw err;
-  });
+    handlePromise(memoizedGetUserEdits(id), "[minusx] Error getting user edits", []),
+    handlePromise(memoizedGetUserCreations(id), "[minusx] Error getting user creations", []),
+  ]);
   const queries = _.uniq([...edits, ...creations])
   if (!isEmpty(queries)) {
     return queries.map(getTablesFromSqlRegex).flat()
@@ -50,7 +48,7 @@ export const getUserTables = async () => {
   if (dbId == undefined) {
     return []
   }
-  const allQueries = await memoizedGetAllCreations(dbId)
+  const allQueries = await handlePromise(memoizedGetAllCreations(dbId), "[minusx] Error getting all queries", [])
   const uniqQueries = _.uniq(allQueries)
   return uniqQueries.map(getTablesFromSqlRegex).flat()
 }
@@ -90,17 +88,14 @@ async function getAllCreations(dbId: number) {
 
 export async function searchUserQueries(id: number, dbId: number, query: string) {
   const [edits, creations] = await Promise.all([
-    getMetabaseQueries(`/api/search?table_db_id=${dbId}&q=${query}&edited_by=${id}`),
-    getMetabaseQueries(`/api/search?table_db_id=${dbId}&q=${query}&created_by=${id}`),
-  ]).catch(err => {
-    console.warn("[minusx] Error getting relevant tables", err);
-    throw err;
-  });
+    handlePromise(getMetabaseQueries(`/api/search?table_db_id=${dbId}&q=${query}&edited_by=${id}`), "[minusx] Error searching for user edits", []),
+    handlePromise(getMetabaseQueries(`/api/search?table_db_id=${dbId}&q=${query}&created_by=${id}`), "[minusx] Error searching for user creations", []),
+  ]);
   const queries = _.uniq([...edits, ...creations])
   if (!isEmpty(queries)) {
     return queries.map(getTablesFromSqlRegex).flat()
   }
-  const allQueries = await getMetabaseQueries(`/api/search?models=card&table_db_id=${dbId}&q=${query}`)
+  const allQueries = await handlePromise(getMetabaseQueries(`/api/search?models=card&table_db_id=${dbId}&q=${query}`), "[minusx] Error searching for all queries", [])
   return allQueries.map(getTablesFromSqlRegex).flat()
 }
 
