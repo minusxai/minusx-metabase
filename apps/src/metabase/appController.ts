@@ -239,8 +239,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Retrieving table schemas",
     labelDone: "Analyzed tables",
     description: "Retrieves the schemas of the specified tables by their ids in the database.",
-    renderBody: ({ids}: { ids: number[] }) => {
-      return {text: null, code: JSON.stringify(ids)}
+    renderBody: ({ids}: { ids: number[] }, _: any, result: BlankMessageContent) => {
+      let content = []
+      try {
+        content = JSON.parse(result.content || "[]");
+        content = content.map((table: any) => table.name)
+      } catch (error) {
+        content = []
+      }
+      const code = isEmpty(content) ? `No tables found for ids: ${ids.join(', ')}` : `Tables found for ids: ${content.join(', ')}`
+      return {text: null, code, language: 'markdown'}
     }
   })
   async getTableSchemasById({ ids }: { ids: number[] }) {
@@ -257,8 +265,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Searching for tables",
     labelDone: "Found tables",
     description: "Searches for tables in the database based on the query.",
-    renderBody: ({ query }: { query: string }) => {
-      return {text: null, code: query}
+    renderBody: ({ query }: { query: string }, _: any, result: BlankMessageContent) => {
+      let searchResults = []
+      try {
+        searchResults = JSON.parse(result.content || "[]")
+      } catch (error) {
+        searchResults = []
+      }
+      const results = searchResults.map((table: any) => table.name).join(', ')
+      const code = isEmpty(results) ? `No tables found for '${query}'` : `Search results for '${query}': ${results}` 
+      return {text: null, code, language: "markdown"}
     }
   })
   async searchTableSchemas({ query }: { query: string }) {

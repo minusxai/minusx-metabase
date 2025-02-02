@@ -32,3 +32,10 @@ export interface DefaultMessageContent {
   images: Image[]
   text: string
 }
+
+export type ActionRenderInfo = {
+  text?: string
+  code?: string
+  oldCode?: string
+  language?: string
+}

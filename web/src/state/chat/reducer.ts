@@ -5,7 +5,7 @@ import _, { get } from 'lodash'
 import { ChatCompletionMessageToolCall, ChatCompletionRole, ChatCompletionToolMessageParam, ChatCompletion, Chat } from 'openai/resources';
 import { Subset } from '../../helpers/utils'
 import { LLMResponse } from '../../helpers/LLM/types';
-import { BlankMessageContent, ChatMessageContentType, DefaultMessageContent } from './types';
+import { ActionRenderInfo, BlankMessageContent, ChatMessageContentType, DefaultMessageContent } from './types';
 
 const MAX_THREADS = 10
 
@@ -81,13 +81,6 @@ export interface UserChatMessage extends BaseChatMessage {
 export interface ActionPlanChatMessage extends BaseChatMessage {
   role: 'assistant'
   content: ActionPlanMessageContent
-}
-
-
-export type ActionRenderInfo = {
-  text: string | null,
-  code: string | null,
-  oldCode?: string | null
 }
 
 export type ActionChatMessageContent = Subset<ChatMessageContent, DefaultMessageContent | BlankMessageContent> & {

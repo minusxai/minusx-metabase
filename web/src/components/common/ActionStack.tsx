@@ -15,7 +15,7 @@ import { getApp } from "../../helpers/app";
 import 'reflect-metadata';
 import { parseArguments } from '../../planner/plannerActions';
 import { CodeBlock } from './CodeBlock';
-import { ActionRenderInfo } from '../../state/chat/reducer';
+import { ActionRenderInfo } from '../../state/chat/types';
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
@@ -110,7 +110,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           
         </HStack>
         {isExpanded && actions.map((action, index) => {
-          const { text, code, oldCode } = action.renderInfo || {text: null, code: null, oldCode: undefined}
+          const { text, code, oldCode, language } = action.renderInfo || {}
           return (
           <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
             <HStack>
@@ -126,7 +126,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-              <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode || undefined}/>
+              <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode} language={language} />
              </Box>
             }
             
