@@ -15,7 +15,7 @@ import { getApp } from "../../helpers/app";
 import 'reflect-metadata';
 import { parseArguments } from '../../planner/plannerActions';
 import { CodeBlock } from './CodeBlock';
-import { ActionRenderInfo } from '../../state/chat/reducer';
+import { ActionRenderInfo } from '../../state/chat/types';
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
