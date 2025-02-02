@@ -118,16 +118,16 @@ export abstract class AppController<T> {
       code: null,
       oldCode: null
     }
+    // @ts-ignore: Check if controller has function and execute!
+    let result = await this[fn](args);
     // get render info if it exists
     const metadata = Reflect.getMetadata('actionMetadata', this, fn);
     if (metadata) {
       let renderBody = metadata['renderBody']
       if (typeof renderBody === 'function') {
-        renderInfo = await renderBody(args, await this.app.getState())
+        renderInfo = await renderBody(args, await this.app.getState(), result)
       }
     }
-    // @ts-ignore: Check if controller has function and execute!
-    let result = await this[fn](args);
     return {
       type: 'BLANK',
       ...result,

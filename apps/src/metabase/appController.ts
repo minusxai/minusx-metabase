@@ -257,8 +257,17 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Searching for tables",
     labelDone: "Found tables",
     description: "Searches for tables in the database based on the query.",
-    renderBody: ({ query }: { query: string }) => {
-      return {text: null, code: query}
+    renderBody: ({ query }: { query: string }, _: any, result: BlankMessageContent) => {
+      let searchResults = []
+      try {
+        searchResults = JSON.parse(result.content || "[]")
+      } catch (error) {
+        searchResults = []
+      }
+      console.log('Search results are', searchResults)
+      const results = searchResults.map((table: any) => table.name).join(', ')
+      const code = isEmpty(results) ? `No tables found for '${query}'` : `Search results for '${query}': ${results}` 
+      return {text: null, code}
     }
   })
   async searchTableSchemas({ query }: { query: string }) {
