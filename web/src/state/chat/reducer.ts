@@ -88,6 +88,7 @@ export type ActionRenderInfo = {
   text: string | null,
   code: string | null,
   oldCode?: string | null
+  language?: string
 }
 
 export type ActionChatMessageContent = Subset<ChatMessageContent, DefaultMessageContent | BlankMessageContent> & {

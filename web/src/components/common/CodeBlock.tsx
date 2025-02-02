@@ -56,11 +56,13 @@ function getCombinedCodeAndDiffs(code_new: string, code_old: string | undefined)
   return { combinedCode, diffLineIndices};
 }
 
-export const CodeBlock = ({ code, tool, oldCode }: { code: string, tool: string, oldCode: string | undefined }) => {
+export const CodeBlock = ({ code, tool, oldCode, language }: { code: string, tool: string, oldCode: string | undefined, language: string | undefined }) => {
   
   const validDiff = oldCode!==undefined;
 
-  const language = getPlatformLanguage(tool);
+  if (!language) {
+    language = getPlatformLanguage(tool);
+  }
   const { combinedCode, diffLineIndices } = getCombinedCodeAndDiffs(code, oldCode);
 
   const linePropsFn = (lineNumber: number) => {

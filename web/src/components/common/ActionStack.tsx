@@ -110,7 +110,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           
         </HStack>
         {isExpanded && actions.map((action, index) => {
-          const { text, code, oldCode } = action.renderInfo || {text: null, code: null, oldCode: undefined}
+          const { text, code, oldCode, language } = action.renderInfo || {text: null, code: null, oldCode: undefined}
           return (
           <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
             <HStack>
@@ -126,7 +126,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-              <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode || undefined}/>
+              <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode || undefined} language={language} />
              </Box>
             }
             
