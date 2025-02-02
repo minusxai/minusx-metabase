@@ -239,8 +239,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Retrieving table schemas",
     labelDone: "Analyzed tables",
     description: "Retrieves the schemas of the specified tables by their ids in the database.",
-    renderBody: ({ids}: { ids: number[] }) => {
-      return {text: null, code: JSON.stringify(ids)}
+    renderBody: ({ids}: { ids: number[] }, _: any, result: BlankMessageContent) => {
+      let content = []
+      try {
+        content = JSON.parse(result.content || "[]");
+        content = content.map((table: any) => table.name)
+      } catch (error) {
+        content = []
+      }
+      const code = isEmpty(content) ? `No tables found for ids: ${ids.join(', ')}` : `Tables found for ids: ${content.join(', ')}`
+      return {text: null, code, language: 'markdown'}
     }
   })
   async getTableSchemasById({ ids }: { ids: number[] }) {
