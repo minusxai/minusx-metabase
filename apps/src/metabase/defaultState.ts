@@ -88,5 +88,5 @@ export const metabaseInternalState: InternalState = {
 2. [Custom Mode](https://docs.minusx.ai/en/articles/10489277-custom-mode): Queries based on custom instructions (about tables, joins, custom fields, etc.).
 3. [Advanced Mode](https://docs.minusx.ai/en/articles/10489378-advanced-mode): Automated data modeling that drastically reduces query complexity and length.
 
-You're all set! Feel free to contact **Live Support** in case of any questions.`,
+You're all set! Feel free to contact support in case of any questions.`,
 };
