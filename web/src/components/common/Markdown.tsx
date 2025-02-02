@@ -7,7 +7,7 @@ import { Image } from "@chakra-ui/react"
 
 function LinkRenderer(props: any) {
   return (
-    <a href={props.href} target="_blank" rel="minusxapp">
+    <a href={props.href} target="_blank" rel="minusxapp" style={{color: 'blue'}}>
       <u>{props.children}</u>
     </a>
   );
