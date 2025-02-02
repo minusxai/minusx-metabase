@@ -56,7 +56,7 @@ function getCombinedCodeAndDiffs(code_new: string, code_old: string | undefined)
   return { combinedCode, diffLineIndices};
 }
 
-export const CodeBlock = ({ code, tool, oldCode, language }: { code: string, tool: string, oldCode: string | undefined, language: string | undefined }) => {
+export const CodeBlock = ({ code, tool, oldCode, language }: { code: string, tool: string, oldCode?: string, language?: string }) => {
   
   const validDiff = oldCode!==undefined;
 
