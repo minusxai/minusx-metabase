@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -33,7 +33,7 @@ import { forwardToTab } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
 import AutosizeTextarea from './AutosizeTextarea'
 import { setMinusxMode } from '../../app/rpc'
-import { updateAppMode } from '../../state/settings/reducer'
+import { updateAppMode, DevToolsTabName } from '../../state/settings/reducer'
 import { UIElementSelection } from './UIElements'
 import { capture } from '../../helpers/screenCapture/extensionCapture'
 import { addThumbnail } from '../../state/thumbnails/reducer'
@@ -70,6 +70,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const taskInProgress = !(activeThread.status == 'FINISHED')
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const email = useSelector((state: RootState) => state.auth.email)
+  const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
+
   
 
   const debouncedSetInstruction = useCallback(
@@ -199,13 +201,17 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     }
   }
 
-  const openCustomInstructions = async () => {
+  const openDevtoolTab = async (devtoolsTab: DevToolsTabName) => {
     if (isDevToolsOpen) {
-      dispatch(updateIsDevToolsOpen(false))
-      await setMinusxMode('open-sidepanel')
+      if (tabName === devtoolsTab) {
+        dispatch(updateIsDevToolsOpen(false))
+        await setMinusxMode('open-sidepanel')
+      } else {
+        dispatch(updateDevToolsTabName(devtoolsTab))
+      }
     } else {
       dispatch(updateIsDevToolsOpen(true))
-      dispatch(updateDevToolsTabName("Custom Instructions"))
+      dispatch(updateDevToolsTabName(devtoolsTab))
       await setMinusxMode('open-sidepanel-devtools')
     }
   }
@@ -331,11 +337,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         } */}
         <SettingsBlock title='Quick Actions'>
         <HStack flexWrap={"wrap"} gap={1}>
-          <Button size="xs" leftIcon={<BiEdit size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={openCustomInstructions}>Custom Instructions</Button>
-          { <Button size="xs" leftIcon={<BiMessageAdd size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Thread</Button> }
-          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiTrash size={16}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> }
+          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
+          { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Tables</Button> }
+          { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Thread</Button> }
+          { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> }
+          { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> }
           <SupportButton email={email} />
-          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={16}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
 
         </HStack>
         </SettingsBlock>
