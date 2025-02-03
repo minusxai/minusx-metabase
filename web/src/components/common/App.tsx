@@ -110,6 +110,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const tool = getParsedIframeInfo().tool
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
+  const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
   useEffect(() => {
     getBillingInfo().then(billingInfo => {
       dispatch(setBillingInfo({
@@ -226,6 +227,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
         {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
+        { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>}
         {/* <SupportButton email={email} /> */}
       </HStack>
     </VStack>
