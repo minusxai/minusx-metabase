@@ -50,7 +50,7 @@ export interface DatabaseInfoWithTables extends DatabaseInfo {
   tables: FormattedTable[];
 }
 
-const extractDbInfo = (db: any): DatabaseInfo => ({
+export const extractDbInfo = (db: any): DatabaseInfo => ({
   name: _.get(db, 'name', ''),
   description: _.get(db, 'description', ''),
   id: _.get(db, 'id', 0),

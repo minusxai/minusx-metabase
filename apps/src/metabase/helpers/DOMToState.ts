@@ -1,5 +1,5 @@
 import { RPCs } from 'web'
-import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases } from './getDatabaseSchema';
+import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPage } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -7,6 +7,8 @@ import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
 const { getMetabaseState, queryURL } = RPCs;
 import { Measure, Dimension, SemanticQuery } from "web/types";
+import { applyTableDiffs, handlePromise } from '../../common/utils';
+import { getSelectedDbId } from './getUserInfo';
 
 interface ExtractedDataBase {
   name: string;
@@ -70,6 +72,20 @@ export async function convertDOMtoStateSQLQuery() {
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const tables = (await getRelevantTablesForSelectedDb(sqlQuery)).map(table => extractTableInfo(table));
+  const dbId = await getSelectedDbId()
+  const relevantTables = await (async () => {
+    if (!dbId) {
+      return []
+    }
+    const appSettings = RPCs.getAppSettings()
+    console.log('App settings are', appSettings)
+    const dbTables = await handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database tables", {
+      ...extractDbInfo({}),
+      tables: []
+    })
+    return applyTableDiffs(tables, dbTables.tables, appSettings.tableDiff)
+  })()
+  
 
   const queryExecuted = await getMetabaseState('qb.queryResults') !== null;
   const isNativeEditorOpen = await getMetabaseState('qb.uiControls.isNativeEditorOpen')
@@ -83,7 +99,7 @@ export async function convertDOMtoStateSQLQuery() {
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     availableDatabases,
     selectedDatabaseInfo,
-    relevantTables: tables,
+    relevantTables,
     sqlQuery,
     queryExecuted,
     sqlEditorState: isNativeEditorOpen ? 'open' : 'closed',
