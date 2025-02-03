@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input, Text, Divider, Badge } from "@chakra-ui/react";
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input, Text, Divider } from "@chakra-ui/react";
 import { FormattedTable } from 'apps/types';
 
 
@@ -7,6 +7,8 @@ import { FormattedTable } from 'apps/types';
 export const FilteredTable = ({ data, selectedData, searchKey, displayKeys }: {data: FormattedTable[], selectedData: FormattedTable[], searchKey: string, displayKeys: string[]}) => {
     const [search, setSearch] = useState("");
     const [selectedNames, setSelectedNames] = useState(selectedData.map((item) => item.name));
+    const [isFocused, setIsFocused] = useState(false);
+
     const suggestions = data.filter(
     (item) =>
         !selectedNames.includes(item.name) &&
@@ -14,12 +16,12 @@ export const FilteredTable = ({ data, selectedData, searchKey, displayKeys }: {d
     );
 
     const handleAdd = (name: string) => {
-    setSelectedNames([...selectedNames, name]);
-    setSearch("");
+        setSelectedNames([...selectedNames, name]);
+        setSearch("");
     };
 
     const handleRemove = (name: string) => {
-    setSelectedNames(selectedNames.filter((n) => n !== name));
+        setSelectedNames(selectedNames.filter((n) => n !== name));
     };
 
     const selectedDataDisplay = data.filter((item) => selectedNames.includes(item.name));
@@ -32,8 +34,10 @@ export const FilteredTable = ({ data, selectedData, searchKey, displayKeys }: {d
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 borderColor={"minusxGreen.600"}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
             />
-            {search && suggestions.length > 0 && (
+            {isFocused && suggestions.length > 0 && (
                 <Box
                 position="absolute"
                 zIndex="1"
@@ -44,6 +48,8 @@ export const FilteredTable = ({ data, selectedData, searchKey, displayKeys }: {d
                 borderRadius="md"
                 borderTopRadius={0}
                 boxShadow="sm"
+                maxHeight={"300px"}
+                overflowY="auto"
                 >
                 {suggestions.map((item) => (
                     <Box
