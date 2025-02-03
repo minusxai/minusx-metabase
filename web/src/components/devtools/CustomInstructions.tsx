@@ -1,4 +1,4 @@
-import { Text } from '@chakra-ui/react';
+import { Text, Link } from '@chakra-ui/react';
 import React, { useEffect } from "react"
 import AdditionalContext from "../common/AdditionalContext"
 import { getParsedIframeInfo } from "../../helpers/origin"
@@ -14,6 +14,8 @@ export const CustomInstructions: React.FC<null> = () => {
     return <>
       <Text fontSize="lg" fontWeight="bold">Custom Instructions</Text>
       <Text color={"minusxBW.600"} fontSize="sm">Adding custom instructions (including important queries & descriptions) allows MinusX to generate correct answers to your questions.</Text>
+      <Text fontSize="sm" color={"minusxGreen.600"} mt={1}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10489277-custom-mode" isExternal>Read more about custom instructions best practices.</Link></Text>
+
       <AdditionalContext />
     </>
   //   return <>

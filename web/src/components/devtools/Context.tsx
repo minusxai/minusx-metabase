@@ -38,6 +38,7 @@ export const Context: React.FC<null> = () => {
   return <>
     <Text fontSize="lg" fontWeight="bold">Tables</Text>
     <Text color={"minusxBW.600"} fontSize="sm">The selected tables are in MinusX context while answering queries. You can select/unselect tables to control the context.</Text>
+    <Text fontSize="sm" color={"minusxGreen.600"} mt={1}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>Read more about table context.</Link></Text>
 
     <Box mt={2} mb={2}>
     <Text fontWeight="bold">DB Info</Text>
@@ -46,6 +47,6 @@ export const Context: React.FC<null> = () => {
     <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>
     </Box>
     <FilteredTable data={allTables} selectedData={updatedRelevantTables} searchKey={"name"} displayKeys={['name', 'description']} addFn={updateAddTables} removeFn={updateRemoveTables}/>
-    <Text fontSize="sm" color={"minusxGreen.600"} mt={2}>{updatedRelevantTables.length} out of {allTables.length} tables selected | <Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://minusx.ai/pricing/" isExternal>Read more about table context here</Link></Text>
+    <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} mt={2}>{updatedRelevantTables.length} out of {allTables.length} tables selected</Text>
   </>
 }

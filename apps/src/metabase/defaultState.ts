@@ -97,7 +97,7 @@ export const metabaseInternalState: MetabaseInternalState = {
   helperMessage: `Here's a [user manual](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) to get you started.
 
   **tl;dr:** MinusX has 3 modes:
-1. [Basic Mode](https://docs.minusx.ai/en/articles/10488431-basic-mode): Best-effort answers based on common tables and historical queries.
+1. [Basic Mode](https://docs.minusx.ai/en/articles/10488431-basic-mode): Best-effort answers based on relevant tables and historical queries.
 2. [Custom Mode](https://docs.minusx.ai/en/articles/10489277-custom-mode): Queries based on custom instructions (about tables, joins, custom fields, etc.).
 3. [Advanced Mode](https://docs.minusx.ai/en/articles/10489378-advanced-mode): Automated data modeling that drastically reduces query complexity and length.
 
