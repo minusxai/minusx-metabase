@@ -9,6 +9,7 @@ import { addTable, removeTable, TableDiff } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
+import { applyTableDiffs } from "apps";
 
 const useAppStore = getApp().useStore()
 
@@ -24,30 +25,7 @@ export const Context: React.FC<null> = () => {
   const dbInfo = toolContext.dbInfo
   const allTables = dbInfo?.tables || []
 
-const tablesToRemove = tableDiff
-.filter((diff: TableDiff) => diff.action === 'remove')
-.map((diff: TableDiff) => diff.table)
-
-const tablesToAdd = tableDiff
-.filter((diff: TableDiff) => diff.action === 'add')
-.map((diff: TableDiff) => diff.table);
-
-const filteredRelevantTables = relevantTables.filter(
-  table => !tablesToRemove.includes(table.name)
-);
-
-const tablesToAppend = allTables.filter(
-  table => tablesToAdd.includes(table.name)
-);
-
-const updatedRelevantTables = [...filteredRelevantTables];
-
-tablesToAppend.forEach(table => {
-  if (!updatedRelevantTables.some(existing => existing.name === table.name)) {
-    updatedRelevantTables.push(table);
-  }
-});
-
+  const updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff)
   
   const updateAddTables = (value: string) => {
     dispatch(addTable(value))

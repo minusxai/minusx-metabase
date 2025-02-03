@@ -6,7 +6,6 @@ import {Text, Table, Thead, Tbody, Tfoot, Tr, Th, Td, TableCaption, TableContain
 import { Measure, Dimension } from "web/types";
 
 const SLTable = ({table}: {table: Measure[] | Dimension[]}) => {
-  console.log(table, "yoooo", table.length)
   return <TableContainer>
   <Table variant='striped' size="sm" style={{whiteSpace: "pre-wrap"}}>
     <Thead>

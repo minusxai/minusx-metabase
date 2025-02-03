@@ -1,4 +1,6 @@
 import { get } from 'lodash';
+import { FormattedTable } from '../metabase/helpers/types';
+import { TableDiff } from 'web/types';
 
 export function getWithWarning(object: any, path: string, defaultValue: any) {
   const result = get(object, path, defaultValue);
@@ -49,4 +51,32 @@ export function createRunner() {
   }
 
   return run;
+}
+
+export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff[]) => {
+  const tablesToRemove = tableDiff
+    .filter((diff: TableDiff) => diff.action === 'remove')
+    .map((diff: TableDiff) => diff.table)
+
+  const tablesToAdd = tableDiff
+    .filter((diff: TableDiff) => diff.action === 'add')
+    .map((diff: TableDiff) => diff.table);
+
+  const filteredRelevantTables = tables.filter(
+    table => !tablesToRemove.includes(table.name)
+  );
+
+  const tablesToAppend = allTables.filter(
+    table => tablesToAdd.includes(table.name)
+  );
+
+  const updatedRelevantTables = [...filteredRelevantTables];
+
+  tablesToAppend.forEach(table => {
+    if (!updatedRelevantTables.some(existing => existing.name === table.name)) {
+      updatedRelevantTables.push(table);
+    }
+  });
+
+  return updatedRelevantTables;
 }
