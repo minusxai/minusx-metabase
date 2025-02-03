@@ -5,7 +5,10 @@ import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context'
-
+export interface TableDiff {
+  table: string
+  action: 'add' | 'remove'
+}
 
 //--isAppOpen
 //   |--yes
@@ -35,6 +38,7 @@ interface Settings {
   isRecording: boolean
   aiRules: string
   savedQueries: boolean
+  tableDiff: TableDiff[]
 }
 
 const initialState: Settings = {
@@ -53,6 +57,7 @@ const initialState: Settings = {
   isRecording: false,
   aiRules: '',
   savedQueries: false,
+  tableDiff: []
 }
 
 export const settingsSlice = createSlice({
@@ -100,6 +105,26 @@ export const settingsSlice = createSlice({
     },
     setSavedQueries: (state, action: PayloadAction<boolean>) => {
       state.savedQueries = action.payload
+    },
+    addTable(state, action: PayloadAction<string>) {
+      const tableInDiff = state.tableDiff.filter((table) => table.table === action.payload)
+      if (tableInDiff.length === 0) {
+        state.tableDiff.push({table: action.payload, action: 'add'})
+      } else {
+        if (tableInDiff[0].action === 'remove') {
+          state.tableDiff = state.tableDiff.filter((table) => table.table !== action.payload)
+        }
+      }
+    },
+    removeTable(state, action: PayloadAction<string>) {
+      const tableInDiff = state.tableDiff.filter((table) => table.table === action.payload)
+      if (tableInDiff.length === 0) {
+        state.tableDiff.push({table: action.payload, action: 'remove'})
+      } else {
+        if (tableInDiff[0].action === 'add') {
+          state.tableDiff = state.tableDiff.filter((table) => table.table !== action.payload)
+        }
+      }
     }
   }
 })
@@ -108,7 +133,8 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries 
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
+  addTable, removeTable
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

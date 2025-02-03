@@ -197,12 +197,19 @@ const migrations = {
       newState.thumbnails.semanticLayer = null
     }
     return newState
+  },
+  17: (state: any) => {
+    let newState = {...state}
+    if (!newState.settings.tableDiff) {
+      newState.settings.tableDiff = []
+    }
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 15,
+  version: 17,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),
