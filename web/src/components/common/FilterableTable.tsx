@@ -1,14 +1,12 @@
 import React, { useState } from "react";
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input } from "@chakra-ui/react";
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input, Text, Divider, Badge } from "@chakra-ui/react";
 import { FormattedTable } from 'apps/types';
 
 
 
-export const FilteredTable = ({ data, selectedData }: {data: FormattedTable[], selectedData: FormattedTable[]}) => {
-    console.log(data, selectedData)
-    const [selectedNames, setSelectedNames] = useState<string[]>([]);
+export const FilteredTable = ({ data, selectedData, searchKey, displayKeys }: {data: FormattedTable[], selectedData: FormattedTable[], searchKey: string, displayKeys: string[]}) => {
     const [search, setSearch] = useState("");
-
+    const [selectedNames, setSelectedNames] = useState(selectedData.map((item) => item.name));
     const suggestions = data.filter(
     (item) =>
         !selectedNames.includes(item.name) &&
@@ -24,53 +22,55 @@ export const FilteredTable = ({ data, selectedData }: {data: FormattedTable[], s
     setSelectedNames(selectedNames.filter((n) => n !== name));
     };
 
-    const selectedDat1a = data.filter((item) => selectedNames.includes(item.name));
+    const selectedDataDisplay = data.filter((item) => selectedNames.includes(item.name));
 
     return (
-    <Box p={4}>
-        <Box position="relative" width="300px" mb={4}>
-        <Input
-            placeholder="Search names..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-        />
-        {search && suggestions.length > 0 && (
-            <Box
-            position="absolute"
-            zIndex="1"
-            bg="white"
-            border="1px solid"
-            borderColor="gray.200"
-            width="100%"
-            mt={1}
-            borderRadius="md"
-            boxShadow="sm"
-            >
-            {suggestions.map((item) => (
+    <Box>
+        <Box position="relative" width="100%" mb={4} mt={4} p={1}>
+            <Input
+                placeholder={`Search Table (${data.length - selectedData.length} more available tables)`}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                borderColor={"minusxGreen.600"}
+            />
+            {search && suggestions.length > 0 && (
                 <Box
-                key={item.name}
-                p={2}
-                cursor="pointer"
-                _hover={{ bg: "gray.100" }}
-                onClick={() => handleAdd(item.name)}
+                position="absolute"
+                zIndex="1"
+                bg="white"
+                border="1px solid"
+                borderColor="gray.200"
+                width="100%"
+                borderRadius="md"
+                borderTopRadius={0}
+                boxShadow="sm"
                 >
-                {item.name}
+                {suggestions.map((item) => (
+                    <Box
+                    key={item.name}
+                    p={2}
+                    cursor="pointer"
+                    _hover={{ bg: "gray.100" }}
+                    onClick={() => handleAdd(item.name)}
+                    >
+                    {item.name}
+                    </Box>
+                ))}
                 </Box>
-            ))}
-            </Box>
-        )}
+            )}
         </Box>
 
-        <Table variant="simple">
+        <Table variant="striped" size="md">
         <Thead>
             <Tr>
-            <Th>Selected</Th>
-            <Th>Name</Th>
-            <Th>Description</Th>
+                <Th>Selected</Th>
+                {displayKeys.map((key) => (
+                    <Th key={key}>{key}</Th>
+                ))}
             </Tr>
         </Thead>
         <Tbody>
-            {selectedData.map((item) => (
+            {selectedDataDisplay.map((item) => (
             <Tr key={item.name}>
                 <Td>
                 <Checkbox
@@ -78,12 +78,15 @@ export const FilteredTable = ({ data, selectedData }: {data: FormattedTable[], s
                     onChange={() => handleRemove(item.name)}
                 />
                 </Td>
-                <Td>{item.name}</Td>
-                <Td>{item.description}</Td>
+                {displayKeys.map((key) => (
+                    <Td key={key}>{item[key]}</Td>
+                ))}
             </Tr>
             ))}
         </Tbody>
         </Table>
+        <Divider/>
+        <Text fontSize="sm" textAlign={"right"} color={"minusxGreen.600"} fontWeight={"bold"} mt={2}>{selectedDataDisplay.length} out of {data.length} tables selected</Text>
     </Box>
   );
 }

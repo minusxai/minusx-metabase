@@ -10,7 +10,7 @@ import { DataCatalog } from './DataCatalog'
 import { ActionsView } from './ActionDebug';
 import Settings from './Settings'
 import { configs } from '../../constants';
-import { Tables } from './Tables';
+import { Context } from './Context';
 
 const Monitors: MonitorDef[] = [
   {
@@ -19,8 +19,8 @@ const Monitors: MonitorDef[] = [
     tags: ['production']
   },
   {
-    title: "Tables",
-    component: Tables,
+    title: "Context",
+    component: Context,
     tags: ['production']
   },
   {
@@ -38,7 +38,7 @@ const Monitors: MonitorDef[] = [
     // tags: ['production']
   },
   {
-    title: "Context",
+    title: "Dev Context",
     component: LLMContext,
     // tags: ['production']
   },
