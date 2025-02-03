@@ -4,10 +4,6 @@ import AdditionalContext from "../common/AdditionalContext"
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { SemanticLayer } from '../common/SemanticLayer';
 import { getApp } from '../../helpers/app';
-import { FormattedTable, MetabaseContext } from 'apps/types';
-import { Table, Thead, Tbody, Tr, Th, Td, TableContainer } from "@chakra-ui/react";
-import { configs } from '../../constants';
-import { isEmpty } from 'lodash';
 
 const useAppStore = getApp().useStore()
 
