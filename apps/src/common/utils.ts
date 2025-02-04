@@ -53,6 +53,10 @@ export function createRunner() {
   return run;
 }
 
+function contains<T>(collection: T[], item: T): boolean {
+  return some(collection, (i) => isEqual(i, item));
+}
+
 export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff[], dbId: number) => {
   const tablesToRemove = tableDiff
     .filter((diff: TableDiff) => diff.action === 'remove')
@@ -63,25 +67,25 @@ export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTa
     .map((diff: TableDiff) => diff.table);
 
   const filteredRelevantTables = tables.filter(
-    table => !some(tablesToRemove, removedTable => isEqual(removedTable, {
+    table => !contains(tablesToRemove, {
       name: table.name,
       schema: table.schema,
       dbId,
-    }))
+    })
   );
 
   const tablesToAppend = allTables.filter(
-    table => some(tablesToAdd, addedTable => isEqual(addedTable, {
+    table => contains(tablesToAdd, {
       name: table.name,
       schema: table.schema,
       dbId,
-    }))
+    })
   );
 
   const updatedRelevantTables = [...filteredRelevantTables];
 
   tablesToAppend.forEach(table => {
-    if (!updatedRelevantTables.some(existing => isEqual(existing, table))) {
+    if (!contains(updatedRelevantTables, table)) {
       updatedRelevantTables.push(table);
     }
   });
