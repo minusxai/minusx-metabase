@@ -83,7 +83,7 @@ export async function convertDOMtoStateSQLQuery() {
       ...extractDbInfo({}),
       tables: []
     })
-    return applyTableDiffs(tables, dbTables.tables, appSettings.tableDiff)
+    return applyTableDiffs(tables, dbTables.tables, appSettings.tableDiff, dbId)
   })()
   
 

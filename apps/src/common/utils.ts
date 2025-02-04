@@ -1,4 +1,4 @@
-import { get } from 'lodash';
+import _, { get, isEqual, some } from 'lodash';
 import { FormattedTable } from '../metabase/helpers/types';
 import { TableDiff } from 'web/types';
 
@@ -53,7 +53,7 @@ export function createRunner() {
   return run;
 }
 
-export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff[]) => {
+export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff[], dbId: number) => {
   const tablesToRemove = tableDiff
     .filter((diff: TableDiff) => diff.action === 'remove')
     .map((diff: TableDiff) => diff.table)
@@ -63,17 +63,25 @@ export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTa
     .map((diff: TableDiff) => diff.table);
 
   const filteredRelevantTables = tables.filter(
-    table => !tablesToRemove.includes(table.name)
+    table => !some(tablesToRemove, removedTable => isEqual(removedTable, {
+      name: table.name,
+      schema: table.schema,
+      dbId,
+    }))
   );
 
   const tablesToAppend = allTables.filter(
-    table => tablesToAdd.includes(table.name)
+    table => some(tablesToAdd, addedTable => isEqual(addedTable, {
+      name: table.name,
+      schema: table.schema,
+      dbId,
+    }))
   );
 
   const updatedRelevantTables = [...filteredRelevantTables];
 
   tablesToAppend.forEach(table => {
-    if (!updatedRelevantTables.some(existing => existing.name === table.name)) {
+    if (!updatedRelevantTables.some(existing => isEqual(existing, table))) {
       updatedRelevantTables.push(table);
     }
   });

@@ -25,7 +25,7 @@ export const Context: React.FC<null> = () => {
   const dbInfo = toolContext.dbInfo
   const allTables = dbInfo?.tables || []
 
-  const updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff)
+  const updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff, dbInfo.id)
   
   const updateAddTables = (tableInfo: TableInfo) => {
     dispatch(addTable(tableInfo))
