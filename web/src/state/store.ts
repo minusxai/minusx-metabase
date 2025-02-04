@@ -207,14 +207,17 @@ const migrations = {
   },
   18: (state: any) => {
     let newState = {...state}
-    newState.settings.tableDiff = []
+    newState.settings.tableDiff = {
+      add: [],
+      remove: []
+    }
     return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 17,
+  version: 18,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),
