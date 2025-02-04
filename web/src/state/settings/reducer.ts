@@ -1,12 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
+import { isEqual } from 'lodash'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context'
+
+interface TableInfo {
+  name: string
+  schema: string
+  dbId: number
+}
+
 export interface TableDiff {
-  table: string
+  table: TableInfo
   action: 'add' | 'remove'
 }
 
@@ -106,23 +114,23 @@ export const settingsSlice = createSlice({
     setSavedQueries: (state, action: PayloadAction<boolean>) => {
       state.savedQueries = action.payload
     },
-    addTable(state, action: PayloadAction<string>) {
-      const tableInDiff = state.tableDiff.filter((table) => table.table === action.payload)
+    addTable(state, action: PayloadAction<TableInfo>) {
+      const tableInDiff = state.tableDiff.filter((table) => isEqual(table.table, action.payload))
       if (tableInDiff.length === 0) {
         state.tableDiff.push({table: action.payload, action: 'add'})
       } else {
         if (tableInDiff[0].action === 'remove') {
-          state.tableDiff = state.tableDiff.filter((table) => table.table !== action.payload)
+          state.tableDiff = state.tableDiff.filter((table) => !isEqual(table.table, action.payload))
         }
       }
     },
-    removeTable(state, action: PayloadAction<string>) {
-      const tableInDiff = state.tableDiff.filter((table) => table.table === action.payload)
+    removeTable(state, action: PayloadAction<TableInfo>) {
+      const tableInDiff = state.tableDiff.filter((table) => isEqual(table.table.name, action.payload))
       if (tableInDiff.length === 0) {
         state.tableDiff.push({table: action.payload, action: 'remove'})
       } else {
         if (tableInDiff[0].action === 'add') {
-          state.tableDiff = state.tableDiff.filter((table) => table.table !== action.payload)
+          state.tableDiff = state.tableDiff.filter((table) => !isEqual(table.table, action.payload))
         }
       }
     }

@@ -204,6 +204,11 @@ const migrations = {
       newState.settings.tableDiff = []
     }
     return newState
+  },
+  18: (state: any) => {
+    let newState = {...state}
+    newState.settings.tableDiff = []
+    return newState
   }
 }
 
