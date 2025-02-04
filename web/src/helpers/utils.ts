@@ -1,3 +1,5 @@
+import { isEqual, some } from "lodash";
+
 export async function sleep(ms: number = 0) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -23,4 +25,8 @@ const PLATFORM_LANGUAGES: {
 
 export const getPlatformLanguage = (platform: string): string => {
   return PLATFORM_LANGUAGES[platform] || 'python'
+}
+
+export function contains<T>(collection: T[], item: T): boolean {
+  return some(collection, (i) => isEqual(i, item));
 }

@@ -5,3 +5,4 @@ export { subscribe } from './helpers/documentSubscription';
 export { addNativeEventListener } from './helpers/nativeEvents';
 export { configs } from './constants';
 export { renderString } from './helpers/templatize';
+export { contains } from './helpers/utils';

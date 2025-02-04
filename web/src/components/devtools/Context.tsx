@@ -5,7 +5,7 @@ import { getApp } from '../../helpers/app';
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { isEmpty } from 'lodash';
 import { Text, Box, Badge, Link} from "@chakra-ui/react";
-import { addTable, removeTable, TableDiff, TableInfo } from "../../state/settings/reducer";
+import { applyTableDiff, TableInfo } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -27,12 +27,18 @@ export const Context: React.FC<null> = () => {
 
   const updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff, dbInfo.id)
   
-  const updateAddTables = (tableInfo: TableInfo) => {
-    dispatch(addTable(tableInfo))
+  const updateAddTables = (table: TableInfo) => {
+    dispatch(applyTableDiff({
+      actionType: 'add',
+      table
+    }))
   }
 
-  const updateRemoveTables = (tableInfo: TableInfo) => {
-    dispatch(removeTable(tableInfo))
+  const updateRemoveTables = (table: TableInfo) => {
+    dispatch(applyTableDiff({
+      actionType: 'remove',
+      table
+    }))
   }
   
   return <>

@@ -1,6 +1,7 @@
 import _, { get, isEqual, some } from 'lodash';
 import { FormattedTable } from '../metabase/helpers/types';
 import { TableDiff } from 'web/types';
+import { contains } from 'web';
 
 export function getWithWarning(object: any, path: string, defaultValue: any) {
   const result = get(object, path, defaultValue);
@@ -53,21 +54,9 @@ export function createRunner() {
   return run;
 }
 
-function contains<T>(collection: T[], item: T): boolean {
-  return some(collection, (i) => isEqual(i, item));
-}
-
-export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff[], dbId: number) => {
-  const tablesToRemove = tableDiff
-    .filter((diff: TableDiff) => diff.action === 'remove')
-    .map((diff: TableDiff) => diff.table)
-
-  const tablesToAdd = tableDiff
-    .filter((diff: TableDiff) => diff.action === 'add')
-    .map((diff: TableDiff) => diff.table);
-
+export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff, dbId: number) => {
   const filteredRelevantTables = tables.filter(
-    table => !contains(tablesToRemove, {
+    table => !contains(tableDiff.remove, {
       name: table.name,
       schema: table.schema,
       dbId,
@@ -75,7 +64,7 @@ export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTa
   );
 
   const tablesToAppend = allTables.filter(
-    table => contains(tablesToAdd, {
+    table => contains(tableDiff.add, {
       name: table.name,
       schema: table.schema,
       dbId,
