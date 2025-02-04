@@ -1,18 +1,28 @@
 import React, { useState } from "react";
 import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input, Divider } from "@chakra-ui/react";
 import { FormattedTable } from 'apps/types';
+import { TableInfo } from "../../state/settings/reducer";
+import _ from "lodash";
 
+type TableUpdateFn = (value: TableInfo) => void;
 
-
-export const FilteredTable = ({ data, selectedData, searchKey, displayKeys, addFn, removeFn }: {data: FormattedTable[], selectedData: FormattedTable[], searchKey: string, displayKeys: string[], addFn:any, removeFn:any}) => {
+export const FilteredTable = ({ dbId, data, selectedData, searchKey, displayKeys, addFn, removeFn }: {dbId: number, data: FormattedTable[], selectedData: FormattedTable[], searchKey: string, displayKeys: string[], addFn: TableUpdateFn, removeFn: TableUpdateFn}) => {
     const [search, setSearch] = useState("");
     
     const handleAdd = (item: FormattedTable) => {
-        addFn(item.name);
+        addFn({
+            name: item.name,
+            schema: item.schema,
+            dbId: dbId
+        });
     };
 
     const handleRemove = (item: FormattedTable) => {
-        removeFn(item.name);
+        removeFn({
+            name: item.name,
+            schema: item.schema,
+            dbId: dbId
+        });
     }
 
     const displayRows = data.filter((item) => {

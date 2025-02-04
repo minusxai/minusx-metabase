@@ -7,7 +7,7 @@ export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context'
 
-interface TableInfo {
+export interface TableInfo {
   name: string
   schema: string
   dbId: number
