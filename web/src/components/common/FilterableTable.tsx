@@ -1,12 +1,15 @@
 import React, { useState } from "react";
-import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input, Divider } from "@chakra-ui/react";
+import { Box, Table, Thead, Tbody, Tr, Th, Td, Checkbox, Input, Divider, Badge } from "@chakra-ui/react";
 import { FormattedTable } from 'apps/types';
 import { TableInfo } from "../../state/settings/reducer";
 import _ from "lodash";
 
 type TableUpdateFn = (value: TableInfo) => void;
 
-export const FilteredTable = ({ dbId, data, selectedData, searchKey, displayKeys, addFn, removeFn }: {dbId: number, data: FormattedTable[], selectedData: FormattedTable[], searchKey: string, displayKeys: string[], addFn: TableUpdateFn, removeFn: TableUpdateFn}) => {
+export const FilteredTable = ({ dbId, data, selectedData, addFn, removeFn }: {dbId: number, data: FormattedTable[], selectedData: FormattedTable[], addFn: TableUpdateFn, removeFn: TableUpdateFn}) => {
+
+    const searchKey = 'name'
+    const displayKeys = ['name', 'description']
     const [search, setSearch] = useState("");
     
     const handleAdd = (item: FormattedTable) => {
@@ -47,30 +50,30 @@ export const FilteredTable = ({ dbId, data, selectedData, searchKey, displayKeys
         <Table variant="striped" size="md">
         <Thead>
             <Tr>
-                <Th>Selected</Th>
+                <Th textAlign={"center"} >Selected</Th>
                 {displayKeys.map((key) => (
-                    <Th key={key}>{key}</Th>
+                    <Th textAlign={"center"}  key={key}>{key}</Th>
                 ))}
             </Tr>
         </Thead>
         <Tbody>
             {displayRows.map((item) => (
-            <Tr key={item.name}>
-                <Td>
-                <Checkbox
-                    isChecked={selectedData.some((n) => n.name === item.name)}
-                    onChange={(e) => {
-                        if (e.target.checked) {
-                            handleAdd(item);
-                        } else {
-                            handleRemove(item);
-                        }
-                    }}
-                />
+            <Tr key={item.id + '_' + item.name + '_CBOX'}>
+                <Td textAlign={"center"} >
+                    <Checkbox
+                        isChecked={selectedData.some((n) => n.name === item.name)}
+                        onChange={(e) => {
+                            if (e.target.checked) {
+                                handleAdd(item);
+                            } else {
+                                handleRemove(item);
+                            }
+                        }}
+                    />
                 </Td>
-                {displayKeys.map((key) => (
-                    <Td key={key}>{item[key]}</Td>
-                ))}
+                <Td textAlign={"center"} key={item.id + '_' + item.name + "_NAME"}>{item.name}<br></br><Badge color={"minusxGreen.600"}>SCHEMA: {item.schema}</Badge></Td>
+                <Td textAlign={"center"} key={item.id + '_' + item.name + "_DESC"}>{item.description}</Td>
+                
             </Tr>
             ))}
         </Tbody>
