@@ -6,6 +6,7 @@ module.exports = {
     "@emotion/babel-preset-css-prop"
   ],
   plugins: [
-    "react-hot-loader/babel"
+    "react-hot-loader/babel",
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
   ]
 }
