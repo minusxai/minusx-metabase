@@ -268,3 +268,16 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
 export const getTopSchemasForSelectedDb = async () => {
   return []
 }
+// this is a subset
+interface MetabaseCard {
+  query_type: "query" | "native" | string;
+}
+export const getCardsCountSplitByType = async () => {
+  const allCards = await fetchData(`/api/card?f=mine`, 'GET') as MetabaseCard[];
+  const queryCards = allCards.filter(card => card.query_type === "query");
+  const nativeCards = allCards.filter(card => card.query_type === "native");
+  return {
+    query: queryCards.length,
+    native: nativeCards.length
+  }
+}

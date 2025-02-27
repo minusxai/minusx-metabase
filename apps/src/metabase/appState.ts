@@ -6,8 +6,8 @@ import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPage } from "./helpers/dashboard/util";
 import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
-import { subscribe } from "web";
-import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields } from "./helpers/getDatabaseSchema";
+import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
+import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { createRunner, handlePromise } from "../common/utils";
@@ -68,6 +68,11 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       }
     }
     heatUpCache();
+    
+    getCardsCountSplitByType().then(cardsCount => {
+        captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
+    });
+    
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']

@@ -105,6 +105,10 @@ var options = {
         ],
         exclude: /node_modules/,
       },
+      {
+        test: /\.md$/,
+        use: 'html-loader',
+      },
     ],
   },
   resolve: {

@@ -64,6 +64,7 @@ export const capturePosthogEvent = async (event: string, kv?: object) => {
     if (!_posthog_enabled) {
         return
     }
+
     try {
         const webData = {
             ...kv,

@@ -19,6 +19,7 @@ export const GLOBAL_EVENTS = {
     "billing_subscribed": "global/billing_subscribed",
     "billing_unsubscribed": "global/billing_unsubscribed",
     "diagnostics": "global/diagnostics",
+    "metabase_card_count": "global/metabase_card_count",
 }
 
 export const captureEvent = (type: string, payload?: object) => {
