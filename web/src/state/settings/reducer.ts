@@ -66,7 +66,10 @@ const initialState: Settings = {
   isRecording: false,
   aiRules: '',
   savedQueries: false,
-  tableDiff: []
+  tableDiff: {
+    add: [],
+    remove: []
+  }
 }
 
 export const settingsSlice = createSlice({

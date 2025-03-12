@@ -212,12 +212,22 @@ const migrations = {
       remove: []
     }
     return newState
+  },
+  19: (state: any) => {
+    let newState = {...state}
+    if (Array.isArray(newState.settings.tableDiff)) {
+      newState.settings.tableDiff = {
+        add: [],
+        remove: []
+      }
+    }
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 18,
+  version: 19,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),
