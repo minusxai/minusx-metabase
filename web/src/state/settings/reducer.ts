@@ -128,7 +128,7 @@ export const settingsSlice = createSlice({
         }
       } else if (actionType === 'remove') {
         if (contains(state.tableDiff.add, table)) {
-          state.tableDiff.add = state.tableDiff.add.filter((table) => !isEqual(table, table))
+          state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
         } else if (!contains(state.tableDiff.remove, table)) {
           state.tableDiff.remove.push(table)
         }

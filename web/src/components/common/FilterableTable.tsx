@@ -33,7 +33,8 @@ export const FilteredTable = ({ dbId, data, selectedData, addFn, removeFn }: {db
             return true;
         }
         return item[searchKey].toLowerCase().includes(search.toLowerCase());
-    }).sort((a, b) => selectedData.some((n) => n.name === a.name) ? -1 : 1);
+    })
+    // .sort((a, b) => selectedData.some((n) => n.name === a.name) ? -1 : 1);
 
     return (
     <Box>

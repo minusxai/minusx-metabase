@@ -52,7 +52,7 @@ export const Context: React.FC<null> = () => {
     <Text fontSize="sm"><Text as="span">{dbInfo.description}</Text></Text>
     <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>
     </Box>
-    <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={updatedRelevantTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
     <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} mt={2}>{updatedRelevantTables.length} out of {allTables.length} tables selected</Text>
+    <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={updatedRelevantTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
   </>
 }
