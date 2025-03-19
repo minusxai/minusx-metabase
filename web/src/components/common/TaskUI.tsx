@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -50,7 +50,13 @@ import { updateDevToolsTabName, updateIsDevToolsOpen, updateSidePanelTabName } f
 import { executeAction } from '../../planner/plannerActions'
 import { SettingsBlock } from './SettingsBlock'
 import { SupportButton } from './Support'
+import { FormattedTable, MetabaseContext } from 'apps/types';
+import { getApp } from '../../helpers/app';
+import { applyTableDiffs } from "apps";
 
+
+
+const useAppStore = getApp().useStore()
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = getParsedIframeInfo().tool
@@ -71,6 +77,16 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const email = useSelector((state: RootState) => state.auth.email)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
+  let updatedRelevantTables = []
+  if (currentTool === 'metabase'){
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
+    const relevantTables = toolContext.relevantTables || []
+    const dbInfo = toolContext.dbInfo || {}
+    const allTables = dbInfo?.tables || []
+    updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff, dbInfo.id)
+  }
+    
 
   
 
@@ -360,11 +376,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           <HStack position={"absolute"} bottom={0} width={"100%"} p={2}>
             <HStack justify={"space-between"}  width={"100%"}>
               <HStack gap={0}>
-                {/* <QuickActionButton tooltip="Add Context (Coming Soon!)" onclickFn={handleSnapClick} icon={BiPaperclip} isDisabled={true}/> */}
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 {/* <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/> */}
-                {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={HiOutlineRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
-                {configs.IS_DEV && <Checkbox sx={{
+                {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={BiRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
+                { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>{updatedRelevantTables.length} Tables in context</Button> }
+                {configs.IS_DEV &&false&& <Checkbox sx={{
                   '& input:not(:checked) + span': {
                     borderColor: 'minusxBW.500',
                   },
