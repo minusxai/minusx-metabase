@@ -50,7 +50,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql, oldCode: sqlQuery}
     }
   })
-  async updateSQLQuery({ sql, executeImmediately = true }: { sql: string, executeImmediately?: boolean }) {
+  async updateSQLQuery({ sql, executeImmediately = true, _type = "markdown" }: { sql: string, executeImmediately?: boolean, _type?: string }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
@@ -79,7 +79,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
 
     
     if (executeImmediately) {
-      return await this._executeSQLQueryInternal();
+      return await this._executeSQLQueryInternal(_type);
     } else {
       actionContent.content = "OK";
       return actionContent;
@@ -100,6 +100,19 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       throw new Error("Action (and subsequent plan) cancelled!");
     }
     return await this._executeSQLQueryInternal();
+  }
+
+  @Action({
+    labelRunning: "Updates & executs the SQL query",
+    labelDone: "Updated query",
+    description: "Updates the SQL query in the Metabase SQL editor and executes it.",
+    renderBody: ({ sql }: { sql: string }, appState: MetabaseAppStateSQLEditor) => {
+      const sqlQuery = appState?.sqlQuery
+      return {text: null, code: sql, oldCode: sqlQuery}
+    }
+  })
+  async ExecuteSQLClient({ sql }: { sql: string }) {
+    return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv" });
   }
 
   @Action({
@@ -474,7 +487,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     return;
   }
-  async _executeSQLQueryInternal() {
+  async _executeSQLQueryInternal(_type = "markdown") {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
@@ -485,7 +498,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = sqlErrorMessage;
     } else {
       // table output
-      const tableOutput = await getAndFormatOutputTable();
+      let tableOutput = ""
+      tableOutput = await getAndFormatOutputTable(_type);
       actionContent.content = tableOutput;
     }
     return actionContent;
