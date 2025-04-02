@@ -21,7 +21,6 @@ export async function planActionsRemote({
     tasks: obj.tasks,
   }
   //@ts-ignore
-  console.log('Tasks are', tasks)
   const response = await getLLMResponse(payload, signal, true)
   // throw error if aborted
   signal.throwIfAborted();
@@ -31,6 +30,13 @@ export async function planActionsRemote({
     throw new Error(jsonResponse.error)
   }
   obj.tasks = jsonResponse.tasks
+  try {
+    if (obj.tasks[0].result) {
+      obj.tasks = []
+    }
+  } catch {
+  }
+  console.log('New Tasks are', obj.tasks)
   return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits }
 }
 
