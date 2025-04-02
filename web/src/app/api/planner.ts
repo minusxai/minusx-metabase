@@ -3,9 +3,11 @@ import axios, { AxiosError } from 'axios';
 import { dispatch, logoutState } from '../../state/dispatch';
 import { toast } from '../toast';
 const url = `${configs.PLANNER_BASE_URL}/getLLMResponse`
+const dr_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_planner`
 
-export const getLLMResponse = async (payload: any, signal?: AbortSignal) => {
-    return await axios.post(url, payload, {
+export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepresearch = false) => {
+    const remoteUrl = deepresearch ? dr_url : url
+    return await axios.post(remoteUrl, payload, {
       headers: {
         'Content-Type': 'application/json',
       },

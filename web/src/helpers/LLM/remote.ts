@@ -3,6 +3,10 @@ import { LLMResponse } from './types'
 import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
+//@ts-ignore
+const obj = {
+  tasks: []
+}
 export async function planActionsRemote({
   messages,
   actions,
@@ -13,8 +17,12 @@ export async function planActionsRemote({
     messages,
     actions,
     llmSettings,
+    //@ts-ignore
+    tasks: obj.tasks,
   }
-  const response = await getLLMResponse(payload, signal)
+  //@ts-ignore
+  console.log('Tasks are', tasks)
+  const response = await getLLMResponse(payload, signal, true)
   // throw error if aborted
   signal.throwIfAborted();
 
@@ -22,6 +30,7 @@ export async function planActionsRemote({
   if (jsonResponse.error) {
     throw new Error(jsonResponse.error)
   }
+  obj.tasks = jsonResponse.tasks
   return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits }
 }
 
