@@ -13,6 +13,9 @@ export async function planActionsRemote({
   llmSettings,
   signal,
 }: PlanActionsParams): Promise<LLMResponse> {
+  if (messages.length > 0 && messages[messages.length-1].role == 'user') {
+    obj.tasks = []
+  }
   const payload = {
     messages,
     actions,

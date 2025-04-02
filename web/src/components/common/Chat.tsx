@@ -186,6 +186,15 @@ export const ChatSection = () => {
   // tool call in each assistant message, add the status from the corresponding
   // tool message
   const messagesWithStatus = addToolInfoToActionPlanMessages(messages)
+  messagesWithStatus.forEach(message => {
+    if (message.role == 'assistant' && message.content.toolCalls.length == 0) {
+      message.content = {
+        type: 'DEFAULT',
+        text: message.content.messageContent,
+        images: []
+      }
+    }
+  })
   const Chats = isEmpty(messagesWithStatus) ?
     <HelperMessage /> :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
