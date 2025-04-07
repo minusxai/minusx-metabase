@@ -234,7 +234,11 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
   ]);
   const allUserTables = dedupeAndCountTables([...tablesFromSql, ...userTables]);
   const validTables = validateTablesInDB(allUserTables, allDBTables);
-  const dedupedTables = dedupeAndCountTables(validTables)
+  const dedupedTables = dedupeAndCountTables([...validTables, ...allDBTables]);
+  dedupedTables.forEach(tableInfo => {
+    tableInfo.count = tableInfo.count || 1;
+    tableInfo.count = tableInfo.count - 1
+  })
   const fullTableInfo = addTableJoins(dedupedTables, tableMap);
   return fullTableInfo
 }
@@ -260,7 +264,7 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     return [];
   }
   const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
-  const relevantTablesTop50 = relevantTables.slice(0, 50);
+  const relevantTablesTop50 = relevantTables.slice(0, 20);
   return relevantTablesTop50;
 }
 
