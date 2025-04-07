@@ -7,7 +7,7 @@ import { isDashboardPage } from "./helpers/dashboard/util";
 import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
-import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType } from "./helpers/getDatabaseSchema";
+import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, memoizedFetchTableData, getTablesWithFields, memoizedGetDatabaseFields } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { createRunner, handlePromise } from "../common/utils";
@@ -61,9 +61,9 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     })
     // heat up cache
     const heatUpCache = async (times = 0) => {
-      const tables = await getRelevantTablesForSelectedDb('');
-      // console.log('Relevant Tables:', tables)
-      if (isEmpty(tables)) {
+      const filledTableInfo = await getTablesWithFields()
+      // console.log('Relevant Tables:', filledTableInfo)
+      if (isEmpty(filledTableInfo)) {
         setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
       }
     }

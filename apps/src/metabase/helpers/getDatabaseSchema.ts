@@ -257,6 +257,56 @@ export const searchTables = async (userId: number, dbId: number, query: string):
   return dedupedTables
 }
 
+interface FieldInfo {
+  name: string;
+  description: string;
+  table_name: string;
+  schema: string;
+}
+
+const getDatabaseFields = async (): Promise<FieldInfo[]> => {
+  const dbId = await getSelectedDbId();
+  if (!dbId) {
+    console.warn("[minusx] No database selected when getting field info");
+    return [];
+  }
+  return await fetchData(`/api/database/${dbId}/fields`, 'GET') as FieldInfo[];
+}
+
+export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
+
+export const getTablesWithFields = async () => {
+  const tables = await getRelevantTablesForSelectedDb('');
+  const tableIds = tables.map((table) => table.id);
+  let tableInfos = await Promise.all(tableIds.map(memoizedFetchTableData));
+  const fields = await memoizedGetDatabaseFields()
+  const fieldsMap: { [key: string]: FieldInfo[] } = {}
+  for (let field of fields) {
+    const key = `${field.schema} <> ${field.table_name}`;
+    if (key in fieldsMap) {
+      fieldsMap[key].push(field);
+    } else {
+      fieldsMap[key] = [field];
+    }
+  }
+  return tableInfos.filter(tableInfo => tableInfo != "missing").map(tableInfo => {
+    const tableKey = `${tableInfo.schema} <> ${tableInfo.name}`;
+    const fields = fieldsMap[tableKey];
+    const columnMap = _.fromPairs(_.map(tableInfo.columns, (column) => [column.name, column]))
+    const fieldOrColumns = fields.map(field => {
+      const column = columnMap[field.name];
+      return {
+        ...field,
+        ...column,
+      }
+    })
+    return {
+      ...tableInfo,
+      columns: fieldOrColumns
+    }
+  })
+}
+
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
