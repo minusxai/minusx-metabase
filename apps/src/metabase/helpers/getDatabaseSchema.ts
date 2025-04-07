@@ -3,7 +3,8 @@ import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
 import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
-import { handlePromise } from '../../common/utils';
+import { applyTableDiffs, handlePromise } from '../../common/utils';
+import { TableDiff } from 'web/types';
 
 const { fetchData } = RPCs;
 
@@ -275,8 +276,12 @@ const getDatabaseFields = async (): Promise<FieldInfo[]> => {
 
 export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
 
-export const getTablesWithFields = async () => {
-  const tables = await getRelevantTablesForSelectedDb('');
+export const getTablesWithFields = async (tableDiff?: TableDiff) => {
+  const dbId = await getSelectedDbId();
+  let tables = await getRelevantTablesForSelectedDb('');
+  if (tableDiff) {
+    tables = applyTableDiffs(tables, tables, tableDiff, dbId || 0);
+  }
   const tableIds = tables.map((table) => table.id);
   let tableInfos = await Promise.all(tableIds.map(memoizedFetchTableData));
   const fields = await memoizedGetDatabaseFields()
@@ -291,15 +296,18 @@ export const getTablesWithFields = async () => {
   }
   return tableInfos.filter(tableInfo => tableInfo != "missing").map(tableInfo => {
     const tableKey = `${tableInfo.schema} <> ${tableInfo.name}`;
-    const fields = fieldsMap[tableKey];
+    const fields = fieldsMap[tableKey] || [];
     const columnMap = _.fromPairs(_.map(tableInfo.columns, (column) => [column.name, column]))
     const fieldOrColumns = fields.map(field => {
       const column = columnMap[field.name];
       return {
-        ...field,
+        ..._.omit(field, ['table_name', 'schema', 'display_name', 'id', 'table_id']),
         ...column,
       }
     })
+    if (_.isEmpty(fieldOrColumns)) {
+      return tableInfo
+    }
     return {
       ...tableInfo,
       columns: fieldOrColumns
