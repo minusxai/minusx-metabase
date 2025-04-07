@@ -5,7 +5,7 @@ import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 //@ts-ignore
 const obj = {
-  tasks: []
+  tasks_key: ''
 }
 export async function planActionsRemote({
   messages,
@@ -14,14 +14,14 @@ export async function planActionsRemote({
   signal,
 }: PlanActionsParams): Promise<LLMResponse> {
   if (messages.length > 0 && messages[messages.length-1].role == 'user') {
-    obj.tasks = []
+    obj.tasks_key = ''
   }
   const payload = {
     messages,
     actions,
     llmSettings,
     //@ts-ignore
-    tasks: obj.tasks,
+    tasks_key: obj.tasks_key,
   }
   //@ts-ignore
   const response = await getLLMResponse(payload, signal, true)
@@ -32,14 +32,7 @@ export async function planActionsRemote({
   if (jsonResponse.error) {
     throw new Error(jsonResponse.error)
   }
-  obj.tasks = jsonResponse.tasks
-  try {
-    if (obj.tasks[0].result) {
-      obj.tasks = []
-    }
-  } catch {
-  }
-  console.log('New Tasks are', obj.tasks)
+  obj.tasks_key = jsonResponse.tasks_key
   return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits }
 }
 
