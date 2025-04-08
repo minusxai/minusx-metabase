@@ -55,29 +55,13 @@ export function createRunner() {
 }
 
 export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff, dbId: number) => {
-  const filteredRelevantTables = tables.filter(
-    table => !contains(tableDiff.remove, {
-      name: table.name,
-      schema: table.schema,
-      dbId,
-    })
-  );
-
-  const tablesToAppend = allTables.filter(
+  const updatedRelevantTables = allTables.filter(
     table => contains(tableDiff.add, {
       name: table.name,
       schema: table.schema,
       dbId,
     })
   );
-
-  const updatedRelevantTables = [...filteredRelevantTables];
-
-  tablesToAppend.forEach(table => {
-    if (!contains(updatedRelevantTables, table)) {
-      updatedRelevantTables.push(table);
-    }
-  });
 
   return updatedRelevantTables;
 }

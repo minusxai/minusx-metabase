@@ -123,16 +123,12 @@ export const settingsSlice = createSlice({
     applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, table: TableInfo}>) {
       const {actionType, table} = action.payload
       if (actionType === 'add') {
-        if (contains(state.tableDiff.remove, table)) {
-          state.tableDiff.remove = state.tableDiff.remove.filter((table) => !isEqual(table, table))
-        } else if (!contains(state.tableDiff.add, table)) {
+        if (!contains(state.tableDiff.add, table)) {
           state.tableDiff.add.push(table)
         }
       } else if (actionType === 'remove') {
         if (contains(state.tableDiff.add, table)) {
           state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
-        } else if (!contains(state.tableDiff.remove, table)) {
-          state.tableDiff.remove.push(table)
         }
       }
     },

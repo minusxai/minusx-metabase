@@ -48,8 +48,8 @@ export const Context: React.FC<null> = () => {
 
     <Box mt={2} mb={2}>
     <Text fontWeight="bold">DB Info</Text>
-    <Text fontSize="sm"><Text as="span">{dbInfo.name}</Text></Text>
-    <Text fontSize="sm"><Text as="span">{dbInfo.description}</Text></Text>
+    <Text fontSize="sm"><Text as="span">DB Name: <Badge color={"minusxGreen.600"}>{dbInfo.name}</Badge></Text></Text>
+    <Text fontSize="sm"><Text as="span">DB Description: {dbInfo.description || "-"}</Text></Text>
     <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>
     </Box>
     <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} mt={2}>{updatedRelevantTables.length} out of {allTables.length} tables selected</Text>
