@@ -19,7 +19,9 @@ const useAppStore = getApp().useStore()
 export const Context: React.FC<null> = () => {
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
-
+    const selectedContext = useSelector((state: RootState) => state.settings.selectedContext)
+    const availableContexts = useSelector((state: RootState) => state.settings.availableContexts)
+    
     const tool = getParsedIframeInfo().tool
     if (tool != 'metabase' || isEmpty(toolContext)) {
     return <Text>Coming soon!</Text>
@@ -29,8 +31,6 @@ export const Context: React.FC<null> = () => {
     const allTables = dbInfo?.tables || []
     
       
-    const selectedContext = useSelector((state: RootState) => state.settings.selectedContext)
-    const availableContexts = useSelector((state: RootState) => state.settings.availableContexts)
     return <>
         <Text fontSize="lg" fontWeight="bold">Context</Text>
         <Box mt={2} mb={2}>
@@ -45,7 +45,7 @@ export const Context: React.FC<null> = () => {
         <Select placeholder="Select a context" mt={2} colorScheme="minusxGreen" value={selectedContext} onChange={(e) => {dispatch(setSelectedContext(e.target.value))}}>
             {
                 availableContexts.map((context: any) => {
-                    return <option key={context.value} value={context.value} selected={selectedContext === context.value}>{context.name}</option>
+                    return <option key={context.value} value={context.value}>{context.name}</option>
                 })
             }
         </Select>
