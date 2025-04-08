@@ -3,6 +3,7 @@ import { LLMResponse } from './types'
 import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
+import { unset } from 'lodash'
 //@ts-ignore
 const obj = {
   tasks_key: ''
@@ -12,6 +13,7 @@ export async function planActionsRemote({
   actions,
   llmSettings,
   signal,
+  deepResearch,
 }: PlanActionsParams): Promise<LLMResponse> {
   if (messages.length > 0 && messages[messages.length-1].role == 'user') {
     obj.tasks_key = ''
@@ -20,11 +22,13 @@ export async function planActionsRemote({
     messages,
     actions,
     llmSettings,
-    //@ts-ignore
     tasks_key: obj.tasks_key,
   }
+  if (!deepResearch) {
+    unset(payload, 'tasks_key')
+  }
   //@ts-ignore
-  const response = await getLLMResponse(payload, signal, true)
+  const response = await getLLMResponse(payload, signal, deepResearch)
   // throw error if aborted
   signal.throwIfAborted();
 
@@ -32,7 +36,7 @@ export async function planActionsRemote({
   if (jsonResponse.error) {
     throw new Error(jsonResponse.error)
   }
-  obj.tasks_key = jsonResponse.tasks_key
+  obj.tasks_key = jsonResponse.tasks_key || ''
   return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits }
 }
 

@@ -16,6 +16,7 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
   const thread = state.chat.activeThread
   const activeThread = state.chat.threads[thread]
   const messageHistory = activeThread.messages;
+  const deepResearch = state.settings.drMode
   const prompts = {
     system: plannerConfig.systemPrompt,
     user: plannerConfig.userPrompt,
@@ -28,7 +29,8 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
     messages,
     actions: actionDescriptions,
     llmSettings: plannerConfig.llmSettings,
-    signal
+    signal,
+    deepResearch,
   });
   const endTime = Date.now()
   let debugContent = {latency: endTime - startTime}
