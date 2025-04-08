@@ -48,6 +48,7 @@ interface Settings {
   aiRules: string
   savedQueries: boolean
   tableDiff: TableDiff
+  drMode: boolean
 }
 
 const initialState: Settings = {
@@ -69,7 +70,8 @@ const initialState: Settings = {
   tableDiff: {
     add: [],
     remove: []
-  }
+  },
+  drMode: false
 }
 
 export const settingsSlice = createSlice({

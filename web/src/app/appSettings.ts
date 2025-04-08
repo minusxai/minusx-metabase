@@ -10,6 +10,7 @@ export const getAppSettings = () => {
     savedQueries: settings.savedQueries,
     semanticPlanner: settings.demoMode,
     tableDiff: settings.tableDiff,
+    drMode: settings.drMode,
   }
 }
 

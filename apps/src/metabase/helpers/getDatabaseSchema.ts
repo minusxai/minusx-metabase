@@ -276,11 +276,18 @@ const getDatabaseFields = async (): Promise<FieldInfo[]> => {
 
 export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
 
-export const getTablesWithFields = async (tableDiff?: TableDiff) => {
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false) => {
   const dbId = await getSelectedDbId();
-  let tables = await getRelevantTablesForSelectedDb('');
+  if (!dbId) {
+    console.warn("[minusx] No database selected when getting tables with fields");
+    return [];
+  }
+  let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   if (tableDiff) {
-    tables = applyTableDiffs(tables, tables, tableDiff, dbId || 0);
+    tables = applyTableDiffs(tables, tables, tableDiff, dbId);
+  }
+  if (!drMode) {
+    return tables;
   }
   const tableIds = tables.map((table) => table.id);
   let tableInfos = await Promise.all(tableIds.map(memoizedFetchTableData));
