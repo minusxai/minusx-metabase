@@ -54,8 +54,8 @@ interface Settings {
   savedQueries: boolean
   tableDiff: TableDiff
   drMode: boolean,
-  selectedContext: string,
-  availableContexts: ContextCatalog[]
+  selectedCatalog: string,
+  availableCatalogs: ContextCatalog[]
 }
 
 const initialState: Settings = {
@@ -79,9 +79,9 @@ const initialState: Settings = {
     remove: []
   },
   drMode: false,
-  selectedContext: '',
-  availableContexts: [{
-    name: 'Tables',
+  selectedCatalog: '',
+  availableCatalogs: [{
+    name: 'Default Tables',
     value: 'tables'
   }]
 }
@@ -147,8 +147,8 @@ export const settingsSlice = createSlice({
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
     },
-    setSelectedContext: (state, action: PayloadAction<string>) => {
-      state.selectedContext = action.payload
+    setSelectedCatalog: (state, action: PayloadAction<string>) => {
+      state.selectedCatalog = action.payload
     },
   }
 })
@@ -158,7 +158,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedContext
+  applyTableDiff, setDRMode, setSelectedCatalog
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

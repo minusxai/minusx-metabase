@@ -1,8 +1,8 @@
 import React from "react"
-import { TablesContext } from '../common/TablesContext';
+import { TablesCatalog } from '../common/TablesCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box} from "@chakra-ui/react";
-import { setSelectedContext } from "../../state/settings/reducer";
+import { setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -19,8 +19,8 @@ const useAppStore = getApp().useStore()
 export const Context: React.FC<null> = () => {
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
-    const selectedContext = useSelector((state: RootState) => state.settings.selectedContext)
-    const availableContexts = useSelector((state: RootState) => state.settings.availableContexts)
+    const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
+    const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
     
     const tool = getParsedIframeInfo().tool
     if (tool != 'metabase' || isEmpty(toolContext)) {
@@ -41,17 +41,17 @@ export const Context: React.FC<null> = () => {
         </Box>
             
         <Spacer height={5}/>
-        <Text fontSize="md" fontWeight="bold">Available Contexts</Text>
-        <Select placeholder="Select a context" mt={2} colorScheme="minusxGreen" value={selectedContext} onChange={(e) => {dispatch(setSelectedContext(e.target.value))}}>
+        <Text fontSize="md" fontWeight="bold">Available Catalogs</Text>
+        <Select placeholder="Select a context" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
             {
-                availableContexts.map((context: any) => {
+                availableCatalogs.map((context: any) => {
                     return <option key={context.value} value={context.value}>{context.name}</option>
                 })
             }
         </Select>
         <Spacer height={5}/>
         {
-            selectedContext === "tables" && <TablesContext />
+            selectedCatalog === "tables" && <TablesCatalog />
         }
     </>
 }
