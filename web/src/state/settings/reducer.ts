@@ -136,6 +136,9 @@ export const settingsSlice = createSlice({
         }
       }
     },
+    setDRMode: (state, action: PayloadAction<boolean>) => {
+      state.drMode = action.payload
+    },
   }
 })
 
@@ -144,7 +147,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff
+  applyTableDiff, setDRMode
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
