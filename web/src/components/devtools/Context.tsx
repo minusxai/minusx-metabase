@@ -42,7 +42,7 @@ export const Context: React.FC<null> = () => {
             
         <Spacer height={5}/>
         <Text fontSize="md" fontWeight="bold">Available Catalogs</Text>
-        <Select placeholder="Select a context" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
+        <Select placeholder="Select a catalog" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
             {
                 availableCatalogs.map((context: any) => {
                     return <option key={context.value} value={context.value}>{context.name}</option>
