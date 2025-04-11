@@ -6,9 +6,10 @@ import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
 const { getMetabaseState, queryURL } = RPCs;
-import { Measure, Dimension, SemanticQuery } from "web/types";
+import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
+import { add, map } from 'lodash';
 
 interface ExtractedDataBase {
   name: string;
@@ -34,6 +35,7 @@ export interface MetabaseAppStateSQLEditor {
   availableDatabases?: string[];
   selectedDatabaseInfo?: ExtractedDataBase;
   relevantTables: ExtractedTable[];
+  tableContextYAML?: Record<string, any>;
   sqlQuery: string;
   sqlVariables: {
     [key: string]: {
@@ -73,6 +75,15 @@ export async function convertDOMtoStateSQLQuery() {
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode)
+  const tableContextYAML = {
+    tables: map(relevantTablesWithFields, (table) => {
+      const { name } = table;
+      return {
+        name,
+      }
+    }),
+    catalog: 'works_cycles'
+  }
   
 
   const queryExecuted = await getMetabaseState('qb.queryResults') !== null;
@@ -97,6 +108,9 @@ export async function convertDOMtoStateSQLQuery() {
     visualizationSettings,
     sqlVariables,
   };
+  if (appSettings.drMode) {
+    metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
+  }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
   }
