@@ -57,7 +57,8 @@ interface Settings {
   tableDiff: TableDiff
   drMode: boolean,
   selectedCatalog: string,
-  availableCatalogs: ContextCatalog[]
+  availableCatalogs: ContextCatalog[],
+  defaultTableCatalog: ContextCatalog
 }
 
 const initialState: Settings = {
@@ -82,7 +83,13 @@ const initialState: Settings = {
   },
   drMode: false,
   selectedCatalog: '',
-  availableCatalogs: []
+  availableCatalogs: [],
+  defaultTableCatalog: {
+    name: 'Default Tables',
+    value: 'tables',
+    content: {},
+    dbName: ''
+  }
 }
 
 export const settingsSlice = createSlice({

@@ -18,19 +18,16 @@ const useAppStore = getApp().useStore()
 
 export const Context: React.FC<null> = () => {
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
-    const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
     const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
+    const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
     
     const tool = getParsedIframeInfo().tool
     if (tool != 'metabase' || isEmpty(toolContext)) {
     return <Text>Coming soon!</Text>
     }
-    const relevantTables = toolContext.relevantTables || []
     const dbInfo = toolContext.dbInfo
-    const allTables = dbInfo?.tables || []
-    
-      
+
     return <>
         <Text fontSize="lg" fontWeight="bold">Context</Text>
         <Box mt={2} mb={2}>
@@ -44,7 +41,7 @@ export const Context: React.FC<null> = () => {
         <Text fontSize="md" fontWeight="bold">Available Catalogs</Text>
         <Select placeholder="Select a catalog" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
             {
-                availableCatalogs.map((context: any) => {
+                [...availableCatalogs, defaultTableCatalog].map((context: any) => {
                     return <option key={context.value} value={context.value}>{context.name}</option>
                 })
             }

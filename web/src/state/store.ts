@@ -236,6 +236,12 @@ const migrations = {
         let newState = {...state}
         newState.settings.selectedCatalog = ''
         newState.settings.availableCatalogs = []
+        newState.settings.defaultTableCatalog = {
+            name: 'Default Tables',
+            value: 'tables',
+            content: {},
+            dbName: ''
+        }
         return newState
     },
 }
