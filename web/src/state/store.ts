@@ -232,11 +232,17 @@ const migrations = {
         }]
         return newState
     },
+    21: (state: any) => {
+        let newState = {...state}
+        newState.settings.selectedCatalog = ''
+        newState.settings.availableCatalogs = []
+        return newState
+    },
 }
 
 const persistConfig = {
   key: 'root',
-  version: 20,
+  version: 21,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),

@@ -22,6 +22,8 @@ export interface TableDiff {
 export interface ContextCatalog {
   name: string
   value: string
+  content: any,
+  dbName: string
 }
 
 //--isAppOpen
@@ -80,10 +82,7 @@ const initialState: Settings = {
   },
   drMode: false,
   selectedCatalog: '',
-  availableCatalogs: [{
-    name: 'Default Tables',
-    value: 'tables'
-  }]
+  availableCatalogs: []
 }
 
 export const settingsSlice = createSlice({
