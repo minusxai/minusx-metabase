@@ -149,6 +149,13 @@ export const settingsSlice = createSlice({
           state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
         }
       }
+      state.defaultTableCatalog.content = {
+        "tables": state.tableDiff.add.map((t) => {
+            return {
+                name: t.name
+            }
+        })
+      }
     },
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
