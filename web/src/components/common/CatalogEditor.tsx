@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import { Text, Box, Button, Input, Textarea, HStack} from "@chakra-ui/react";
-import { saveCatalog } from "../../state/settings/reducer";
+import { saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { load } from 'js-yaml';
 
@@ -19,6 +19,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, dbName, 
     const handleSave = () => {
         dispatch(saveCatalog({ name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
         onCancel();
+        dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
     };
 
     return (

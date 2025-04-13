@@ -376,7 +376,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 {/* <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/> */}
                 {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={BiRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
-                { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>{selectedCatalogName} in context</Button> }
+                { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>"{selectedCatalogName}" in context</Button> }
                 {configs.IS_DEV &&false&& <Checkbox sx={{
                   '& input:not(:checked) + span': {
                     borderColor: 'minusxBW.500',
