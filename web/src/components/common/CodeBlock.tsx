@@ -4,6 +4,7 @@ import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
 import sql from 'react-syntax-highlighter/dist/esm/languages/prism/sql';
 import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript';
+import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml';
 
 import vsd from 'react-syntax-highlighter/dist/esm/styles/prism/vsc-dark-plus';
 import { getPlatformLanguage } from '../../helpers/utils';
@@ -11,7 +12,8 @@ import { diffLines } from 'diff'
 
 SyntaxHighlighter.registerLanguage('sql', sql);
 SyntaxHighlighter.registerLanguage('python', python);
-SyntaxHighlighter.registerLanguage('javascript', javascript);  
+SyntaxHighlighter.registerLanguage('javascript', javascript);
+SyntaxHighlighter.registerLanguage('yaml', yaml);
 
 function getCombinedCodeAndDiffs(code_new: string, code_old: string | undefined) {
   if (code_old === undefined) {

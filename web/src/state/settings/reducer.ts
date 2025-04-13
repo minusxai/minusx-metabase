@@ -156,6 +156,16 @@ export const settingsSlice = createSlice({
     setSelectedCatalog: (state, action: PayloadAction<string>) => {
       state.selectedCatalog = action.payload
     },
+    saveCatalog: (state, action: PayloadAction<ContextCatalog>) => {
+        const { name, value, content, dbName } = action.payload
+        const existingCatalog = state.availableCatalogs.find(catalog => catalog.value === value)
+        if (existingCatalog) {
+            existingCatalog.content = content
+            existingCatalog.dbName = dbName
+        } else {
+            state.availableCatalogs.push({ name, value, content, dbName })
+        }
+    }
   }
 })
 
@@ -164,7 +174,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
