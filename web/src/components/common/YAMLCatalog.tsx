@@ -5,6 +5,8 @@ import { RootState } from '../../state/store';
 import { CodeBlock } from './CodeBlock';
 import { CatalogEditor } from './CatalogEditor';
 import { BiPencil } from "react-icons/bi";
+import { dump } from 'js-yaml';
+
 
 export const YAMLCatalog: React.FC<null> = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -13,7 +15,7 @@ export const YAMLCatalog: React.FC<null> = () => {
   const dbName = useSelector((state: RootState) => state.settings.selectedDbName);
   
   const currentCatalog = availableCatalogs.find(catalog => catalog.value === selectedCatalog);
-  const yamlContent = currentCatalog?.content || '';
+  const yamlContent = dump(currentCatalog?.content || {});
 
   const handleEditClick = () => {
     setIsEditing(true);
