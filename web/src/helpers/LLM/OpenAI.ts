@@ -37,7 +37,7 @@ async function getOpenAIRawResponse({
   // const completion = MOCK_COMPLETION_1
   // const completion = FAKE_GPT4_RESPONSE
   const completion = await openai.chat.completions.create({
-    model: llmSettings.model || 'gpt-4o',
+    model: llmSettings.model || 'gpt-4.1',
     messages,
     // max_tokens: 4000,
     temperature: llmSettings.temperature || 0,

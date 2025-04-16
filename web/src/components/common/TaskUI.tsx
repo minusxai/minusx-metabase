@@ -108,7 +108,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   }
 
   const isMessageTooLong = () => {
-    return JSON.stringify(messages).length / 4 > 10000
+    return JSON.stringify(messages).length / 4 > 100000
   }
 
   const handleSnapClick = async () => {

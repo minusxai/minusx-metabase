@@ -106,7 +106,7 @@ export const LLMContext: React.FC<null> = () => {
       }
       // ToDo Vivek: get model name from state
       // Also ToDo Vivek: update frontend/web/public/ with model encodings
-      const model_name = "gpt-4o"
+      const model_name = "gpt-4.1"
       const enc = await encodingForModel(model_name)
       const systemMessageTokens = await enc.encode(JSON.stringify(systemMessage)).length
       const userMessageTokens = await enc.encode(JSON.stringify(userMessages)).length
