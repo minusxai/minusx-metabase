@@ -25,21 +25,27 @@ export const getSqlErrorMessage = async () => {
   return 'unknown error';
 }
 
-type MetabaseStateTable = {
-  rows: (string | number | null)[][];
+export type MetabaseStateTable = {
+  rows: (string | number | null | boolean)[][],
   cols: {
     display_name: string;
+    effective_type: string;
   }[]
 }
 
-function metabaseToMarkdownTable(table: MetabaseStateTable): string {
+export function metabaseToMarkdownTable(table: MetabaseStateTable, truncateLength: number = 2000): string {
   const { rows, cols } = table;
   const headerRow = `| ${cols.map(col => col.display_name).join(' | ')} |`;
   const separatorRow = `| ${cols.map(() => '---').join(' | ')} |`;
   const dataRows = rows.map(row => 
       `| ${row.map(cell => cell !== null ? cell : '').join(' | ')} |`
   );
-  return [headerRow, separatorRow, ...dataRows].join('\n');
+  let md =[headerRow, separatorRow, ...dataRows].join('\n');
+  // truncate if more than 2k characters. add an ...[truncated]
+  if (md.length > truncateLength) {
+    md = `${md.slice(0, truncateLength)}...[truncated]`;
+  }
+  return md;
 }
 
 function metabaseToCSV(table: MetabaseStateTable): string {

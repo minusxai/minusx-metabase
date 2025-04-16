@@ -1,4 +1,7 @@
 // this is the shape of the .dashboard key from sample-metabase-state.json
+
+import { MetabaseStateTable } from "../operations";
+
 // actually only a subset of it that i care about
 export interface DashboardMetabaseState {
   dashboardId: number;
@@ -38,11 +41,19 @@ export interface DashboardMetabaseState {
       card: {
         // this is the card id, not the dashcard id! commenting out to avoid confusion and misuse
         // id: number;
+        // card_id is required to refer to the correct dashcardData object
+        card_id: number;
         description: string | null;
         result_metadata: {
           display_name: string;
           base_type: string;
         }[];
+        query_type: 'native' | 'query';
+        dataset_query: {
+          native?: {
+            query: string
+          }
+        }
         name: string;
         display: string;
         // not keeping this because even metabase code uses {[key: string]: unknown} for visualization_settings lol
@@ -59,13 +70,7 @@ export interface DashboardMetabaseState {
     [key: number]: {
       // this is card id
       [key: number]: {
-        data: {
-          rows: (string | number | null | boolean)[][],
-          cols: {
-            display_name: string;
-            effective_type: string;
-          }[]
-        }
+        data: MetabaseStateTable
       }
     }
   },
