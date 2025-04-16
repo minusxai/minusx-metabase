@@ -3,7 +3,7 @@ import { NB_TO_MD_REPORT_SYSTEM_PROMPT, NB_TO_MD_REPORT_USER_PROMPT } from "./pr
 export const NB_TO_MD_REPORT_LLM_CONFIG = {
   type: "simple",
   llmSettings: {
-    model: "gpt-4o",
+    model: "gpt-4.1",
     temperature: 0,
     response_format: {
       type: "text",

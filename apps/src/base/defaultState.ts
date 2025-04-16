@@ -88,7 +88,7 @@ export const defaultInternalState: InternalState = {
     default: {
       type: "simple",
       llmSettings: {
-        model: "gpt-4o",
+        model: "gpt-4.1",
         temperature: 0,
         response_format: { type: "text" },
         tool_choice: "required",
@@ -100,7 +100,7 @@ export const defaultInternalState: InternalState = {
     suggestions: {
       type: "simple",
       llmSettings: {
-        model: "gpt-4o",
+        model: "gpt-4.1",
         temperature: 0,
         response_format: { type: "text" },
         tool_choice: "required",

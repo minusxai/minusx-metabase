@@ -71,7 +71,7 @@ export const getMetaPlan = async(text: string, steps: string[], messageHistory: 
   const app = getApp()
   
   const llmSettings = {
-    model: "gpt-4o",
+    model: "gpt-4.1",
     temperature: 0,
     response_format: {
       type: "json_object",
@@ -139,7 +139,7 @@ export const getMetaPlan = async(text: string, steps: string[], messageHistory: 
 export const convertToMarkdown = async(appState, imgs): Promise<string[]> => {
   console.log('Converting', appState, imgs)
   const llmSettings = {
-    model: "gpt-4o",
+    model: "gpt-4.1",
     temperature: 0,
     response_format: {
       type: "text",

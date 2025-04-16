@@ -17,7 +17,7 @@ export const posthogInternalState: InternalState = {
     default: {
       type: "simple",
       llmSettings: {
-        model: "gpt-4o",
+        model: "gpt-4.1",
         temperature: 0,
         response_format: { type: "text" },
         tool_choice: "required",
@@ -29,7 +29,7 @@ export const posthogInternalState: InternalState = {
     suggestions: {
       type: "simple",
       llmSettings: {
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-mini",
         temperature: 0,
         response_format: {
           type: "json_object",

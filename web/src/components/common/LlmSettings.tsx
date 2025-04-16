@@ -27,6 +27,7 @@ export default function ({ llmSettings, index, tool }: { llmSettings: LLMSetting
             return dispatch(editLLMSettings({ tool, index, settings: { ...llmSettings, model: e.target.value } }))
           }}
         >
+          <option value="gpt-4.1">GPT-4.1</option>
           <option value="gpt-4o">GPT-4O</option>
           <option value="claude-3-5-sonnet-20240620">Claude 3.5 Sonnet</option>
           <option value="gpt-3.5-turbo-1106">GPT-3.5 Turbo (16k)</option>
