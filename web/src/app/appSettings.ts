@@ -11,6 +11,8 @@ export const getAppSettings = () => {
     semanticPlanner: settings.demoMode,
     tableDiff: settings.tableDiff,
     drMode: settings.drMode,
+    selectedCatalog: settings.selectedCatalog,
+    availableCatalogs: settings.availableCatalogs,
   }
 }
 

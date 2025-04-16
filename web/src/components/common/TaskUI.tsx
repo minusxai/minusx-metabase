@@ -77,16 +77,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const email = useSelector((state: RootState) => state.auth.email)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
-  let updatedRelevantTables = []
-  if (currentTool === 'metabase'){
-    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
-    const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
-    const relevantTables = toolContext.relevantTables || []
-    const dbInfo = toolContext.dbInfo || {}
-    const allTables = dbInfo?.tables || []
-    updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff, dbInfo.id)
-  }
-    
+  
+  const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
+  const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
+  const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
+  const allCatalogs = [...availableCatalogs, defaultTableCatalog]
+  const selectedCatalogName = allCatalogs.find((catalog) => catalog.value === selectedCatalog)?.name || "No catalog"
+
 
   
 
@@ -379,7 +376,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 {/* <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/> */}
                 {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={BiRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
-                { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>{updatedRelevantTables.length} Tables in context</Button> }
+                { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>"{selectedCatalogName}" in context</Button> }
                 {configs.IS_DEV &&false&& <Checkbox sx={{
                   '& input:not(:checked) + span': {
                     borderColor: 'minusxBW.500',

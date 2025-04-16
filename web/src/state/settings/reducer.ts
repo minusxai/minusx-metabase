@@ -22,6 +22,8 @@ export interface TableDiff {
 export interface ContextCatalog {
   name: string
   value: string
+  content: any,
+  dbName: string
 }
 
 //--isAppOpen
@@ -55,7 +57,8 @@ interface Settings {
   tableDiff: TableDiff
   drMode: boolean,
   selectedCatalog: string,
-  availableCatalogs: ContextCatalog[]
+  availableCatalogs: ContextCatalog[],
+  defaultTableCatalog: ContextCatalog
 }
 
 const initialState: Settings = {
@@ -80,10 +83,13 @@ const initialState: Settings = {
   },
   drMode: false,
   selectedCatalog: '',
-  availableCatalogs: [{
+  availableCatalogs: [],
+  defaultTableCatalog: {
     name: 'Default Tables',
-    value: 'tables'
-  }]
+    value: 'tables',
+    content: {},
+    dbName: ''
+  }
 }
 
 export const settingsSlice = createSlice({
@@ -143,6 +149,13 @@ export const settingsSlice = createSlice({
           state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
         }
       }
+      state.defaultTableCatalog.content = {
+        "tables": state.tableDiff.add.map((t) => {
+            return {
+                name: t.name
+            }
+        })
+      }
     },
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
@@ -150,6 +163,25 @@ export const settingsSlice = createSlice({
     setSelectedCatalog: (state, action: PayloadAction<string>) => {
       state.selectedCatalog = action.payload
     },
+    saveCatalog: (state, action: PayloadAction<ContextCatalog>) => {
+        const { name, value, content, dbName } = action.payload
+        const existingCatalog = state.availableCatalogs.find(catalog => catalog.value === value)
+        if (existingCatalog) {
+            existingCatalog.content = content
+            existingCatalog.dbName = dbName
+        } else {
+            state.availableCatalogs.push({ name, value, content, dbName })
+        }
+    },
+    deleteCatalog: (state, action: PayloadAction<string>) => {
+        const catalogToDelete = state.availableCatalogs.find(catalog => catalog.value === action.payload)
+        if (catalogToDelete) {
+            state.availableCatalogs = state.availableCatalogs.filter(catalog => catalog.value !== action.payload)
+            if (state.selectedCatalog === action.payload) {
+                state.selectedCatalog = ''
+            }
+        }
+    }    
   }
 })
 
@@ -158,7 +190,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

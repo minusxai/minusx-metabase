@@ -9,7 +9,7 @@ const { getMetabaseState, queryURL } = RPCs;
 import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
-import { add, map } from 'lodash';
+import { add, find, get, map } from 'lodash';
 
 interface ExtractedDataBase {
   name: string;
@@ -67,6 +67,20 @@ export interface MetabaseSemanticQueryAppState {
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
 
+const mapTablesToFields = (tables: FormattedTable[]) => {
+  return map(tables, (table) => {
+    const { name } = table;
+    const { columns } = table;
+    return {
+      name,
+      columns: map(columns, (column) => ({
+        name: column.name,
+        column_type: column.type,
+      }))
+    }
+  })
+}
+
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
@@ -76,13 +90,15 @@ export async function convertDOMtoStateSQLQuery() {
   const appSettings = RPCs.getAppSettings()
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode)
   const tableContextYAML = {
-    tables: map(relevantTablesWithFields, (table) => {
-      const { name } = table;
-      return {
-        name,
-      }
-    }),
-    catalog: 'works_cycles'
+    tables: mapTablesToFields(relevantTablesWithFields),
+    catalog: 'works_cycles',
+    entities: []
+  }
+  const selectedCatalog = get(find(appSettings.availableCatalogs, { value: appSettings.selectedCatalog }), 'content')
+  if (selectedCatalog && appSettings.drMode) {
+    const allTables = await getTablesWithFields(undefined, true)
+    tableContextYAML.tables = mapTablesToFields(allTables)
+    tableContextYAML.entities = get(selectedCatalog, 'entities')
   }
   
 
