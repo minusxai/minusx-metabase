@@ -9,6 +9,7 @@ export type LLMResponse = {
   // optional error message
   error?: string
   credits?: number
+  tasks_key?: string
 }
 // Should add more stuff here as and when we try to experiment with them
 export type LLMSettings = {

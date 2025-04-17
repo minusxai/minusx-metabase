@@ -107,6 +107,11 @@ export interface UserConfirmationState {
   userInput: UserConfirmationInput
 }
 
+export interface Tasks {
+    version: string
+    content: Array<any>
+}
+
 interface ChatThread {
   index: number
   debugChatIndex: number
@@ -114,6 +119,7 @@ interface ChatThread {
   status: ChatThreadStatus
   userConfirmation: UserConfirmationState
   interrupted: boolean
+  tasks: Tasks
 }
 
 interface ChatState {
@@ -126,6 +132,12 @@ export const initialUserConfirmationState: UserConfirmationState = {
   content: '',
   userInput: 'NULL'
 }
+
+export const initialTasks: Tasks = {
+    version: 'v1',
+    content: []
+}
+
 const initialState: ChatState = {
   threads: [{
     index: 0,
@@ -133,7 +145,8 @@ const initialState: ChatState = {
     messages: [],
     status: 'FINISHED',
     userConfirmation: initialUserConfirmationState,
-    interrupted: false
+    interrupted: false,
+    tasks: initialTasks
   }],
   activeThread: 0,
 }
@@ -234,6 +247,15 @@ export const chatSlice = createSlice({
         }
         messages.push(actionMessage)
       })
+
+      const tasks_version = action.payload.llmResponse.tasks_key?.slice(0, 2)
+      const tasks_content = action.payload.llmResponse.tasks_key?.slice(3)
+      const tasks = {
+        version: tasks_version || 'v1',
+        content: JSON.parse(tasks_content || '')?.tasks || []
+      }
+      getActiveThread(state).tasks = tasks
+      
     },
     startAction: (
       state,
@@ -327,7 +349,8 @@ export const chatSlice = createSlice({
           content: '',
           userInput: 'NULL'
         },
-        interrupted: false
+        interrupted: false,
+        tasks: {version: 'v1', content: []}
       })
     },
     addReaction: (

@@ -9,6 +9,7 @@ export type PlanActionsParams = {
   llmSettings: LLMSettings,
   signal: AbortSignal,
   deepResearch: boolean,
+  tasks: any
 }
 export async function planActions(params: PlanActionsParams ) : Promise<LLMResponse> { 
   const { isLocal } = getState().settings
