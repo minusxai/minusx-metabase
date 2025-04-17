@@ -9,7 +9,7 @@ const { getMetabaseState, queryURL } = RPCs;
 import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
-import { add, find, get, map } from 'lodash';
+import { add, assignIn, find, get, keyBy, map } from 'lodash';
 
 interface ExtractedDataBase {
   name: string;
@@ -99,6 +99,30 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
   }
 }
 
+function modifyCatalog(catalog: object, tables: FormattedTable[]) {
+  const tableEntities = get(createCatalogFromTables(tables), 'entities', [])
+  const tableEntityMap = keyBy(tableEntities, 'name')
+  const newEntities: object[] = []
+  get(catalog, 'entities', []).forEach((entity: object) => {
+    if (get(entity, 'extends')) {
+      const from_ = get(entity, 'from_', '')
+      const tableEntity = get(tableEntityMap, from_, {})
+      newEntities.push({
+        ...tableEntity,
+        ...entity,
+        dimensions: [...get(tableEntity, 'dimensions', []),  ...get(entity, 'dimensions', [])]
+      })
+    } else {
+      newEntities.push(entity)
+    }
+  })
+  const newCatalog = {
+    ...catalog,
+    entities: newEntities
+  }
+  return newCatalog
+}
+
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
@@ -106,13 +130,14 @@ export async function convertDOMtoStateSQLQuery() {
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode)
   const selectedCatalog = get(find(appSettings.availableCatalogs, { value: appSettings.selectedCatalog }), 'content')
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog)
   let tableContextYAML = undefined
   if (appSettings.drMode) {
     if (selectedCatalog) {
+      const modifiedCatalog = modifyCatalog(selectedCatalog, relevantTablesWithFields)
       tableContextYAML = {
-        ...selectedCatalog,
+        ...modifiedCatalog,
       }
     } else {
       tableContextYAML = {
