@@ -81,6 +81,24 @@ const mapTablesToFields = (tables: FormattedTable[]) => {
   })
 }
 
+const createCatalogFromTables = (tables: FormattedTable[]) => {
+  return {
+    entities: tables.map(table => {
+      const { name } = table;
+      const { columns } = table;
+      return {
+        name,
+        description: table.description,
+        dimensions: map(columns, (column) => ({
+          name: column.name,
+          type: column.type,
+          description: column.description
+        }))
+      }
+    })
+  }
+}
+
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
@@ -89,18 +107,19 @@ export async function convertDOMtoStateSQLQuery() {
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode)
-  const tableContextYAML = {
-    tables: mapTablesToFields(relevantTablesWithFields),
-    catalog: 'works_cycles',
-    entities: []
-  }
   const selectedCatalog = get(find(appSettings.availableCatalogs, { value: appSettings.selectedCatalog }), 'content')
-  if (selectedCatalog && appSettings.drMode) {
-    const allTables = await getTablesWithFields(undefined, true)
-    tableContextYAML.tables = mapTablesToFields(allTables)
-    tableContextYAML.entities = get(selectedCatalog, 'entities')
+  let tableContextYAML = undefined
+  if (appSettings.drMode) {
+    if (selectedCatalog) {
+      tableContextYAML = {
+        ...selectedCatalog,
+      }
+    } else {
+      tableContextYAML = {
+        ...createCatalogFromTables(relevantTablesWithFields)
+      }
+    } 
   }
-  
 
   const queryExecuted = await getMetabaseState('qb.queryResults') !== null;
   const isNativeEditorOpen = await getMetabaseState('qb.uiControls.isNativeEditorOpen')
