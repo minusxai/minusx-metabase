@@ -107,6 +107,19 @@ export interface UserConfirmationState {
   userInput: UserConfirmationInput
 }
 
+export interface Task {
+  agent: string;
+  args: any;
+  id: number;
+  parent_id: number | null;
+  run_id: string;
+  debug: any;
+  child_ids: number[];
+  result: any; // Key field for completion status
+}
+
+export type Tasks = Array<Task>
+
 interface ChatThread {
   index: number
   debugChatIndex: number
@@ -114,6 +127,7 @@ interface ChatThread {
   status: ChatThreadStatus
   userConfirmation: UserConfirmationState
   interrupted: boolean
+  tasks: Tasks
 }
 
 interface ChatState {
@@ -126,6 +140,9 @@ export const initialUserConfirmationState: UserConfirmationState = {
   content: '',
   userInput: 'NULL'
 }
+
+export const initialTasks: Tasks = []
+
 const initialState: ChatState = {
   threads: [{
     index: 0,
@@ -133,7 +150,8 @@ const initialState: ChatState = {
     messages: [],
     status: 'FINISHED',
     userConfirmation: initialUserConfirmationState,
-    interrupted: false
+    interrupted: false,
+    tasks: initialTasks
   }],
   activeThread: 0,
 }
@@ -234,6 +252,10 @@ export const chatSlice = createSlice({
         }
         messages.push(actionMessage)
       })
+
+      const tasks = action.payload.llmResponse.tasks || []
+      getActiveThread(state).tasks = tasks
+      
     },
     startAction: (
       state,
@@ -327,7 +349,8 @@ export const chatSlice = createSlice({
           content: '',
           userInput: 'NULL'
         },
-        interrupted: false
+        interrupted: false,
+        tasks: []
       })
     },
     addReaction: (

@@ -11,6 +11,7 @@ import { ChatContent } from './ChatContent';
 import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
+import { Tasks } from './Tasks'
 
 
 // adds tool information like execution status and rendering info
@@ -175,6 +176,7 @@ export const ChatSection = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const messages = activeThread.messages
+  const tasks = activeThread.tasks
 
   useEffect(() => {
     setTimeout(() => {
@@ -201,6 +203,7 @@ export const ChatSection = () => {
 
   return (
   <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
+    { tasks.length && <Tasks /> }
     {Chats}
     <OngoingActionStack />
     <div style={{ height: '10px', width: '100%' }} />

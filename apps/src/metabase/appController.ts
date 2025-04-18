@@ -108,7 +108,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     description: "Updates the SQL query in the Metabase SQL editor and executes it.",
     renderBody: ({ sql }: { sql: string }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
-      return {text: null, code: sql, oldCode: sqlQuery}
+      return {text: null, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
   async ExecuteSQLClient({ sql }: { sql: string }) {
