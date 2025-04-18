@@ -32,6 +32,9 @@ import { RootState } from '../../state/store'; // Assuming this path is correct
 import ReactJson from 'react-json-view';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer'; // Assuming this path is correct
 import { get, last } from 'lodash';
+import { dispatch } from '../../state/dispatch';
+import { updateIsDevToolsOpen  } from '../../state/settings/reducer';
+import { setMinusxMode } from '../../app/rpc';
 
 interface TreeNodeProps {
   task: Task;
@@ -142,7 +145,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                  <Box flexGrow={1} overflowX="auto" >
                      <ReactJson
                         src={task.args!} // We know it exists due to hasArgs check
-                        collapsed={1}
+                        collapsed={0}
                         name={false}
                         style={{ fontSize: '0.75em', backgroundColor: 'transparent' }}
                         displayDataTypes={false}
@@ -163,7 +166,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                        {typeof task.result === 'string' ? (
                            <ReactJson
                                 src={{"result": task.result}}
-                                collapsed={1}
+                                collapsed={0}
                                 name={false}
                                 style={{ fontSize: '0.75em', backgroundColor: 'transparent' }}
                                 displayDataTypes={false}
@@ -172,7 +175,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                        ) : (
                            <ReactJson
                                 src={task.result!} // We know it's not null due to hasResult check
-                                collapsed={1}
+                                collapsed={0}
                                 name={false}
                                 style={{ fontSize: '0.75em', backgroundColor: 'transparent' }}
                                 displayDataTypes={false}
@@ -194,7 +197,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                <Box bg="blackAlpha.50" _dark={{ bg:"whiteAlpha.50"}} p={2} borderRadius="md" maxW="100%" overflowX="auto">
                  <ReactJson
                    src={task.debug!} // We know it exists due to hasDebug check
-                   collapsed={true}
+                   collapsed={0}
                    name={false}
                    style={{ fontSize: '0.75em', backgroundColor: 'transparent' }}
                    displayDataTypes={false}
@@ -232,6 +235,20 @@ export const Tasks: React.FC = () => {
   const allTasks: TasksInfo = activeThread?.tasks || [];
 
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+
+  const handleModalOpen = () => {
+    console.log('Tasks modal opened');
+    dispatch(updateIsDevToolsOpen(true));
+    setMinusxMode('open-sidepanel-devtools')
+    onModalOpen();
+  };
+
+  const handleModalClose = () => {
+    console.log('Tasks modal closed');
+    dispatch(updateIsDevToolsOpen(false));
+    setMinusxMode('open-sidepanel')
+    onModalClose();
+  };
 
   const rootTasks = useMemo(() => {
     if (!allTasks || allTasks.length === 0) return [];
@@ -320,7 +337,7 @@ export const Tasks: React.FC = () => {
                     variant="ghost"
                     color="minusxBW.600"
                     aria-label="Expand Tasks View"
-                    onClick={onModalOpen}
+                    onClick={handleModalOpen}
                     isDisabled={isEmpty && !isStarting}
                   />
               </Tooltip>
@@ -334,7 +351,7 @@ export const Tasks: React.FC = () => {
       </HStack>
 
       {/* Modal View */}
-      <Modal isOpen={isModalOpen} onClose={onModalClose} size="4xl" scrollBehavior="inside">
+      <Modal isOpen={isModalOpen} onClose={handleModalClose} size="4xl" scrollBehavior="inside">
         <ModalOverlay bg="blackAlpha.700" />
         <ModalContent maxW="85vw" h="90vh" bg="minusxBW.200">
           <ModalHeader pb={2} pt={4} px={4}>
