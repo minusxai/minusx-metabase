@@ -3,7 +3,7 @@ import { TablesCatalog } from '../common/TablesCatalog';
 import { CatalogEditor } from '../common/CatalogEditor';
 import { YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
-import { Text, Badge, Select, Spacer, Box, Button} from "@chakra-ui/react";
+import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton} from "@chakra-ui/react";
 import { setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
@@ -11,38 +11,25 @@ import { RootState } from '../../state/store';
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { isEmpty } from 'lodash';
 import { MetabaseContext } from 'apps/types';
-import { BiBook } from "react-icons/bi";
+import { BiBook, BiExpand } from "react-icons/bi";
 
 
 
 const useAppStore = getApp().useStore()
 
-
-export const Context: React.FC = () => {
+const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: () => void}) => {
     const [isCreatingCatalog, setIsCreatingCatalog] = useState(false);
-    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
     const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
-    
-    const tool = getParsedIframeInfo().tool
-    if (tool != 'metabase' || isEmpty(toolContext)) {
-      return <Text>Coming soon!</Text>
-    }
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const dbInfo = toolContext.dbInfo
 
-    return <>
-        <Text fontSize="lg" fontWeight="bold">Context</Text>
-        <Box mt={2} mb={2}>
-            <Text fontWeight="bold">DB Info</Text>
-            <Text fontSize="sm"><Text as="span">DB Name: <Badge color={"minusxGreen.600"}>{dbInfo.name}</Badge></Text></Text>
-            <Text fontSize="sm"><Text as="span">DB Description: {dbInfo.description || "-"}</Text></Text>
-            <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>
-        </Box>
-            
-        <Spacer height={5}/>
+    return (
+        <>
         <Box display="flex" alignItems="center" justifyContent="space-between">
             <Text fontSize="md" fontWeight="bold">Available Catalogs</Text>
+            <HStack spacing={0}>
             <Button 
               size={"xs"} 
               onClick={() => setIsCreatingCatalog(true)} 
@@ -52,6 +39,17 @@ export const Context: React.FC = () => {
             >
               Create Catalog
             </Button>
+            {!isInModal &&
+            <IconButton
+              aria-label="Open Modal"
+                icon={<BiExpand />}
+                size="xs"
+                colorScheme="minusxGreen"
+                onClick={modalOpen}
+                ml={2}
+            />}
+            </HStack>
+              
         </Box>
         
         {isCreatingCatalog ? (
@@ -75,5 +73,39 @@ export const Context: React.FC = () => {
             }
           </>
         )}
+        </>
+    )
+}
+
+
+export const Context: React.FC = () => {
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const tool = getParsedIframeInfo().tool
+    if (tool != 'metabase' || isEmpty(toolContext)) {
+      return <Text>Coming soon!</Text>
+    }
+    const dbInfo = toolContext.dbInfo
+    const { isOpen, onOpen: modalOpen, onClose: modalClose } = useDisclosure()
+
+    return <>
+        <Text fontSize="lg" fontWeight="bold">Context</Text>
+        <Box mt={2} mb={2}>
+            <Text fontWeight="bold">DB Info</Text>
+            <Text fontSize="sm"><Text as="span">DB Name: <Badge color={"minusxGreen.600"}>{dbInfo.name}</Badge></Text></Text>
+            <Text fontSize="sm"><Text as="span">DB Description: {dbInfo.description || "-"}</Text></Text>
+            <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>
+        </Box>
+        <Spacer height={5}/>
+        <CatalogDisplay isInModal={false} modalOpen={modalOpen}/>
+        <Modal isOpen={isOpen} onClose={modalClose} size="3xl">
+            <ModalOverlay />
+            <ModalContent>
+                <ModalHeader>Catalogs</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody minH={"400px"} maxH={"600px"} overflowY={"auto"}>
+                    <CatalogDisplay isInModal={true} modalOpen={modalOpen}/>
+                </ModalBody>
+            </ModalContent>
+        </Modal>
     </>
 }
