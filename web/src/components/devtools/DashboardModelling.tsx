@@ -23,7 +23,8 @@ async function getModel(dashboardInfo: any) {
     - What is the primary time dimension?
   - Any measures used should not be baked into the SQL. Output the measures separately as a JSON array.
   - Output JSON should be in the format of {"sql": <sql>, "measures": {name: <measure name>, sql: <measure sql expression>}[]}[]
-  - Explicitly mention the granularity of each SQL model. Try to maintain the lowest granularity possible.
+  - Explicitly mention the granularity of each SQL model. Maintain the lowest granularity possible.
+    - For time dimensions, keep the most granular time dimension possible in the model.
   - Any new dimensions created in any of the input cards should be present in the SQL models.
   - Make sure each of the input cards can be reconstructed using the SQL models. 
   `
@@ -37,7 +38,7 @@ async function getModel(dashboardInfo: any) {
       content: userMessage,
     }],
     llmSettings: {
-      model: "gpt-4o",
+      model: "gpt-4.1",
       temperature: 0,
       response_format: {
         type: "text",
