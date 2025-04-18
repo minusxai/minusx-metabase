@@ -176,6 +176,7 @@ export const ChatSection = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const messages = activeThread.messages
+  const tasks = activeThread.tasks.content
 
   useEffect(() => {
     setTimeout(() => {
@@ -202,7 +203,7 @@ export const ChatSection = () => {
 
   return (
   <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
-    <Tasks />
+    { tasks.length && <Tasks /> }
     {Chats}
     <OngoingActionStack />
     <div style={{ height: '10px', width: '100%' }} />

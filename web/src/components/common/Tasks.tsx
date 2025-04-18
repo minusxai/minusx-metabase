@@ -9,7 +9,7 @@ import {
   IconButton,
   Collapse,
   Tooltip,
-  Tag // Keep Tag for potential future use
+  Tag,
 } from '@chakra-ui/react';
 import {
   ChevronRightIcon,
@@ -285,9 +285,9 @@ export const Tasks: React.FC = () => {
 
           <Box background={'minusxBW.200'} borderRadius={5} p={2} overflowX="auto">
             {isLoading ? (
-               <Text fontSize="sm" color="minusxBW.500" textAlign="center" pt={4}>Loading tasks...</Text>
+               <Text fontSize="sm" color="minusxBW.600" textAlign="center">Loading tasks...</Text>
             ) : isEmpty ? (
-              <Text fontSize="sm" color="minusxBW.500" textAlign="center" pt={4}>No tasks have been initiated yet.</Text>
+              <Text fontSize="sm" color="minusxBW.600" textAlign="center">No tasks have been initiated yet.</Text>
             ) : (
               <VStack align="stretch" spacing={0}>
                 {rootTasks.map((rootTask) => (
