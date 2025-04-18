@@ -103,7 +103,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
         onClick={handleToggleExpand}
         title={canExpand ? (isOpen ? 'Click to collapse' : 'Click to expand') : task.agent}
       >
-        <Box w="20px" flexShrink={0} textAlign="center">
+        <Box w="20px" flexShrink={0} textAlign="center" display="flex" justifyContent="center" alignItems={"center"}>
             {canExpand ? (
                 <Icon
                 as={isOpen ? BiChevronDown : BiChevronRight}
