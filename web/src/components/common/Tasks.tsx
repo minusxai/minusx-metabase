@@ -23,30 +23,15 @@ import { useSelector } from 'react-redux';
 // Adjust path if needed for your project structure
 import { RootState } from '../../state/store';
 import ReactJson from 'react-json-view';
+import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
 
 // --- Type Definitions ---
-
-interface Task {
-  agent: string;
-  args: any;
-  id: number;
-  parent_id: number | null;
-  run_id: string;
-  debug: any;
-  child_ids: number[];
-  result: any; // Key field for completion status
-}
-
-interface TaskData {
-  version: string;
-  content: Task[];
-}
 
 // --- TreeNode Component Definition ---
 
 interface TreeNodeProps {
   task: Task;
-  allTasks: Task[];
+  allTasks: TasksInfo
   level?: number;
 }
 
@@ -234,22 +219,15 @@ export const Tasks: React.FC = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread);
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
 
-  const tasksData: TaskData | undefined | null = activeThread?.tasks;
-
-  const allTasks: Task[] = useMemo(() => {
-      if (tasksData && Array.isArray(tasksData.content)) {
-          return tasksData.content;
-      }
-      return [];
-  }, [tasksData]);
+  const allTasks: TasksInfo = activeThread?.tasks || [];
 
   const rootTasks = useMemo(() => {
     const taskIds = new Set(allTasks.map(t => t.id));
     return allTasks.filter(task => task.parent_id === null || !taskIds.has(task.parent_id));
   }, [allTasks]);
 
-  const isLoading = !activeThread || !tasksData;
-  const isEmpty = !isLoading && allTasks.length === 0;
+  const isEmpty = allTasks.length === 0;
+  const isLoading = !isEmpty && !allTasks[0].result
 
   return (
     <HStack
@@ -284,9 +262,7 @@ export const Tasks: React.FC = () => {
           </HStack>
 
           <Box background={'minusxBW.200'} borderRadius={5} p={2} overflowX="auto">
-            {isLoading ? (
-               <Text fontSize="sm" color="minusxBW.600" textAlign="center">Loading tasks...</Text>
-            ) : isEmpty ? (
+            {isEmpty ? (
               <Text fontSize="sm" color="minusxBW.600" textAlign="center">No tasks have been initiated yet.</Text>
             ) : (
               <VStack align="stretch" spacing={0}>

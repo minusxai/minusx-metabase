@@ -1,7 +1,7 @@
 import { planActionsOpenAI } from "./OpenAI";
 import { getState } from '../../state/store'
 import { planActionsRemote } from "./remote";
-import { ToolCalls } from "../../state/chat/reducer";
+import { Tasks, ToolCalls } from "../../state/chat/reducer";
 import { LLMContext, LLMResponse, LLMSettings } from "./types";
 export type PlanActionsParams = {
   messages: LLMContext,
@@ -9,7 +9,7 @@ export type PlanActionsParams = {
   llmSettings: LLMSettings,
   signal: AbortSignal,
   deepResearch: boolean,
-  tasks: any
+  tasks: Tasks
 }
 export async function planActions(params: PlanActionsParams ) : Promise<LLMResponse> { 
   const { isLocal } = getState().settings

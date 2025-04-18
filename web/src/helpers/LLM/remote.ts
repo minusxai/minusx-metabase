@@ -1,4 +1,4 @@
-import { ToolCalls, Tasks } from '../../state/chat/reducer'
+import { ToolCalls } from '../../state/chat/reducer'
 import { LLMResponse } from './types'
 import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
@@ -6,14 +6,6 @@ import { getApp } from '../app'
 import { get, unset } from 'lodash'
 //@ts-ignore
 
-
-function getTasksKey(tasks: Tasks){
-    let tasks_key = ''
-    if (tasks.version) {
-        tasks_key = tasks.version + "-" + JSON.stringify({tasks: tasks.content})
-    }
-    return tasks_key
-}
 
 export async function planActionsRemote({
   messages,
@@ -23,21 +15,14 @@ export async function planActionsRemote({
   deepResearch,
   tasks
 }: PlanActionsParams): Promise<LLMResponse> {
-  let tasks_key = ''
-  if (messages.length > 0 && messages[messages.length-1].role == 'user') {
-    tasks_key = ''
-  }
-  else {
-    tasks_key = getTasksKey(tasks)
-  }
   const payload = {
     messages,
     actions,
     llmSettings,
-    tasks_key: tasks_key,
+    tasks
   }
   if (!deepResearch) {
-    unset(payload, 'tasks_key')
+    unset(payload, 'tasks')
   }
   //@ts-ignore
   const response = await getLLMResponse(payload, signal, deepResearch)
@@ -48,7 +33,7 @@ export async function planActionsRemote({
   if (jsonResponse.error) {
     throw new Error(jsonResponse.error)
   }
-  return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits, tasks_key: tasks_key = jsonResponse.tasks_key || '' }
+  return { tool_calls: jsonResponse.tool_calls as ToolCalls, finish_reason: jsonResponse.finish_reason, content: jsonResponse.content, credits: jsonResponse.credits, tasks: jsonResponse.tasks }
 }
 
 export const getSuggestions = async(): Promise<string[]> => {

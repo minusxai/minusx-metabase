@@ -1,5 +1,5 @@
 import { ChatCompletion, ChatCompletionMessageParam } from "openai/resources";
-import { ToolCalls } from "../../state/chat/reducer";
+import { Tasks, ToolCalls } from "../../state/chat/reducer";
 
 export type LLMContext = Array<ChatCompletionMessageParam>
 export type LLMResponse = {
@@ -9,7 +9,7 @@ export type LLMResponse = {
   // optional error message
   error?: string
   credits?: number
-  tasks_key?: string
+  tasks?: Tasks
 }
 // Should add more stuff here as and when we try to experiment with them
 export type LLMSettings = {

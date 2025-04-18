@@ -107,10 +107,18 @@ export interface UserConfirmationState {
   userInput: UserConfirmationInput
 }
 
-export interface Tasks {
-    version: string
-    content: Array<any>
+export interface Task {
+  agent: string;
+  args: any;
+  id: number;
+  parent_id: number | null;
+  run_id: string;
+  debug: any;
+  child_ids: number[];
+  result: any; // Key field for completion status
 }
+
+export type Tasks = Array<Task>
 
 interface ChatThread {
   index: number
@@ -133,10 +141,7 @@ export const initialUserConfirmationState: UserConfirmationState = {
   userInput: 'NULL'
 }
 
-export const initialTasks: Tasks = {
-    version: 'v1',
-    content: []
-}
+export const initialTasks: Tasks = []
 
 const initialState: ChatState = {
   threads: [{
@@ -248,12 +253,7 @@ export const chatSlice = createSlice({
         messages.push(actionMessage)
       })
 
-      const tasks_version = action.payload.llmResponse.tasks_key?.slice(0, 2)
-      const tasks_content = action.payload.llmResponse.tasks_key?.slice(3)
-      const tasks = {
-        version: tasks_version || 'v1',
-        content: JSON.parse(tasks_content || '')?.tasks || []
-      }
+      const tasks = action.payload.llmResponse.tasks || []
       getActiveThread(state).tasks = tasks
       
     },
@@ -350,7 +350,7 @@ export const chatSlice = createSlice({
           userInput: 'NULL'
         },
         interrupted: false,
-        tasks: {version: 'v1', content: []}
+        tasks: []
       })
     },
     addReaction: (
