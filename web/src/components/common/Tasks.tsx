@@ -25,7 +25,8 @@ import {
     BiHourglass,
     BiSolidInfoCircle,
     BiSolidBug,
-    BiExpand
+    BiExpand,
+    BiBarChart
 } from 'react-icons/bi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store'; // Assuming this path is correct
@@ -193,8 +194,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                <HStack spacing={1} alignItems="flex-start">
                  <Icon as={BiSolidBug} color="orange.500" boxSize={3.5} mt="0.5"/>
                  <Text fontSize="xs" fontWeight="bold" color="minusxBW.700" flexShrink={0}>Debug:</Text>
-               </HStack>
-               <Box bg="blackAlpha.50" _dark={{ bg:"whiteAlpha.50"}} p={2} borderRadius="md" maxW="100%" overflowX="auto">
+               <Box overflowX="auto">
                  <ReactJson
                    src={task.debug!} // We know it exists due to hasDebug check
                    collapsed={0}
@@ -204,6 +204,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                    enableClipboard={true}
                  />
                </Box>
+               </HStack>
              </VStack>
            )}
 
@@ -228,12 +229,56 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   );
 };
 
+interface AggregatedResult {
+    total_duration: number;
+    total_tokens: number;
+    total_prompt_tokens: number;
+    total_completion_tokens: number;
+    total_cost: number;
+    llm_call_count: number;
+}
+
+const aggregateLlmDebugStats = (data: TasksInfo): AggregatedResult => {
+    const result: AggregatedResult = {
+      total_duration: 0,
+      total_tokens: 0,
+      total_prompt_tokens: 0,
+      total_completion_tokens: 0,
+      total_cost: 0,
+      llm_call_count: 0,
+    };
+  
+    if (data.length === 0) {
+        return result;
+    }
+  
+    const topmostTask = data.find(task => task.parent_id === null);
+  
+    if (topmostTask && topmostTask.debug) {
+      result.total_duration = topmostTask.debug.duration ?? 0;
+    }
+  
+    data.forEach(task => {
+      if (task.debug && Array.isArray(task.debug.llmDebug)) {
+        task.debug.llmDebug.forEach(llmCall => {
+          result.llm_call_count += 1;
+          result.total_tokens += llmCall.total_tokens ?? 0;
+          result.total_prompt_tokens += llmCall.prompt_tokens ?? 0;
+          result.total_completion_tokens += llmCall.completion_tokens ?? 0;
+          result.total_cost += llmCall.cost ?? 0;
+        });
+      }
+    });
+  
+    return result;
+  };
 
 export const Tasks: React.FC = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread);
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
   const allTasks: TasksInfo = activeThread?.tasks || [];
-
+  const aggDebug = aggregateLlmDebugStats(allTasks);
+  
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
 
   const handleModalOpen = () => {
@@ -282,7 +327,8 @@ export const Tasks: React.FC = () => {
        return <Text fontSize="sm" color="minusxBW.600" textAlign="center" p={4}>No tasks initiated.</Text>;
      }
     return (
-      <VStack align="stretch" spacing={0} p={isModal ? 0 : 2}>
+        <>
+      <VStack align="stretch" spacing={0} p={isModal ? 0 : 2} background={'minusxBW.200'} borderRadius={5}>
         {rootTasks.map((rootTask) => (
           <TreeNode
              key={`${rootTask.id}-${isModal ? 'modal' : 'panel'}`}
@@ -293,6 +339,21 @@ export const Tasks: React.FC = () => {
           />
         ))}
       </VStack>
+      <HStack spacing={1} alignItems="flex-end" p={1}>
+      <Icon as={BiBarChart} color="orange.500" boxSize={3.5} mt="0.5"/>
+      <Text fontSize="xs" color="minusxBW.700" flexShrink={0}>Stats:</Text>
+      <Box overflowX="auto">
+          <ReactJson
+          src={aggDebug}
+          collapsed={0}
+          name={false}
+          style={{ fontSize: '0.75em', backgroundColor: 'transparent' }}
+          displayDataTypes={false}
+          enableClipboard={true}
+          />
+      </Box>
+  </HStack>
+  </>
     );
   };
 
@@ -343,9 +404,9 @@ export const Tasks: React.FC = () => {
               </Tooltip>
             </HStack>
 
-            <Box background={'minusxBW.200'} borderRadius={5} overflowX="auto">
+            {/* <Box background={'minusxBW.200'} borderRadius={5} overflowX="auto"> */}
                 {renderTaskTree(false)}
-            </Box>
+            {/* </Box> */}
           </VStack>
         </Box>
       </HStack>
