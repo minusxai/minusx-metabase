@@ -3,12 +3,15 @@ import { Text, Link, HStack, VStack, Button, Box } from "@chakra-ui/react";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { CodeBlock } from './CodeBlock';
-import { CatalogEditor } from './CatalogEditor';
+import { CatalogEditor, makeCatalogAPICall } from './CatalogEditor';
 import { BiPencil, BiTrash } from "react-icons/bi";
 import { dump } from 'js-yaml';
 import { deleteCatalog } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 
+const deleteCatalogRemote = async (catalogId: string) => {
+  await makeCatalogAPICall('delete', { id: catalogId, type: 'catalog' })
+}
 
 export const YAMLCatalog: React.FC<null> = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -26,7 +29,8 @@ export const YAMLCatalog: React.FC<null> = () => {
     setIsEditing(false);
   };
   
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    await deleteCatalogRemote(currentCatalog?.id || '');
     dispatch(deleteCatalog(currentCatalog?.value || ''));
   }
 
