@@ -175,6 +175,9 @@ export const settingsSlice = createSlice({
             state.availableCatalogs.push({ id, name, value, content, dbName })
         }
     },
+    setCatalogs: (state, action: PayloadAction<ContextCatalog[]>) => {
+        state.availableCatalogs = action.payload
+    },
     deleteCatalog: (state, action: PayloadAction<string>) => {
         const catalogToDelete = state.availableCatalogs.find(catalog => catalog.value === action.payload)
         if (catalogToDelete) {
@@ -192,7 +195,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setCatalogs
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

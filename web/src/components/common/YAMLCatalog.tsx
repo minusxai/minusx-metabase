@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Text, Link, HStack, VStack, Button, Box } from "@chakra-ui/react";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -6,8 +6,30 @@ import { CodeBlock } from './CodeBlock';
 import { CatalogEditor, makeCatalogAPICall } from './CatalogEditor';
 import { BiPencil, BiTrash } from "react-icons/bi";
 import { dump } from 'js-yaml';
-import { deleteCatalog } from "../../state/settings/reducer";
+import { ContextCatalog, deleteCatalog, setCatalogs } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
+
+interface Asset {
+  id: string;
+  name: string;
+  contents: string;
+}
+
+export const refreshCatalogs = async () => {
+  const { assets }: {assets: Asset[]} = await makeCatalogAPICall('retrieve', { type: 'catalog' })
+  const catalogs: ContextCatalog[] = []
+  for (const asset of assets) {
+    const {content, dbName} : {content: string, dbName: string} = JSON.parse(asset.contents)
+    catalogs.push({
+      id: asset.id,
+      name: asset.name,
+      value: asset.name,
+      content: content,
+      dbName: dbName,
+    })
+  }
+  dispatch(setCatalogs(catalogs))
+}
 
 const deleteCatalogRemote = async (catalogId: string) => {
   await makeCatalogAPICall('delete', { id: catalogId, type: 'catalog' })
@@ -50,6 +72,7 @@ export const YAMLCatalog: React.FC<null> = () => {
             size="xs" 
             colorScheme="minusxGreen" 
             onClick={handleEditClick}
+            isDisabled={isDeleting}
             leftIcon={<BiPencil />}
           >
             Edit
