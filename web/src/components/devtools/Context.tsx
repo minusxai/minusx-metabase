@@ -1,7 +1,7 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { TablesCatalog } from '../common/TablesCatalog';
 import { CatalogEditor } from '../common/CatalogEditor';
-import { YAMLCatalog } from '../common/YAMLCatalog';
+import { refreshCatalogs, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton} from "@chakra-ui/react";
 import { setSelectedCatalog } from "../../state/settings/reducer";
@@ -21,9 +21,12 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const [isCreatingCatalog, setIsCreatingCatalog] = useState(false);
     const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
+    const selectedCatalogIsValid = availableCatalogs.some((catalog) => catalog.value === selectedCatalog) || selectedCatalog === "tables"
     const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
-    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
-    const dbInfo = toolContext.dbInfo
+
+    useEffect(() => {
+        refreshCatalogs()
+    }, [])
 
     return (
         <>
@@ -53,7 +56,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
         </Box>
         
         {isCreatingCatalog ? (
-          <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} dbName={dbInfo.name}/>
+          <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} />
         ) : (
           <>
             <Select placeholder="Select a catalog" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
@@ -65,7 +68,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
             </Select>
             <Spacer height={5}/>
             {
-                selectedCatalog !== "" ? (
+                selectedCatalogIsValid ? (
                     selectedCatalog === "tables" ? <TablesCatalog /> : <YAMLCatalog />
                 ) : (
                     <Text fontSize="sm" color="gray.500">No catalog selected</Text>

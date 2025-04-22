@@ -1,29 +1,85 @@
 import React, { useState } from "react"
 import { Text, Box, Button, Input, Textarea, HStack} from "@chakra-ui/react";
-import { saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
+import { ContextCatalog, saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { load } from 'js-yaml';
+import { MetabaseContext } from "apps/types";
+import { getApp } from "../../helpers/app";
+import axios from "axios";
+import { configs } from "../../constants";
+import { useSelector } from "react-redux";
+import { RootState } from "../../state/store";
 
+const useAppStore = getApp().useStore()
 
 interface CatalogEditorProps {
     onCancel: () => void;
-    dbName: string;
     defaultTitle?: string;
     defaultContent?: string;
+    id?: string
 }
 
-export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, dbName, defaultTitle = '', defaultContent = '' }) => {
+export const makeCatalogAPICall = async (endpoint: string, data: object) => {
+    const url = `${configs.ASSETS_BASE_URL}/${endpoint}`
+    const response = await axios.post(url, data, {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.data;
+}
+
+const createCatalog = async ({ name, contents }: { name: string; contents: string }) => {
+    const {id}: {id: string} = await makeCatalogAPICall('', {name, contents, type: 'catalog'})
+    return id
+}
+
+const updateCatalog = async ({ id, name, contents }: { id: string; name: string; contents: string }) => {
+    const {id: newId}: {id: string} = await makeCatalogAPICall('', {name, contents, type: 'catalog', id})
+    return newId
+}
+
+export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
+    const catalog: ContextCatalog = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
+    if (catalog) {
+        defaultTitle = catalog.name
+        defaultContent = catalog.content
+    }
+    const [isSaving, setIsSaving] = useState(false);
     const [title, setTitle] = useState(defaultTitle);
     const [yamlContent, setYamlContent] = useState(defaultContent);
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const dbName = toolContext.dbInfo.name
+    const dbId = toolContext.dbInfo.id
+    const dbDialect = toolContext.dbInfo.dialect
 
-    const handleSave = () => {
-        dispatch(saveCatalog({ name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+    const handleSave = async () => {
+        const anyChange = yamlContent !== defaultContent || title !== defaultTitle
+        if (anyChange) {
+            const fn = defaultTitle ? updateCatalog : createCatalog
+            setIsSaving(true);
+            const catalogID = await fn({
+                id,
+                name: title,
+                contents: JSON.stringify({
+                    content: yamlContent,
+                    dbName: dbName,
+                    dbId: dbId,
+                    dbDialect: dbDialect
+                })
+            })
+            setIsSaving(false);
+            dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+        } 
         onCancel();
         dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
     };
 
     return (
         <Box mt={4} border="1px" borderColor="gray.200" borderRadius="md" p={4}>
+            {isSaving && (
+                <Text fontSize="sm" color="green.500" mb={2}>Saving...</Text>
+            )}
         <Text fontSize="md" fontWeight="bold" mb={3}>{defaultTitle ? 'Edit Catalog' : 'Create New Catalog'}</Text>
         
         <Text fontSize="sm" mb={1}>Catalog Name</Text>
@@ -56,7 +112,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, dbName, 
                     size="sm" 
                     colorScheme="minusxGreen" 
                     onClick={handleSave}
-                    isDisabled={!title.trim() || !yamlContent.trim()}
+                    isDisabled={!title.trim() || !yamlContent.trim() || isSaving}
                 >
                     Save Catalog
                 </Button>
