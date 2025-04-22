@@ -14,7 +14,6 @@ export const YAMLCatalog: React.FC<null> = () => {
   const [isEditing, setIsEditing] = useState(false);
   const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs);
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog);
-  const dbName = useSelector((state: RootState) => state.settings.selectedDbName);
   
   const currentCatalog = availableCatalogs.find(catalog => catalog.value === selectedCatalog);
   const yamlContent = dump(currentCatalog?.content || {});
@@ -62,7 +61,6 @@ export const YAMLCatalog: React.FC<null> = () => {
       {isEditing ? (
         <CatalogEditor 
           onCancel={handleCancelEdit} 
-          dbName={dbName} 
           defaultTitle={currentCatalog?.name || ''}
           defaultContent={yamlContent}
         />

@@ -5,6 +5,8 @@ import { dispatch } from '../../state/dispatch';
 import { load } from 'js-yaml';
 import { MetabaseContext } from "apps/types";
 import { getApp } from "../../helpers/app";
+import axios from "axios";
+import { configs } from "../../constants";
 
 const useAppStore = getApp().useStore()
 
@@ -12,17 +14,30 @@ interface CatalogEditorProps {
     onCancel: () => void;
     defaultTitle?: string;
     defaultContent?: string;
+    id?: string
 }
 
-const createCatalog = async ({ name, content }: { name: string; content: string }) => {
-    console.log('Creating catalog', name, content)
+const makeCatalogAPICall = async (endpoint: string, data: { name: string; contents: string, type: string, id?: string }) => {
+    const url = `${configs.ASSETS_BASE_URL}/${endpoint}`
+    const response = await axios.post(url, data, {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.data;
 }
 
-const updateCatalog = async ({ name, content }: { name: string; content: string }) => {
-    console.log('Updating catalog', name, content)
+const createCatalog = async ({ name, contents }: { name: string; contents: string }) => {
+    const {id}: {id: string} = await makeCatalogAPICall('', {name, contents, type: 'catalog'})
+    return id
 }
 
-export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '' }) => {
+const updateCatalog = async ({ id, name, contents }: { id: string; name: string; contents: string }) => {
+    const {id: newId}: {id: string} = await makeCatalogAPICall('', {name, contents, type: 'catalog', id})
+    return newId
+}
+
+export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
     const [title, setTitle] = useState(defaultTitle);
     const [yamlContent, setYamlContent] = useState(defaultContent);
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
@@ -32,16 +47,17 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     const handleSave = async () => {
         const fn = defaultTitle ? updateCatalog : createCatalog
-        fn({
+        const catalogID = await fn({
+            id,
             name: title,
-            content: JSON.stringify({
+            contents: JSON.stringify({
                 content: yamlContent,
                 dbName: dbName,
                 dbId: dbId,
                 dbDialect: dbDialect
             })
         })
-        dispatch(saveCatalog({ name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+        dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
         onCancel();
         dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
     };

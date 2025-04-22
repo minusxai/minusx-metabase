@@ -7,6 +7,7 @@ interface ENV {
     PLANNER_PATH: string
     LOGGING_PATH: string
     SEMANTIC_PATH: string
+    ASSETS_PATH: string
     WEB_URL: string
     POSTHOG_API_KEY: string
     POSTHOG_CONFIGS: string
@@ -24,6 +25,7 @@ const conf: ENV = {
     PLANNER_PATH: process.env.PLANNER_PATH || defaults.PLANNER_PATH,
     LOGGING_PATH: process.env.LOGGING_PATH || defaults.LOGGING_PATH,
     SEMANTIC_PATH: process.env.SEMANTIC_PATH || defaults.SEMANTIC_PATH,
+    ASSETS_PATH: process.env.ASSETS_PATH || defaults.ASSETS_PATH,
     WEB_URL: process.env.WEB_URL || defaults.WEB_URL,
     POSTHOG_API_KEY: process.env.POSTHOG_API_KEY || defaults.POSTHOG_API_KEY,
     POSTHOG_CONFIGS: process.env.POSTHOG_CONFIGS || defaults.POSTHOG_CONFIGS,
@@ -38,6 +40,7 @@ interface Configs extends ENV {
     PLANNER_BASE_URL: string
     LOGGING_BASE_URL: string
     SEMANTIC_BASE_URL: string
+    ASSETS_BASE_URL: string
 }
 
 const SERVER_BASE_URL = conf.BASE_SERVER_URL + conf.SERVER_PATH
@@ -48,5 +51,6 @@ export const configs: Configs = {
     AUTH_BASE_URL: SERVER_BASE_URL + conf.AUTH_PATH,
     PLANNER_BASE_URL: SERVER_BASE_URL + conf.PLANNER_PATH,
     LOGGING_BASE_URL: SERVER_BASE_URL + conf.LOGGING_PATH,
-    SEMANTIC_BASE_URL: SERVER_BASE_URL + conf.SEMANTIC_PATH
+    SEMANTIC_BASE_URL: SERVER_BASE_URL + conf.SEMANTIC_PATH,
+    ASSETS_BASE_URL: SERVER_BASE_URL + conf.ASSETS_PATH,
 }

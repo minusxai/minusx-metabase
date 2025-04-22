@@ -20,6 +20,7 @@ export interface TableDiff {
 }
 
 export interface ContextCatalog {
+  id: string
   name: string
   value: string
   content: any,
@@ -85,6 +86,7 @@ const initialState: Settings = {
   selectedCatalog: '',
   availableCatalogs: [],
   defaultTableCatalog: {
+    id: 'default',
     name: 'Default Tables',
     value: 'tables',
     content: {},
@@ -164,13 +166,13 @@ export const settingsSlice = createSlice({
       state.selectedCatalog = action.payload
     },
     saveCatalog: (state, action: PayloadAction<ContextCatalog>) => {
-        const { name, value, content, dbName } = action.payload
+        const { id, name, value, content, dbName } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.value === value)
         if (existingCatalog) {
             existingCatalog.content = content
             existingCatalog.dbName = dbName
         } else {
-            state.availableCatalogs.push({ name, value, content, dbName })
+            state.availableCatalogs.push({ id, name, value, content, dbName })
         }
     },
     deleteCatalog: (state, action: PayloadAction<string>) => {
