@@ -20,6 +20,7 @@ export const YAMLCatalog: React.FC<null> = () => {
   
   const currentCatalog = availableCatalogs.find(catalog => catalog.value === selectedCatalog);
   const yamlContent = dump(currentCatalog?.content || {});
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -30,13 +31,18 @@ export const YAMLCatalog: React.FC<null> = () => {
   };
   
   const handleDelete = async () => {
+    setIsDeleting(true);
     await deleteCatalogRemote(currentCatalog?.id || '');
+    setIsDeleting(false);
     dispatch(deleteCatalog(currentCatalog?.value || ''));
   }
 
   return (
     <VStack w="100%" align="stretch" spacing={4}>
       <HStack w={"100%"} justify={"space-between"}>
+        {isDeleting && (
+          <Text fontSize="md" fontWeight="bold">Deleting...</Text>
+        )}
         <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>
         {!isEditing && (
             <HStack spacing={2}>
@@ -52,6 +58,7 @@ export const YAMLCatalog: React.FC<null> = () => {
             size="xs" 
             colorScheme="minusxGreen" 
             onClick={handleDelete}
+            isDisabled={isDeleting}
             leftIcon={<BiTrash />}
           >
             Delete

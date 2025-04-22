@@ -45,6 +45,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
         defaultTitle = catalog.name
         defaultContent = catalog.content
     }
+    const [isSaving, setIsSaving] = useState(false);
     const [title, setTitle] = useState(defaultTitle);
     const [yamlContent, setYamlContent] = useState(defaultContent);
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
@@ -56,6 +57,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
         if (anyChange) {
             const fn = defaultTitle ? updateCatalog : createCatalog
+            setIsSaving(true);
             const catalogID = await fn({
                 id,
                 name: title,
@@ -66,6 +68,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                     dbDialect: dbDialect
                 })
             })
+            setIsSaving(false);
             dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
         } 
         onCancel();
@@ -74,6 +77,9 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     return (
         <Box mt={4} border="1px" borderColor="gray.200" borderRadius="md" p={4}>
+            {isSaving && (
+                <Text fontSize="sm" color="green.500" mb={2}>Saving...</Text>
+            )}
         <Text fontSize="md" fontWeight="bold" mb={3}>{defaultTitle ? 'Edit Catalog' : 'Create New Catalog'}</Text>
         
         <Text fontSize="sm" mb={1}>Catalog Name</Text>
@@ -106,7 +112,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                     size="sm" 
                     colorScheme="minusxGreen" 
                     onClick={handleSave}
-                    isDisabled={!title.trim() || !yamlContent.trim()}
+                    isDisabled={!title.trim() || !yamlContent.trim() || isSaving}
                 >
                     Save Catalog
                 </Button>
