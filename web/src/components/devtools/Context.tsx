@@ -53,7 +53,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
         </Box>
         
         {isCreatingCatalog ? (
-          <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} dbName={dbInfo.name}/>
+          <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} />
         ) : (
           <>
             <Select placeholder="Select a catalog" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>

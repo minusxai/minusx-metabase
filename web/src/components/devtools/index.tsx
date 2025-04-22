@@ -63,6 +63,7 @@ export const DevToolsBox: React.FC = () => {
     }
     return Monitor.tags?.includes('production') || false
   })
+  console.log("Load assets here")
   return (
     <VStack
       px="4"
