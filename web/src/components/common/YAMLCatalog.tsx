@@ -61,8 +61,7 @@ export const YAMLCatalog: React.FC<null> = () => {
       {isEditing ? (
         <CatalogEditor 
           onCancel={handleCancelEdit} 
-          defaultTitle={currentCatalog?.name || ''}
-          defaultContent={yamlContent}
+          id={currentCatalog?.id || ''}
         />
       ) : (
         <Box w="100%">

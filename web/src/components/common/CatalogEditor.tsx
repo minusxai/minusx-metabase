@@ -1,12 +1,14 @@
 import React, { useState } from "react"
 import { Text, Box, Button, Input, Textarea, HStack} from "@chakra-ui/react";
-import { saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
+import { ContextCatalog, saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { load } from 'js-yaml';
 import { MetabaseContext } from "apps/types";
 import { getApp } from "../../helpers/app";
 import axios from "axios";
 import { configs } from "../../constants";
+import { useSelector } from "react-redux";
+import { RootState } from "../../state/store";
 
 const useAppStore = getApp().useStore()
 
@@ -38,6 +40,11 @@ const updateCatalog = async ({ id, name, contents }: { id: string; name: string;
 }
 
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
+    const catalog: ContextCatalog = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
+    if (catalog) {
+        defaultTitle = catalog.name
+        defaultContent = catalog.content
+    }
     const [title, setTitle] = useState(defaultTitle);
     const [yamlContent, setYamlContent] = useState(defaultContent);
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
