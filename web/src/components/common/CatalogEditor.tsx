@@ -53,18 +53,21 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
     const dbDialect = toolContext.dbInfo.dialect
 
     const handleSave = async () => {
-        const fn = defaultTitle ? updateCatalog : createCatalog
-        const catalogID = await fn({
-            id,
-            name: title,
-            contents: JSON.stringify({
-                content: yamlContent,
-                dbName: dbName,
-                dbId: dbId,
-                dbDialect: dbDialect
+        const anyChange = yamlContent !== defaultContent || title !== defaultTitle
+        if (anyChange) {
+            const fn = defaultTitle ? updateCatalog : createCatalog
+            const catalogID = await fn({
+                id,
+                name: title,
+                contents: JSON.stringify({
+                    content: yamlContent,
+                    dbName: dbName,
+                    dbId: dbId,
+                    dbDialect: dbDialect
+                })
             })
-        })
-        dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+            dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+        } 
         onCancel();
         dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
     };
