@@ -23,9 +23,33 @@ export interface ContextCatalog {
   id: string
   name: string
   value: string
-  content: any,
-  dbName: string,
+  content: any
+  dbName: string
   allowWrite: boolean
+  owner: string
+  primaryGroup: string
+}
+
+interface UserPermission {
+  id: string
+  permission: string
+}
+
+export interface UserGroup {
+  id: string
+  created_at: string
+  updated_at: string
+  name: string
+  owner: any,
+  permission: string
+  members: UserPermission[]
+}
+
+export interface UserInfo {
+  id: string
+  created_at: string
+  updated_at: string
+  email_id: string
 }
 
 //--isAppOpen
