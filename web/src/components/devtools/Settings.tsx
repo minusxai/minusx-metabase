@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode  } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled  } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -55,6 +55,7 @@ const SettingsPage = () => {
   const discordLink = 'https://discord.gg/jtFeyPMDcH'
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+  const groupsEnabled = useSelector((state: RootState) => state.settings.groupsEnabled)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
   const savedQueries = useSelector((state: RootState) => state.settings.savedQueries)
   const auth = useSelector((state: RootState) => state.auth)
@@ -89,6 +90,9 @@ const SettingsPage = () => {
   }
   const updateDemoMode = (value: boolean) => {
     dispatch(setDemoMode(value))
+  }
+  const updateGroupsEnabled = (value: boolean) => {
+    dispatch(setGroupsEnabled(value))
   }
   const updateDRMode = (value: boolean) => {
     dispatch(setDRMode(value))
@@ -146,7 +150,7 @@ const SettingsPage = () => {
           ))}
         </VStack>
       </SettingsBlock> */}
-      <GroupViewer />
+      {groupsEnabled && <GroupViewer />}
       <SettingsBlock title="Features" >
         <VStack alignItems="">
           <HStack justifyContent={"space-between"}>
@@ -160,6 +164,10 @@ const SettingsPage = () => {
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Demo Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={demoMode} onChange={(e) => updateDemoMode(e.target.checked)} />
+          </HStack>}
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">View Groups</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={groupsEnabled} onChange={(e) => updateGroupsEnabled(e.target.checked)} />
           </HStack>}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Deep Research Mode</Text>

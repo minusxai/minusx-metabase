@@ -102,6 +102,7 @@ interface Settings {
   defaultTableCatalog: ContextCatalog
   users: Record<string, UserInfo>
   groups: Record<string, UserGroup>
+  groupsEnabled: boolean
 }
 
 const initialState: Settings = {
@@ -136,7 +137,8 @@ const initialState: Settings = {
     allowWrite: true
   },
   users: {},
-  groups: {}
+  groups: {},
+  groupsEnabled: false
 }
 
 export const settingsSlice = createSlice({
@@ -175,6 +177,9 @@ export const settingsSlice = createSlice({
     },
     setDemoMode: (state, action: PayloadAction<boolean>) => {
       state.demoMode = action.payload
+    },
+    setGroupsEnabled: (state, action: PayloadAction<boolean>) => {
+      state.groupsEnabled = action.payload
     },
     setAppRecording: (state, action: PayloadAction<boolean>) => {
       state.isRecording = action.payload
@@ -291,7 +296,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setCatalogs, setMemberships
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setCatalogs, setMemberships, setGroupsEnabled
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
