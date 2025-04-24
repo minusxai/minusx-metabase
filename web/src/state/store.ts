@@ -249,12 +249,24 @@ const migrations = {
         newState.chat.threads.forEach((thread: any) => {
             thread.tasks = initialTasks
         })
+        return newState
+    },
+    23: (state: any) => {
+      let newState = {...state}
+      newState.settings.availableCatalogs.forEach((catalog: any) => {
+        catalog.allowWrite = true
+      })
+      newState.settings.defaultTableCatalog.allowWrite = true
+      newState.settings.users = {}
+      newState.settings.groups = {}
+      newState.settings.groupsEnabled = false
+      return newState
     }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 22,
+  version: 23,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),
