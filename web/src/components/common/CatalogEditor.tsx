@@ -5,10 +5,11 @@ import { dispatch } from '../../state/dispatch';
 import { load } from 'js-yaml';
 import { MetabaseContext } from "apps/types";
 import { getApp } from "../../helpers/app";
-import axios from "axios";
+import axios, { isAxiosError } from "axios";
 import { configs } from "../../constants";
 import { useSelector } from "react-redux";
 import { RootState } from "../../state/store";
+import { toast } from "../../app/toast";
 
 const useAppStore = getApp().useStore()
 
@@ -55,24 +56,44 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     const handleSave = async () => {
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
-        if (anyChange) {
-            const fn = defaultTitle ? updateCatalog : createCatalog
-            setIsSaving(true);
-            const catalogID = await fn({
-                id,
-                name: title,
-                contents: JSON.stringify({
-                    content: yamlContent,
-                    dbName: dbName,
-                    dbId: dbId,
-                    dbDialect: dbDialect
+        try {
+            if (anyChange) {
+                const fn = defaultTitle ? updateCatalog : createCatalog
+                setIsSaving(true);
+                const catalogID = await fn({
+                    id,
+                    name: title,
+                    contents: JSON.stringify({
+                        content: yamlContent,
+                        dbName: dbName,
+                        dbId: dbId,
+                        dbDialect: dbDialect
+                    })
                 })
+                setIsSaving(false);
+                dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+            }
+            dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
+        } catch(err) {
+            let description = "There was an error saving the catalog. Please try again."
+            if (isAxiosError(err)) {
+                description = err.response?.data?.error || err.message
+            } else if (err instanceof Error) {
+                description = err.message
+            }
+            toast({
+                title: "Error saving catalog",
+                description,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: 'bottom-right',
             })
+            console.error('Error saving catalog:', e);
+        } finally {
             setIsSaving(false);
-            dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content: load(yamlContent), dbName: dbName }));
+            onCancel();
         } 
-        onCancel();
-        dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
     };
 
     return (
