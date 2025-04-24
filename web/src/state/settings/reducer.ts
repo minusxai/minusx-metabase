@@ -215,14 +215,16 @@ export const settingsSlice = createSlice({
     setSelectedCatalog: (state, action: PayloadAction<string>) => {
       state.selectedCatalog = action.payload
     },
-    saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'>>) => {
-        const { id, name, value, content, dbName } = action.payload
+    saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'> & { currentUserId: string }>) => {
+        const { id, name, value, content, dbName, currentUserId } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.value === value)
         if (existingCatalog) {
             existingCatalog.content = content
             existingCatalog.dbName = dbName
+            existingCatalog.owner = currentUserId
+            existingCatalog.allowWrite = true
         } else {
-            state.availableCatalogs.push({ id, name, value, content, dbName, allowWrite: true })
+            state.availableCatalogs.push({ id, name, value, content, dbName, allowWrite: true, owner: currentUserId })
         }
     },
     setCatalogs: (state, action: PayloadAction<ContextCatalog[]>) => {
