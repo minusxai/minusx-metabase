@@ -47,6 +47,7 @@ export const GroupViewer: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState(groupList[0]?.id || null)
   const [newUserEmail, setNewUserEmail] = useState("")
   const [selectedAssetId, setSelectedAssetId] = useState("")
+  const [newGroupName, setNewGroupName] = useState("")
 
   const selectedGroup = selectedGroupId ? groups[selectedGroupId] : null
   const isOwner = selectedGroup?.owner === currentUserId
@@ -106,6 +107,29 @@ export const GroupViewer: React.FC = () => {
     setIsLoading(false)
   }
 
+  const deleteGroup = async (selectedGroupId: string) => {
+    setIsLoading(true)
+    await makeGroupsAPICall(
+      "delete",
+      { group_id: selectedGroupId },
+      configs.GROUPS_BASE_URL
+    )
+    await refreshMemberships(currentUserId)
+    setIsLoading(false)
+  }
+
+  const createNewGroup = async (groupName: string) => {
+    setIsLoading(true)
+    await makeGroupsAPICall(
+      "",
+      { name: groupName },
+      configs.GROUPS_BASE_URL
+    )
+    await refreshMemberships(currentUserId)
+    setIsLoading(false)
+  }
+
+
   // Assets owned by the user
   const ownedAssets = assets.filter(a => a.owner === currentUserId)
 
@@ -127,11 +151,21 @@ export const GroupViewer: React.FC = () => {
         <Text>No groups available.</Text>
       ) : (
         <>
+          <HStack mb={4}>
+            <Button colorScheme="blue" onClick={() => createNewGroup(newGroupName)}>
+              Create Group
+            </Button>
+            <Input
+              placeholder="New group name"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+            />
+          </HStack>
           <Select
             mb={4}
             value={selectedGroupId || ""}
             onChange={(e) => setSelectedGroupId(e.target.value)}
-          >
+          > 
             {groupList.map((group) => (
               <option key={group.id} value={group.id}>
                 {group.name}
@@ -253,6 +287,9 @@ export const GroupViewer: React.FC = () => {
                   </TableContainer>
                 </Box>
               )}
+              <Button colorScheme="red" onClick={() => deleteGroup(selectedGroupId)}>
+                Delete Group
+              </Button>
             </VStack>
           )}
         </>
