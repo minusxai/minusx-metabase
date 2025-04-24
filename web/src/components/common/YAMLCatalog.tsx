@@ -6,13 +6,18 @@ import { CodeBlock } from './CodeBlock';
 import { CatalogEditor, makeCatalogAPICall } from './CatalogEditor';
 import { BiPencil, BiTrash } from "react-icons/bi";
 import { dump } from 'js-yaml';
-import { ContextCatalog, deleteCatalog, setCatalogs } from "../../state/settings/reducer";
+import { ContextCatalog, deleteCatalog, setCatalogs, UserGroup, UserInfo } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
+import { configs } from "../../constants";
 
 interface Asset {
   id: string;
   name: string;
   contents: string;
+  type: string
+  owner: string
+  created_at: string
+  updated_at: string
 }
 
 export const refreshCatalogs = async () => {
@@ -30,6 +35,16 @@ export const refreshCatalogs = async () => {
     })
   }
   dispatch(setCatalogs(catalogs))
+}
+
+export const refreshMemberships = async () => {
+  const { assets, groups, members }: {assets: Asset[], groups: UserGroup[], members: UserInfo[] } = await makeCatalogAPICall(
+    'all_memberships', { type: 'catalog' }, configs.GROUPS_BASE_URL
+  )
+  console.log('Assets', assets)
+  console.log('Groups', groups)
+  console.log('Members', members)
+  // dispatch(setCatalogs(catalogs))
 }
 
 const deleteCatalogRemote = async (catalogId: string) => {

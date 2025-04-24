@@ -20,8 +20,9 @@ interface CatalogEditorProps {
     id?: string
 }
 
-export const makeCatalogAPICall = async (endpoint: string, data: object) => {
-    const url = `${configs.ASSETS_BASE_URL}/${endpoint}`
+export const makeCatalogAPICall = async (endpoint: string, data: object, baseURL?: string) => {
+    baseURL = baseURL || configs.ASSETS_BASE_URL
+    const url = `${baseURL}/${endpoint}`
     const response = await axios.post(url, data, {
         headers: {
             'Content-Type': 'application/json',

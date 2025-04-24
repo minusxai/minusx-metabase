@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { TablesCatalog } from '../common/TablesCatalog';
 import { CatalogEditor } from '../common/CatalogEditor';
-import { refreshCatalogs, YAMLCatalog } from '../common/YAMLCatalog';
+import { refreshCatalogs, refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton} from "@chakra-ui/react";
 import { setSelectedCatalog } from "../../state/settings/reducer";
@@ -26,6 +26,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
 
     useEffect(() => {
         refreshCatalogs()
+        refreshMemberships()
     }, [])
 
     return (
