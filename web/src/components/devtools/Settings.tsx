@@ -14,6 +14,7 @@ import { setBillingInfo } from '../../state/billing/reducer';
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from '../common/CreditsPill';
 import { SettingsBlock } from '../common/SettingsBlock';
+import { GroupViewer } from '../common/GroupViewer';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
@@ -145,6 +146,7 @@ const SettingsPage = () => {
           ))}
         </VStack>
       </SettingsBlock> */}
+      <GroupViewer />
       <SettingsBlock title="Features" >
         <VStack alignItems="">
           <HStack justifyContent={"space-between"}>
