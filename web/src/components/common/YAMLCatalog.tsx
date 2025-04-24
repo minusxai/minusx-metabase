@@ -26,6 +26,7 @@ export const refreshCatalogs = async () => {
       value: asset.name,
       content: content,
       dbName: dbName,
+      allowWrite: true
     })
   }
   dispatch(setCatalogs(catalogs))

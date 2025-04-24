@@ -8,6 +8,14 @@ export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context'
 
+const safeJSON = (text: string) => {
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    return {}
+  }
+};
+
 export interface TableInfo {
   name: string
   schema: string
@@ -26,8 +34,8 @@ export interface ContextCatalog {
   content: any
   dbName: string
   allowWrite: boolean
-  owner: string
-  primaryGroup: string
+  primaryGroup?: string
+  owner?: string
 }
 
 interface UserPermission {
@@ -64,6 +72,13 @@ export interface UserInfo {
 //   |     '-- width: 100%
 //   '--no
 
+interface SetMembershipsPayload {
+  groups: any[]
+  assets: any[]
+  members: any[]
+  currentUserId: string
+}
+
 interface Settings {
   isLocal: boolean,
   uploadLogs: boolean,
@@ -85,6 +100,8 @@ interface Settings {
   selectedCatalog: string,
   availableCatalogs: ContextCatalog[],
   defaultTableCatalog: ContextCatalog
+  users: Record<string, UserInfo>
+  groups: Record<string, UserGroup>
 }
 
 const initialState: Settings = {
@@ -117,7 +134,9 @@ const initialState: Settings = {
     content: {},
     dbName: '',
     allowWrite: true
-  }
+  },
+  users: {},
+  groups: {}
 }
 
 export const settingsSlice = createSlice({
@@ -204,6 +223,57 @@ export const settingsSlice = createSlice({
     setCatalogs: (state, action: PayloadAction<ContextCatalog[]>) => {
         state.availableCatalogs = action.payload
     },
+    setMemberships: (state, action: PayloadAction<SetMembershipsPayload>) => {
+      const { groups, assets, members, currentUserId } = action.payload
+
+      // Map assets to ContextCatalogs
+      state.availableCatalogs = assets.map((asset): ContextCatalog => {
+        const parsedContents = typeof asset.contents === "string"
+          ? safeJSON(asset.contents)
+          : asset.contents
+
+        return {
+          id: asset.id,
+          name: asset.name,
+          value: parsedContents.content || "", // fallback
+          content: parsedContents,
+          dbName: parsedContents.dbName || "",
+          allowWrite: asset.owner === currentUserId,
+          owner: asset.owner,
+          primaryGroup: groups.find(g =>
+            g.assets?.includes(asset.id))?.id || ""
+        }
+      })
+
+      // Map users by ID
+      state.users = {}
+      members.forEach((member: any) => {
+        state.users[member.id] = {
+          id: member.id,
+          created_at: member.created_at,
+          updated_at: member.updated_at,
+          email_id: member.login_email_id,
+        }
+      })
+
+      // Map groups by ID and normalize members
+      state.groups = {}
+      groups.forEach((group: any) => {
+        const formattedGroup: UserGroup = {
+          id: group.id,
+          created_at: group.created_at,
+          updated_at: group.updated_at,
+          name: group.name,
+          owner: group.owner,
+          permission: group.permission,
+          members: (group.members || []).map((m: any): UserPermission => ({
+            id: m.id,
+            permission: m.permission
+          }))
+        }
+        state.groups[group.id] = formattedGroup
+      })
+    },
     deleteCatalog: (state, action: PayloadAction<string>) => {
         const catalogToDelete = state.availableCatalogs.find(catalog => catalog.value === action.payload)
         if (catalogToDelete) {
@@ -221,7 +291,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setCatalogs
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setCatalogs, setMemberships
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
