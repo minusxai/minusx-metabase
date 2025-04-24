@@ -6,7 +6,7 @@ import { CodeBlock } from './CodeBlock';
 import { CatalogEditor, makeCatalogAPICall } from './CatalogEditor';
 import { BiPencil, BiTrash } from "react-icons/bi";
 import { dump } from 'js-yaml';
-import { ContextCatalog, deleteCatalog, setCatalogs, UserGroup, UserInfo } from "../../state/settings/reducer";
+import { ContextCatalog, deleteCatalog, setCatalogs, setMemberships, UserGroup, UserInfo } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { configs } from "../../constants";
 
@@ -20,31 +20,11 @@ interface Asset {
   updated_at: string
 }
 
-export const refreshCatalogs = async () => {
-  const { assets }: {assets: Asset[]} = await makeCatalogAPICall('retrieve', { type: 'catalog' })
-  const catalogs: ContextCatalog[] = []
-  for (const asset of assets) {
-    const {content, dbName} : {content: string, dbName: string} = JSON.parse(asset.contents)
-    catalogs.push({
-      id: asset.id,
-      name: asset.name,
-      value: asset.name,
-      content: content,
-      dbName: dbName,
-      allowWrite: true
-    })
-  }
-  dispatch(setCatalogs(catalogs))
-}
-
-export const refreshMemberships = async () => {
+export const refreshMemberships = async (currentUserId: string) => {
   const { assets, groups, members }: {assets: Asset[], groups: UserGroup[], members: UserInfo[] } = await makeCatalogAPICall(
-    'all_memberships', { type: 'catalog' }, configs.GROUPS_BASE_URL
+    'all_memberships', {}, configs.GROUPS_BASE_URL
   )
-  console.log('Assets', assets)
-  console.log('Groups', groups)
-  console.log('Members', members)
-  // dispatch(setCatalogs(catalogs))
+  dispatch(setMemberships({ assets, groups, members, currentUserId }))
 }
 
 const deleteCatalogRemote = async (catalogId: string) => {
@@ -74,6 +54,7 @@ export const YAMLCatalog: React.FC<null> = () => {
     setIsDeleting(false);
     dispatch(deleteCatalog(currentCatalog?.value || ''));
   }
+  const allowWrite = 'allowWrite' in currentCatalog ? currentCatalog.allowWrite : true
 
   return (
     <VStack w="100%" align="stretch" spacing={4}>
@@ -88,7 +69,7 @@ export const YAMLCatalog: React.FC<null> = () => {
             size="xs" 
             colorScheme="minusxGreen" 
             onClick={handleEditClick}
-            isDisabled={isDeleting}
+            isDisabled={isDeleting || !allowWrite}
             leftIcon={<BiPencil />}
           >
             Edit
@@ -97,7 +78,7 @@ export const YAMLCatalog: React.FC<null> = () => {
             size="xs" 
             colorScheme="minusxGreen" 
             onClick={handleDelete}
-            isDisabled={isDeleting}
+            isDisabled={isDeleting || !allowWrite}
             leftIcon={<BiTrash />}
           >
             Delete

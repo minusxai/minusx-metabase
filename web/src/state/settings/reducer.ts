@@ -235,13 +235,13 @@ export const settingsSlice = createSlice({
         return {
           id: asset.id,
           name: asset.name,
-          value: parsedContents.content || "", // fallback
-          content: parsedContents,
+          value: asset.name,
+          content: parsedContents.content || "",
           dbName: parsedContents.dbName || "",
           allowWrite: asset.owner === currentUserId,
           owner: asset.owner,
           primaryGroup: groups.find(g =>
-            g.assets?.includes(asset.id))?.id || ""
+            g.assets?.includes(asset.id))?.id
         }
       })
 
