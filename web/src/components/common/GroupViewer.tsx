@@ -59,7 +59,22 @@ export const GroupViewer: React.FC = () => {
     setSelectedAssetId("")
   }
 
-  const ownedAssets = assets.filter(asset => asset.owner === currentUserId)
+  const handleRemoveSharedAsset = async (assetId: string) => {
+    console.log(`Remove shared asset ${assetId} from group ${selectedGroupId}`)
+  }
+
+  // Assets owned by the user
+  const ownedAssets = assets.filter(a => a.owner === currentUserId)
+
+  // Owned assets already shared to the selected group
+  const sharedAssetsToGroup = selectedGroupId
+    ? ownedAssets.filter(a => a.primaryGroup === selectedGroupId)
+    : []
+
+  // Owned assets NOT yet shared to the selected group
+  const availableToShare = ownedAssets.filter(
+    a => a.primaryGroup !== selectedGroupId
+  )
 
   return (
     <Box>
@@ -81,6 +96,7 @@ export const GroupViewer: React.FC = () => {
             ))}
           </Select>
 
+          {/* 👥 Members Table */}
           <TableContainer mb={6}>
             <Table variant="simple" size="sm">
               <Thead>
@@ -103,10 +119,12 @@ export const GroupViewer: React.FC = () => {
                         {isCurrentUser && <Badge colorScheme="blue" ml={2}>You</Badge>}
                       </Td>
                       <Td>
-                        <Badge colorScheme={
-                          member.permission === "owner" ? "green" :
-                          member.permission === "admin" ? "purple" : "blue"
-                        }>
+                        <Badge
+                          colorScheme={
+                            member.permission === "owner" ? "green" :
+                            member.permission === "admin" ? "purple" : "blue"
+                          }
+                        >
                           {member.permission}
                         </Badge>
                       </Td>
@@ -130,7 +148,8 @@ export const GroupViewer: React.FC = () => {
           </TableContainer>
 
           {isOwner && (
-            <VStack align="stretch" spacing={4}>
+            <VStack align="stretch" spacing={6}>
+              {/* ➕ Add User */}
               <HStack>
                 <Input
                   placeholder="Add user by email"
@@ -140,13 +159,14 @@ export const GroupViewer: React.FC = () => {
                 <Button onClick={handleAddUser} colorScheme="green">Add</Button>
               </HStack>
 
+              {/* 📤 Share Asset */}
               <HStack>
                 <Select
                   placeholder="Select asset to share"
                   value={selectedAssetId}
                   onChange={(e) => setSelectedAssetId(e.target.value)}
                 >
-                  {ownedAssets.map((asset) => (
+                  {availableToShare.map((asset) => (
                     <option key={asset.id} value={asset.id}>
                       {asset.name}
                     </option>
@@ -154,6 +174,42 @@ export const GroupViewer: React.FC = () => {
                 </Select>
                 <Button onClick={handleShareAsset} colorScheme="blue">Share</Button>
               </HStack>
+
+              {/* 📄 Shared Assets Table */}
+              {sharedAssetsToGroup.length > 0 && (
+                <Box>
+                  <Heading size="sm" mb={2}>Shared Assets</Heading>
+                  <TableContainer>
+                    <Table variant="simple" size="sm">
+                      <Thead>
+                        <Tr>
+                          <Th>Asset Name</Th>
+                          <Th>DB</Th>
+                          <Th textAlign="right">Actions</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {sharedAssetsToGroup.map(asset => (
+                          <Tr key={asset.id}>
+                            <Td>{asset.name}</Td>
+                            <Td>{asset.dbName}</Td>
+                            <Td textAlign="right">
+                              <IconButton
+                                aria-label="Unshare"
+                                icon={<CloseIcon />}
+                                size="xs"
+                                variant="ghost"
+                                colorScheme="red"
+                                onClick={() => handleRemoveSharedAsset(asset.id)}
+                              />
+                            </Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              )}
             </VStack>
           )}
         </>
