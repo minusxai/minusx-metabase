@@ -21,6 +21,20 @@ import {
 import { useSelector } from "react-redux"
 import { RootState } from '../../state/store';
 import { CloseIcon } from "@chakra-ui/icons"
+import { configs } from "../../constants";
+import axios from "axios";
+import { refreshMemberships } from "./YAMLCatalog";
+
+const makeGroupsAPICall = async (endpoint: string, data: object, baseURL?: string) => {
+  baseURL = baseURL || configs.GROUPS_BASE_URL
+  const url = `${baseURL}/${endpoint}`
+  const response = await axios.post(url, data, {
+      headers: {
+          'Content-Type': 'application/json',
+      },
+  });
+  return response.data;
+}
 
 export const GroupViewer: React.FC = () => {
   const groups = useSelector((state: RootState) => state.settings.groups)
@@ -29,6 +43,7 @@ export const GroupViewer: React.FC = () => {
   const assets = useSelector((state: RootState) => state.settings.availableCatalogs)
 
   const groupList = Object.values(groups)
+  const [isLoading, setIsLoading] = useState(false)
   const [selectedGroupId, setSelectedGroupId] = useState(groupList[0]?.id || null)
   const [newUserEmail, setNewUserEmail] = useState("")
   const [selectedAssetId, setSelectedAssetId] = useState("")
@@ -45,22 +60,50 @@ export const GroupViewer: React.FC = () => {
 
   const handleAddUser = async () => {
     if (!newUserEmail) return
-    console.log(`Add user ${newUserEmail} to group ${selectedGroupId}`)
+    setIsLoading(true)
+    await makeGroupsAPICall(
+      "add_person",
+      { group_id: selectedGroupId, email_id: newUserEmail },
+      configs.GROUPS_BASE_URL
+    )
+    await refreshMemberships(currentUserId)
+    setIsLoading(false)
     setNewUserEmail("")
   }
 
-  const handleRemoveUser = async (userId: string) => {
-    console.log(`Remove user ${userId} from group ${selectedGroupId}`)
+  const handleRemoveUser = async (email_id: string) => {
+    setIsLoading(true)
+    await makeGroupsAPICall(
+      "remove_person",
+      { group_id: selectedGroupId, email_id },
+      configs.GROUPS_BASE_URL
+    )
+    await refreshMemberships(currentUserId)
+    setIsLoading(false)
   }
 
   const handleShareAsset = async () => {
     if (!selectedAssetId) return
-    console.log(`Share asset ${selectedAssetId} with group ${selectedGroupId}`)
+    setIsLoading(true)
+    await makeGroupsAPICall(
+      "add_asset",
+      { group_id: selectedGroupId, asset_id: selectedAssetId },
+      configs.GROUPS_BASE_URL
+    )
+    await refreshMemberships(currentUserId)
+    setIsLoading(false)
     setSelectedAssetId("")
   }
 
   const handleRemoveSharedAsset = async (assetId: string) => {
-    console.log(`Remove shared asset ${assetId} from group ${selectedGroupId}`)
+    setIsLoading(true)
+    await makeGroupsAPICall(
+      "remove_asset",
+      { group_id: selectedGroupId, asset_id: assetId },
+      configs.GROUPS_BASE_URL
+    )
+    await refreshMemberships(currentUserId)
+    setIsLoading(false)
   }
 
   // Assets owned by the user
@@ -78,7 +121,7 @@ export const GroupViewer: React.FC = () => {
 
   return (
     <Box>
-      <Heading size="md" mb={4}>Group Viewer</Heading>
+      <Heading size="md" mb={4}>Group Viewer {isLoading ? "Loading..." : ""}</Heading>
 
       {groupList.length === 0 ? (
         <Text>No groups available.</Text>
@@ -136,7 +179,7 @@ export const GroupViewer: React.FC = () => {
                             size="xs"
                             variant="ghost"
                             colorScheme="red"
-                            onClick={() => handleRemoveUser(member.id)}
+                            onClick={() => handleRemoveUser(user?.email_id)}
                           />
                         </Td>
                       )}
