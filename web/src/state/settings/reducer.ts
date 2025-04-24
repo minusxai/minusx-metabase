@@ -24,7 +24,8 @@ export interface ContextCatalog {
   name: string
   value: string
   content: any,
-  dbName: string
+  dbName: string,
+  allowWrite: boolean
 }
 
 //--isAppOpen
@@ -90,7 +91,8 @@ const initialState: Settings = {
     name: 'Default Tables',
     value: 'tables',
     content: {},
-    dbName: ''
+    dbName: '',
+    allowWrite: true
   }
 }
 
@@ -165,14 +167,14 @@ export const settingsSlice = createSlice({
     setSelectedCatalog: (state, action: PayloadAction<string>) => {
       state.selectedCatalog = action.payload
     },
-    saveCatalog: (state, action: PayloadAction<ContextCatalog>) => {
+    saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'>>) => {
         const { id, name, value, content, dbName } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.value === value)
         if (existingCatalog) {
             existingCatalog.content = content
             existingCatalog.dbName = dbName
         } else {
-            state.availableCatalogs.push({ id, name, value, content, dbName })
+            state.availableCatalogs.push({ id, name, value, content, dbName, allowWrite: true })
         }
     },
     setCatalogs: (state, action: PayloadAction<ContextCatalog[]>) => {
