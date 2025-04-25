@@ -61,10 +61,17 @@ export type DashboardInfoForModelling = {
   id: number,
   name: string | undefined,
   description?: string | undefined,
+  parameters: {
+    name: string,
+    id: string,
+    type: string,
+    value?: string | null
+  }[];
   cards: {
     id: number,
     name: string,
     sql: string,
+    databaseId: number,
     description?: string | undefined,
     outputTableMarkdown?: string,
   }[]
@@ -76,6 +83,7 @@ function getDashcardInfoForModelling(dashboardMetabaseState: DashboardMetabaseSt
     return null;
   }
   const cardId = _.get(dashcard, 'card_id', '');
+  const databaseId = _.get(dashcard, 'card.database_id', 0);
   const id = _.get(dashcard, 'id');
   const query_type = _.get(dashcard, 'card.query_type', 'unknown');
   const sql = _.get(dashcard, 'card.dataset_query.native.query', '');
@@ -87,8 +95,9 @@ function getDashcardInfoForModelling(dashboardMetabaseState: DashboardMetabaseSt
     return null;
   const obj = {
     id,
-    sql,
     name,
+    sql,
+    databaseId,
     ...(description ? { description } : {}),
   }
   // dashcardData
@@ -156,10 +165,18 @@ export async function getDashboardInfoForModelling(): Promise<DashboardInfoForMo
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
   const cards = selectedTabDashcardIds.map(dashcardId => getDashcardInfoForModelling(dashboardMetabaseState, dashcardId))
   const filteredCards = _.compact(cards);
+  const parameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], []).map(param => ({
+    display_name: _.get(param, 'name'),
+    name: _.get(param, 'slug'),
+    id: _.get(param, 'id'),
+    type: _.get(param, 'type'),
+    value: _.get(dashboardMetabaseState, ['parameterValues', param.id], param.default)
+  }))
   console.log("<><><><><>< cards", cards)
   return {
     id: dashboardId,
     name,
-    cards: filteredCards
+    cards: filteredCards,
+    parameters
   }
 }

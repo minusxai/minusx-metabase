@@ -43,6 +43,7 @@ export interface DashboardMetabaseState {
         // id: number;
         // card_id is required to refer to the correct dashcardData object
         card_id: number;
+        database_id: number;
         description: string | null;
         result_metadata: {
           display_name: string;

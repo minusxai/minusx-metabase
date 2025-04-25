@@ -12,8 +12,8 @@ import { getLLMResponse } from '../../app/api';
 async function getModel(dashboardInfo: any) {
   const systemMessage = `
   You are an expert at data modelling. You are given a JSON of a dashboard. 
-  Explain what it is about, and then refactor into one or two SQL models. Output the SQL models in a JSON.
-  Then, recreate every input card using the SQL models and output that as a JSON.
+  Explain what it is about, and then refactor into one or two SQL models. Output the SQL models as a Looker LookML Model.
+  Then, recreate every input card using the SQL models and output that as looker views.
   Instructions:
   - When explaining the dashboard, consider:
     - Which fact tables are used to measure the data?
@@ -22,7 +22,7 @@ async function getModel(dashboardInfo: any) {
     - What is the granularity of the data?
     - What is the primary time dimension?
   - Any measures used should not be baked into the SQL. Output the measures separately as a JSON array.
-  - Output JSON should be in the format of {"sql": <sql>, "measures": {name: <measure name>, sql: <measure sql expression>}[]}[]
+  - Output JSON should be in LookML.
   - Explicitly mention the granularity of each SQL model. Maintain the lowest granularity possible.
     - For time dimensions, keep the most granular time dimension possible in the model.
   - Any new dimensions created in any of the input cards should be present in the SQL models.

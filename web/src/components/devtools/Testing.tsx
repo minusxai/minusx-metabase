@@ -12,6 +12,7 @@ import { HttpMethod } from 'extension/types';
 import ReactJson from 'react-json-view';
 import { forwardToTab } from '../../app/rpc';
 import DashboardModelling from './DashboardModelling';
+import DashboardCrossValidation from './DashboardCrossValidation';
 
 const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px"}
 
@@ -119,6 +120,7 @@ export const Testing: React.FC<null> = () => {
             </VStack>
           </HStack>
           <DashboardModelling />
+          <DashboardCrossValidation />
         </VStack>
       </Box>
   )
