@@ -131,7 +131,7 @@ export async function convertDOMtoStateSQLQuery() {
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
   const selectedCatalog = get(find(appSettings.availableCatalogs, { value: appSettings.selectedCatalog }), 'content')
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog)
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlQuery)
   let tableContextYAML = undefined
   if (appSettings.drMode) {
     if (selectedCatalog) {

@@ -21,7 +21,7 @@ export const TablesCatalog: React.FC<null> = () => {
   const dbInfo = toolContext.dbInfo
   const allTables = dbInfo?.tables || []
 
-  const updatedRelevantTables = applyTableDiffs(relevantTables, allTables, tableDiff, dbInfo.id)
+  const updatedRelevantTables = applyTableDiffs('', allTables, tableDiff, dbInfo.id)
   
   const updateAddTables = (table: TableInfo) => {
     dispatch(applyTableDiff({
@@ -37,15 +37,19 @@ export const TablesCatalog: React.FC<null> = () => {
     }))
   }
 
+  const resetRelevantTables = () => {
+    for (const table of relevantTables.slice(0, 15)) {
+      updateAddTables({
+        name: table.name,
+        schema: table.schema,
+        dbId: dbInfo.id
+      })
+    }
+  }
+
   useEffect(() => {
     if (isEmpty(updatedRelevantTables)) {
-      for (const table of relevantTables.slice(0, 15)) {
-        updateAddTables({
-          name: table.name,
-          schema: table.schema,
-          dbId: dbInfo.id
-        })
-      }
+      resetRelevantTables()
     }
   }, [updatedRelevantTables])
   
