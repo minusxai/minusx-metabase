@@ -54,13 +54,13 @@ export function createRunner() {
   return run;
 }
 
-export const applyTableDiffs = (tables: FormattedTable[], allTables: FormattedTable[], tableDiff: TableDiff, dbId: number) => {
+export const applyTableDiffs = (sql: string, allTables: FormattedTable[], tableDiff: TableDiff, dbId: number) => {
   const updatedRelevantTables = allTables.filter(
     table => contains(tableDiff.add, {
       name: table.name,
       schema: table.schema,
       dbId,
-    })
+    }) || sql.toLowerCase().includes(table.name.toLowerCase()) // Hack to check if table in sql
   );
 
   return updatedRelevantTables;

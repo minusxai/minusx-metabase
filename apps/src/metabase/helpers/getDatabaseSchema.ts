@@ -276,7 +276,7 @@ const getDatabaseFields = async (): Promise<FieldInfo[]> => {
 
 export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
 
-export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, catalogSelected = false) => {
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, catalogSelected = false, sql = '') => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     console.warn("[minusx] No database selected when getting tables with fields");
@@ -285,7 +285,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
   if (tableDiff && (!catalogSelected || !drMode)) {
-    tables = applyTableDiffs(tables, tables, tableDiff, dbId);
+    tables = applyTableDiffs(sql, tables, tableDiff, dbId);
   }
   if (!drMode) {
     return tables;

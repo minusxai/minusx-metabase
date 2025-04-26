@@ -49,13 +49,6 @@ export const FilteredTable = ({
     const [clicks, setClicks] = useState(0);
     const [expandedSchemas, setExpandedSchemas] = useState<{ [key: string]: boolean }>({});
 
-    if (selectedData.length === 0 && data.length > 0 && clicks === 0) {
-        data.slice(0, 15).forEach((item) => {
-            addFn({ name: item.name, schema: item.schema, dbId: dbId });
-        });
-        setClicks(1);
-    }
-
     const groupedData = useMemo(() => {
         return _.groupBy(data, 'schema');
     }, [data]);
