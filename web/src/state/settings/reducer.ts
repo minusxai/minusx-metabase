@@ -190,24 +190,26 @@ export const settingsSlice = createSlice({
     setSavedQueries: (state, action: PayloadAction<boolean>) => {
       state.savedQueries = action.payload
     },
-    applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, table: TableInfo}>) {
-      const {actionType, table} = action.payload
-      if (actionType === 'add') {
-        if (!contains(state.tableDiff.add, table)) {
-          state.tableDiff.add.push(table)
+    applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, tables: TableInfo[]}>) {
+      const {actionType, tables} = action.payload
+      for (const table of tables) {
+        if (actionType === 'add') {
+          if (!contains(state.tableDiff.add, table)) {
+            state.tableDiff.add.push(table)
+          }
+        } else if (actionType === 'remove') {
+          if (contains(state.tableDiff.add, table)) {
+            state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
+          }
         }
-      } else if (actionType === 'remove') {
-        if (contains(state.tableDiff.add, table)) {
-          state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
+        state.defaultTableCatalog.content = {
+          "tables": state.tableDiff.add.map((t) => {
+              return {
+                  name: t.name
+              }
+          })
         }
-      }
-      state.defaultTableCatalog.content = {
-        "tables": state.tableDiff.add.map((t) => {
-            return {
-                name: t.name
-            }
-        })
-      }
+      } 
     },
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
