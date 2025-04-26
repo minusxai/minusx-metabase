@@ -159,18 +159,49 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
 export const ACTION_DESCRIPTIONS_DASHBOARD: ActionDescription[] = [
   ...COMMON_ACTION_DESCRIPTIONS,
   {
-    name: 'getDashcardDetailsById',
+    name: 'runSQLQuery',
     args: {
-      ids: {
-        type: 'array',
-        items: {
-          type: 'number'
-        },
-        description: "The ids of the dashcards to get the information for."
+      sql: {
+        type: 'string',
+        description: "The SQL query to to run against the database.",
+      },
+      databaseId: {
+        type: 'number',
+        description: "The database id to run the query against."
       }
     },
-    description: 'Gets more detailed information about the specified dashcards, including the visualization type, the query, and the data displayed. Can pass multiple ids to get multiple dashcards.',
-  }
+    description: `Runs the SQL query against the database and returns the result, or an error if the query fails. The query may include any dashboard parameters within {{ }} braces.
+    For example, to get the value of a variable named "my_var" in the dashboard, you would use {{my_var}}.
+    `,
+    required: ["sql", "databaseId"],
+  },
+  {
+    name: 'editParameter',
+    args: {
+      parameter: {
+        type: 'string',
+        description: "The name of the parameter to edit."
+      },
+      value: {
+        type: 'string',
+        description: "The value to set for the parameter. For a date, use the format YYYY-MM-DD (eg. 2024-01-01)."
+      },
+    },
+    description: "Edits the value, type, and display name of a parameter in the SQL editor.",
+  },
+  // {
+  //   name: 'getDashcardDetailsById',
+  //   args: {
+  //     ids: {
+  //       type: 'array',
+  //       items: {
+  //         type: 'number'
+  //       },
+  //       description: "The ids of the dashcards to get the information for."
+  //     }
+  //   },
+  //   description: 'Gets more detailed information about the specified dashcards, including the visualization type, the query, and the data displayed. Can pass multiple ids to get multiple dashcards.',
+  // }
 ];
 
 export const ACTION_DESCRIPTIONS_SEMANTIC_QUERY: ActionDescription[] = [

@@ -60,7 +60,7 @@ function metabaseToCSV(table: MetabaseStateTable): string {
 }
 
 
-export async function getAndFormatOutputTable(_type: string): Promise<string> {
+export async function getAndFormatOutputTable(_type: string = ''): Promise<string> {
   const outputTable: MetabaseStateTable | null = await getMetabaseState('qb.queryResults[0].data');
   if (!outputTable) {
     return '';

@@ -32,6 +32,7 @@ interface ExtractedTable {
 
 
 export interface MetabaseAppStateSQLEditor {
+  type: 'metabaseSQLEditor'
   availableDatabases?: string[];
   selectedDatabaseInfo?: ExtractedDataBase;
   relevantTables: ExtractedTable[];
@@ -54,9 +55,12 @@ export interface MetabaseAppStateSQLEditor {
 }
 
 // make this DashboardInfo
-export interface MetabaseAppStateDashboard extends DashboardInfo {}
+export interface MetabaseAppStateDashboard extends DashboardInfo {
+  type: 'metabaseDashboard'
+}
 
 export interface MetabaseSemanticQueryAppState {
+  type: 'metabaseSemanticQuery'
   availableMeasures: Measure[];
   availableDimensions: Dimension[];
   currentSemanticQuery: SemanticQuery;
@@ -156,6 +160,7 @@ export async function convertDOMtoStateSQLQuery() {
   const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
   const sqlVariables = await getSqlVariables();
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
+    type: 'metabaseSQLEditor',
     availableDatabases,
     selectedDatabaseInfo,
     relevantTables: relevantTablesWithFields,
@@ -190,6 +195,7 @@ export async function semanticQueryState() {
   const outputTableMarkdown = await getAndFormatOutputTable();
   
   const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {
+    type: 'metabaseSemanticQuery',
     availableMeasures,
     availableDimensions,
     currentSemanticQuery: semanticQuery,

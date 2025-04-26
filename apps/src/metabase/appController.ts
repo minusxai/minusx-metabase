@@ -3,12 +3,14 @@ import { RPCs, configs } from "web";
 import { AppController, Action } from "../base/appController";
 import {
   MetabaseAppState,
+  MetabaseAppStateDashboard,
   MetabaseAppStateSQLEditor,
   MetabaseSemanticQueryAppState
 } from "./helpers/DOMToState";
 import {
   getAndFormatOutputTable,
   getSqlErrorMessage,
+  metabaseToMarkdownTable,
   waitForQueryExecution,
 } from "./helpers/operations";
 import {
@@ -36,6 +38,7 @@ import {
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
+import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 
@@ -84,6 +87,30 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = "OK";
       return actionContent;
     }
+  }
+  // for dashboard interface
+  @Action({
+    labelRunning: "Running SQL Query",
+    labelDone: "Ran SQL query",
+    description: "Runs an SQL Query against the database",
+    renderBody: ({ sql }: { sql: string }, appState: MetabaseAppStateDashboard) => {
+      return {text: null, code: sql}
+    }
+  })
+  async runSQLQuery({ sql, databaseId }: { sql: string, databaseId: number }) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const state = (await this.app.getState()) as MetabaseAppStateDashboard;
+    const response = await runSQLQueryFromDashboard(sql, databaseId);
+    if (response.error) {
+      actionContent.content = response.error;
+    } else {
+      // convert to markdown
+      const asMarkdown = metabaseToMarkdownTable(response.data, 2000);
+      actionContent.content = asMarkdown;
+    }
+    return actionContent;
   }
 
   @Action({

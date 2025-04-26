@@ -77,7 +77,7 @@ export type DashboardInfoForModelling = {
   }[]
 }
 
-function getDashcardInfoForModelling(dashboardMetabaseState: DashboardMetabaseState, dashcardId: number): DashboardInfoForModelling['cards'][number] | null {
+function getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState: DashboardMetabaseState, dashcardId: number): DashboardInfoForModelling['cards'][number] | null {
   const dashcard = dashboardMetabaseState.dashcards[dashcardId];
   if (!dashcard) {
     return null;
@@ -89,8 +89,10 @@ function getDashcardInfoForModelling(dashboardMetabaseState: DashboardMetabaseSt
   const sql = _.get(dashcard, 'card.dataset_query.native.query', '');
   const name = _.get(dashcard, 'card.name', '');
   const description = _.get(dashcard, 'card.description', '');
+  const visualizationType = _.get(dashcard, 'card.display', '');
   if (!name)
     return null;
+  // TODO(@arpit): only supporting native cards for now
   if (!sql || query_type != 'native')
     return null;
   const obj = {
@@ -98,6 +100,7 @@ function getDashcardInfoForModelling(dashboardMetabaseState: DashboardMetabaseSt
     name,
     sql,
     databaseId,
+    visualizationType,
     ...(description ? { description } : {}),
   }
   // dashcardData
@@ -137,20 +140,16 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     visibleDashcards: [],
   }
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
-  const dashcardsInfo = getDashcardInfoByIds(selectedTabDashcardIds, dashboardMetabaseState);
-  dashboardInfo.visibleDashcards = dashcardsInfo.map(dashcard => ({
-    id: dashcard.id,
-    name: dashcard?.card?.name,
-    ...(dashcard?.card?.description ? { description: dashcard?.card?.description } : {}),
-    visualizationType: dashcard?.card?.display
-  }))
+  const cards = selectedTabDashcardIds.map(dashcardId => getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId))
+  const filteredCards = _.compact(cards);
+  dashboardInfo.visibleDashcards = filteredCards
   // filter out dashcards with null names or ids
   .filter(dashcard => dashcard.name !== null && dashcard.id !== null);
   // remove description if it's null or undefined
   if (!dashboardInfo.description) {
     delete dashboardInfo.description;
   }
-  return dashboardInfo;
+  return { ...dashboardInfo, type: 'metabaseDashboard'};
 }
 
 
@@ -163,7 +162,7 @@ export async function getDashboardInfoForModelling(): Promise<DashboardInfoForMo
   const { dashboardId } = dashboardMetabaseState;
   const name = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'name']);
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
-  const cards = selectedTabDashcardIds.map(dashcardId => getDashcardInfoForModelling(dashboardMetabaseState, dashcardId))
+  const cards = selectedTabDashcardIds.map(dashcardId => getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId))
   const filteredCards = _.compact(cards);
   const parameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], []).map(param => ({
     display_name: _.get(param, 'name'),

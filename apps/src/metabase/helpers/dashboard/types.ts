@@ -88,8 +88,11 @@ export interface DashboardMetabaseState {
 export interface DashcardInfo {
   id: number,
   name: string,
+  databaseId: number,
   description?: string | null,
-  visualizationType?: string
+  sql?: string,
+  outputTableMarkdown?: string
+  visualizationType?: string,
 }
 
 export interface DashboardInfo  {
@@ -123,4 +126,13 @@ export interface DashcardDetails {
     cols: (string | null)[]
   }
   // TODO(@arpit): add metadata for columns? i think it has display names
+}
+
+// response type for /api/dataset metabase endpoint
+export type DatasetResponse = {
+  error?: string
+  data: MetabaseStateTable
+  status?: string
+  row_count?: number
+  running_time?: number
 }
