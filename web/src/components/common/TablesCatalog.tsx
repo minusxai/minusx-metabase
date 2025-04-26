@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
@@ -8,6 +8,7 @@ import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { applyTableDiffs } from "apps";
+import { isEmpty } from "lodash";
 
 const useAppStore = getApp().useStore()
 
@@ -35,6 +36,18 @@ export const TablesCatalog: React.FC<null> = () => {
       table
     }))
   }
+
+  useEffect(() => {
+    if (isEmpty(updatedRelevantTables)) {
+      for (const table of relevantTables.slice(0, 15)) {
+        updateAddTables({
+          name: table.name,
+          schema: table.schema,
+          dbId: dbInfo.id
+        })
+      }
+    }
+  }, [updatedRelevantTables])
   
   return <>
     <HStack w={"100%"} justify={"space-between"}><Text fontSize="md" fontWeight="bold">Default Tables</Text><Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text></HStack>
