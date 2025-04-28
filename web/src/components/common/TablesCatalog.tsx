@@ -31,8 +31,8 @@ export const TablesCatalog: React.FC<null> = () => {
       tables
     }))
   }
-  const updateRemoveTables = (tables: TableInfo[]) => {
-    if (updatedRelevantTables.length == tables.length) {
+  const updateRemoveTables = (tables: TableInfo[], emptyAllowed = false) => {
+    if (updatedRelevantTables.length == tables.length && !emptyAllowed) {
       toast({
         title: "At least one table must be selected.",
         description: "You need at least one table to be relevant.",
@@ -50,7 +50,7 @@ export const TablesCatalog: React.FC<null> = () => {
   }
 
   const resetRelevantTables = () => {
-    updateRemoveTables(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id))
+    updateRemoveTables(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), true)
     updateAddTables(relevantTables.slice(0, 15).map((table) => ({
       name: table.name,
       schema: table.schema,
