@@ -53,6 +53,7 @@ import { SupportButton } from './Support'
 import { FormattedTable, MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
 import { applyTableDiffs } from "apps";
+import { toast } from '../../app/toast'
 
 
 
@@ -82,7 +83,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
   const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
   const allCatalogs = [...availableCatalogs, defaultTableCatalog]
-  const selectedCatalogName = allCatalogs.find((catalog) => catalog.value === selectedCatalog)?.name || "No catalog"
+  const selectedCatalogName = allCatalogs.find((catalog) => catalog.value === selectedCatalog)?.name || "No Tables"
 
 
   
@@ -148,6 +149,37 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   }
 
   const runTask = async () => {
+    let toastTitle = ''
+    let toastDescription = ''
+    let preventRunTask = false
+
+    if (instructions === '') {
+        toastTitle = 'Invalid Message'
+        toastDescription = "Please enter a valid message/question"
+        preventRunTask = true
+    }
+    else if (selectedCatalog === '') {
+        toastTitle = 'No Catalog'
+        toastDescription = "No catalog in context. Please select a valid catalog"
+        preventRunTask = true
+    }
+    else if (selectedCatalog === "tables" && defaultTableCatalog.content.tables.length === 0){
+        toastTitle = 'No Table in Default Tables'
+        toastDescription = "Please select at least one table in Default Tables catalog"
+        preventRunTask = true
+    }
+
+    if (preventRunTask) {
+        return toast({
+            title: toastTitle,
+            description: toastDescription,
+            status: 'warning',
+            duration: 5000,
+            isClosable: true,
+            position: 'bottom-right',
+        })
+    }
+
     if (instructions) {
       const text = instructions
       setInstructions('')
