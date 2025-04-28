@@ -23,7 +23,7 @@ import { FormattedTable } from 'apps/types';
 import { TableInfo } from "../../state/settings/reducer";
 import _, { set } from "lodash";
 
-type TableUpdateFn = (value: TableInfo) => void;
+type TableUpdateFn = (value: TableInfo[]) => void;
 
 interface HierarchicalFilteredTableProps {
     dbId: number;
@@ -96,26 +96,29 @@ export const FilteredTable = ({
     const handleTableCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, item: FormattedTable) => {
         const tableInfo = { name: item.name, schema: item.schema, dbId: dbId };
         if (e.target.checked) {
-            addFn(tableInfo);
+            addFn([tableInfo]);
         } else {
-            removeFn(tableInfo);
+            removeFn([tableInfo]);
         }
         setClicks(1);
     }, [addFn, removeFn, dbId]);
 
     const handleSchemaCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, schema: string, tablesInSchema: FormattedTable[]) => {
+        const tables: TableInfo[] = []
         if (e.target.checked) {
             tablesInSchema.forEach(table => {
                 if (!selectedSet.has(`${table.schema}/${table.name}`)) {
-                     addFn({ name: table.name, schema: table.schema, dbId: dbId });
+                    tables.push({ name: table.name, schema: table.schema, dbId: dbId });
                 }
             });
+            addFn(tables);
         } else {
             tablesInSchema.forEach(table => {
                  if (selectedSet.has(`${table.schema}/${table.name}`)) {
-                    removeFn({ name: table.name, schema: table.schema, dbId: dbId });
+                    tables.push({ name: table.name, schema: table.schema, dbId: dbId });
                  }
             });
+            removeFn(tables);
         }
         setClicks(1);
     }, [addFn, removeFn, dbId, selectedSet]);

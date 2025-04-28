@@ -31,12 +31,10 @@ export const TablesCatalog: React.FC<null> = () => {
       tables
     }))
   }
-  const updateAddTable = (tables: TableInfo) => updateAddTables([tables])
-
   const updateRemoveTables = (tables: TableInfo[]) => {
-    if (updatedRelevantTables.length == 1) {
+    if (updatedRelevantTables.length == tables.length) {
       toast({
-        title: "Cannot remove last table",
+        title: "At least one table must be selected.",
         description: "You need at least one table to be relevant.",
         status: "warning",
         duration: 3000,
@@ -50,7 +48,6 @@ export const TablesCatalog: React.FC<null> = () => {
       tables
     }))
   }
-  const updateRemoveTable = (tables: TableInfo) => updateRemoveTables([tables])
 
   const resetRelevantTables = () => {
     updateRemoveTables(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id))
@@ -98,7 +95,7 @@ export const TablesCatalog: React.FC<null> = () => {
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
     <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>What are Default Tables?</Link></Text>
-    <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={updatedRelevantTables} addFn={updateAddTable} removeFn={updateRemoveTable}/>
+    <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={updatedRelevantTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
     <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text>
   </>
 }
