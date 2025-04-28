@@ -104,7 +104,6 @@ export const FilteredTable = ({
     }, [addFn, removeFn, dbId]);
 
     const handleSchemaCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, schema: string, tablesInSchema: FormattedTable[]) => {
-        console.log("Schema checkbox changed:", schema, e.target.checked);
         if (e.target.checked) {
             tablesInSchema.forEach(table => {
                 if (!selectedSet.has(`${table.schema}/${table.name}`)) {

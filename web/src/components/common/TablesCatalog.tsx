@@ -10,6 +10,7 @@ import { RootState } from '../../state/store';
 import { applyTableDiffs } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
+import { toast } from "../../app/toast";
 
 const useAppStore = getApp().useStore()
 
@@ -33,6 +34,17 @@ export const TablesCatalog: React.FC<null> = () => {
   const updateAddTable = (tables: TableInfo) => updateAddTables([tables])
 
   const updateRemoveTables = (tables: TableInfo[]) => {
+    if (updatedRelevantTables.length == 1) {
+      toast({
+        title: "Cannot remove last table",
+        description: "You need at least one table to be relevant.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-right",
+      })
+      return
+    }
     dispatch(applyTableDiff({
       actionType: 'remove',
       tables
