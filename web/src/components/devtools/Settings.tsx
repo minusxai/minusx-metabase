@@ -169,10 +169,10 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">View Groups</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={groupsEnabled} onChange={(e) => updateGroupsEnabled(e.target.checked)} />
           </HStack>}
-          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
-            <Text color={"minusxBW.800"} fontSize="sm">Deep Research Mode</Text>
+          <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Agent Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={drMode} onChange={(e) => updateDRMode(e.target.checked)} />
-          </HStack>}
+          </HStack>
         </VStack>
       </SettingsBlock>
       <SettingsBlock title="Privacy">
