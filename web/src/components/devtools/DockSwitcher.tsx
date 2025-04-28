@@ -28,7 +28,7 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
       const title = monitor['title']
       const Component = monitor['component']
       return (
-        <TabPanel key={title} px={0}>
+        <TabPanel key={title} px={0} py={0}>
           <Component />
         </TabPanel>
       )

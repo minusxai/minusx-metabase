@@ -23,20 +23,20 @@ const Monitors: MonitorDef[] = [
     component: Context,
     tags: ['production']
   },
-  {
-    title: "Custom Instructions",
-    component: CustomInstructions,
-    tags: ['production']
-  },
-  {
-    title: "Data Catalog",
-    component: DataCatalog,
-  },
-  {
-    title: "Planner Configs",
-    component: PlannerConfigs,
-    // tags: ['production']
-  },
+//   {
+//     title: "Custom Instructions",
+//     component: CustomInstructions,
+//     tags: ['production']
+//   },
+//   {
+//     title: "Data Catalog",
+//     component: DataCatalog,
+//   },
+//   {
+//     title: "Planner Configs",
+//     component: PlannerConfigs,
+//     // tags: ['production']
+//   },
   {
     title: "Dev Context",
     component: LLMContext,

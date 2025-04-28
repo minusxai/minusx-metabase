@@ -124,7 +124,7 @@ export const FilteredTable = ({
 
     return (
         <Box>
-            <Box position="relative" width="100%" mb={4} mt={4} p={1}>
+            <Box position="relative" width="100%" mb={2} mt={2} p={0}>
                 <Input
                     placeholder={`Search table name (${data.length} tables across ${Object.keys(groupedData).length} schemas)`}
                     value={search}
@@ -133,7 +133,7 @@ export const FilteredTable = ({
                 />
             </Box>
 
-            <Box maxHeight={"375px"} overflowY={"scroll"} borderWidth="1px" borderRadius="md">
+            <Box maxHeight={"330px"} overflowY={"scroll"} borderWidth="1px" borderRadius="md" mb={2}>
                 <VStack spacing={0} align="stretch">
                     {Object.entries(filteredGroupedData).map(([schema, tables]) => {
                         const tablesInThisFilteredSchema = tables;
@@ -214,7 +214,6 @@ export const FilteredTable = ({
                      )}
                 </VStack>
             </Box>
-            <Divider mt={4} />
         </Box>
     );
 }

@@ -3,7 +3,7 @@ import { TablesCatalog } from '../common/TablesCatalog';
 import { CatalogEditor } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
-import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton} from "@chakra-ui/react";
+import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link} from "@chakra-ui/react";
 import { setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
@@ -32,7 +32,8 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     return (
         <>
         <Box display="flex" alignItems="center" justifyContent="space-between">
-            <Text fontSize="md" fontWeight="bold">Available Catalogs</Text>
+            <Text fontSize="lg" fontWeight="bold">Available Catalogs</Text>
+            
             <HStack spacing={0}>
             <Button 
               size={"xs"} 
@@ -55,6 +56,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
             </HStack>
               
         </Box>
+        <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>What are Catalogs and how to use them?</Link></Text>
         
         {isCreatingCatalog ? (
           <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} />
@@ -92,12 +94,14 @@ export const Context: React.FC = () => {
     }
 
     return <>
-        <Text fontSize="lg" fontWeight="bold">Context</Text>
+        <Text fontSize="2xl" fontWeight="bold">Context</Text>
         <Box mt={2} mb={2}>
-            <Text fontWeight="bold">DB Info</Text>
+            {/* <Text fontWeight="bold">DB Info</Text> */}
+            <HStack justifyContent={"space-between"}>
             <Text fontSize="sm"><Text as="span">DB Name: <Badge color={"minusxGreen.600"}>{dbInfo.name}</Badge></Text></Text>
+            <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>    
+            </HStack>
             <Text fontSize="sm"><Text as="span">DB Description: {dbInfo.description || "-"}</Text></Text>
-            <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>
         </Box>
         <Spacer height={5}/>
         <CatalogDisplay isInModal={false} modalOpen={modalOpen}/>

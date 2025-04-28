@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { applyTableDiffs } from "apps";
 import { isEmpty, sortBy } from "lodash";
+import { BiSolidMagicWand } from "react-icons/bi";
 
 const useAppStore = getApp().useStore()
 
@@ -72,9 +73,22 @@ export const TablesCatalog: React.FC<null> = () => {
   }, [updatedRelevantTables])
   
   return <>
-    <HStack w={"100%"} justify={"space-between"}><Text fontSize="md" fontWeight="bold">Default Tables</Text><Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text></HStack>
-    <Text color={"minusxBW.600"} fontSize="sm">The selected tables are in MinusX context while answering queries. You can select/unselect tables to control the context. {resetTables}</Text>
-    <Text fontSize="sm" color={"minusxGreen.600"} mt={1}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>Read more about table context.</Link></Text>
+    <HStack w={"100%"} justify={"space-between"}>
+        <Text fontSize="md" fontWeight="bold">Catalog: Default Tables</Text>
+        <Button 
+            size={"xs"} 
+            onClick={resetRelevantTables} 
+            colorScheme="minusxGreen"
+            isDisabled={!isAnyChange}
+            leftIcon={<BiSolidMagicWand />}
+        >
+            Reset to Smart Defaults
+        </Button>
+        {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text> */}
+    </HStack>
+    {/* <Text color={"minusxBW.600"} fontSize="sm">The selected tables are in MinusX context while answering queries. You can select/unselect tables to control the context. {resetTables}</Text> */}
+    <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>What are Default Tables?</Link></Text>
     <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={updatedRelevantTables} addFn={updateAddTable} removeFn={updateRemoveTable}/>
+    <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text>
   </>
 }
