@@ -5,14 +5,15 @@ import {
   HStack, Radio, Textarea, Input
 } from '@chakra-ui/react';
 import ReactJson from 'react-json-view';
-import { DashboardInfoForModelling, getDashboardInfoForModelling } from '../../../../apps/src/metabase/helpers/dashboard/appState';
+import { getDashboardAppState } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 import { getLLMResponse } from '../../app/api';
 import { fetchData } from '../../app/rpc';
 import { getSelectedDbId } from '../../../../apps/src/metabase/helpers/getUserInfo';
 import { MetabaseStateTable, metabaseToMarkdownTable } from '../../../../apps/src/metabase/helpers/operations';
 import { ToolCalls } from '../../state/chat/reducer';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
-import { DatasetResponse } from '../../../../apps/src/metabase/helpers/dashboard/types';
+import { DashboardInfo, DatasetResponse } from '../../../../apps/src/metabase/helpers/dashboard/types';
+import { substituteParameters } from '../../../../apps/src/metabase/helpers/dashboard/runSqlQueryFromDashboard';
 
 const levenshteinDistance = (s: string, t: string) => {
   if (!s.length) return t.length;
@@ -34,26 +35,10 @@ const levenshteinDistance = (s: string, t: string) => {
   return arr[t.length][s.length];
 };
 
-const substituteParameters = (sql: string, parameters: DashboardInfoForModelling['parameters']) => {
-  // parameters is an array
-  for (let i = 0; i < parameters.length; i++) {
-    const parameter = parameters[i];
-    // only some parameter types are supported
-    if (parameter.type == 'date/single') {
-      sql = sql.replace(new RegExp(`{{\\s*${parameter.name}\\s*}}`, 'g'), `Date('${parameter.value}')`);
-    } else if (parameter.type == 'string/=') {
-      sql = sql.replace(new RegExp(`{{\\s*${parameter.name}\\s*}}`, 'g'), `${parameter.name} = '${parameter.value}'`);
-    } else {
-      throw new Error(`Parameter type ${parameter.type} is not supported`);
-    }
-    // use regex replace to replace {{\s*parameter_name\s*}} with "Date('parameter.value')"
-  }
-  return sql;
-};
 
 
 
-async function runSQLQuery(dbId: Number, sql: string, parameters: DashboardInfoForModelling['parameters']) {
+async function runSQLQuery(dbId: Number, sql: string, parameters: DashboardInfo['parameters']) {
   sql = substituteParameters(sql, parameters)
   // use metabase api /datasets to run the query and get results
   const response = await fetchData('/api/dataset', 'POST', {
@@ -69,8 +54,8 @@ async function runSQLQuery(dbId: Number, sql: string, parameters: DashboardInfoF
 }
 
 async function runSingleValidation(
-  dashboardInfoWithoutOneCard: DashboardInfoForModelling, 
-  card: DashboardInfoForModelling['cards'][0], 
+  dashboardInfoWithoutOneCard: DashboardInfo, 
+  card: DashboardInfo['cards'][0], 
   dbId: number) {
   const systemMessage = `
   You are an expert at data analysis. You are given a JSON of a dashboard that contains several cards, within a <DashboardInfo/> tag.
@@ -99,7 +84,9 @@ async function runSingleValidation(
     role: "user",
     content: userMessage,
   }]
-  while (true) {
+  let maxTryCount = 1
+  while (maxTryCount > 0) {
+    maxTryCount -= 1
     const response = await getLLMResponse({
       messages,
       llmSettings: {
@@ -143,7 +130,7 @@ async function runSingleValidation(
       })
     } else {
       const asMarkdown = metabaseToMarkdownTable(result.data, 1000)
-      const sqlLevenshtein = levenshteinDistance(sql, card.sql)
+      const sqlLevenshtein = levenshteinDistance(sql, card.sql|| '')
       const outputTableMarkdownLevenshtein = levenshteinDistance(asMarkdown, card.outputTableMarkdown as string)
       return {
         originalCard: {
@@ -166,7 +153,7 @@ async function runSingleValidation(
 }
 
 
-async function getValidations(dashboardInfo: DashboardInfoForModelling | undefined) {
+async function getValidations(dashboardInfo: DashboardInfo | null) {
   if (!dashboardInfo) {
     console.log('<><><><>No dashboard info')
     return 
@@ -181,7 +168,7 @@ async function getValidations(dashboardInfo: DashboardInfoForModelling | undefin
   let cards = dashboardInfo.cards.slice(0)
   // iterate over cards, remove one at a time and call runSingleValidation
   let allResultPromises = []
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < cards.length; i++) {
     const card = cards[i]
     let restOfTheCards = cards.slice(0)
     restOfTheCards.splice(i, 1)
@@ -195,12 +182,12 @@ export default function DashboardCrossValidation() {
   const [dashboardInfo, setDashboardInfo] = useState<any>([])
   const [results, setResults] = useState<any>([])
   const onClickGetDashboardInfo = () => {
-    getDashboardInfoForModelling().then(dashboardInfo => {
+    getDashboardAppState().then(dashboardInfo => {
       setDashboardInfo(dashboardInfo)
     })
   }
   const onClickGetValidations = () => {
-    getDashboardInfoForModelling().then(getValidations)
+    getDashboardAppState().then(getValidations)
       .then(results => {
         console.log("<><><><><>< results", results)
         setResults(results)

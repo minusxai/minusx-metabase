@@ -156,7 +156,7 @@ export const DashboardInfoSchema = {
         }
       }
     },
-    "visibleDashcards": {
+    "cards": {
       "type": "array",
       "description": "Currently visible dashcards in the dashboard on the selected tab",
       "items": {

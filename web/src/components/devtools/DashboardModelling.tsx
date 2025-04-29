@@ -5,8 +5,9 @@ import {
   HStack, Radio, Textarea, Input
 } from '@chakra-ui/react';
 import ReactJson from 'react-json-view';
-import { getDashboardInfoForModelling } from '../../../../apps/src/metabase/helpers/dashboard/appState';
+// import { getDashboardInfoForModelling } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 import { getLLMResponse } from '../../app/api';
+import { getDashboardAppState } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 
 
 async function getModel(dashboardInfo: any) {
@@ -55,12 +56,12 @@ export default function DashboardModelling() {
   const [dashboardInfo, setDashboardInfo] = useState<any>([])
   const [model, setModel] = useState<any>([])
   const onClickGetDashboardInfo = () => {
-    getDashboardInfoForModelling().then(dashboardInfo => {
+    getDashboardAppState().then(dashboardInfo => {
       setDashboardInfo(dashboardInfo)
     })
   }
   const onClickGetModel = () => {
-    getDashboardInfoForModelling().then(getModel)
+    getDashboardAppState().then(getModel)
       .then(model => {
         console.log("<><><><><>< model", model)
         setModel(model)

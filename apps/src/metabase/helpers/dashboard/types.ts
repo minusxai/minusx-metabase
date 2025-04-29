@@ -10,7 +10,7 @@ export interface DashboardMetabaseState {
     showLoadCompleteFavicon: boolean;
   };
   selectedTabId: number | null;
-  dashboards?: {
+  dashboards: {
     [key: number]: {
       description: string | null;
       // one of ordered_cards or dashcards should be present
@@ -64,6 +64,17 @@ export interface DashboardMetabaseState {
       size_y: number;
       row: number;
       col: number;
+      parameter_mappings: {
+        parameter_id: string;
+        card_id: number;
+        target: [
+          "variable" | "dimension",
+          [
+            "template-tag",
+            name: string 
+          ]
+        ]
+      }[]
     }
   },
   dashcardData: {
@@ -104,12 +115,12 @@ export interface DashboardInfo  {
     id: number,
     name: string
   }[],
-  visibleDashcards: DashcardInfo[]
+  cards: DashcardInfo[]
   parameters: {
     name: string,
     id: string,
     type: string,
-    value?: string | null
+    value?: string | null | string[]
   }[];
   // we can add loadingDashcards here
   // but by default their data will be empty, and the model will just say it can't see the data

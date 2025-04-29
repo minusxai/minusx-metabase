@@ -1,7 +1,7 @@
 import { fetchData } from "../../../../../web/src/app/rpc";
 import { DashboardInfo, DatasetResponse } from "./types";
 
-const substituteParameters = (sql: string, parameters: DashboardInfo['parameters']) => {
+export const substituteParameters = (sql: string, parameters: DashboardInfo['parameters']) => {
   // parameters is an array
   for (let i = 0; i < parameters.length; i++) {
     const parameter = parameters[i];
@@ -9,7 +9,11 @@ const substituteParameters = (sql: string, parameters: DashboardInfo['parameters
     if (parameter.type == 'date/single') {
       sql = sql.replace(new RegExp(`{{\\s*${parameter.name}\\s*}}`, 'g'), `Date('${parameter.value}')`);
     } else if (parameter.type == 'string/=') {
-      sql = sql.replace(new RegExp(`{{\\s*${parameter.name}\\s*}}`, 'g'), `${parameter.name} = '${parameter.value}'`);
+      if (parameter.isFieldFilter) {
+        sql = sql.replace(new RegExp(`{{\\s*${parameter.name}\\s*}}`, 'g'), `${parameter.name}='${parameter.value}'`);
+      } else {
+        sql = sql.replace(new RegExp(`{{\\s*${parameter.name}\\s*}}`, 'g'), `'${parameter.value}'`);
+      }
     } else {
       throw new Error(`Parameter type ${parameter.type} is not supported`);
     }
@@ -18,7 +22,8 @@ const substituteParameters = (sql: string, parameters: DashboardInfo['parameters
   return sql;
 };
 
-export const runSQLQueryFromDashboard = async (sql: string, databaseId: number) => {
+export const runSQLQueryFromDashboard = async (sql: string, databaseId: number, parameters: DashboardInfo['parameters']) => {
+  sql = substituteParameters(sql, parameters)
   const response = await fetchData('/api/dataset', 'POST', {
       "database": databaseId,
       "type": "native",
