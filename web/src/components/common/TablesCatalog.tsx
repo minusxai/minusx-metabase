@@ -86,7 +86,7 @@ export const TablesCatalog: React.FC<null> = () => {
         </Button>
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
-    <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>What are Default Tables?</Link></Text>
+    <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166007-default-tables" isExternal>What are Default Tables?</Link></Text>
     <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={updatedRelevantTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
     <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{updatedRelevantTables.length} out of {allTables.length} tables selected]</Text>
   </>

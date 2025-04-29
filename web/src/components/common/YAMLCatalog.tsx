@@ -57,12 +57,12 @@ export const YAMLCatalog: React.FC<null> = () => {
   const allowWrite = 'allowWrite' in currentCatalog ? currentCatalog.allowWrite : true
 
   return (
-    <VStack w="100%" align="stretch" spacing={4}>
+    <VStack w="100%" align="stretch" spacing={1}>
       <HStack w={"100%"} justify={"space-between"}>
         {isDeleting && (
           <Text fontSize="md" fontWeight="bold">Deleting...</Text>
         )}
-        <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>
+        <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>        
         {!isEditing && (
             <HStack spacing={2}>
           <Button 
@@ -88,6 +88,7 @@ export const YAMLCatalog: React.FC<null> = () => {
           </HStack>
         )}
       </HStack>
+      <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166107-advanced-catalogs" isExternal>How to create a catalog?</Link></Text>
       
       {isEditing ? (
         <CatalogEditor 

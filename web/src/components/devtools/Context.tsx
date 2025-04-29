@@ -56,7 +56,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
             </HStack>
               
         </Box>
-        <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/10501728-modify-relevant-tables-list" isExternal>What are Catalogs and how to use them?</Link></Text>
+        <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11165963-data-catalogs" isExternal>What are Catalogs and how to use them?</Link></Text>
         
         {isCreatingCatalog ? (
           <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} />

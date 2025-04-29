@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { Text, Box, Button, Input, Textarea, HStack} from "@chakra-ui/react";
+import { Text, Box, Button, Input, Textarea, HStack, Link} from "@chakra-ui/react";
 import { ContextCatalog, saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { load, dump } from 'js-yaml';
@@ -107,7 +107,8 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
             {isSaving && (
                 <Text fontSize="sm" color="green.500" mb={2}>Saving...</Text>
             )}
-        <Text fontSize="md" fontWeight="bold" mb={3}>{defaultTitle ? 'Edit Catalog' : 'Create New Catalog'}</Text>
+        <Text fontSize="md" fontWeight="bold">{defaultTitle ? 'Edit Catalog' : 'Create New Catalog'}</Text>
+        <Text fontSize="xs" color={"minusxGreen.600"} mb={3}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166107-advanced-catalogs" isExternal>How to create a catalog?</Link></Text>
         
         <Text fontSize="sm" mb={1}>Catalog Name</Text>
         <Input 
