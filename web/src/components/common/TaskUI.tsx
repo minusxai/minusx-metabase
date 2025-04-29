@@ -298,7 +298,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
           {/* <Divider borderColor={"minusxBW.500"}/> */}
-          {isMessageTooLong() && <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease both speed and accuracy. Consider starting a new thread (click <BiMessageAdd style={{display:"inline-block", verticalAlign: "middle"}}/> at the top right corner).</Text>}
+          {isMessageTooLong() && <Text fontSize="sm" color={"minusxBW.600"}>Long conversations decrease both speed and accuracy. Consider starting a new chat thread (click <BiMessageAdd style={{display:"inline-block", verticalAlign: "middle"}}/> at the top right corner).</Text>}
             {/* <ChatSuggestions
               suggestQueries={suggestQueries}
               toggleSuggestions={toggleSuggestions}
@@ -382,9 +382,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         } */}
         <SettingsBlock title='Quick Actions'>
         <HStack flexWrap={"wrap"} gap={1}>
-          {/* { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> } */}
-          {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Tables</Button> } */}
-          { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Thread</Button> }
+          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
+          { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Context</Button> }
+          { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> }
           {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
           {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
           <SupportButton email={email} />

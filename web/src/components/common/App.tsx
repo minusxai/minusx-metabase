@@ -179,7 +179,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           <Image src={logo} alt="MinusX" maxWidth='150px'/>
           <HStack>
             
-            <Tooltip hasArrow label="Start New Thread" placement='bottom' borderRadius={5} openDelay={500}>
+            <Tooltip hasArrow label="Start New Chat" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
                 variant={'ghost'}
                 colorScheme="minusxGreen"
@@ -230,7 +230,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
         {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
-        { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>}
+        {/* { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>} */}
         {/* <SupportButton email={email} /> */}
       </HStack>
     </VStack>

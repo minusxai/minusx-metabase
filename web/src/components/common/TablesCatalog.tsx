@@ -10,9 +10,10 @@ import { RootState } from '../../state/store';
 import { applyTableDiffs } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
-import { toast } from "../../app/toast";
 
 const useAppStore = getApp().useStore()
+
+const NUM_RELEVANT_TABLES = 15
 
 
 export const TablesCatalog: React.FC<null> = () => {
@@ -41,7 +42,7 @@ export const TablesCatalog: React.FC<null> = () => {
 
   const resetRelevantTables = () => {
     updateRemoveTables(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), true)
-    updateAddTables(relevantTables.slice(0, 15).map((table) => ({
+    updateAddTables(relevantTables.slice(0, NUM_RELEVANT_TABLES).map((table) => ({
       name: table.name,
       schema: table.schema,
       dbId: dbInfo.id
@@ -50,7 +51,7 @@ export const TablesCatalog: React.FC<null> = () => {
 
   const isAnyTablesAdded = () => {
     const addedTables = sortBy(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), ['name', 'schema'])
-    const topRelevantTables = sortBy(relevantTables.slice(0, 15), ['name', 'schema'])
+    const topRelevantTables = sortBy(relevantTables.slice(0, NUM_RELEVANT_TABLES), ['name', 'schema'])
     if (addedTables.length !== topRelevantTables.length) {
       return true
     }

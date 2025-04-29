@@ -94,12 +94,12 @@ export const metabaseInternalState: MetabaseInternalState = {
     },
   },
   toolContext: {},
-  helperMessage: `Here's a [user manual](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) to get you started.
+  helperMessage: `Here's the [docs](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) to get you started.  
 
-  **tl;dr:** MinusX has 3 modes:
-1. [Basic Mode](https://docs.minusx.ai/en/articles/10488431-basic-mode): Best-effort answers based on relevant tables and historical queries.
-2. [Custom Mode](https://docs.minusx.ai/en/articles/10489277-custom-mode): Queries based on custom instructions (about tables, joins, custom fields, etc.).
-3. [Advanced Mode](https://docs.minusx.ai/en/articles/10489378-advanced-mode): Automated data modeling that drastically reduces query complexity and length.
-
-You're all set! Feel free to contact support in case of any questions.`,
+\`NEW: \` MinusX can now: 
+1. auto-magically create **data models** from your dashboards
+2. support data requests in **Slack** 
+3. perform factual **Deep Research** on your data
+  
+[Schedule a Demo](https://minusx.ai/demo) to learn more!`,
 };

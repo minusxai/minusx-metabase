@@ -15,7 +15,7 @@ function LinkRenderer(props: any) {
 
 function ModifiedParagraph(props: any) {
   return (
-    <p style={{margin: '0px 5px'}}>{props.children}</p>
+    <p style={{margin: '5px'}}>{props.children}</p>
   )
 }
 
@@ -29,6 +29,14 @@ function ModifiedOL(props: any) {
   return (
     <ol style={{padding: '0px 20px', margin: '5px'}}>{props.children}</ol>
   )
+}
+
+function ModifiedCode(props: any) {
+    return (
+        <code style={{backgroundColor: '#ddd', padding: '2px', borderRadius: '5px', color: "#16a085", fontWeight: '800', fontSize: '0.9em'}} className="code">
+            {props.children}
+        </code>
+    )
 }
 
 function ZoomableImage({src, alt}: {src: string, alt: string}) {
@@ -50,6 +58,6 @@ function ImageComponent(props: any) {
 
 export function Markdown({content}: {content: string}) {
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent}}>{content}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, code: ModifiedCode}}>{content}</MarkdownComponent>
   )
 }
