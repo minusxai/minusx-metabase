@@ -13,7 +13,7 @@ import { MetabaseStateTable, metabaseToMarkdownTable } from '../../../../apps/sr
 import { ToolCalls } from '../../state/chat/reducer';
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs';
 import { DashboardInfo, DatasetResponse } from '../../../../apps/src/metabase/helpers/dashboard/types';
-import { substituteParameters } from '../../../../apps/src/metabase/helpers/dashboard/runSqlQueryFromDashboard';
+// import { substituteParameters } from '../../../../apps/src/metabase/helpers/dashboard/runSqlQueryFromDashboard';
 
 const levenshteinDistance = (s: string, t: string) => {
   if (!s.length) return t.length;
@@ -38,8 +38,8 @@ const levenshteinDistance = (s: string, t: string) => {
 
 
 
-async function runSQLQuery(dbId: Number, sql: string, parameters: DashboardInfo['parameters']) {
-  sql = substituteParameters(sql, parameters)
+async function runSQLQuery(dbId: Number, sql: string) {
+  // sql = substituteParameters(sql, parameters)
   // use metabase api /datasets to run the query and get results
   const response = await fetchData('/api/dataset', 'POST', {
       "database": dbId,
@@ -113,12 +113,12 @@ async function runSingleValidation(
     }
     const args = tool_call.function.arguments
     const sql = JSON.parse(args).sql
-    const result = await runSQLQuery(dbId, sql, dashboardInfoWithoutOneCard.parameters)
+    const result = await runSQLQuery(dbId, sql)
     if (result.error) {
-      console.log('<><><><><><>Error is', result.error, {
-        sql,
-        substitutedSql: substituteParameters(sql, dashboardInfoWithoutOneCard.parameters)
-      })
+      // console.log('<><><><><><>Error is', result.error, {
+      //   sql,
+      //   substitutedSql: substituteParameters(sql, dashboardInfoWithoutOneCard.parameters)
+      // })
       messages.push({
         role: "assistant",
         tool_calls: tool_calls

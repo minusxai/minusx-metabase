@@ -1,8 +1,9 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
-import _ from 'lodash';
+import _, { template } from 'lodash';
 import { MetabaseAppStateDashboard } from '../DOMToState';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
+import { memoizedGetFieldResolvedName } from './util';
 
 const { getMetabaseState } = RPCs
 
@@ -93,10 +94,10 @@ function substituteParameterMappings(
   return sql
 }
 
-function getDashcardInfoWithSQLAndOutputTableMd(
+async function getDashcardInfoWithSQLAndOutputTableMd(
   dashboardMetabaseState: DashboardMetabaseState, 
   dashcardId: number,
-  dashboardParameters: DashboardMetabaseState['dashboards'][0]['parameters']): DashboardInfoForModelling['cards'][number] | null {
+  dashboardId: number): Promise<DashboardInfoForModelling['cards'][number] | null> {
   const dashcard = dashboardMetabaseState.dashcards[dashcardId];
   if (!dashcard) {
     return null;
@@ -115,8 +116,8 @@ function getDashcardInfoWithSQLAndOutputTableMd(
   if (!sql || query_type != 'native')
     return null;
 
-  // replace parameter mappings
-  sql = substituteParameterMappings(sql, dashboardParameters, dashcard.parameter_mappings)
+  // replace parameters
+  sql = await substituteParameters(sql, dashcard, dashboardMetabaseState['dashboards'][dashboardId]?.param_fields, dashboardMetabaseState.parameterValues)
   const obj = {
     id,
     name,
@@ -142,27 +143,79 @@ This is kind of confusing and hard to model; so simplifying right now by checkin
 a field filter, in which case it's a field filter. 
 a field filter is a parameter_mapping of type 'dimension'
 */
-function checkIfParameterIsFieldFilter(parameterId: string, dashboardMetabaseState: DashboardMetabaseState, dashboardId: number) {
-  const dashcards = _.get(dashboardMetabaseState, ['dashcards'], [])
-  const parameterMappings = Object.values(dashcards).flatMap(dashcard => dashcard.parameter_mappings)
-    .filter(paramMapping => paramMapping.parameter_id === parameterId)
-  return _.some(parameterMappings, paramMapping => paramMapping.target[0] === 'dimension')
+// function checkIfParameterIsFieldFilter(parameterId: string, dashboardMetabaseState: DashboardMetabaseState, dashboardId: number) {
+//   const dashcards = _.get(dashboardMetabaseState, ['dashcards'], [])
+//   const parameterMappings = Object.values(dashcards).flatMap(dashcard => dashcard.parameter_mappings)
+//     .filter(paramMapping => paramMapping.parameter_id === parameterId)
+//   return _.some(parameterMappings, paramMapping => paramMapping.target[0] === 'dimension')
+// }
+
+// function getDashboardParameters(dashboardMetabaseState: DashboardMetabaseState, dashboardId: number) {
+//   const parameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
+//   return parameters.map(param => {
+//     const id = _.get(param, 'id')
+//     return ({
+//       display_name: _.get(param, 'name'),
+//       name: _.get(param, 'slug'),
+//       id: _.get(param, 'id'),
+//       type: _.get(param, 'type'),
+//       value: _.get(dashboardMetabaseState, ['parameterValues', param.id], param.default),
+//       isFieldFilter: checkIfParameterIsFieldFilter(param.id, dashboardMetabaseState, dashboardId)
+//     })
+//   } )
+// }
+
+function stringifyParams(params: any) {
+  return '(' + JSON.stringify(params).slice(1, -1).replaceAll('"', "'") + ')'
 }
 
-function getDashboardParameters(dashboardMetabaseState: DashboardMetabaseState, dashboardId: number) {
-  const parameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
-  return parameters.map(param => {
-    const id = _.get(param, 'id')
-    return ({
-      display_name: _.get(param, 'name'),
-      name: _.get(param, 'slug'),
-      id: _.get(param, 'id'),
-      type: _.get(param, 'type'),
-      value: _.get(dashboardMetabaseState, ['parameterValues', param.id], param.default),
-      isFieldFilter: checkIfParameterIsFieldFilter(param.id, dashboardMetabaseState, dashboardId)
-    })
-  } )
-}
+async function substituteParameters(
+  sql: string, 
+  dashcard: DashboardMetabaseState['dashcards'][0],
+  dashboardParamFields: DashboardMetabaseState['dashboards'][0]['param_fields'],
+  parameterValues: DashboardMetabaseState['parameterValues']) {
+  // Algo:
+  // transitivity is: template-tags -> dashcard parameters -> dashcard parameter mappings -> dashboard parameters -> parameter values
+  //                                        |-> parameter values
+  // for each template-tag, find out if it is connected tot he dashboard using the parameter mappings.
+  // if so, use the parameter value from the dashboard. otherwise use dashcard parameter default value.
+  // when replacing, check if the template-tag is of type 'dimension'. if so, consider it a field filter and replace accordingly.
+  // otherwise simply substitute as a variable
+
+  const templateTags = Object.values(_.get(dashcard, ['card', 'dataset_query', 'native', 'template-tags'], {}))
+  const dashcardParameters = _.get(dashcard, ['card', 'parameters'], [])
+  // parameters is an array
+  for (let i = 0; i < templateTags.length; i++) {
+    const templateTag = templateTags[i];
+    const dashcardParameter = dashcardParameters.find(parameter => parameter.id == templateTag.id)
+    if (templateTag.type == 'snippet') {
+      // TODO(@arpit): handle snippets
+      continue
+    }
+    if (!dashcardParameter) {
+      throw new Error(`Parameter ${templateTag.name} not found in card ${dashcard.id}`)
+    }
+    const parameterMapping = dashcard.parameter_mappings.find(mapping => mapping.target[1][1] === templateTag.name)
+    const parameterValue = parameterValues?.[parameterMapping?.parameter_id || ''] || dashcardParameter?.default || ''
+    // for now assume its always connected to a dashboard parameter
+    // only some parameter types are supported
+    if (templateTag.type == 'dimension' && templateTag.dimension?.[0] == 'field') {
+      // only supporting string/= right now
+      if (dashcardParameter.type != 'string/=') {
+        throw new Error(`Parameter type ${dashcardParameter.type} is not supported in field filters. template tag: ${templateTag.name}`);
+      }
+      const fieldName = await memoizedGetFieldResolvedName(templateTag.dimension[1])
+      sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `${fieldName} in ${stringifyParams(parameterValue)}`);
+    } else if (templateTag.type == 'text') {
+      sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `'${parameterValue}'`);
+    } else if (templateTag.type == 'date') {
+      sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `Date('${parameterValue}')`);
+    } else {
+      throw new Error(`Parameter type ${dashcardParameter?.type} is not supported. template tag: ${templateTag.name}`);
+    }
+  }
+  return sql;
+};
 export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard | null> {
   const dashboardMetabaseState: DashboardMetabaseState = await getMetabaseState('dashboard') as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
@@ -174,7 +227,6 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     id: dashboardId,
     name: _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'name']),
     description: _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'description']),
-    parameters: getDashboardParameters(dashboardMetabaseState, dashboardId),
     selectedTabId: getSelectedTabId(dashboardMetabaseState),
     tabs: _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'tabs'], []).map(tab => ({
       id: _.get(tab, 'id'),
@@ -184,7 +236,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   }
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
-  const cards = selectedTabDashcardIds.map(dashcardId => getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardParameters))
+  const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
   const filteredCards = _.compact(cards);
   dashboardInfo.cards = filteredCards
   // filter out dashcards with null names or ids

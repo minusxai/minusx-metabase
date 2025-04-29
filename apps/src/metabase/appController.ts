@@ -102,7 +102,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
-    const response = await runSQLQueryFromDashboard(sql, databaseId, state.parameters);
+    const response = await runSQLQueryFromDashboard(sql, databaseId);
     if (response.error) {
       actionContent.content = response.error;
     } else {
