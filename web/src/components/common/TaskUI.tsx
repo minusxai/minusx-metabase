@@ -20,7 +20,7 @@ import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh } from 'react-icons/bi'
 import chat from '../../chat/chat'
-import _ from 'lodash'
+import _, { get, isEmpty } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, ContextCatalog } from '../../state/settings/reducer'
@@ -155,7 +155,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "Please enter a valid message/question"
         preventRunTask = true
     }
-    else if (selectedCatalog === DEFAULT_TABLES && defaultTableCatalog.content.tables.length === 0){
+    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(get(defaultTableCatalog, 'content.tables', []))){
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
         preventRunTask = true
