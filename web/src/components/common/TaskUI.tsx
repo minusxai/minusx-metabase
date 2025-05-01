@@ -20,10 +20,10 @@ import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh } from 'react-icons/bi'
 import chat from '../../chat/chat'
-import _, { get, isEmpty, isUndefined } from 'lodash'
+import _, { get, isEmpty, isUndefined, sortBy } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, ContextCatalog } from '../../state/settings/reducer'
+import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, ContextCatalog, TableInfo } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
@@ -54,6 +54,7 @@ import { FormattedTable, MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
 import { applyTableDiffs } from "apps";
 import { toast } from '../../app/toast'
+import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 
 
 
@@ -85,6 +86,28 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const allCatalogs = [...availableCatalogs, defaultTableCatalog]
   const selectedCatalogName = allCatalogs.find((catalog: ContextCatalog) => catalog.name === selectedCatalog)?.name || "No Tables"
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+
+  const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
+
+  const relevantTables = toolContext.relevantTables || []
+  const dbInfo = toolContext.dbInfo
+
+  const allTables = dbInfo.tables || []
+  const validAddedTables = applyTableDiffs('', allTables, tableDiff, dbInfo.id)
+  const [isChanged, setIsChanged] = React.useState(false) 
+
+  useEffect(() => {
+    if (!isEmpty(relevantTables)) {
+      if (isEmpty(validAddedTables) && !isChanged) {
+        resetRelevantTables(relevantTables.map(table => ({
+          name: table.name,
+          schema: table.schema,
+          dbId: dbInfo.id
+        })), dbInfo.id)
+      }
+      setIsChanged(true)
+    }
+  }, [validAddedTables])
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
