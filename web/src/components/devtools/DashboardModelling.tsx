@@ -9,12 +9,13 @@ import ReactJson from 'react-json-view';
 import { getLLMResponse } from '../../app/api';
 import { getDashboardAppState } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 
-
 export async function getModelFromDashboard(dashboardInfo: any) {
+  // return TEST_STR
   const systemMessage = `
   You are an expert at data modelling. You are given a JSON of a dashboard. 
-  Explain what it is about, and then refactor into one or two SQL models. Output the SQL models as a Looker LookML Model.
-  Then, recreate every input card using the SQL models and output that as looker views.
+  Explain what it is about, and then refactor into one or two SQL models. Output the SQL models as a YAML file.
+  Make sure the YAML file is within a code block.
+  An example of the YAML file is attached at the bottom of this message.
   Instructions:
   - When explaining the dashboard, consider:
     - Which fact tables are used to measure the data?
@@ -22,12 +23,82 @@ export async function getModelFromDashboard(dashboardInfo: any) {
     - What are the important dimensions used in each of the input cards?
     - What is the granularity of the data?
     - What is the primary time dimension?
-  - Any measures used should not be baked into the SQL. Output the measures separately as a JSON array.
-  - Output JSON should be in LookML.
+  - Any measures used should not be baked into the SQL. Output the measures in the YAML file within the 'measures' key
   - Explicitly mention the granularity of each SQL model. Maintain the lowest granularity possible.
     - For time dimensions, keep the most granular time dimension possible in the model.
   - Any new dimensions created in any of the input cards should be present in the SQL models.
   - Make sure each of the input cards can be reconstructed using the SQL models. 
+  Example YAML file:
+  \`\`\`yaml
+  entities:
+  - name: EmployeeDepartmentHistoryModified
+    from_: EmployeeDepartmentHistory
+    dimensions:
+      - name: BusinessEntityID
+        type: numeric
+        description: Unique ID for the employee
+      - name: ShiftID
+        type: numeric
+        description: Type of Shift
+      - name: StartDate
+        type: date
+        description: Start date of the Employee
+      - name: IsCurrentDepartment
+        type: numeric
+        description: Is this the current department?
+        sql: case when EndDate IS NULL then 1 else 0 end
+      - name: DepartmentID
+        type: numeric
+        description: Unique ID for the department
+  - name: EmployeeModified
+    from_: Employee
+    dimensions:
+      - name: BusinessEntityID
+        type: numeric
+        description: Unique ID for the employee
+      - name: JobTitle
+        type: string
+        description: Job title of the employee
+      - name: Gender
+        type: string
+        description: Gender of the employee
+      - name: CurrentFlag
+        type: numeric
+        description: Is the person a current employee?
+    metrics:
+      - name: TotalEmployeeCount
+        description: Count of all employees
+        sql: COUNT( DISTINCT BusinessEntityID )
+      - name: CurrentEmployeeCount
+        description: Count of current employees
+        sql: SUM(CurrentFlag)
+      - name: GenderRatio
+        description: Ratio of Males to Females
+        sql: >-
+          SUM(CASE WHEN Gender = 'M' THEN 1 ELSE 0 END) / NULLIF(SUM(CASE WHEN
+          Gender = 'F' THEN 1 ELSE 0 END), 0)
+  - name: DepartmentModified
+    from_: Department
+    dimensions:
+      - name: DepartmentID
+        type: numeric
+        description: Unique ID for the department
+      - name: Name
+        type: string
+        description: Name of the department
+      - name: GroupName
+        type: string
+        description: Group name of the department
+  - name: ShiftModified
+    from_: Shift
+    dimensions:
+      - name: ShiftID
+        type: numeric
+        description: Unique ID for the shift
+      - name: Name
+        type: string
+        description: Name of the shift
+  \`\`\`
   `
   const userMessage = JSON.stringify(dashboardInfo)
   const response = await getLLMResponse({
@@ -49,8 +120,11 @@ export async function getModelFromDashboard(dashboardInfo: any) {
     actions: []
   });
   const jsonResponse = await response.data;
-  const parsed: any = jsonResponse.content;
-  return parsed;
+  const parsed: string = jsonResponse.content || '';
+  // get the stuff between the ```yaml and ``` using regex
+  // get first matching group
+  const yaml = parsed.match(/```yaml([.\s\S]*?)```/)?.[1];
+  return yaml;
 }
 export default function DashboardModelling() {
   const [dashboardInfo, setDashboardInfo] = useState<any>([])

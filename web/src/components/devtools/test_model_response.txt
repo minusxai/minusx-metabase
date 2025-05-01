@@ -1,0 +1,154 @@
+**Dashboard Explanation**
+
+This dashboard, "Sales Overview [wide query]", provides a comprehensive view of sales performance, focusing on orders, revenue, profit, and product/customer segmentation. All cards are built from a single, wide fact model that combines sales order details, product, customer, and location information, as well as derived tags and cost lookups.
+
+**Fact Table(s) Used:**
+- The primary fact table is `SalesOrderDetail`, joined with `SalesOrderHeader` for order-level and customer-level attributes.
+- Additional joins bring in product, product category, subcategory, address, state/province, country, and territory information.
+- Derived tables (CTEs) are used for first order date per customer, order size tagging, and mapping countries to continents.
+
+**Measurements Made:**
+- Total orders (distinct order count)
+- Total revenue (sum of line revenue)
+- Total profit (sum of line gross profit)
+- Average order value (AOV)
+- Revenue per customer
+- Order and revenue share by various dimensions (sales channel, continent, customer type, order size, product category)
+- Top N products by revenue/profit
+- Total unique products sold
+
+**Important Dimensions:**
+- Time: order_date, week_start, month_start, calendar_year
+- Product: product_id, product_name, product_subcategory, product_category
+- Customer: customer_id, is_new_customer (derived)
+- Location: country, continent
+- Sales Channel: sales_channel (online/offline, derived)
+- Order Size: order_size_tag (derived)
+- Other: order_id, sales_order_detail_id
+
+**Granularity:**
+- The lowest granularity is at the sales order line level: one row per `SalesOrderDetailID`.
+- All measures and aggregations can be reconstructed from this base.
+
+**Primary Time Dimension:**
+- `order_date` (with derived week/month/year truncations for aggregation)
+
+**New Dimensions Created:**
+- `order_size_tag` (small/medium/large/x-large, based on order subtotal)
+- `sales_channel` (online/offline, from OnlineOrderFlag)
+- `is_new_customer` (true/false, based on first order date)
+- `continent` (from territory mapping)
+- `customer_age_type` (new/returning, derived from is_new_customer)
+
+**SQL Model Refactoring**
+
+All dashboard cards can be reconstructed from a single wide model at the sales order line level. For performance or modularity, a separate dimension model for products can be created, but is not strictly necessary.
+
+Below is the YAML definition for the main model:
+
+```yaml
+entities:
+  - name: SalesOrderLineWide
+    from_: SalesOrderDetail
+    description: >
+      Wide sales order line model combining order, product, customer, location, and derived attributes.
+      One row per sales order line (SalesOrderDetailID).
+    granularity: sales order line (SalesOrderDetailID)
+    dimensions:
+      - name: sales_order_detail_id
+        type: numeric
+        description: Unique ID for the sales order line
+      - name: sales_order_id
+        type: numeric
+        description: Unique ID for the sales order
+      - name: customer_id
+        type: numeric
+        description: Unique ID for the customer
+      - name: product_id
+        type: numeric
+        description: Unique ID for the product
+      - name: product_name
+        type: string
+        description: Name of the product
+      - name: product_subcategory
+        type: string
+        description: Name of the product subcategory
+      - name: product_category
+        type: string
+        description: Name of the product category
+      - name: country
+        type: string
+        description: Name of the country (shipping address)
+      - name: continent
+        type: string
+        description: Continent (derived from territory mapping)
+      - name: order_size_tag
+        type: string
+        description: Order size tag (small/medium/large/x-large, based on order subtotal)
+      - name: sales_channel
+        type: string
+        description: Sales channel (online/offline, derived from OnlineOrderFlag)
+      - name: is_new_customer
+        type: boolean
+        description: True if this order is the customer's first order
+      - name: order_date
+        type: date
+        description: Date of the order
+      - name: week_start
+        type: date
+        description: Start of the week for the order date
+        sql: date_trunc('week', order_date)
+      - name: month_start
+        type: date
+        description: Start of the month for the order date
+        sql: date_trunc('month', order_date)
+      - name: calendar_year
+        type: integer
+        description: Calendar year of the order date
+        sql: extract(year from order_date)
+    measures:
+      - name: quantity
+        description: Quantity ordered in this line
+        sql: OrderQty
+      - name: unit_price
+        description: Unit price for this line
+        sql: UnitPrice
+      - name: line_revenue
+        description: Revenue for this line (LineTotal)
+        sql: LineTotal
+      - name: line_cost
+        description: Cost for this line (OrderQty * StandardCost at order date)
+        sql: OrderQty * COALESCE(StandardCost, 0)
+      - name: line_gross_profit
+        description: Gross profit for this line (line_revenue - line_cost)
+        sql: LineTotal - (OrderQty * COALESCE(StandardCost, 0))
+      - name: total_orders
+        description: Count of distinct sales orders (for aggregations)
+        sql: COUNT(DISTINCT sales_order_id)
+      - name: total_revenue
+        description: Sum of line revenue (for aggregations)
+        sql: SUM(line_revenue)
+      - name: total_profit
+        description: Sum of line gross profit (for aggregations)
+        sql: SUM(line_gross_profit)
+      - name: total_ordered_quantity
+        description: Sum of quantity ordered (for aggregations)
+        sql: SUM(quantity)
+      - name: avg_order_value
+        description: Average order value (for aggregations)
+        sql: AVG(line_revenue)
+      - name: revenue_per_customer
+        description: Revenue per unique customer (for aggregations)
+        sql: SUM(line_revenue) / NULLIF(COUNT(DISTINCT customer_id), 0)
+      - name: total_products
+        description: Count of unique products (for aggregations)
+        sql: COUNT(DISTINCT product_name)
+```
+
+**Notes:**
+- All dashboard cards can be built from this model by aggregating on the relevant dimensions and measures.
+- The model includes all derived and joined dimensions used in the dashboard.
+- The lowest granularity is the sales order line, preserving maximum detail for flexible analysis.
+- If needed, a separate product dimension model can be added, but all product attributes are already included here.
+
+Let me know if you need the SQL for the model or further breakdowns!
