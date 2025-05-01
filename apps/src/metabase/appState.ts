@@ -1,7 +1,7 @@
 import { addNativeEventListener, RPCs, configs, renderString } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
-import { metabaseInternalState } from "./defaultState";
+import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPage } from "./helpers/dashboard/util";
 import { cloneDeep, get, isEmpty } from "lodash";
@@ -34,26 +34,23 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         const dbId = await getSelectedDbId();
         const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
         if (dbId && dbId !== oldDbId) {
+          const toolContext = state.toolContext
+          state.update({
+            toolContext: {
+              ...toolContext,
+              loading: true
+            }
+          })
           const [relevantTables, dbInfo] = await Promise.all([
             handlePromise(getRelevantTablesForSelectedDb(''), "Failed to get relevant tables", []),
-            handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database info", {
-              name: '',
-              description: '',
-              id: 0,
-              dialect: '',
-              dbms_version: {
-                flavor: '',
-                version: '',
-                semantic_version: []
-              },
-              tables: []
-            })
+            handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database info", DB_INFO_DEFAULT)
           ])
           state.update({
             toolContext: {
               dbId,
               relevantTables,
-              dbInfo
+              dbInfo,
+              loading: false
             }
           })
         }
@@ -62,7 +59,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     // heat up cache
     const heatUpCache = async (times = 0) => {
       const filledTableInfo = await getTablesWithFields()
-      // console.log('Relevant Tables:', filledTableInfo)
       if (isEmpty(filledTableInfo)) {
         setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
       }

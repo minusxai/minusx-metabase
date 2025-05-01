@@ -19,10 +19,11 @@ const NUM_RELEVANT_TABLES = 15
 export const TablesCatalog: React.FC<null> = () => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
+  console.log('Tool context is', toolContext)
 
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo
-  const allTables = dbInfo?.tables || []
+  const allTables = dbInfo.tables || []
 
   const updatedRelevantTables = applyTableDiffs('', allTables, tableDiff, dbInfo.id)
   const [isChanged, setIsChanged] = React.useState(false)

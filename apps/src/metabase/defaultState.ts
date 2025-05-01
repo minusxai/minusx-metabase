@@ -19,10 +19,24 @@ import {
   SEMANTIC_QUERY_USER_PROMPT
 } from "./prompts";
 
+export const DB_INFO_DEFAULT: DatabaseInfoWithTables = {
+  name: '',
+  description: '',
+  id: 0,
+  dialect: '',
+  dbms_version: {
+    flavor: '',
+    version: '',
+    semantic_version: []
+  },
+  tables: []
+}
+
 export interface MetabaseContext {
-  dbId: number;
+  dbId?: number;
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTables
+  loading: boolean
 }
 
 interface MetabaseInternalState extends InternalState {
@@ -93,7 +107,11 @@ export const metabaseInternalState: MetabaseInternalState = {
       attrs: ["class"],
     },
   },
-  toolContext: {},
+  toolContext: {
+    relevantTables: [],
+    dbInfo: DB_INFO_DEFAULT,
+    loading: true,
+  },
   helperMessage: `Here's the [docs](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) to get you started.  
 
 \`NEW: \` MinusX can now: 
