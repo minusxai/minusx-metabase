@@ -2,7 +2,7 @@ import { Action, combineReducers, configureStore, createListenerMiddleware } fro
 import chat, { initialUserConfirmationState, initialTasks } from './chat/reducer'
 import auth from './auth/reducer'
 import thumbnails from './thumbnails/reducer'
-import settings, { DEFAULT_TABLES } from './settings/reducer'
+import settings, { ContextCatalog, DEFAULT_TABLES } from './settings/reducer'
 import storage from 'redux-persist/lib/storage'
 import { persistReducer, createMigrate } from 'redux-persist'
 import logger from 'redux-logger'
@@ -261,12 +261,23 @@ const migrations = {
       newState.settings.groups = {}
       newState.settings.groupsEnabled = false
       return newState
+    },
+    24: (state: any) => {
+      let newState = {...state}
+      const selectedCatalog = newState.selectedCatalog
+      if (selectedCatalog == '' || selectedCatalog == 'tables') {
+        newState.selectedCatalog = DEFAULT_TABLES
+      }
+      if (!newState.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
+        newState.selectedCatalog = DEFAULT_TABLES
+      }
+      return newState
     }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 23,
+  version: 24,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: false }),

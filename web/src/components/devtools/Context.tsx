@@ -19,7 +19,7 @@ const useAppStore = getApp().useStore()
 
 const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: () => void}) => {
     const [isCreatingCatalog, setIsCreatingCatalog] = useState(false);
-    const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
+    const selectedCatalog: string = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs)
     const selectedCatalogIsValid = availableCatalogs.some((catalog) => catalog.name === selectedCatalog) || selectedCatalog === DEFAULT_TABLES
     const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
