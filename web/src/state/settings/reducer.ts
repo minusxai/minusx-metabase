@@ -227,9 +227,6 @@ export const settingsSlice = createSlice({
             state.availableCatalogs.push({ id, name, content, dbName, allowWrite: true, owner: currentUserId })
         }
     },
-    setCatalogs: (state, action: PayloadAction<ContextCatalog[]>) => {
-        state.availableCatalogs = action.payload
-    },
     setMemberships: (state, action: PayloadAction<SetMembershipsPayload>) => {
       const { groups, assets, members, currentUserId } = action.payload
 
@@ -297,7 +294,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setCatalogs, setMemberships, setGroupsEnabled
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships, setGroupsEnabled
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

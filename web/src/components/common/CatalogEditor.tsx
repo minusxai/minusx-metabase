@@ -77,9 +77,9 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                     })
                 })
                 setIsSaving(false);
-                dispatch(saveCatalog({ id: catalogID, name: title, value: title.toLowerCase().replace(/\s/g, '_'), content, dbName: dbName, currentUserId }));
+                dispatch(saveCatalog({ id: catalogID, name: title, content, dbName: dbName, currentUserId }));
             }
-            dispatch(setSelectedCatalog(title.toLowerCase().replace(/\s/g, '_')))
+            dispatch(setSelectedCatalog(title))
         } catch(err) {
             let description = "There was an error saving the catalog. Please try again."
             if (isAxiosError(err)) {

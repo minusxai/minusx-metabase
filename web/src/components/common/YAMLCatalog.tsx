@@ -6,7 +6,7 @@ import { CodeBlock } from './CodeBlock';
 import { CatalogEditor, makeCatalogAPICall } from './CatalogEditor';
 import { BiPencil, BiTrash } from "react-icons/bi";
 import { dump } from 'js-yaml';
-import { ContextCatalog, deleteCatalog, setCatalogs, setMemberships, UserGroup, UserInfo } from "../../state/settings/reducer";
+import { ContextCatalog, deleteCatalog, setMemberships, UserGroup, UserInfo } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { configs } from "../../constants";
 import { get } from "lodash";
