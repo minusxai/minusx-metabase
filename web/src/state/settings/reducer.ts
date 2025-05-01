@@ -8,6 +8,8 @@ export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context'
 
+export const DEFAULT_TABLES = 'Default Tables'
+
 const safeJSON = (text: string) => {
   try {
     return JSON.parse(text);
@@ -129,7 +131,7 @@ const initialState: Settings = {
   availableCatalogs: [],
   defaultTableCatalog: {
     id: 'default',
-    name: 'Default Tables',
+    name: DEFAULT_TABLES,
     content: {},
     dbName: '',
     allowWrite: true

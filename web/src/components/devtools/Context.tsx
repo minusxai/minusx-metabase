@@ -4,7 +4,7 @@ import { CatalogEditor } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link} from "@chakra-ui/react";
-import { setSelectedCatalog } from "../../state/settings/reducer";
+import { ContextCatalog, DEFAULT_TABLES, setSelectedCatalog } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -20,8 +20,8 @@ const useAppStore = getApp().useStore()
 const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: () => void}) => {
     const [isCreatingCatalog, setIsCreatingCatalog] = useState(false);
     const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
-    const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
-    const selectedCatalogIsValid = availableCatalogs.some((catalog) => catalog.value === selectedCatalog) || selectedCatalog === "tables"
+    const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs)
+    const selectedCatalogIsValid = availableCatalogs.some((catalog) => catalog.name === selectedCatalog) || selectedCatalog === DEFAULT_TABLES
     const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
     const currentUserId = useSelector((state: RootState) => state.auth.profile_id)
 
@@ -64,15 +64,15 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
           <>
             <Select placeholder="Select a catalog" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
                 {
-                    [...availableCatalogs, defaultTableCatalog].map((context: any) => {
-                        return <option key={context.value} value={context.value}>{context.name}</option>
+                    [...availableCatalogs, defaultTableCatalog].map((context: ContextCatalog) => {
+                        return <option key={context.name} value={context.name}>{context.name}</option>
                     })
                 }
             </Select>
             <Spacer height={5}/>
             {
                 selectedCatalogIsValid ? (
-                    selectedCatalog === "tables" ? <TablesCatalog /> : <YAMLCatalog />
+                    selectedCatalog === DEFAULT_TABLES ? <TablesCatalog /> : <YAMLCatalog />
                 ) : (
                     <Text fontSize="sm" color="gray.500">No catalog selected</Text>
                 )

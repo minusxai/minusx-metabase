@@ -23,7 +23,7 @@ import chat from '../../chat/chat'
 import _ from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, setDemoMode } from '../../state/settings/reducer'
+import { setSuggestQueries, setDemoMode, DEFAULT_TABLES } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
@@ -158,12 +158,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "Please enter a valid message/question"
         preventRunTask = true
     }
-    else if (selectedCatalog === '') {
-        toastTitle = 'No Catalog'
-        toastDescription = "No catalog in context. Please select a valid catalog"
-        preventRunTask = true
-    }
-    else if (selectedCatalog === "tables" && defaultTableCatalog.content.tables.length === 0){
+    else if (selectedCatalog === DEFAULT_TABLES && defaultTableCatalog.content.tables.length === 0){
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
         preventRunTask = true

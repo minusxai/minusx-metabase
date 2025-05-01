@@ -2,7 +2,7 @@ import { Action, combineReducers, configureStore, createListenerMiddleware } fro
 import chat, { initialUserConfirmationState, initialTasks } from './chat/reducer'
 import auth from './auth/reducer'
 import thumbnails from './thumbnails/reducer'
-import settings from './settings/reducer'
+import settings, { DEFAULT_TABLES } from './settings/reducer'
 import storage from 'redux-persist/lib/storage'
 import { persistReducer, createMigrate } from 'redux-persist'
 import logger from 'redux-logger'
@@ -227,7 +227,7 @@ const migrations = {
         let newState = {...state}
         newState.settings.selectedCatalog = 'tables'
         newState.settings.availableCatalogs = [{
-            name: 'Default Tables',
+            name: DEFAULT_TABLES,
             value: 'tables'
         }]
         return newState
@@ -237,7 +237,7 @@ const migrations = {
         newState.settings.selectedCatalog = ''
         newState.settings.availableCatalogs = []
         newState.settings.defaultTableCatalog = {
-            name: 'Default Tables',
+            name: DEFAULT_TABLES,
             value: 'tables',
             content: {},
             dbName: ''
