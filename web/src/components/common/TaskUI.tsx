@@ -20,7 +20,7 @@ import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh } from 'react-icons/bi'
 import chat from '../../chat/chat'
-import _, { get, isEmpty } from 'lodash'
+import _, { get, isEmpty, isUndefined } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, ContextCatalog } from '../../state/settings/reducer'
@@ -84,6 +84,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
   const allCatalogs = [...availableCatalogs, defaultTableCatalog]
   const selectedCatalogName = allCatalogs.find((catalog: ContextCatalog) => catalog.name === selectedCatalog)?.name || "No Tables"
+  const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
@@ -113,13 +114,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     startSelection(async (coords) => {
       const nodes = coords ? uiSelection.getSelectedNodes() : []
       uiSelection.end()
-      console.log('Coords are', coords)
       // if (nodes.length >= 0 && coords) {
       if (coords) {
-        console.log('Nodes are', nodes, coords)
         try {
           const {url, width, height} = await capture(coords)
-          console.log('URL, width, height', url, width, height)
           const context : ImageContext = {
             text: ""
           }
@@ -153,6 +151,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     if (instructions === '') {
         toastTitle = 'Invalid Message'
         toastDescription = "Please enter a valid message/question"
+        preventRunTask = true
+    }
+    else if (isUndefined(get(toolContext, 'dbId'))) {
+        toastTitle = 'No database selected'
+        toastDescription = "Please select a database"
         preventRunTask = true
     }
     else if (selectedCatalog === DEFAULT_TABLES && isEmpty(get(defaultTableCatalog, 'content.tables', []))){
