@@ -57,6 +57,11 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//div[contains(text(), "An error occurred in your query")]'
   },
+  dashboard_header: {
+    type: 'XPATH',
+    // selector: "//div[@data-testid='fixed-width-dashboard-header']/div[@role='heading']"
+    selector: "//div[contains(@class, 'Header-buttonSection')]"
+  },
   selected_database: {
     type: 'XPATH',
     selector: "//*[@data-testid='native-query-top-bar']/div[1]"

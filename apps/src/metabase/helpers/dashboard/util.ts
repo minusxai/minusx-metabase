@@ -1,6 +1,7 @@
 
 import { memoize } from 'web'
 import { fetchData } from "../../../../../web/src/app/rpc";
+import { MetabaseAppStateDashboard } from '../DOMToState';
 
 const DEFAULT_TTL_FOR_FIELDS = 60 * 60 * 1000; // 1 hour
 
@@ -24,3 +25,16 @@ async function getFieldResolvedName(fieldId: number) {
 }
 
 export const memoizedGetFieldResolvedName = memoize(getFieldResolvedName, DEFAULT_TTL_FOR_FIELDS)
+
+export async function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard) {
+  const dbIds = appState.cards.map(card => card.databaseId)
+  // count and return the most frequently occurring dbId
+  const counts = dbIds.reduce((acc, dbId) => {
+    acc[dbId] = (acc[dbId] || 0) + 1
+    return acc
+  }, {} as Record<number, number>)
+  // sort counts by value, descending
+  const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1])
+  // convert to integer
+  return parseInt(sortedCounts[0][0])
+}

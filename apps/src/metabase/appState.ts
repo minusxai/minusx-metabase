@@ -3,7 +3,7 @@ import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
-import { isDashboardPage } from "./helpers/dashboard/util";
+import { getDashboardPrimaryDbId, isDashboardPage } from "./helpers/dashboard/util";
 import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
@@ -14,12 +14,14 @@ import { createRunner, handlePromise } from "../common/utils";
 
 const runStoreTasks = createRunner()
 
+
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
   public async setup() {
     const state = this.useStore().getState();
+    const appState = await this.getState()
     const whitelistQuery = state.whitelistQuery
     if (!whitelistQuery) {
       return
@@ -31,7 +33,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
       });
       runStoreTasks(async () => {
-        const dbId = await getSelectedDbId();
+        console.log("<><><> appState type is ", appState.type)
+        const dbId = appState.type == 'metabaseDashboard' ? await getDashboardPrimaryDbId(appState) : await getSelectedDbId();
         const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
         if (dbId && dbId !== oldDbId) {
           const toolContext = state.toolContext
@@ -93,6 +96,16 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         },
       });
     })
+    const entityMenuSelector = querySelectorMap['dashboard_header']
+    const entityMenuId = await RPCs.addNativeElements(entityMenuSelector, {
+      tag: 'button',
+      attributes: {
+        class: 'Button Button--secondary',
+        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+        // style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+      },
+      children: ['✨ Convert to Data Model']
+    }, 'firstChild')
   }
 
   public async getState(): Promise<MetabaseAppState> {

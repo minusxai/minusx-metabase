@@ -83,7 +83,11 @@ const _masterCallback = () => {
             const parsedJson = jsonToHtml(htmlElement)
             const html = parseHtmlString(parsedJson)
             if (html) {
-                element.appendChild(html)
+                if (attachType === 'firstChild') {
+                    element.prepend(html)
+                } else {
+                    element.appendChild(html)
+                }
             }
         })
     })
