@@ -127,7 +127,7 @@ const initialState: Settings = {
     remove: []
   },
   drMode: false,
-  selectedCatalog: '',
+  selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
   defaultTableCatalog: {
     id: 'default',

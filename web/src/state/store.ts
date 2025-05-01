@@ -223,56 +223,56 @@ const migrations = {
     }
     return newState
   },
-    20: (state: any) => {
-        let newState = {...state}
-        newState.settings.selectedCatalog = 'tables'
-        newState.settings.availableCatalogs = [{
-            name: DEFAULT_TABLES,
-            value: 'tables'
-        }]
-        return newState
-    },
-    21: (state: any) => {
-        let newState = {...state}
-        newState.settings.selectedCatalog = ''
-        newState.settings.availableCatalogs = []
-        newState.settings.defaultTableCatalog = {
-            name: DEFAULT_TABLES,
-            value: 'tables',
-            content: {},
-            dbName: ''
-        }
-        return newState
-    },
-    22: (state: any) => {
-        let newState = {...state}
-        newState.chat.threads.forEach((thread: any) => {
-            thread.tasks = initialTasks
-        })
-        return newState
-    },
-    23: (state: any) => {
+  20: (state: any) => {
       let newState = {...state}
-      newState.settings.availableCatalogs.forEach((catalog: any) => {
-        catalog.allowWrite = true
+      newState.settings.selectedCatalog = 'tables'
+      newState.settings.availableCatalogs = [{
+          name: DEFAULT_TABLES,
+          value: 'tables'
+      }]
+      return newState
+  },
+  21: (state: any) => {
+      let newState = {...state}
+      newState.settings.selectedCatalog = ''
+      newState.settings.availableCatalogs = []
+      newState.settings.defaultTableCatalog = {
+          name: DEFAULT_TABLES,
+          value: 'tables',
+          content: {},
+          dbName: ''
+      }
+      return newState
+  },
+  22: (state: any) => {
+      let newState = {...state}
+      newState.chat.threads.forEach((thread: any) => {
+          thread.tasks = initialTasks
       })
-      newState.settings.defaultTableCatalog.allowWrite = true
-      newState.settings.users = {}
-      newState.settings.groups = {}
-      newState.settings.groupsEnabled = false
       return newState
-    },
-    24: (state: any) => {
-      let newState = {...state}
-      const selectedCatalog = newState.selectedCatalog
-      if (selectedCatalog == '' || selectedCatalog == 'tables') {
-        newState.selectedCatalog = DEFAULT_TABLES
-      }
-      if (!newState.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
-        newState.selectedCatalog = DEFAULT_TABLES
-      }
-      return newState
+  },
+  23: (state: any) => {
+    let newState = {...state}
+    newState.settings.availableCatalogs.forEach((catalog: any) => {
+      catalog.allowWrite = true
+    })
+    newState.settings.defaultTableCatalog.allowWrite = true
+    newState.settings.users = {}
+    newState.settings.groups = {}
+    newState.settings.groupsEnabled = false
+    return newState
+  },
+  24: (state: any) => {
+    let newState = {...state}
+    const selectedCatalog = newState.selectedCatalog
+    if (selectedCatalog == '' || selectedCatalog == 'tables') {
+      newState.selectedCatalog = DEFAULT_TABLES
     }
+    if (!newState.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
+      newState.selectedCatalog = DEFAULT_TABLES
+    }
+    return newState
+  }
 }
 
 const persistConfig = {
