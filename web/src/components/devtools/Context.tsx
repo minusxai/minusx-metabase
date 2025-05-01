@@ -63,7 +63,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
           <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} />
         ) : (
           <>
-            <Select placeholder="Select a catalog" mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
+            <Select mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
                 {
                     [...availableCatalogs, defaultTableCatalog].map((context: ContextCatalog) => {
                         return <option key={context.name} value={context.name}>{context.name}</option>
