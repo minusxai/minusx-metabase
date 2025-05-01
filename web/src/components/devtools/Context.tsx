@@ -28,6 +28,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     useEffect(() => {
         refreshMemberships(currentUserId)
     }, [])
+    console.log('Selected catalog is', selectedCatalog)
 
     return (
         <>
