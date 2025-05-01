@@ -89,8 +89,11 @@ export const Context: React.FC = () => {
     const tool = getParsedIframeInfo().tool
     const dbInfo = toolContext.dbInfo
     const { isOpen, onOpen: modalOpen, onClose: modalClose } = useDisclosure()
-    if (tool != 'metabase' || isEmpty(toolContext)) {
-      return <Text>Coming soon!</Text>
+    if (tool != 'metabase') {
+        return <Text>Coming soon!</Text>
+    }
+    if (isEmpty(toolContext)) {
+        return <Text>Database context is empty</Text>
     }
 
     return <>
