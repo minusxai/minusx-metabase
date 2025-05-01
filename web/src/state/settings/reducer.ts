@@ -30,7 +30,6 @@ export interface TableDiff {
 export interface ContextCatalog {
   id: string
   name: string
-  value: string
   content: any
   dbName: string
   allowWrite: boolean
@@ -131,7 +130,6 @@ const initialState: Settings = {
   defaultTableCatalog: {
     id: 'default',
     name: 'Default Tables',
-    value: 'tables',
     content: {},
     dbName: '',
     allowWrite: true
@@ -218,15 +216,15 @@ export const settingsSlice = createSlice({
       state.selectedCatalog = action.payload
     },
     saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'> & { currentUserId: string }>) => {
-        const { id, name, value, content, dbName, currentUserId } = action.payload
-        const existingCatalog = state.availableCatalogs.find(catalog => catalog.value === value)
+        const { id, name,content, dbName, currentUserId } = action.payload
+        const existingCatalog = state.availableCatalogs.find(catalog => catalog.name === name)
         if (existingCatalog) {
             existingCatalog.content = content
             existingCatalog.dbName = dbName
             existingCatalog.owner = currentUserId
             existingCatalog.allowWrite = true
         } else {
-            state.availableCatalogs.push({ id, name, value, content, dbName, allowWrite: true, owner: currentUserId })
+            state.availableCatalogs.push({ id, name, content, dbName, allowWrite: true, owner: currentUserId })
         }
     },
     setCatalogs: (state, action: PayloadAction<ContextCatalog[]>) => {
@@ -244,7 +242,6 @@ export const settingsSlice = createSlice({
         return {
           id: asset.id,
           name: asset.name,
-          value: asset.name,
           content: parsedContents.content || "",
           dbName: parsedContents.dbName || "",
           allowWrite: asset.owner === currentUserId,
@@ -284,9 +281,9 @@ export const settingsSlice = createSlice({
       })
     },
     deleteCatalog: (state, action: PayloadAction<string>) => {
-        const catalogToDelete = state.availableCatalogs.find(catalog => catalog.value === action.payload)
+        const catalogToDelete = state.availableCatalogs.find(catalog => catalog.name === action.payload)
         if (catalogToDelete) {
-            state.availableCatalogs = state.availableCatalogs.filter(catalog => catalog.value !== action.payload)
+            state.availableCatalogs = state.availableCatalogs.filter(catalog => catalog.name !== action.payload)
             if (state.selectedCatalog === action.payload) {
                 state.selectedCatalog = ''
             }

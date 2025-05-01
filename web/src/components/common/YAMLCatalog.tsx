@@ -9,6 +9,7 @@ import { dump } from 'js-yaml';
 import { ContextCatalog, deleteCatalog, setCatalogs, setMemberships, UserGroup, UserInfo } from "../../state/settings/reducer";
 import { dispatch } from '../../state/dispatch';
 import { configs } from "../../constants";
+import { get } from "lodash";
 
 interface Asset {
   id: string;
@@ -33,10 +34,10 @@ const deleteCatalogRemote = async (catalogId: string) => {
 
 export const YAMLCatalog: React.FC<null> = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const availableCatalogs = useSelector((state: RootState) => state.settings.availableCatalogs);
+  const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs);
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog);
   
-  const currentCatalog = availableCatalogs.find(catalog => catalog.value === selectedCatalog);
+  const currentCatalog = availableCatalogs.find(catalog => catalog.name === selectedCatalog);
   const yamlContent = dump(currentCatalog?.content || {});
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -52,9 +53,9 @@ export const YAMLCatalog: React.FC<null> = () => {
     setIsDeleting(true);
     await deleteCatalogRemote(currentCatalog?.id || '');
     setIsDeleting(false);
-    dispatch(deleteCatalog(currentCatalog?.value || ''));
+    dispatch(deleteCatalog(currentCatalog?.name || ''));
   }
-  const allowWrite = 'allowWrite' in currentCatalog ? currentCatalog.allowWrite : true
+  const allowWrite = get(currentCatalog, 'allowWrite', true)
 
   return (
     <VStack w="100%" align="stretch" spacing={1}>
