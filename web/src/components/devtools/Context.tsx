@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from "react"
 import { TablesCatalog } from '../common/TablesCatalog';
-import { CatalogEditor } from '../common/CatalogEditor';
+import { CatalogEditor, createCatalog } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
-import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link} from "@chakra-ui/react";
-import { ContextCatalog, DEFAULT_TABLES, setSelectedCatalog } from "../../state/settings/reducer";
+import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link, Spinner} from "@chakra-ui/react";
+import { ContextCatalog, DEFAULT_TABLES, setSelectedCatalog, saveCatalog } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { getParsedIframeInfo } from "../../helpers/origin"
-import { isEmpty } from 'lodash';
+import { isEmpty, set } from 'lodash';
 import { MetabaseContext } from 'apps/types';
 import { BiBook, BiExpand } from "react-icons/bi";
+import { BsMagic } from "react-icons/bs";
+import { MetabaseAppState } from "../../../../apps/src/metabase/helpers/DOMToState";
+import { getModelFromDashboard } from "./DashboardModelling";
+import { getDashboardPrimaryDbId } from "../../../../apps/src/metabase/helpers/dashboard/util";
 
 
 
@@ -19,28 +23,75 @@ const useAppStore = getApp().useStore()
 
 const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: () => void}) => {
     const [isCreatingCatalog, setIsCreatingCatalog] = useState(false);
+    const [isCreatingDashboardToCatalog, setIsCreatingDashboardToCatalog] = useState(false);
+    const [appState, setAppState] = useState<MetabaseAppState | undefined>()
     const selectedCatalog: string = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs)
     const selectedCatalogIsValid = availableCatalogs.some((catalog) => catalog.name === selectedCatalog) || selectedCatalog === DEFAULT_TABLES
     const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
     const currentUserId = useSelector((state: RootState) => state.auth.profile_id)
-
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    
     useEffect(() => {
         refreshMemberships(currentUserId)
     }, [])
     console.log('Selected catalog is', selectedCatalog)
 
+    useEffect(() => {
+        getApp().getState().then(appState => setAppState(appState as MetabaseAppState))
+    })
     return (
         <>
         <Box display="flex" alignItems="center" justifyContent="space-between">
             <Text fontSize="lg" fontWeight="bold">Available Catalogs</Text>
             
             <HStack spacing={0}>
+            {
+                isCreatingDashboardToCatalog ? 
+              <Spinner size="xs" speed="0.8s" thickness="2px" color="blue.500" title="Running" mr={2}/>
+              : 
+              ""
+
+            }
+            {
+                appState?.type === 'metabaseDashboard' ? 
+              <Button 
+                size={"xs"} 
+                onClick={() => {
+                    setIsCreatingDashboardToCatalog(true)
+                    getModelFromDashboard(appState).then(dashboardYaml => {
+                        const name = appState.id + '-' + appState.name
+                        createCatalog({name, contents: dashboardYaml}).then(catalogID => {
+                            dispatch(saveCatalog({
+                                type: 'aiGenerated',
+                                id: catalogID,
+                                name,
+                                value: name.toLowerCase().replace(/\s/g, '_'),
+                                content: dashboardYaml,
+                                // TODO(@arpits): this should not be derived like this, but from appState -> getDashboardPrimaryDbId
+                                dbName: toolContext.dbInfo.name,
+                                currentUserId
+                            }))
+                            dispatch(setSelectedCatalog(name.toLowerCase().replace(/\s/g, '_')))
+
+                            setIsCreatingDashboardToCatalog(false)
+                        })
+                    })
+                }} 
+                colorScheme="minusxGreen"
+                isDisabled={isCreatingDashboardToCatalog || isCreatingCatalog}
+                leftIcon={<BsMagic/>}
+                mr={2}
+              >
+                DB to Catalog
+              </Button> : ''
+            }
+            
             <Button 
               size={"xs"} 
               onClick={() => setIsCreatingCatalog(true)} 
               colorScheme="minusxGreen"
-              isDisabled={isCreatingCatalog}
+              isDisabled={isCreatingCatalog || isCreatingDashboardToCatalog}
               leftIcon={<BiBook />}
             >
               Create Catalog

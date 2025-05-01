@@ -30,6 +30,7 @@ export interface TableDiff {
 }
 
 export interface ContextCatalog {
+  type: 'manual' | 'aiGenerated'
   id: string
   name: string
   content: any
@@ -130,6 +131,7 @@ const initialState: Settings = {
   selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
   defaultTableCatalog: {
+    type: 'manual',
     id: 'default',
     name: DEFAULT_TABLES,
     content: {},
@@ -228,7 +230,7 @@ export const settingsSlice = createSlice({
       state.selectedCatalog = action.payload
     },
     saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'> & { currentUserId: string }>) => {
-        const { id, name,content, dbName, currentUserId } = action.payload
+        const { type, id, name,content, dbName, currentUserId } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.name === name)
         if (existingCatalog) {
             existingCatalog.content = content
@@ -236,7 +238,7 @@ export const settingsSlice = createSlice({
             existingCatalog.owner = currentUserId
             existingCatalog.allowWrite = true
         } else {
-            state.availableCatalogs.push({ id, name, content, dbName, allowWrite: true, owner: currentUserId })
+            state.availableCatalogs.push({ type, id, name, content, dbName, allowWrite: true, owner: currentUserId })
         }
     },
     setMemberships: (state, action: PayloadAction<SetMembershipsPayload>) => {
@@ -249,6 +251,7 @@ export const settingsSlice = createSlice({
           : asset.contents
 
         return {
+          type: 'manual',
           id: asset.id,
           name: asset.name,
           content: parsedContents.content || "",

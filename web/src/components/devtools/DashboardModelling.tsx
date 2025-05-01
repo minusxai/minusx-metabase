@@ -10,7 +10,7 @@ import { getLLMResponse } from '../../app/api';
 import { getDashboardAppState } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 
 
-async function getModel(dashboardInfo: any) {
+export async function getModelFromDashboard(dashboardInfo: any) {
   const systemMessage = `
   You are an expert at data modelling. You are given a JSON of a dashboard. 
   Explain what it is about, and then refactor into one or two SQL models. Output the SQL models as a Looker LookML Model.
@@ -61,7 +61,7 @@ export default function DashboardModelling() {
     })
   }
   const onClickGetModel = () => {
-    getDashboardAppState().then(getModel)
+    getDashboardAppState().then(getModelFromDashboard)
       .then(model => {
         console.log("<><><><><>< model", model)
         setModel(model)
