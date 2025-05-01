@@ -190,6 +190,16 @@ export const settingsSlice = createSlice({
     setSavedQueries: (state, action: PayloadAction<boolean>) => {
       state.savedQueries = action.payload
     },
+    resetDefaultTablesDB(state, action: PayloadAction<{dbId: Number}>) {
+      state.tableDiff.add = state.tableDiff.add.filter((t) => t.dbId != action.payload.dbId)
+      state.defaultTableCatalog.content = {
+        "tables": state.tableDiff.add.map((t) => {
+            return {
+                name: t.name
+            }
+        })
+      }
+    },
     applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, tables: TableInfo[]}>) {
       const {actionType, tables} = action.payload
       for (const table of tables) {
@@ -296,7 +306,8 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
-  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships, setGroupsEnabled
+  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
+  setGroupsEnabled, resetDefaultTablesDB
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

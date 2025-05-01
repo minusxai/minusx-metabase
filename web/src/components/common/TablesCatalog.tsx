@@ -3,7 +3,7 @@ import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
 import { Text, Link, HStack, Button} from "@chakra-ui/react";
-import { applyTableDiff, TableInfo, setSelectedCatalog } from "../../state/settings/reducer";
+import { applyTableDiff, TableInfo, setSelectedCatalog, resetDefaultTablesDB } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -15,6 +15,29 @@ const useAppStore = getApp().useStore()
 
 const NUM_RELEVANT_TABLES = 15
 
+const updateAddTables = (tables: TableInfo[]) => {
+  dispatch(applyTableDiff({
+    actionType: 'add',
+    tables
+  }))
+}
+const updateRemoveTables = (tables: TableInfo[]) => {
+  dispatch(applyTableDiff({
+    actionType: 'remove',
+    tables
+  }))
+}
+
+export const resetRelevantTables = (relevantTables: TableInfo[], dbId: number) => {
+  dispatch(resetDefaultTablesDB({
+    dbId
+  }))
+  updateAddTables(relevantTables.slice(0, NUM_RELEVANT_TABLES).map((table) => ({
+    name: table.name,
+    schema: table.schema,
+    dbId: dbId
+  })))
+}
 
 export const TablesCatalog: React.FC<null> = () => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
@@ -25,29 +48,7 @@ export const TablesCatalog: React.FC<null> = () => {
   const allTables = dbInfo.tables || []
 
   const updatedRelevantTables = applyTableDiffs('', allTables, tableDiff, dbInfo.id)
-  const [isChanged, setIsChanged] = React.useState(false)
-  
-  const updateAddTables = (tables: TableInfo[]) => {
-    dispatch(applyTableDiff({
-      actionType: 'add',
-      tables
-    }))
-  }
-  const updateRemoveTables = (tables: TableInfo[], emptyAllowed = false) => {
-    dispatch(applyTableDiff({
-      actionType: 'remove',
-      tables
-    }))
-  }
-
-  const resetRelevantTables = () => {
-    updateRemoveTables(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), true)
-    updateAddTables(relevantTables.slice(0, NUM_RELEVANT_TABLES).map((table) => ({
-      name: table.name,
-      schema: table.schema,
-      dbId: dbInfo.id
-    })))
-  }
+  const [isChanged, setIsChanged] = React.useState(false) 
 
   const isAnyTablesAdded = () => {
     const addedTables = sortBy(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), ['name', 'schema'])
@@ -67,7 +68,11 @@ export const TablesCatalog: React.FC<null> = () => {
 
   useEffect(() => {
     if (isEmpty(updatedRelevantTables) && !isChanged) {
-      resetRelevantTables()
+      resetRelevantTables(updatedRelevantTables.map(table => ({
+        name: table.name,
+        schema: table.schema,
+        dbId: dbInfo.id
+      })), dbInfo.id)
     }
     setIsChanged(true)
   }, [updatedRelevantTables])
