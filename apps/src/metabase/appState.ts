@@ -133,17 +133,18 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 }
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
-  if (isDashboardPage(url)) {
-    return {
-      value: true,
-      reason: "",
-    };
-  }
+  // if (isDashboardPage(url)) {
+  //   return {
+  //     value: true,
+  //     reason: "",
+  //   };
+  // }
   if (isEmpty(elements.editor)) {
     return {
       value: false,
       reason:
-        "To enable MinusX on Metabase, head over to a dashboard or the SQL query page!",
+        // "To enable MinusX on Metabase, head over to a dashboard or the SQL query page!",
+        "To enable MinusX on Metabase, head over to the SQL query page!",
     };
   }
   return {
