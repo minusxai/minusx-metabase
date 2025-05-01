@@ -181,7 +181,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "Please select a database"
         preventRunTask = true
     }
-    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(get(defaultTableCatalog, 'content.tables', []))){
+    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables)) {
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
         preventRunTask = true
