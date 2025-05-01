@@ -62,26 +62,31 @@ const SettingsPage = () => {
   const billing = useSelector((state: RootState) => state.billing)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
 
+  const reloadBillingInfo = async () => {
+    await getBillingInfo().then((billingInfo) => {
+      if (billingInfo && billingInfo.subscribed) {
+        captureEvent(GLOBAL_EVENTS.billing_subscribed)
+      } else {
+        captureEvent(GLOBAL_EVENTS.billing_unsubscribed)
+      }
+      dispatch(setBillingInfo({
+        credits: billingInfo.credits,
+        isSubscribed: billingInfo.subscribed,
+        stripeCustomerId: billingInfo.stripe_customer_id
+      }))
+    })
+  }
+
   useEffect(() => {
-    const interval = setInterval(() => {
+    const timeout = setTimeout(() => {
       if (tabName != 'General Settings'){
         return null;
       }
-      getBillingInfo().then((billingInfo) => {
-        if (billingInfo && billingInfo.subscribed) {
-          captureEvent(GLOBAL_EVENTS.billing_subscribed)
-        } else {
-          captureEvent(GLOBAL_EVENTS.billing_unsubscribed)
-        }
-        dispatch(setBillingInfo({
-          credits: billingInfo.credits,
-          isSubscribed: billingInfo.subscribed,
-          stripeCustomerId: billingInfo.stripe_customer_id
-        }))
-      })
-    }, 2000)
-    return () => clearInterval(interval)
+      reloadBillingInfo()
+    }, 5000)
+    return () => clearTimeout(timeout)
   })
+
   const updateConfirmChanges = (value: boolean) => {
     dispatch(setConfirmChanges(value))
   }
@@ -127,7 +132,7 @@ const SettingsPage = () => {
           </Stack>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text color={"minusxBW.800"} fontSize="sm">Credits remaining</Text>
-            <CreditsPill credits={billing.credits} />
+            <CreditsPill credits={billing.credits} onReload={reloadBillingInfo}/>
             {/* <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
               <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Free Plan'}</TagLabel>
             </Tag> */}

@@ -19,7 +19,6 @@ const NUM_RELEVANT_TABLES = 15
 export const TablesCatalog: React.FC<null> = () => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
-  console.log('Tool context is', toolContext)
 
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo
