@@ -266,6 +266,9 @@ export const settingsSlice = createSlice({
             g.assets?.includes(asset.id))?.id
         }
       })
+      if (!state.availableCatalogs.some(catalog => catalog.name == state.selectedCatalog)) {
+        state.selectedCatalog = DEFAULT_TABLES
+      }
 
       // Map users by ID
       state.users = {}

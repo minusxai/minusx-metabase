@@ -60,7 +60,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                     dbName: dbInfo.name,
                     currentUserId
                 }))
-                dispatch(setSelectedCatalog(name.toLowerCase().replace(/\s/g, '_')))
+                dispatch(setSelectedCatalog(name))
 
                 setIsCreatingDashboardToCatalog(false)
             })
