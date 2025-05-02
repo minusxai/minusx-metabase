@@ -5,12 +5,13 @@ import {
   HStack, Radio, Textarea, Input
 } from '@chakra-ui/react';
 import ReactJson from 'react-json-view';
-// import { getDashboardInfoForModelling } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 import { getLLMResponse } from '../../app/api';
+import TEST_STR from './test_model_response.txt?raw'
 import { getDashboardAppState } from '../../../../apps/src/metabase/helpers/dashboard/appState';
 
+
+
 export async function getModelFromDashboard(dashboardInfo: any) {
-  // return TEST_STR
   const systemMessage = `
   You are an expert at data modelling. You are given a JSON of a dashboard. 
   Explain what it is about, and then refactor into one or two SQL models. Output the SQL models as a YAML file.
@@ -101,26 +102,27 @@ export async function getModelFromDashboard(dashboardInfo: any) {
   \`\`\`
   `
   const userMessage = JSON.stringify(dashboardInfo)
-  const response = await getLLMResponse({
-    messages: [{
-      role: "system",
-      content: systemMessage,
-    }, {
-      role: "user",
-      content: userMessage,
-    }],
-    llmSettings: {
-      model: "gpt-4.1",
-      temperature: 0,
-      response_format: {
-        type: "text",
-      },
-      tool_choice: "none",
-    },
-    actions: []
-  });
-  const jsonResponse = await response.data;
-  const parsed: string = jsonResponse.content || '';
+  // const response = await getLLMResponse({
+  //   messages: [{
+  //     role: "system",
+  //     content: systemMessage,
+  //   }, {
+  //     role: "user",
+  //     content: userMessage,
+  //   }],
+  //   llmSettings: {
+  //     model: "gpt-4.1",
+  //     temperature: 0,
+  //     response_format: {
+  //       type: "text",
+  //     },
+  //     tool_choice: "none",
+  //   },
+  //   actions: []
+  // });
+  // const jsonResponse = await response.data;
+  // const parsed: string = jsonResponse.content || '';
+  const parsed = TEST_STR
   // get the stuff between the ```yaml and ``` using regex
   // get first matching group
   const yaml = parsed.match(/```yaml([.\s\S]*?)```/)?.[1];

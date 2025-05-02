@@ -13,9 +13,11 @@ import { isEmpty, set } from 'lodash';
 import { MetabaseContext } from 'apps/types';
 import { BiBook, BiExpand } from "react-icons/bi";
 import { BsMagic } from "react-icons/bs";
-import { MetabaseAppState } from "../../../../apps/src/metabase/helpers/DOMToState";
+import { MetabaseAppState, MetabaseAppStateDashboard } from "../../../../apps/src/metabase/helpers/DOMToState";
 import { getModelFromDashboard } from "./DashboardModelling";
 import { getDashboardPrimaryDbId } from "../../../../apps/src/metabase/helpers/dashboard/util";
+import { load } from 'js-yaml';
+import { DatabaseInfoWithTables, memoizedGetDatabaseInfo } from "../../../../apps/src/metabase/helpers/getDatabaseSchema";
 
 
 
@@ -38,8 +40,10 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     console.log('Selected catalog is', selectedCatalog)
 
     useEffect(() => {
-        getApp().getState().then(appState => setAppState(appState as MetabaseAppState))
-    })
+        getApp().getState().then(appState => {
+            setAppState(appState as MetabaseAppState)
+        })
+    }, [])
     return (
         <>
         <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -59,9 +63,17 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                 size={"xs"} 
                 onClick={() => {
                     setIsCreatingDashboardToCatalog(true)
-                    getModelFromDashboard(appState).then(dashboardYaml => {
+                    getModelFromDashboard(appState).then(async dashboardYaml => {
                         const name = appState.id + '-' + appState.name
-                        createCatalog({name, contents: dashboardYaml}).then(catalogID => {
+                        const dbId = await getDashboardPrimaryDbId(appState)
+                        const dbInfo = await memoizedGetDatabaseInfo(dbId)
+                        const contents = JSON.stringify({
+                            content: load(dashboardYaml),
+                            dbName: dbInfo.name,
+                            dbId,
+                            dbDialect: dbInfo.dialect
+                        })
+                        return createCatalog({name, contents}).then(catalogID => {
                             dispatch(saveCatalog({
                                 type: 'aiGenerated',
                                 id: catalogID,
@@ -76,6 +88,10 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
 
                             setIsCreatingDashboardToCatalog(false)
                         })
+                    })
+                    .catch(err => {
+                        console.log("<><>< error: ", err)
+                        setIsCreatingDashboardToCatalog(false)
                     })
                 }} 
                 colorScheme="minusxGreen"
