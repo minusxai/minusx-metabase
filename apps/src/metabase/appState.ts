@@ -2,8 +2,8 @@ import { addNativeEventListener, RPCs, configs, renderString } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
-import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
-import { getDashboardPrimaryDbId, isDashboardPage } from "./helpers/dashboard/util";
+import { convertDOMtoState, isDashboardPage, MetabaseAppState } from "./helpers/DOMToState";
+import { getDashboardPrimaryDbId, isDashboardPageUrl } from "./helpers/dashboard/util";
 import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
@@ -11,6 +11,7 @@ import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDataba
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { createRunner, handlePromise } from "../common/utils";
+import { getDashboardAppState } from "./helpers/dashboard/appState";
 
 const runStoreTasks = createRunner()
 
@@ -21,7 +22,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
   public async setup() {
     const state = this.useStore().getState();
-    const appState = await this.getState()
     const whitelistQuery = state.whitelistQuery
     if (!whitelistQuery) {
       return
@@ -33,8 +33,19 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
       });
       runStoreTasks(async () => {
-        const dbId = appState.type == 'metabaseDashboard' ? await getDashboardPrimaryDbId(appState) : await getSelectedDbId();
-        const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
+        const pageType =( await isDashboardPage()) ? 'dashboard' : 'sql';
+        const dbId = pageType == 'dashboard' ? await getDashboardPrimaryDbId(await getDashboardAppState()) : await getSelectedDbId();
+        const currentToolContext = this.useStore().getState().toolContext
+        const oldDbId = get(currentToolContext, 'dbId')
+        const oldPageType = get(currentToolContext, 'pageType')
+        if (oldPageType != pageType) {
+          state.update({
+            toolContext: {
+              ...currentToolContext,
+              pageType
+            }
+          })
+        }
         if (dbId && dbId !== oldDbId) {
           const toolContext = state.toolContext
           state.update({
@@ -49,6 +60,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           ])
           state.update({
             toolContext: {
+              pageType,
               dbId,
               relevantTables,
               dbInfo,
@@ -95,16 +107,16 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         },
       });
     })
-    const entityMenuSelector = querySelectorMap['dashboard_header']
-    const entityMenuId = await RPCs.addNativeElements(entityMenuSelector, {
-      tag: 'button',
-      attributes: {
-        class: 'Button Button--secondary',
-        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
-        // style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
-      },
-      children: ['✨ Create Catalog from Dashboard']
-    }, 'firstChild')
+    // const entityMenuSelector = querySelectorMap['dashboard_header']
+    // const entityMenuId = await RPCs.addNativeElements(entityMenuSelector, {
+    //   tag: 'button',
+    //   attributes: {
+    //     class: 'Button Button--secondary',
+    //     style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+    //     // style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+    //   },
+    //   children: ['✨ Create Catalog from Dashboard']
+    // }, 'firstChild')
   }
 
   public async getState(): Promise<MetabaseAppState> {
@@ -115,7 +127,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const url = await RPCs.queryURL();
     const internalState = this.useStore().getState()
     // Change depending on dashboard or SQL
-    if (isDashboardPage(url)) {
+    if (isDashboardPageUrl(url)) {
       return internalState.llmConfigs.dashboard;
     }
     const appSettings = RPCs.getAppSettings()
@@ -141,7 +153,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 }
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
-  if (isDashboardPage(url)) {
+  if (isDashboardPageUrl(url)) {
     return {
       value: true,
       reason: "",

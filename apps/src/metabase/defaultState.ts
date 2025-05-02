@@ -33,6 +33,7 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTables = {
 }
 
 export interface MetabaseContext {
+  pageType: 'dashboard' | 'sql'
   dbId?: number;
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTables
@@ -108,6 +109,7 @@ export const metabaseInternalState: MetabaseInternalState = {
     },
   },
   toolContext: {
+    pageType: 'sql',
     relevantTables: [],
     dbInfo: DB_INFO_DEFAULT,
     loading: true,

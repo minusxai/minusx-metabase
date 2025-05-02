@@ -6,7 +6,7 @@ import { MetabaseAppStateDashboard } from '../DOMToState';
 const DEFAULT_TTL_FOR_FIELDS = 60 * 60 * 1000; // 1 hour
 
 // if url has /dashboard/ in it, then it's a dashboard
-export const isDashboardPage = (url: string) => {
+export const isDashboardPageUrl = (url: string) => {
   return url.includes('/dashboard/');
 }
 
@@ -26,7 +26,10 @@ async function getFieldResolvedName(fieldId: number) {
 
 export const memoizedGetFieldResolvedName = memoize(getFieldResolvedName, DEFAULT_TTL_FOR_FIELDS)
 
-export async function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard) {
+export async function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard | null) {
+  if (!appState) {
+    return undefined;
+  }
   const dbIds = appState.cards.map(card => card.databaseId)
   // count and return the most frequently occurring dbId
   const counts = dbIds.reduce((acc, dbId) => {

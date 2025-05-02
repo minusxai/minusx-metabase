@@ -26,7 +26,6 @@ const useAppStore = getApp().useStore()
 const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: () => void}) => {
     const [isCreatingCatalog, setIsCreatingCatalog] = useState(false);
     const [isCreatingDashboardToCatalog, setIsCreatingDashboardToCatalog] = useState(false);
-    const [appState, setAppState] = useState<MetabaseAppState | undefined>()
     const selectedCatalog: string = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs)
     const selectedCatalogIsValid = availableCatalogs.some((catalog) => catalog.name === selectedCatalog) || selectedCatalog === DEFAULT_TABLES
@@ -39,11 +38,6 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     }, [])
     console.log('Selected catalog is', selectedCatalog)
 
-    useEffect(() => {
-        getApp().getState().then(appState => {
-            setAppState(appState as MetabaseAppState)
-        })
-    }, [])
     return (
         <>
         <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -58,15 +52,16 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
 
             }
             {
-                appState?.type === 'metabaseDashboard' ? 
+                toolContext.pageType == 'dashboard' ? 
               <Button 
                 size={"xs"} 
-                onClick={() => {
+                onClick={async () => {
                     setIsCreatingDashboardToCatalog(true)
+                    const appState = await getApp().getState() as MetabaseAppStateDashboard
                     getModelFromDashboard(appState).then(async dashboardYaml => {
                         const name = appState.id + '-' + appState.name
-                        const dbId = await getDashboardPrimaryDbId(appState)
-                        const dbInfo = await memoizedGetDatabaseInfo(dbId)
+                        const dbId = toolContext.dbId
+                        const dbInfo = toolContext.dbInfo
                         const contents = JSON.stringify({
                             content: load(dashboardYaml),
                             dbName: dbInfo.name,

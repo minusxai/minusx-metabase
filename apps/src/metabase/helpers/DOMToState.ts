@@ -1,7 +1,7 @@
 import { RPCs } from 'web'
 import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo, getTablesWithFields } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
-import { isDashboardPage } from './dashboard/util';
+import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
@@ -206,9 +206,13 @@ export async function semanticQueryState() {
   return metabaseSemanticQueryAppState;
 }
 
-export async function convertDOMtoState() {
+export async function isDashboardPage() {
   const url = await queryURL();
-  if (isDashboardPage(url)) {
+  return isDashboardPageUrl(url);
+}
+
+export async function convertDOMtoState() {
+  if (await isDashboardPage()) {
     return await convertDOMtoStateDashboard();
   }
   const appSettings = RPCs.getAppSettings()

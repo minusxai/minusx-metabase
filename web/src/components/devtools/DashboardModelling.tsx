@@ -122,6 +122,7 @@ export async function getModelFromDashboard(dashboardInfo: any) {
   });
   const jsonResponse = await response.data;
   const parsed: string = jsonResponse.content || '';
+  // const parsed = TEST_STR;
   // get the stuff between the ```yaml and ``` using regex
   // get first matching group
   const yaml = parsed.match(/```yaml([.\s\S]*?)```/)?.[1];
