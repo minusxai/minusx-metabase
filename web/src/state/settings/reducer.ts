@@ -297,7 +297,7 @@ export const settingsSlice = createSlice({
         if (catalogToDelete) {
             state.availableCatalogs = state.availableCatalogs.filter(catalog => catalog.name !== action.payload)
             if (state.selectedCatalog === action.payload) {
-                state.selectedCatalog = ''
+                state.selectedCatalog = DEFAULT_TABLES
             }
         }
     }    
