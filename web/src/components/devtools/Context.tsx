@@ -80,8 +80,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                                 name,
                                 value: name.toLowerCase().replace(/\s/g, '_'),
                                 content: dashboardYaml,
-                                // TODO(@arpits): this should not be derived like this, but from appState -> getDashboardPrimaryDbId
-                                dbName: toolContext.dbInfo.name,
+                                dbName: dbInfo.name,
                                 currentUserId
                             }))
                             dispatch(setSelectedCatalog(name.toLowerCase().replace(/\s/g, '_')))
@@ -90,7 +89,6 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                         })
                     })
                     .catch(err => {
-                        console.log("<><>< error: ", err)
                         setIsCreatingDashboardToCatalog(false)
                     })
                 }} 

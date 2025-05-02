@@ -33,7 +33,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
       });
       runStoreTasks(async () => {
-        console.log("<><><> appState type is ", appState.type)
         const dbId = appState.type == 'metabaseDashboard' ? await getDashboardPrimaryDbId(appState) : await getSelectedDbId();
         const oldDbId = get(this.useStore().getState().toolContext, 'dbId')
         if (dbId && dbId !== oldDbId) {

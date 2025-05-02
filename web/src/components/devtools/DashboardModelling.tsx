@@ -102,27 +102,26 @@ export async function getModelFromDashboard(dashboardInfo: any) {
   \`\`\`
   `
   const userMessage = JSON.stringify(dashboardInfo)
-  // const response = await getLLMResponse({
-  //   messages: [{
-  //     role: "system",
-  //     content: systemMessage,
-  //   }, {
-  //     role: "user",
-  //     content: userMessage,
-  //   }],
-  //   llmSettings: {
-  //     model: "gpt-4.1",
-  //     temperature: 0,
-  //     response_format: {
-  //       type: "text",
-  //     },
-  //     tool_choice: "none",
-  //   },
-  //   actions: []
-  // });
-  // const jsonResponse = await response.data;
-  // const parsed: string = jsonResponse.content || '';
-  const parsed = TEST_STR
+  const response = await getLLMResponse({
+    messages: [{
+      role: "system",
+      content: systemMessage,
+    }, {
+      role: "user",
+      content: userMessage,
+    }],
+    llmSettings: {
+      model: "gpt-4.1",
+      temperature: 0,
+      response_format: {
+        type: "text",
+      },
+      tool_choice: "none",
+    },
+    actions: []
+  });
+  const jsonResponse = await response.data;
+  const parsed: string = jsonResponse.content || '';
   // get the stuff between the ```yaml and ``` using regex
   // get first matching group
   const yaml = parsed.match(/```yaml([.\s\S]*?)```/)?.[1];
@@ -139,7 +138,6 @@ export default function DashboardModelling() {
   const onClickGetModel = () => {
     getDashboardAppState().then(getModelFromDashboard)
       .then(model => {
-        console.log("<><><><><>< model", model)
         setModel(model)
       })
   }
