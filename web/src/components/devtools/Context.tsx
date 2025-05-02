@@ -56,7 +56,6 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                     type: 'aiGenerated',
                     id: catalogID,
                     name,
-                    value: name.toLowerCase().replace(/\s/g, '_'),
                     content: dashboardYaml,
                     dbName: dbInfo.name,
                     currentUserId
