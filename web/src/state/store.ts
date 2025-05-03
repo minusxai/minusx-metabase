@@ -57,6 +57,9 @@ const rootReducer = (state: any, action: any) => {
 
   return combinedReducer(updatedState, action);
 }
+
+export type RootState = ReturnType<typeof rootReducer>
+
 const migrations = {
   0: (state: any) => {
     let newState = {...state}
@@ -251,7 +254,7 @@ const migrations = {
       })
       return newState
   },
-  23: (state: any) => {
+  23: (state: RootState) => {
     let newState = {...state}
     newState.settings.availableCatalogs.forEach((catalog: any) => {
       catalog.allowWrite = true
@@ -262,14 +265,25 @@ const migrations = {
     newState.settings.groupsEnabled = false
     return newState
   },
-  24: (state: any) => {
+  24: (state: RootState) => {
     let newState = {...state}
-    const selectedCatalog = newState.selectedCatalog
+    const selectedCatalog = newState.settings.selectedCatalog
     if (selectedCatalog == '' || selectedCatalog == 'tables') {
-      newState.selectedCatalog = DEFAULT_TABLES
+      newState.settings.selectedCatalog = DEFAULT_TABLES
     }
-    if (!newState.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
-      newState.selectedCatalog = DEFAULT_TABLES
+    if (!newState.settings.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
+      newState.settings.selectedCatalog = DEFAULT_TABLES
+    }
+    return newState
+  },
+  25: (state: RootState) => {
+    let newState = {...state}
+    const selectedCatalog = newState.settings.selectedCatalog
+    if (selectedCatalog == '' || selectedCatalog == 'tables') {
+      newState.settings.selectedCatalog = DEFAULT_TABLES
+    }
+    if (!newState.settings.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
+      newState.settings.selectedCatalog = DEFAULT_TABLES
     }
     return newState
   }
@@ -277,10 +291,10 @@ const migrations = {
 
 const persistConfig = {
   key: 'root',
-  version: 24,
+  version: 25,
   storage,
   blacklist: ['billing'],
-  migrate: createMigrate(migrations, { debug: false }),
+  migrate: createMigrate(migrations, { debug: true }),
 };
 
 export const eventListener = createListenerMiddleware();
@@ -318,6 +332,5 @@ window.__DISPATCH__ = (action: Action) => {
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 // export type RootState = ReturnType<typeof store.getState>
-export type RootState = ReturnType<typeof rootReducer>
 // Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
 export type AppDispatch = typeof store.dispatch
