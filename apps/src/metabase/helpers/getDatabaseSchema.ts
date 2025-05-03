@@ -348,7 +348,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   }
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
-  if (tableDiff && (!catalogSelected || !drMode)) {
+  if (tableDiff && !(catalogSelected && drMode)) {
     tables = applyTableDiffs(sql, tables, tableDiff, dbId);
   }
   if (!drMode) {
