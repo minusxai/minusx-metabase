@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { TablesCatalog } from '../common/TablesCatalog';
-import { CatalogEditor, createCatalog } from '../common/CatalogEditor';
+import { CatalogEditor, createCatalog, updateCatalog } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link, Spinner} from "@chakra-ui/react";
@@ -51,7 +51,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                 dbId,
                 dbDialect: dbInfo.dialect
             })
-            return createCatalog({name, contents}).then(catalogID => {
+            const saveAndSelectCatalog = (catalogID: string) => {
                 dispatch(saveCatalog({
                     type: 'aiGenerated',
                     id: catalogID,
@@ -61,9 +61,13 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                     currentUserId
                 }))
                 dispatch(setSelectedCatalog(name))
-
                 setIsCreatingDashboardToCatalog(false)
-            })
+            }
+            const existingCatalog = availableCatalogs.find(catalog => catalog.name == name)
+            if (existingCatalog) {
+                return updateCatalog({id: existingCatalog.id, name, contents}).then(saveAndSelectCatalog)
+            }
+            return createCatalog({name, contents}).then(saveAndSelectCatalog)
         })
         .catch(err => {
             setIsCreatingDashboardToCatalog(false)

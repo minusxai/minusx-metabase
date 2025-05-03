@@ -36,7 +36,7 @@ export const createCatalog = async ({ name, contents }: { name: string; contents
     return id
 }
 
-const updateCatalog = async ({ id, name, contents }: { id: string; name: string; contents: string }) => {
+export const updateCatalog = async ({ id, name, contents }: { id: string; name: string; contents: string }) => {
     const {id: newId}: {id: string} = await makeCatalogAPICall('', {name, contents, type: 'catalog', id})
     return newId
 }
