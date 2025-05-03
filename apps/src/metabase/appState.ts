@@ -33,8 +33,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
       });
       runStoreTasks(async () => {
-        const pageType =( await isDashboardPage()) ? 'dashboard' : 'sql';
-        const dbId = pageType == 'dashboard' ? await getDashboardPrimaryDbId(await getDashboardAppState()) : await getSelectedDbId();
+        const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
+        const dbId = pageType == 'dashboard' ? getDashboardPrimaryDbId(await getDashboardAppState()) : await getSelectedDbId();
         const currentToolContext = this.useStore().getState().toolContext
         const oldDbId = get(currentToolContext, 'dbId')
         const oldPageType = get(currentToolContext, 'pageType')

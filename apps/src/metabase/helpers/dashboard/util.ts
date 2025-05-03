@@ -26,7 +26,7 @@ async function getFieldResolvedName(fieldId: number) {
 
 export const memoizedGetFieldResolvedName = memoize(getFieldResolvedName, DEFAULT_TTL_FOR_FIELDS)
 
-export async function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard | null) {
+export function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard | null) {
   if (!appState) {
     return undefined;
   }
