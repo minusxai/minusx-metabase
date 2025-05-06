@@ -1,7 +1,7 @@
 import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
-import _, { isEmpty } from 'lodash';
+import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
@@ -373,6 +373,8 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
     const fieldOrColumns = fields.map(field => {
       const column = columnMap[field.name];
       return {
+        // @ts-ignore
+        'type': get(field, 'base_type', '') || get(field, 'semantic_type', ''),
         ..._.omit(field, ['table_name', 'schema', 'display_name', 'id', 'table_id']),
         ...column,
       }

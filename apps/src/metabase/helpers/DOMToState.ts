@@ -75,11 +75,11 @@ export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashb
 const createCatalogFromTables = (tables: FormattedTable[]) => {
   return {
     entities: tables.map(table => {
-      const { name } = table;
-      const { columns } = table;
+      const { name, columns, schema } = table;
       return {
         name,
         description: table.description,
+        schema,
         dimensions: map(columns, (column) => ({
           name: column.name,
           type: column.type,
