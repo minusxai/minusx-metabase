@@ -175,6 +175,7 @@ export async function convertDOMtoStateSQLQuery() {
   };
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
+    metabaseAppStateSQLEditor.relevantTables = []
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
