@@ -103,7 +103,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       }
       setIsChanged(true)
     }
-  }, [validAddedTables])
+  }, [relevantTables])
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
