@@ -10,6 +10,7 @@ import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
+import { getTablesFromSqlRegex } from './parseSql';
 
 interface ExtractedDataBase {
   name: string;
@@ -135,7 +136,8 @@ export async function convertDOMtoStateSQLQuery() {
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlQuery)
+  const sqlTables = getTablesFromSqlRegex(sqlQuery)
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
   let tableContextYAML = undefined
   if (appSettings.drMode) {
     if (selectedCatalog) {

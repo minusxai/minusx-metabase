@@ -340,7 +340,7 @@ const getDatabaseFields = async (): Promise<FieldInfo[]> => {
 
 export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
 
-export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, catalogSelected = false, sql = '') => {
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, catalogSelected = false, sqlTables: TableAndSchema[] = []) => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     console.warn("[minusx] No database selected when getting tables with fields");
@@ -348,8 +348,9 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   }
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
+  console.log("[minusx] All tables", tables);
   if (tableDiff && !(catalogSelected && drMode)) {
-    tables = applyTableDiffs(sql, tables, tableDiff, dbId);
+    tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables);
   }
   if (!drMode) {
     return tables;
@@ -366,6 +367,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
       fieldsMap[key] = [field];
     }
   }
+  console.log("[minusx] Applying table diff", tables.length);
   return tableInfos.filter(tableInfo => tableInfo != "missing").map(tableInfo => {
     const tableKey = `${tableInfo.schema} <> ${tableInfo.name}`;
     const fields = fieldsMap[tableKey] || [];
