@@ -72,20 +72,6 @@ export interface MetabaseSemanticQueryAppState {
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
 
-const mapTablesToFields = (tables: FormattedTable[]) => {
-  return map(tables, (table) => {
-    const { name } = table;
-    const { columns } = table;
-    return {
-      name,
-      columns: map(columns, (column) => ({
-        name: column.name,
-        column_type: column.type,
-      }))
-    }
-  })
-}
-
 const createCatalogFromTables = (tables: FormattedTable[]) => {
   return {
     entities: tables.map(table => {
