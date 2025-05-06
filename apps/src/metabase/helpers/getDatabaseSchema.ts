@@ -134,7 +134,7 @@ function getDefaultSchema(databaseInfo) {
   }
 
   // Presto/Trino: no real default schema, needs explicit context
-  if (["presto", "trino"].includes(engine)) {
+  if (["presto", "trino", "starburst"].includes(engine)) {
     return null;
   }
 
@@ -348,7 +348,6 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   }
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
-  console.log("[minusx] All tables", tables);
   if (tableDiff && !(catalogSelected && drMode)) {
     tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables);
   }
@@ -367,7 +366,6 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
       fieldsMap[key] = [field];
     }
   }
-  console.log("[minusx] Applying table diff", tables.length);
   return tableInfos.filter(tableInfo => tableInfo != "missing").map(tableInfo => {
     const tableKey = `${tableInfo.schema} <> ${tableInfo.name}`;
     const fields = fieldsMap[tableKey] || [];

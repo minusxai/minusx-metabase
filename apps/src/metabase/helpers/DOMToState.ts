@@ -133,10 +133,18 @@ export async function convertDOMtoStateSQLQuery() {
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const availableDatabases = (await memoizedGetDatabases())?.data?.map(({ name }) => name);
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
+  const defaultSchema = selectedDatabaseInfo?.default_schema;
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   const sqlTables = getTablesFromSqlRegex(sqlQuery)
+  if (defaultSchema) {
+    sqlTables.forEach((table) => {
+      if (table.schema === undefined || table.schema === '') {
+        table.schema = defaultSchema
+      }
+    })
+  }
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
   let tableContextYAML = undefined
   if (appSettings.drMode) {
