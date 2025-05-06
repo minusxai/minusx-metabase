@@ -6,7 +6,7 @@ import {
 import { uploadState } from '../../state/dispatch';
 import { BiCloudDownload, BiCloudUpload } from "react-icons/bi";
 import { useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
+import { getState, RootState } from '../../state/store';
 import { fetchData } from '../../app/rpc';
 import { HttpMethod } from 'extension/types';
 import ReactJson from 'react-json-view';
@@ -17,7 +17,6 @@ import DashboardCrossValidation from './DashboardCrossValidation';
 const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px"}
 
 export const Testing: React.FC<null> = () => {
-  const rootState = useSelector((state: RootState) => state)
   const [apiEndpoint, setApiEndpoint] = React.useState<string>('')
   const [apiMethod, setApiMethod] = React.useState<string>('GET')
   const [apiBody, setApiBody] = React.useState<object>({})
@@ -25,7 +24,7 @@ export const Testing: React.FC<null> = () => {
   const [jupyterResponse, setJupyterResponse] = React.useState("")
 
   const downloadState = () => {
-    const stateString = JSON.stringify(rootState, null, 2)
+    const stateString = JSON.stringify(getState(), null, 2)
     const blob = new Blob([stateString], { type: "application/json" })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')

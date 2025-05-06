@@ -1,7 +1,7 @@
 import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
-import _, { isEmpty } from 'lodash';
+import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
@@ -134,7 +134,7 @@ function getDefaultSchema(databaseInfo) {
   }
 
   // Presto/Trino: no real default schema, needs explicit context
-  if (["presto", "trino"].includes(engine)) {
+  if (["presto", "trino", "starburst"].includes(engine)) {
     return null;
   }
 
@@ -340,7 +340,7 @@ const getDatabaseFields = async (): Promise<FieldInfo[]> => {
 
 export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
 
-export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, catalogSelected = false, sql = '') => {
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, catalogSelected = false, sqlTables: TableAndSchema[] = []) => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     console.warn("[minusx] No database selected when getting tables with fields");
@@ -349,7 +349,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
   if (tableDiff && !(catalogSelected && drMode)) {
-    tables = applyTableDiffs(sql, tables, tableDiff, dbId);
+    tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables);
   }
   if (!drMode) {
     return tables;
@@ -373,6 +373,8 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
     const fieldOrColumns = fields.map(field => {
       const column = columnMap[field.name];
       return {
+        // @ts-ignore
+        'type': get(field, 'base_type', '') || get(field, 'semantic_type', ''),
         ..._.omit(field, ['table_name', 'schema', 'display_name', 'id', 'table_id']),
         ...column,
       }

@@ -2,6 +2,7 @@ import _, { get, isEqual, some } from 'lodash';
 import { FormattedTable } from '../metabase/helpers/types';
 import { TableDiff } from 'web/types';
 import { contains } from 'web';
+import { TableAndSchema } from '../metabase/helpers/parseSql';
 
 export function getWithWarning(object: any, path: string, defaultValue: any) {
   const result = get(object, path, defaultValue);
@@ -54,13 +55,21 @@ export function createRunner() {
   return run;
 }
 
-export const applyTableDiffs = (sql: string, allTables: FormattedTable[], tableDiff: TableDiff, dbId: number) => {
+export const applyTableDiffs = (allTables: FormattedTable[], tableDiff: TableDiff, dbId: number, sqlTables: TableAndSchema[] = []) => {
   const updatedRelevantTables = allTables.filter(
     table => contains(tableDiff.add, {
       name: table.name,
       schema: table.schema,
       dbId,
-    }) || sql.toLowerCase().includes(table.name.toLowerCase()) // Hack to check if table in sql
+    }) || sqlTables.some(
+      sqlTable => isEqual({
+        name: sqlTable.name,
+        schema: sqlTable.schema,
+      }, {
+        name: table.name,
+        schema: table.schema,
+      })
+    )
   );
 
   return updatedRelevantTables;

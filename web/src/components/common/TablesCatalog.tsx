@@ -47,7 +47,7 @@ export const TablesCatalog: React.FC<null> = () => {
   const dbInfo = toolContext.dbInfo
   const allTables = dbInfo.tables || []
 
-  const validAddedTables = applyTableDiffs('', allTables, tableDiff, dbInfo.id)
+  const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
 
   const isAnyTablesAdded = () => {
     const addedTables = sortBy(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), ['name', 'schema'])

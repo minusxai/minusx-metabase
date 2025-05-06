@@ -10,6 +10,7 @@ import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
+import { getTablesFromSqlRegex } from './parseSql';
 
 interface ExtractedDataBase {
   name: string;
@@ -71,28 +72,14 @@ export interface MetabaseSemanticQueryAppState {
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
 
-const mapTablesToFields = (tables: FormattedTable[]) => {
-  return map(tables, (table) => {
-    const { name } = table;
-    const { columns } = table;
-    return {
-      name,
-      columns: map(columns, (column) => ({
-        name: column.name,
-        column_type: column.type,
-      }))
-    }
-  })
-}
-
 const createCatalogFromTables = (tables: FormattedTable[]) => {
   return {
     entities: tables.map(table => {
-      const { name } = table;
-      const { columns } = table;
+      const { name, columns, schema } = table;
       return {
         name,
         description: table.description,
+        schema,
         dimensions: map(columns, (column) => ({
           name: column.name,
           type: column.type,
@@ -132,10 +119,19 @@ export async function convertDOMtoStateSQLQuery() {
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const availableDatabases = (await memoizedGetDatabases())?.data?.map(({ name }) => name);
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
+  const defaultSchema = selectedDatabaseInfo?.default_schema;
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlQuery)
+  const sqlTables = getTablesFromSqlRegex(sqlQuery)
+  if (defaultSchema) {
+    sqlTables.forEach((table) => {
+      if (table.schema === undefined || table.schema === '') {
+        table.schema = defaultSchema
+      }
+    })
+  }
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
   let tableContextYAML = undefined
   if (appSettings.drMode) {
     if (selectedCatalog) {
@@ -175,6 +171,7 @@ export async function convertDOMtoStateSQLQuery() {
   };
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
+    metabaseAppStateSQLEditor.relevantTables = []
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;

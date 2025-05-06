@@ -89,7 +89,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const dbInfo = toolContext.dbInfo
 
   const allTables = dbInfo.tables || []
-  const validAddedTables = applyTableDiffs('', allTables, tableDiff, dbInfo.id)
+  const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
   const [isChanged, setIsChanged] = React.useState(false) 
 
   useEffect(() => {
@@ -103,7 +103,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       }
       setIsChanged(true)
     }
-  }, [validAddedTables])
+  }, [relevantTables])
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
