@@ -120,6 +120,7 @@ export const metabaseInternalState: MetabaseInternalState = {
 1. auto-magically create **data models** from your dashboards
 2. support data requests in **Slack** 
 3. perform factual **Deep Research** on your data
+4. help you with last-mile modelling to **improve accuracy** on ad-hoc queries
   
 [Schedule a Demo](https://minusx.ai/demo) to learn more!`,
 };
