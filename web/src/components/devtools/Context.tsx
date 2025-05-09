@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { TablesCatalog } from '../common/TablesCatalog';
-import { CatalogEditor, createCatalog, updateCatalog } from '../common/CatalogEditor';
+import { CatalogEditor, createCatalog } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link, Spinner} from "@chakra-ui/react";
@@ -13,11 +13,9 @@ import { isEmpty, set } from 'lodash';
 import { MetabaseContext } from 'apps/types';
 import { BiBook, BiExpand } from "react-icons/bi";
 import { BsMagic } from "react-icons/bs";
-import { MetabaseAppState, MetabaseAppStateDashboard } from "../../../../apps/src/metabase/helpers/DOMToState";
-import { getModelFromDashboard } from "./DashboardModelling";
-import { getDashboardPrimaryDbId } from "../../../../apps/src/metabase/helpers/dashboard/util";
-import { load } from 'js-yaml';
-import { DatabaseInfoWithTables, memoizedGetDatabaseInfo } from "../../../../apps/src/metabase/helpers/getDatabaseSchema";
+import { MetabaseAppStateDashboard } from "../../../../apps/src/metabase/helpers/DOMToState";
+import { getLLMResponse } from "../../app/api";
+import _ from 'lodash';
 
 
 
@@ -39,12 +37,21 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const dbToCatalog = async () => {
         setIsCreatingDashboardToCatalog(true)
         const appState = await getApp().getState() as MetabaseAppStateDashboard
-        getModelFromDashboard(appState).then(async dashboardYaml => {
-            const name = appState.id + '-' + appState.name
-            const dbId = toolContext.dbId
-            const dbInfo = toolContext.dbInfo
+
+        getLLMResponse({
+            'catalog': 'temp',
+            'agent': "CreateDMFromDBoard",
+            'agent_args': {
+                'metabaseDashboard': appState
+            }
+        }, undefined, 'deepResearchTool').then(response => {
+            const timestamp = new Date().toISOString().replace(/[-:T.Z]/g, '').substring(0, 14);
+            const name = `${appState.id}-${appState.name}-${timestamp}`;
+            const dbId = toolContext.dbId;
+            const dbInfo = toolContext.dbInfo;
+            const dashboardYaml = _.get(response, 'data.thread[0].content', {})
             const contents = JSON.stringify({
-                content: load(dashboardYaml),
+                content: dashboardYaml,
                 dbName: dbInfo.name,
                 dbId,
                 dbDialect: dbInfo.dialect
@@ -61,11 +68,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                 dispatch(setSelectedCatalog(name))
                 setIsCreatingDashboardToCatalog(false)
             }
-            const existingCatalog = availableCatalogs.find(catalog => catalog.name == name)
-            if (existingCatalog) {
-                return updateCatalog({id: existingCatalog.id, name, contents}).then(saveAndSelectCatalog)
-            }
-            return createCatalog({name, contents}).then(saveAndSelectCatalog)
+            createCatalog({name, contents}).then(saveAndSelectCatalog)
         })
         .catch(err => {
             console.error('Error when generating model from dashboard', err)
