@@ -4,9 +4,10 @@ import { dispatch, logoutState } from '../../state/dispatch';
 import { toast } from '../toast';
 const url = `${configs.PLANNER_BASE_URL}/getLLMResponse`
 const dr_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_planner`
+const dr_tool_url = `${configs.BASE_SERVER_URL}/deepresearch/chat`
 
-export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepresearch = false) => {
-    const remoteUrl = deepresearch ? dr_url : url
+export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepresearch = 'simple' ) => {
+    const remoteUrl = deepresearch === 'simple' ? url : deepresearch === 'deepResearchPlanner' ? dr_url : dr_tool_url
     return await axios.post(remoteUrl, payload, {
       headers: {
         'Content-Type': 'application/json',

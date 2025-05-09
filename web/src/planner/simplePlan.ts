@@ -1,5 +1,5 @@
 
-import { planActions } from '../helpers/LLM';
+import { planActions, researchMode } from '../helpers/LLM';
 import _ from 'lodash';
 import { getState } from '../state/store';
 import chat from '../chat/chat';
@@ -17,7 +17,7 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
   const activeThread = state.chat.threads[thread]
   const messageHistory = activeThread.messages;
   const tasks = activeThread.tasks;
-  const deepResearch = state.settings.drMode
+  const deepResearch = state.settings.drMode ? 'deepResearchPlanner' : 'simple' as researchMode
   const prompts = {
     system: plannerConfig.systemPrompt,
     user: plannerConfig.userPrompt,
