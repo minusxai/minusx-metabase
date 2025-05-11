@@ -5,12 +5,13 @@ import {
   MetabaseAppState,
   MetabaseAppStateDashboard,
   MetabaseAppStateSQLEditor,
-  MetabaseSemanticQueryAppState
+  MetabaseSemanticQueryAppState,
+  MetabaseAppStateType,
 } from "./helpers/DOMToState";
 import {
   getAndFormatOutputTable,
   getSqlErrorMessage,
-  metabaseToMarkdownTable,
+  metabaseToCSV,
   waitForQueryExecution,
 } from "./helpers/operations";
 import {
@@ -97,17 +98,21 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql}
     }
   })
-  async runSQLQuery({ sql, databaseId }: { sql: string, databaseId: number }) {
+  async runSQLQuery({ sql }: { sql: string}) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
-    const response = await runSQLQueryFromDashboard(sql, databaseId);
+    const dbID = state?.selectedDatabaseInfo?.id as number
+    if (!dbID) {
+      actionContent.content = "No database selected";
+      return actionContent;
+    }
+    const response = await runSQLQueryFromDashboard(sql, dbID);
     if (response.error) {
       actionContent.content = response.error;
     } else {
-      // convert to markdown
-      const asMarkdown = metabaseToMarkdownTable(response.data, 2000);
+      const asMarkdown = metabaseToCSV(response.data);
       actionContent.content = asMarkdown;
     }
     return actionContent;
@@ -130,17 +135,23 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Updates & executs the SQL query",
-    labelDone: "Updated query",
-    description: "Updates the SQL query in the Metabase SQL editor and executes it.",
+    labelRunning: "Executes the SQL query",
+    labelDone: "Executed query",
+    description: "Executes the SQL query in the Metabase SQL editor.",
     renderBody: ({ sql }: { sql: string }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
       return {text: null, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql }: { sql: string }) {
-    return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv" });
+  async ExecuteSQLClient({ sql, _client_type }: { sql: string, _client_type?: string }) {
+    if (_client_type === MetabaseAppStateType.SQLEditor) {
+        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv" });
+    }
+    else if (_client_type === MetabaseAppStateType.Dashboard) {
+        return await this.runSQLQuery({ sql });      
+    }
   }
+
 
   @Action({
     labelRunning: "Updating SQL Variable",

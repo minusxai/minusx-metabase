@@ -246,7 +246,7 @@ function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: st
       right: 0,
       width: isDevToolsOpen ? '850px' : `${width}px`, // Hack to fix Disabled Overlay
       height: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
       zIndex: 1000,
       display: 'flex',
       alignItems: 'center',
@@ -256,13 +256,13 @@ function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: st
           fontSize: '1rem',
           fontWeight: 'bold',
           color: '#fff',
-          padding: '10px 20px',
+          padding: '10px 50px',
           margin: '10px',
-          backgroundColor: '#34495e',
+          backgroundColor: '#16a085',
           borderRadius: '5px',
           textAlign: 'center'
       }}>
-          {toolEnabledReason}
+          <Markdown content={toolEnabledReason}/>
       </span>
   </div>
 }

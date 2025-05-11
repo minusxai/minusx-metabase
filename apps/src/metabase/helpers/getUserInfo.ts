@@ -3,6 +3,7 @@ import { memoize, RPCs } from 'web'
 import { getTablesFromSqlRegex } from './parseSql';
 import { handlePromise } from '../../common/utils';
 const { getMetabaseState, fetchData } = RPCs;
+import { isDashboardPageUrl } from './dashboard/util';
 
 interface UserInfo {
   id: number;
@@ -13,7 +14,17 @@ interface UserInfo {
 }
 
 export async function getSelectedDbId(): Promise<number | undefined> {
-  const dbId = await getMetabaseState('qb.card.dataset_query.database')
+  const url = await RPCs.queryURL();
+  const isDashboard = isDashboardPageUrl(url);
+  let dbId;
+  if (isDashboard) {
+    const dashcards = await getMetabaseState('dashboard.dashcards') as any;
+    const dbIds = Object.values(dashcards).map((d: any) => d.card.database_id);
+    dbId = _.chain(dbIds).countBy().toPairs().maxBy(_.last).head().value();
+  }
+  else {
+    dbId = await getMetabaseState('qb.card.dataset_query.database')
+  }
   if (!dbId || !Number(dbId)) {
     console.error('Failed to find database id', JSON.stringify(dbId));
     return undefined;
