@@ -154,7 +154,21 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
   const appSettings = RPCs.getAppSettings()
-  const SQLQueryURL = new URL(url).origin + '/question';
+  const hash = btoa(JSON.stringify({
+        "dataset_query": {
+            "database": null,
+            "type": "native",
+            "native": {
+                "query": "",
+                "template-tags": {}
+            }
+        },
+        "display": "table",
+        "parameters": [],
+        "visualization_settings": {},
+        "type": "question"
+    }))
+  const SQLQueryURL = new URL(url).origin + '/question#' + hash;
   const reason = `To enable MinusX on Metabase, head over to the SQL query [page](${SQLQueryURL})!`
   if (isDashboardPageUrl(url)) {
     if (appSettings.drMode) {
