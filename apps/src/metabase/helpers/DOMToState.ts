@@ -171,7 +171,7 @@ export async function convertDOMtoStateSQLQuery() {
   const visualizationSettings = await getMetabaseState('qb.card.visualization_settings') as visualizationSettings
   const sqlVariables = await getSqlVariables();
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
-    type: 'metabaseSQLEditor',
+    type: MetabaseAppStateType.SQLEditor,
     availableDatabases,
     selectedDatabaseInfo,
     relevantTables: relevantTablesWithFields,
@@ -207,7 +207,7 @@ export async function semanticQueryState() {
   const outputTableMarkdown = await getAndFormatOutputTable();
   
   const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {
-    type: 'metabaseSemanticQuery',
+    type: MetabaseAppStateType.SemanticQuery,
     availableMeasures,
     availableDimensions,
     currentSemanticQuery: semanticQuery,

@@ -1,6 +1,6 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { template } from 'lodash';
-import { MetabaseAppStateDashboard, getTableContextYAML } from '../DOMToState';
+import { MetabaseAppStateDashboard, getTableContextYAML , MetabaseAppStateType} from '../DOMToState';
 import { getTablesWithFields, getDatabaseInfoForSelectedDb } from '../getDatabaseSchema';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
@@ -256,7 +256,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   }
   return { 
     ...dashboardInfo,
-    type: 'metabaseDashboard',
+    type: MetabaseAppStateType.Dashboard,
     tableContextYAML,
     selectedDatabaseInfo};
 }
