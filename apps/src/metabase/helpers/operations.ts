@@ -48,7 +48,7 @@ export function metabaseToMarkdownTable(table: MetabaseStateTable, truncateLengt
   return md;
 }
 
-function metabaseToCSV(table: MetabaseStateTable): string {
+export function metabaseToCSV(table: MetabaseStateTable, truncateLength: number = 2000): string {
   const { rows, cols } = table;
   const headerRow = cols.map(col => `"${col.display_name}"`).join(',');
   const dataRows = rows.map(row =>
@@ -56,7 +56,8 @@ function metabaseToCSV(table: MetabaseStateTable): string {
       cell === null ? '' : `"${String(cell).replace(/"/g, '""')}"`
     ).join(',')
   );
-  return [headerRow, ...dataRows].join('\n');
+  const allRows = [headerRow, ...dataRows]
+  return allRows.slice(0, truncateLength).join('\n');
 }
 
 

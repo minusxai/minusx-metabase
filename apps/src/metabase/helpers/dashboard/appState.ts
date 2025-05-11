@@ -1,9 +1,11 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { template } from 'lodash';
-import { MetabaseAppStateDashboard } from '../DOMToState';
+import { MetabaseAppStateDashboard, getTableContextYAML } from '../DOMToState';
+import { getTablesWithFields, getDatabaseInfoForSelectedDb } from '../getDatabaseSchema';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
 import { memoizedGetFieldResolvedName } from './util';
+import { find, get } from 'lodash';
 
 const { getMetabaseState } = RPCs
 
@@ -216,7 +218,14 @@ async function substituteParameters(
   }
   return sql;
 };
+
 export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard | null> {
+  const appSettings = RPCs.getAppSettings();
+  const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [])
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields)
+  const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
+      
   const dashboardMetabaseState: DashboardMetabaseState = await getMetabaseState('dashboard') as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
     console.warn('Could not get dashboard info');
@@ -235,7 +244,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     cards: [],
   }
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
-  const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
+//   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
   const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
   const filteredCards = _.compact(cards);
   dashboardInfo.cards = filteredCards
@@ -245,7 +254,11 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   if (!dashboardInfo.description) {
     delete dashboardInfo.description;
   }
-  return { ...dashboardInfo, type: 'metabaseDashboard'};
+  return { 
+    ...dashboardInfo,
+    type: 'metabaseDashboard',
+    tableContextYAML,
+    selectedDatabaseInfo};
 }
 
 
