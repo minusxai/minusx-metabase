@@ -127,9 +127,9 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const url = await RPCs.queryURL();
     const internalState = this.useStore().getState()
     // Change depending on dashboard or SQL
-    if (isDashboardPageUrl(url)) {
-      return internalState.llmConfigs.dashboard;
-    }
+    // if (isDashboardPageUrl(url)) {
+    //   return internalState.llmConfigs.dashboard;
+    // }
     const appSettings = RPCs.getAppSettings()
     if(appSettings.semanticPlanner) {
       return internalState.llmConfigs.semanticQuery;
@@ -153,17 +153,27 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 }
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
+  const appSettings = RPCs.getAppSettings()
+  const SQLQueryURL = new URL(url).origin + '/question';
+  const reason = `To enable MinusX on Metabase, head over to the SQL query [page](${SQLQueryURL})!`
   if (isDashboardPageUrl(url)) {
-    return {
-      value: true,
-      reason: "",
-    };
+    if (appSettings.drMode) {
+        return {
+        value: true,
+        reason: "",
+        };
+    }
+    else{
+        return {
+            value: false,
+            reason: reason,
+        };
+    }
   }
   if (isEmpty(elements.editor)) {
     return {
       value: false,
-      reason:
-        "To enable MinusX on Metabase, head over to a dashboard or the SQL query page!",
+      reason: reason
     };
   }
   return {
