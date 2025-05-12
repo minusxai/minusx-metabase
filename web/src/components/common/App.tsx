@@ -7,13 +7,14 @@ import {
   Image,
   Tooltip,
   Spacer,
-  Button
+  Button,
+  Link
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
 import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
-import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen } from 'react-icons/bi'
+import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { login, register } from '../../state/auth/reducer'
 import { dispatch, logoutState } from '../../state/dispatch'
@@ -106,11 +107,10 @@ You can activate the MinusX Sheets add-on from the extensions menu:
 }
 
 const AppLoggedIn = forwardRef((_props, ref) => {
-  const email = useSelector((state: RootState) => state.auth.email)
   const tool = getParsedIframeInfo().tool
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
-  const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
+//   const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
   useEffect(() => {
     getBillingInfo().then(billingInfo => {
       dispatch(setBillingInfo({
@@ -151,14 +151,25 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     return () => clearInterval(interval)
   })
   const sidePanelTabName = useSelector((state: RootState) => state.settings.sidePanelTabName)
-  const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
+//   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const platformShortcut = getPlatformShortcut()
   const width = getParsedIframeInfo().width
-  
+
+  const MXMode = () => {
+    const subscribed = useSelector((state: RootState) => state.billing.isSubscribed)
+    const drMode = useSelector((state: RootState) => state.settings.drMode)
+    return (
+        <HStack>
+            { !subscribed &&  !drMode && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidLockAlt /> Lite Mode</Link> }
+            { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Mode</Link> }
+            {drMode && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Mode</Link> }
+        </HStack>
+    )
+  }
   return (
     <VStack
       px="4"
-      pt="4"
+      pt="2"
       fontSize="sm"
       w={`${width}px`}
       height="100%"
@@ -176,9 +187,11 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           justifyContent={'space-between'}
           paddingBottom={2}
         >
-          <Image src={logo} alt="MinusX" maxWidth='150px'/>
+          <VStack alignItems={'start'} spacing={0} paddingLeft={1}>
+            <Image src={logo} alt="MinusX" maxWidth='150px'/>
+            <MXMode />
+          </VStack>
           <HStack>
-            
             <Tooltip hasArrow label="Start New Chat" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
                 variant={'ghost'}
@@ -229,7 +242,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <DevToolsToggle size={"micro"}/>}
-        {/* { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>} */}
+        { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
         {/* { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>} */}
         {/* <SupportButton email={email} /> */}
       </HStack>
