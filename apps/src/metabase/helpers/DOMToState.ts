@@ -243,7 +243,6 @@ async function getSqlVariables() {
     return {};
   }
   const currentParameterValues = await RPCs.getMetabaseState("qb.parameterValues") as ParameterValues;
-  console.log('currentParameterValues ooolallalla')
   const native = currentCard.dataset_query.native
   if (!native) {
     return {};

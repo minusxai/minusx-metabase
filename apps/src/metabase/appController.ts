@@ -156,11 +156,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Constructs the MBQL query",
     labelDone: "MBQL built",
     description: "Constructs the MBQL query in the GUI editor",
-    renderBody: ({ mbql }: { mbql: any }) => {
-      return {text: null, code: JSON.stringify(mbql), oldCode: null, language: "json"}
+    // renderBody: ({ mbql }: { mbql: any }) => {
+    //   return {text: null, code: JSON.stringify(mbql), oldCode: null, language: "json"}
+    // }
+    renderBody: () => {
+        return {}
     }
   })
-  async ExecuteMBQLClient({ mbql, _client_type }: { mbql: any, _client_type?: string }) {
+//   async ExecuteMBQLClient({ mbql, _client_type }: { mbql: any, _client_type?: string }) {
+  async ExecuteMBQLClient() {
     const dummyCard = {
         type: "question",
         visualization_settings: {},
@@ -178,8 +182,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             }
         }
     };
-    // await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: dummyCard});
-    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: dummyCard});
+    // await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
     // await this._executeQLQueryInternal("MBQL");
 
     const actionContent: BlankMessageContent = {
