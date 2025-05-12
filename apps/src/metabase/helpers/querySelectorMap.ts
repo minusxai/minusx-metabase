@@ -28,6 +28,10 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//button[@data-testid="run-button"]|//button[contains(@class,"RunButton")]',
   },
+  mbql_visualize: {
+    type: 'XPATH',
+    selector: '//button[contains(text(), "Visualize")]',
+  },
   sql_read: {
     type: 'XPATH',
     selector: '//div[@id="id_sql"]//div[contains(@class, "ace_line")]'

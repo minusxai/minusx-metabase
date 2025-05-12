@@ -168,7 +168,13 @@ function shouldEnable(elements: DOMQueryMapResponse, url: string) {
         "visualization_settings": {},
         "type": "question"
     }))
-  const SQLQueryURL = new URL(url).origin + '/question#' + hash;
+    if (appSettings.drMode) {
+        return {
+        value: true,
+        reason: "",
+        };
+    }
+    const SQLQueryURL = new URL(url).origin + '/question#' + hash;
   const reason = `To enable MinusX on Metabase, head over to the SQL query [page](${SQLQueryURL})!`
   if (isDashboardPageUrl(url)) {
     if (appSettings.drMode) {

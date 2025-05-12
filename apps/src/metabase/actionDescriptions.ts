@@ -41,6 +41,18 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     required: ["sql"],
   },
   {
+    name: 'ExecuteMBQLClient',
+    args: {
+      mbql: {
+        type: 'string',
+        description: "The MBQL of the query"
+      },
+    },
+    description: `Updates the MBQL query and runs it.
+    `,
+    required: ["mbql"],
+  },
+  {
     name: 'executeSQLQuery',
     args: {
     },
@@ -154,6 +166,7 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     },
     description: "Sets the value, type, and display name of a variable in the query. If the variable does not exist, no action is taken. All parameters other than variable name are optional. NOTE: if creating a new variable, use this tool AFTER updating the SQL query, not before.",
   },
+  
 ];
 
 export const ACTION_DESCRIPTIONS_DASHBOARD: ActionDescription[] = [

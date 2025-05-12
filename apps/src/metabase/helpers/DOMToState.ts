@@ -243,7 +243,12 @@ async function getSqlVariables() {
     return {};
   }
   const currentParameterValues = await RPCs.getMetabaseState("qb.parameterValues") as ParameterValues;
-  const parameters = currentCard.dataset_query.native['template-tags'];
+  console.log('currentParameterValues ooolallalla')
+  const native = currentCard.dataset_query.native
+  if (!native) {
+    return {};
+  }
+  const parameters = native['template-tags'] || {};
   const sqlVariables: Record<string, {
     value: string,
     type: string,

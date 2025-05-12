@@ -38,6 +38,9 @@ export function getTablesFromSqlRegex(sql: string): TableAndSchema[] {
   // need to capture both schema (if exists) and table
   // have 2 patterns: one is for schema.table and one for "schema with spaces"."table with spaces"
   // add 2nd pattern for `schema.table`
+  if (!sql) {
+    return [];
+  }
   const regexes = [
     /(?:FROM|JOIN|INTO)\s+(?:((?:[\w\p{L}]+)|(?:["`](?:[\w\s\-\p{L}]+))["`])\.)?((?:[\w\p{L}]+)|(?:["`](?:[\w\s\-\p{L}]+))["`])\s*/ugi,
     /(?:FROM|JOIN|INTO)\s+`([\w\s\-\p{L}]+)\.([\w\s\-\p{L}]+)`\s*/ugi
