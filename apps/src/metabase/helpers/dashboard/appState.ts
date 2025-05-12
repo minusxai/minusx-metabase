@@ -220,6 +220,7 @@ async function substituteParameters(
 };
 
 export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard | null> {
+  const url = new URL(await RPCs.queryURL()).origin;
   const appSettings = RPCs.getAppSettings();
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [])
@@ -258,7 +259,9 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     ...dashboardInfo,
     type: MetabaseAppStateType.Dashboard,
     tableContextYAML,
-    selectedDatabaseInfo};
+    selectedDatabaseInfo,
+    metabaseOrigin: url,
+};
 }
 
 

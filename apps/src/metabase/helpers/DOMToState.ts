@@ -57,6 +57,7 @@ export interface MetabaseAppStateSQLEditor {
   visualizationSettingsStatus: 'open' | 'closed';
   outputTableMarkdown: string
   visualizationSettings: visualizationSettings,
+  metabaseOrigin?: string;
 }
 
 // make this DashboardInfo
@@ -64,6 +65,7 @@ export interface MetabaseAppStateDashboard extends DashboardInfo {
   type: MetabaseAppStateType.Dashboard;
   tableContextYAML?: Record<string, any>;
   selectedDatabaseInfo?: ExtractedDataBase;
+  metabaseOrigin?: string;
 }
 
 export interface MetabaseSemanticQueryAppState {
@@ -144,6 +146,7 @@ export function getTableContextYAML(relevantTablesWithFields: FormattedTable[]) 
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
+  const url = new URL(await RPCs.queryURL()).origin;
   const availableDatabases = (await memoizedGetDatabases())?.data?.map(({ name }) => name);
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const defaultSchema = selectedDatabaseInfo?.default_schema;
@@ -183,6 +186,7 @@ export async function convertDOMtoStateSQLQuery() {
     outputTableMarkdown,
     visualizationSettings,
     sqlVariables,
+    metabaseOrigin: url
   };
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
