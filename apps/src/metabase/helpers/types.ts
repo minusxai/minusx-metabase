@@ -52,6 +52,8 @@ export interface QBTemplateTag {
   name: string,
   default?: any,
   'display-name': string,
+  "snippet-id"?: number,
+  "snippet-name"?: string
 }
 export interface QBTemplateTags {
   [key: string]: QBTemplateTag

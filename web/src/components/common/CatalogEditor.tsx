@@ -10,6 +10,8 @@ import { configs } from "../../constants";
 import { useSelector } from "react-redux";
 import { RootState } from "../../state/store";
 import { toast } from "../../app/toast";
+import { fetchData } from "../../app/rpc";
+import { get } from "lodash";
 
 const useAppStore = getApp().useStore()
 
@@ -41,6 +43,65 @@ export const updateCatalog = async ({ id, name, contents }: { id: string; name: 
     return newId
 }
 
+type Entity = {
+    name: string;
+    from_: string | {
+        sql: string;
+        alias: string;
+        useSnippets?: boolean;
+    }
+    // other stuff don't care about
+}
+type AllSnippetsResponse = {
+    name: string;
+    content: string;
+    id: number;
+}[]
+
+const getAllSnippets = async () => {
+    const response = await fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
+    return response;
+}
+
+const createSnippet = async (sql: string, snippetIdentifier: string) => {
+    const response = await fetchData('/api/native-query-snippet', 'POST', {
+        "content": sql,
+        "description": "",
+        "name": snippetIdentifier,
+        "collection_id": null
+    })
+    return response;
+}
+
+const updateSnippet = async (sql: string, snippetIdentifier: string, snippetId: number) => {
+    const response = await fetchData(`/api/native-query-snippet/${snippetId}`, 'PUT', {
+        "content": sql,
+        "description": "",
+        "name": snippetIdentifier,
+        "collection_id": null
+    })
+    return response;
+}
+const createOrUpdateSnippetsForEntities = async (allSnippets: AllSnippetsResponse, entities: Entity[]) => {
+    for (const entity of entities) {
+        const { name, from_ } = entity
+        if (typeof from_ != 'string') {
+            let { sql, alias } = from_
+            // add parantheses around the sql query to make the snippet
+            sql = `(${sql})`
+            if (alias) {
+                const existingSnippet = allSnippets.find(snippet => snippet.name === alias)
+                if (existingSnippet) {
+                    await updateSnippet(sql, alias, existingSnippet.id)
+                } else {
+                    await createSnippet(sql, alias)
+                }
+            }
+        }
+    }
+}
+
+
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
     const catalog: ContextCatalog = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
     if (catalog) {
@@ -60,12 +121,18 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
     const dbDialect = toolContext.dbInfo.dialect
 
     const handleSave = async () => {
+        const allSnippets = await getAllSnippets()
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
         try {
             if (anyChange) {
                 const fn = defaultTitle ? updateCatalog : createCatalog
                 setIsSaving(true);
                 const content = load(yamlContent)
+                const entities = content.entities as Entity[]
+                // if even one of the entities has useSnippets set to true, we need to create snippets for all
+                if (entities.some(entity => get(entity, 'from_.useSnippets', false))) {
+                    await createOrUpdateSnippetsForEntities(allSnippets, entities)
+                }
                 const catalogID = await fn({
                     id,
                     name: title,
@@ -77,6 +144,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                     })
                 })
                 setIsSaving(false);
+
                 dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName: dbName, currentUserId }));
             }
             dispatch(setSelectedCatalog(title))
