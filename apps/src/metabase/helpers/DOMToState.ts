@@ -161,7 +161,7 @@ export async function convertDOMtoStateSQLQuery() {
       }
     })
   }
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, selectedCatalog, sqlTables)
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
   const tableContextYAML = getTableContextYAML(relevantTablesWithFields)
   
   const queryExecuted = await getMetabaseState('qb.queryResults') !== null;

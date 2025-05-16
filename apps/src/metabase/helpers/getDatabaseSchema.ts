@@ -340,7 +340,7 @@ const getDatabaseFields = async (): Promise<FieldInfo[]> => {
 
 export const memoizedGetDatabaseFields = memoize(getDatabaseFields, DEFAULT_TTL);
 
-export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, selectedCatalog: object | boolean = false, sqlTables: TableAndSchema[] = []) => {
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, isCatalogSelected: boolean = false, sqlTables: TableAndSchema[] = []) => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     console.warn("[minusx] No database selected when getting tables with fields");
@@ -348,7 +348,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   }
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
-  if (tableDiff && !(selectedCatalog && drMode)) {
+  if (tableDiff && !(isCatalogSelected && drMode)) {
     tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables);
   }
   if (!drMode) {
@@ -356,7 +356,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   }
   // if in deep research mode and a non-default catalog is selected, we don't need
   // table fields since we'll be using the catalog instead
-  if (selectedCatalog) {
+  if (isCatalogSelected) {
     return tables;
   }
   const tableIds = tables.map((table) => table.id);
