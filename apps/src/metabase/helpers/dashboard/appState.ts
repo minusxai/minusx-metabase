@@ -1,11 +1,12 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
-import _, { template } from 'lodash';
+import _, { forEach, reduce, template, values } from 'lodash';
 import { MetabaseAppStateDashboard, getTableContextYAML , MetabaseAppStateType} from '../DOMToState';
 import { getTablesWithFields, getDatabaseInfoForSelectedDb } from '../getDatabaseSchema';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
 import { memoizedGetFieldResolvedName } from './util';
 import { find, get } from 'lodash';
+import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
 
 const { getMetabaseState } = RPCs
 
@@ -223,9 +224,8 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   const url = new URL(await RPCs.queryURL()).origin;
   const appSettings = RPCs.getAppSettings();
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [])
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields)
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
+  const defaultSchema = selectedDatabaseInfo?.default_schema; 
       
   const dashboardMetabaseState: DashboardMetabaseState = await getMetabaseState('dashboard') as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
@@ -248,6 +248,22 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
 //   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
   const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
   const filteredCards = _.compact(cards);
+  let sqlTables: TableAndSchema[] = []
+  forEach(filteredCards, (card) => {
+    if (card) {
+      getTablesFromSqlRegex(card.sql).forEach((table) => {
+        if (defaultSchema) {
+          if (table.schema === undefined || table.schema === '') {
+            table.schema = defaultSchema
+          }
+        }
+        sqlTables.push(table)
+      })
+    }
+  })
+  sqlTables = _.uniqBy(sqlTables, (table) => `${table.schema}::${table.name}`)
+  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields)
   dashboardInfo.cards = filteredCards
   // filter out dashcards with null names or ids
   .filter(dashcard => dashcard.name !== null && dashcard.id !== null);
