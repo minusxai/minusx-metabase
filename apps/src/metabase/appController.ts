@@ -33,11 +33,9 @@ import {
   SearchApiResponse
  } from "./helpers/types";
 import {
-  getTemplateTags as getTemplateTagsForVars,
+  getTemplateTags,
   getParameters,
-  getVariablesAndUuidsInQuery,
-  MetabaseStateSnippetsDict,
-  getSnippetsInQuery
+  getVariablesAndUuidsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
@@ -69,15 +67,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       await this.toggleSQLEditor("open");
     }
     const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
-    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
-    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict);
     const varsAndUuids = getVariablesAndUuidsInQuery(sql);
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
-    const templateTags = {
-      ...getTemplateTagsForVars(varsAndUuids, existingTemplateTags || {}),
-      ...snippetTemplateTags
-    }
+    const templateTags = getTemplateTags(varsAndUuids, existingTemplateTags || {});
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
     currentCard.parameters = parameters;

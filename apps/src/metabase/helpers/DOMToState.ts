@@ -9,7 +9,7 @@ const { getMetabaseState, queryURL } = RPCs;
 import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
-import { add, assignIn, find, get, keyBy, map, omit } from 'lodash';
+import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 
 interface ExtractedDataBase {
@@ -130,6 +130,7 @@ export function getTableContextYAML(relevantTablesWithFields: FormattedTable[]) 
     if (appSettings.drMode) {
         if (selectedCatalog) {
             const modifiedCatalog = modifyCatalog(selectedCatalog, relevantTablesWithFields)
+            console.log('modifiedCatalog', modifiedCatalog)
             tableContextYAML = {
                 ...modifiedCatalog,
             }
@@ -140,20 +141,6 @@ export function getTableContextYAML(relevantTablesWithFields: FormattedTable[]) 
         } 
     }
     return tableContextYAML
-}
-
-// replace {{snippet: snippetName}} with entity.name for the entity with entity.from_.alias = snippetName
-function modifySqlForSnippets(sql: string, entities: object[]) {
-  for (const entity of entities) {
-    const { name, from_ } = entity as any
-    if (typeof from_ != 'string') {
-      let {  alias } = from_
-      if (alias) {
-        sql = sql.replace(new RegExp(`{{\\s*snippet:\\s*${alias}\\s*}}`, 'g'), name)
-      }
-    }
-  }
-  return sql
 }
 
 export async function convertDOMtoStateSQLQuery() {
@@ -204,10 +191,6 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
-    // if even one of the entities has useSnippets set to true, we need to rewrite sql
-    if (tableContextYAML?.entities.some(entity => get(entity, 'from_.useSnippets', false))) {
-      metabaseAppStateSQLEditor.sqlQuery = modifySqlForSnippets(metabaseAppStateSQLEditor.sqlQuery, tableContextYAML?.entities)
-    }
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
