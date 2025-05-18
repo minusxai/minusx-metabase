@@ -44,6 +44,13 @@ import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDas
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
 
+async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
+  const settings = RPCs.getAppSettings()
+  const selectedCatalog = settings.selectedCatalog
+  console.log('Settings: selected catalog', selectedCatalog)
+  return ctes
+}
+
 function addCtesToQuery(
   ctes: CTE[],
   sql: string
@@ -84,6 +91,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    ctes = await updateSnippets(ctes)
     sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
@@ -129,7 +137,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    sql = addCtesToQuery(ctes, sql);
+    ctes = await updateSnippets(ctes)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
@@ -612,3 +620,4 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
 }
+
