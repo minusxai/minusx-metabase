@@ -84,6 +84,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
 
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
+  const drMode = useSelector((state: RootState) => state.settings.drMode)
 
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo
@@ -175,6 +176,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     else if (isUndefined(get(toolContext, 'dbId'))) {
         toastTitle = 'No database selected'
         toastDescription = "Please select a database"
+        preventRunTask = true
+    }
+    else if (toolContext.pageType === 'dashboard' && !drMode) {
+        toastTitle = 'Dashboard is supported only in agent mode'
+        toastDescription = "Please switch to agent mode"
         preventRunTask = true
     }
     else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables)) {
