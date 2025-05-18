@@ -42,6 +42,32 @@ import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
+type CTE = [string, string]
+
+function addCtesToQuery(
+  ctes: CTE[],
+  sql: string
+): string {
+  if (ctes.length === 0) {
+    return sql;
+  }
+
+  const pattern = /^\s*(?:--[^\n]*\n\s*)*(WITH)\b/i;
+  const match = sql.match(pattern);
+  const cteClauses = ctes.map(
+    ([name, query]) => `${name} AS (\n${query.trim()}\n)`
+  );
+
+  if (!match) {
+    const cteBlock = "WITH " + cteClauses.join(",\n");
+    return `${cteBlock}\n${sql.trim()}`;
+  } else {
+    const insertAt = match.index! + match[1].length;
+    const injected = " " + cteClauses.join(",\n") + ",";
+    return sql.slice(0, insertAt) + injected + sql.slice(insertAt);
+  }
+}
+
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------
@@ -54,10 +80,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql, oldCode: sqlQuery}
     }
   })
-  async updateSQLQuery({ sql, executeImmediately = true, _type = "markdown" }: { sql: string, executeImmediately?: boolean, _type?: string }) {
+  async updateSQLQuery({ sql, executeImmediately = true, _type = "markdown", ctes = [] }: { sql: string, executeImmediately?: boolean, _type?: string, ctes: CTE[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {
@@ -98,10 +125,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql}
     }
   })
-  async runSQLQuery({ sql }: { sql: string}) {
+  async runSQLQuery({ sql, ctes = [] }: { sql: string, ctes: CTE[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
@@ -143,12 +171,12 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql, _client_type }: { sql: string, _client_type?: string }) {
+  async ExecuteSQLClient({ sql, _client_type, _ctes = [] }: { sql: string, _client_type?: string, _ctes?: CTE[] }) {
     if (_client_type === MetabaseAppStateType.SQLEditor) {
-        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv" });
+        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
     }
     else if (_client_type === MetabaseAppStateType.Dashboard) {
-        return await this.runSQLQuery({ sql });      
+        return await this.runSQLQuery({ sql, ctes: _ctes });      
     }
   }
 
