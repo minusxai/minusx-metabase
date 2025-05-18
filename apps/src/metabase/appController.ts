@@ -35,7 +35,9 @@ import {
 import {
   getTemplateTags,
   getParameters,
-  getVariablesAndUuidsInQuery
+  getVariablesAndUuidsInQuery,
+  MetabaseStateSnippetsDict,
+  getSnippetsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
@@ -44,11 +46,48 @@ import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDas
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
 
+type AllSnippetsResponse = {
+  name: string;
+  content: string;
+  id: number;
+}[]
+
 async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
+  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
   const settings = RPCs.getAppSettings()
   const selectedCatalog = settings.selectedCatalog
-  console.log('Settings: selected catalog', selectedCatalog)
-  return ctes
+  const updates = ctes.map(async (cte) => {
+    const [name, sql] = cte
+    // const snippetName = `${name} (${selectedCatalog})`
+    const snippetName = name
+    const existing = allSnippets.find(
+      (s) => s.name === snippetName
+    );
+
+    const snippetPayload = {
+      name: snippetName,
+      content: sql,
+      collection_id: null,
+    };
+
+    try {
+      if (existing) {
+        if (existing.content !== sql) {
+          await RPCs.fetchData(`/api/native-query-snippet/${existing.id}`, 'PUT', snippetPayload);
+        }
+      } else {
+        await RPCs.fetchData('/api/native-query-snippet', 'POST', snippetPayload);
+      }
+  
+      return [name, `{{snippet: ${snippetName}}}`] as [string, string];
+    }
+    catch (error) {
+      console.error(`Failed to update snippet ${snippetName}:`, error);
+      return cte;
+    }
+    
+  });
+  return await Promise.all(updates);
 }
 
 function addCtesToQuery(
@@ -103,9 +142,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
     const varsAndUuids = getVariablesAndUuidsInQuery(sql);
+    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
+    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict);
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
-    const templateTags = getTemplateTags(varsAndUuids, existingTemplateTags || {});
+    const templateTags = {
+      ...getTemplateTags(varsAndUuids, existingTemplateTags || {}),
+      ...snippetTemplateTags
+    }
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
     currentCard.parameters = parameters;
@@ -144,7 +188,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const response = await runSQLQueryFromDashboard(sql, dbID);
+    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
+    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict);
+    const response = await runSQLQueryFromDashboard(sql, dbID, snippetTemplateTags);
     if (response.error) {
       actionContent.content = response.error;
     } else {
