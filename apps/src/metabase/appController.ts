@@ -36,8 +36,6 @@ import {
   getTemplateTags,
   getParameters,
   getVariablesAndUuidsInQuery,
-  MetabaseStateSnippetsDict,
-  getSnippetsInQuery,
   SnippetTemplateTag
 } from "./helpers/sqlQuery";
 import axios from 'axios'
@@ -56,7 +54,6 @@ type AllSnippetsResponse = {
 
 async function updateSnippets(ctes: CTE[]): Promise<[CTE[], Record<string, SnippetTemplateTag>]> {
   const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse[];
-  console.log("allSnippets", allSnippets);
   const settings = RPCs.getAppSettings()
   const selectedCatalog = settings.selectedCatalog
   const cleanSelectedCatalog = selectedCatalog.replace(/[^a-zA-Z0-9]/g, "_")
@@ -81,13 +78,11 @@ async function updateSnippets(ctes: CTE[]): Promise<[CTE[], Record<string, Snipp
       if (existing) {
         if (existing.content !== sql) {
           response = await RPCs.fetchData(`/api/native-query-snippet/${existing.id}`, 'PUT', snippetPayload) as AllSnippetsResponse
-          console.log('Updated snippet:', response);
         } else {
           response = existing
         }
       } else {
         response = await RPCs.fetchData('/api/native-query-snippet', 'POST', snippetPayload) as AllSnippetsResponse
-        console.log('Created snippet:', response); 
       }
       snippetTags.push({
         "display-name": snippetName,
@@ -175,7 +170,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       ...getTemplateTags(varsAndUuids, existingTemplateTags || {}),
       ...snippetTemplateTags
     }
-    console.log('Template tags', templateTags);
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
     currentCard.parameters = parameters;
@@ -308,7 +302,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
           } as Record<string, string>;
           let otherType = typeToOtherTypeMap[variableInfo['type']];
           // find the parameter in currentCard.parameters and modify its type to otherType
-          console.log("currentCard.parameters", currentCard.parameters);
           let currentParams = currentCard.parameters || [];
           for (let i = 0; i < currentParams.length; i++) {
             const parameter = currentParams[i];
@@ -356,7 +349,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
     visualization_type = toCapitalCase(visualization_type);    
-    console.log("Setting visualization type to", visualization_type, dimensions, metrics);
     if (primaryVisualizationTypes.includes(visualization_type) && (dimensions && metrics)) {
       const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
       if (currentCard) {
