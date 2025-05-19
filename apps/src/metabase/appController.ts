@@ -203,6 +203,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     let snippetTemplateTags: Record<string, SnippetTemplateTag>
     [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
