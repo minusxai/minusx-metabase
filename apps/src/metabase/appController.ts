@@ -150,8 +150,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    const settings = RPCs.getAppSettings()
+    const snippetsMode = settings.snippetsMode
     let snippetTemplateTags: Record<string, SnippetTemplateTag>
-    [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    if (snippetsMode) {
+      [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    } else {
+      snippetTemplateTags = {}
+    }
     sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
@@ -201,8 +207,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    const settings = RPCs.getAppSettings()
+    const snippetsMode = settings.snippetsMode
     let snippetTemplateTags: Record<string, SnippetTemplateTag>
-    [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    if (snippetsMode) {
+      [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    } else {
+      snippetTemplateTags = {}
+    }
     sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number

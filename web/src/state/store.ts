@@ -286,12 +286,17 @@ const migrations = {
       newState.settings.selectedCatalog = DEFAULT_TABLES
     }
     return newState
+  },
+  26: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.snippetsMode = false
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 25,
+  version: 26,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: true }),
