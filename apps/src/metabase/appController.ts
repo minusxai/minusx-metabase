@@ -56,10 +56,11 @@ async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
   const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
   const settings = RPCs.getAppSettings()
   const selectedCatalog = settings.selectedCatalog
+  const cleanSelectedCatalog = selectedCatalog.replace(/[^a-zA-Z0-9]/g, "_")
   const updates = ctes.map(async (cte) => {
     const [name, sql] = cte
-    // const snippetName = `${name} (${selectedCatalog})`
-    const snippetName = name
+    const snippetName = `${name}_${cleanSelectedCatalog}`
+    // const snippetName = name
     const existing = allSnippets.find(
       (s) => s.name === snippetName
     );
