@@ -37,11 +37,13 @@ import {
   getParameters,
   getVariablesAndUuidsInQuery,
   MetabaseStateSnippetsDict,
-  getSnippetsInQuery
+  getSnippetsInQuery,
+  SnippetTemplateTag
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
+import { v4 as uuidv4 } from 'uuid';
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
@@ -52,14 +54,29 @@ type AllSnippetsResponse = {
   id: number;
 }[]
 
+async function getSnippetTagsFromCTEs(ctes: CTE[]): Promise<Record<string, SnippetTemplateTag>> {
+  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
+  const existingSnippets = allSnippets.filter(snippet => ctes.find(cte => `{{snippet: ${snippet.name}}}` == cte[1]))
+  const snippetTags: SnippetTemplateTag[] = existingSnippets.map(snippet => ({
+    "display-name": snippet.name,
+    id: uuidv4(),
+    name: `snippet: ${snippet.name}`,
+    "snippet-id": snippet.id,
+    "snippet-name": snippet.name,
+    type: "snippet"
+  }))
+  return Object.fromEntries(snippetTags.map(tag => [tag.name, tag]))
+}
+
 async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
   const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
+  console.log("allSnippets", allSnippets);
   const settings = RPCs.getAppSettings()
   const selectedCatalog = settings.selectedCatalog
   const cleanSelectedCatalog = selectedCatalog.replace(/[^a-zA-Z0-9]/g, "_")
   const updates = ctes.map(async (cte) => {
     const [name, sql] = cte
-    const snippetName = `${name}_${cleanSelectedCatalog}`
+    const snippetName = `${name}_x_${cleanSelectedCatalog}`
     // const snippetName = name
     const existing = allSnippets.find(
       (s) => s.name === snippetName
@@ -69,6 +86,7 @@ async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
       name: snippetName,
       content: sql,
       collection_id: null,
+      description: 'created by minusx'
     };
 
     try {
@@ -132,6 +150,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     ctes = await updateSnippets(ctes)
+    const snippetTemplateTags = await getSnippetTagsFromCTEs(ctes);
     sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
@@ -143,14 +162,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
     const varsAndUuids = getVariablesAndUuidsInQuery(sql);
-    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
-    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict);
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
     const templateTags = {
       ...getTemplateTags(varsAndUuids, existingTemplateTags || {}),
       ...snippetTemplateTags
     }
+    console.log('Template tags', templateTags);
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
     currentCard.parameters = parameters;

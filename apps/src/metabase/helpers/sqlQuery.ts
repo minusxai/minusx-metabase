@@ -26,7 +26,7 @@ export type MetabaseStateSnippetsDict = {
   }
 }
 
-type SnippetTemplateTag = {
+export type SnippetTemplateTag = {
   "display-name": string,
   id: string, // this is the uuid
   name: string, // this looks like "snippet: snippetName"
