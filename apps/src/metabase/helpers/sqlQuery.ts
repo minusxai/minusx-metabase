@@ -6,6 +6,7 @@ type VarAndUuids = {
   variable: string,
   uuid: string
 }[]
+
  // not using this right now, but might be useful later?
 export const getVariablesAndUuidsInQuery = (query: string): VarAndUuids => {
   // using map to dedupe
@@ -16,6 +17,15 @@ export const getVariablesAndUuidsInQuery = (query: string): VarAndUuids => {
     asMap[match[1]] = uuidv4();
   }
   return Object.entries(asMap).map(([key, value]) => ({ variable: key, uuid: value }));
+}
+
+export type SnippetTemplateTag = {
+  "display-name": string,
+  id: string, // this is the uuid
+  name: string, // this looks like "snippet: snippetName"
+  "snippet-id": number,
+  "snippet-name": string // this is just snippetName
+  type: "snippet"
 }
 
 function slugToDisplayName(slug: string): string {

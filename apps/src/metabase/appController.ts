@@ -35,13 +35,100 @@ import {
 import {
   getTemplateTags,
   getParameters,
-  getVariablesAndUuidsInQuery
+  getVariablesAndUuidsInQuery,
+  SnippetTemplateTag
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
+import { v4 as uuidv4 } from 'uuid';
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
+type CTE = [string, string]
+
+type AllSnippetsResponse = {
+  name: string;
+  content: string;
+  id: number;
+}
+
+async function updateSnippets(ctes: CTE[]): Promise<[CTE[], Record<string, SnippetTemplateTag>]> {
+  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse[];
+  const settings = RPCs.getAppSettings()
+  const selectedCatalog = settings.selectedCatalog
+  const cleanSelectedCatalog = selectedCatalog.replace(/[^a-zA-Z0-9]/g, "_")
+  const snippetTags: SnippetTemplateTag[] = []
+  const updates = ctes.map(async (cte) => {
+    const [name, sql] = cte
+    const snippetName = `${name}_${cleanSelectedCatalog}`
+    // const snippetName = name
+    const existing = allSnippets.find(
+      (s) => s.name === snippetName
+    );
+
+    const snippetPayload = {
+      name: snippetName,
+      content: sql,
+      collection_id: null,
+      description: 'created by minusx'
+    };
+
+    try {
+      let response: AllSnippetsResponse;
+      if (existing) {
+        if (existing.content !== sql) {
+          response = await RPCs.fetchData(`/api/native-query-snippet/${existing.id}`, 'PUT', snippetPayload) as AllSnippetsResponse
+        } else {
+          response = existing
+        }
+      } else {
+        response = await RPCs.fetchData('/api/native-query-snippet', 'POST', snippetPayload) as AllSnippetsResponse
+      }
+      snippetTags.push({
+        "display-name": snippetName,
+        id: uuidv4(),
+        name: `snippet: ${snippetName}`,
+        "snippet-id": response.id,
+        "snippet-name": snippetName,
+        type: "snippet"
+      })
+  
+      return [name, `{{snippet: ${snippetName}}}`] as [string, string];
+    }
+    catch (error) {
+      console.error(`Failed to update snippet ${snippetName}:`, error);
+      return cte;
+    }
+    
+  });
+  const updatedCTEs = await Promise.all(updates);
+  return [updatedCTEs, Object.fromEntries(snippetTags.map(tag => [tag.name, tag]))]
+}
+
+function addCtesToQuery(
+  ctes: CTE[],
+  sql: string
+): string {
+  if (ctes.length === 0) {
+    return sql;
+  }
+
+  const pattern = /^\s*(?:--[^\n]*\n\s*)*(WITH)\b/i;
+  const match = sql.match(pattern);
+  const cteClauses = ctes.map(
+    ([name, query]) => `${name} AS (\n${query.trim()}\n)`
+  );
+
+  if (!match) {
+    const cteBlock = "WITH " + cteClauses.join(",\n");
+    return `${cteBlock}\n${sql.trim()}`;
+  } else {
+    const insertAt = match.index! + match[1].length;
+    const injected = " " + cteClauses.join(",\n") + ",";
+    return sql.slice(0, insertAt) + injected + sql.slice(insertAt);
+  }
+}
+
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------
@@ -54,10 +141,19 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql, oldCode: sqlQuery}
     }
   })
-  async updateSQLQuery({ sql, executeImmediately = true, _type = "markdown" }: { sql: string, executeImmediately?: boolean, _type?: string }) {
+  async updateSQLQuery({ sql, executeImmediately = true, _type = "markdown", ctes = [] }: { sql: string, executeImmediately?: boolean, _type?: string, ctes: CTE[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    const settings = RPCs.getAppSettings()
+    const snippetsMode = settings.snippetsMode
+    let snippetTemplateTags: Record<string, SnippetTemplateTag>
+    if (snippetsMode) {
+      [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    } else {
+      snippetTemplateTags = {}
+    }
+    sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {
@@ -70,7 +166,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const varsAndUuids = getVariablesAndUuidsInQuery(sql);
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
-    const templateTags = getTemplateTags(varsAndUuids, existingTemplateTags || {});
+    const templateTags = {
+      ...getTemplateTags(varsAndUuids, existingTemplateTags || {}),
+      ...snippetTemplateTags
+    }
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
     currentCard.parameters = parameters;
@@ -98,17 +197,26 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql}
     }
   })
-  async runSQLQuery({ sql }: { sql: string}) {
+  async runSQLQuery({ sql, ctes = [] }: { sql: string, ctes: CTE[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
+    const settings = RPCs.getAppSettings()
+    const snippetsMode = settings.snippetsMode
+    let snippetTemplateTags: Record<string, SnippetTemplateTag>
+    if (snippetsMode) {
+      [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    } else {
+      snippetTemplateTags = {}
+    }
+    sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const response = await runSQLQueryFromDashboard(sql, dbID);
+    const response = await runSQLQueryFromDashboard(sql, dbID, snippetTemplateTags);
     if (response.error) {
       actionContent.content = response.error;
     } else {
@@ -143,12 +251,12 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql, _client_type }: { sql: string, _client_type?: string }) {
+  async ExecuteSQLClient({ sql, _client_type, _ctes = [] }: { sql: string, _client_type?: string, _ctes?: CTE[] }) {
     if (_client_type === MetabaseAppStateType.SQLEditor) {
-        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv" });
+        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
     }
     else if (_client_type === MetabaseAppStateType.Dashboard) {
-        return await this.runSQLQuery({ sql });      
+        return await this.runSQLQuery({ sql, ctes: _ctes });      
     }
   }
 
@@ -194,7 +302,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
           } as Record<string, string>;
           let otherType = typeToOtherTypeMap[variableInfo['type']];
           // find the parameter in currentCard.parameters and modify its type to otherType
-          console.log("currentCard.parameters", currentCard.parameters);
           let currentParams = currentCard.parameters || [];
           for (let i = 0; i < currentParams.length; i++) {
             const parameter = currentParams[i];
@@ -242,7 +349,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     }
     visualization_type = toCapitalCase(visualization_type);    
-    console.log("Setting visualization type to", visualization_type, dimensions, metrics);
     if (primaryVisualizationTypes.includes(visualization_type) && (dimensions && metrics)) {
       const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
       if (currentCard) {
@@ -584,3 +690,4 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
 }
+
