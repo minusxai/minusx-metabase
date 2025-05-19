@@ -52,31 +52,18 @@ type AllSnippetsResponse = {
   name: string;
   content: string;
   id: number;
-}[]
-
-async function getSnippetTagsFromCTEs(ctes: CTE[]): Promise<Record<string, SnippetTemplateTag>> {
-  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
-  const existingSnippets = allSnippets.filter(snippet => ctes.find(cte => `{{snippet: ${snippet.name}}}` == cte[1]))
-  const snippetTags: SnippetTemplateTag[] = existingSnippets.map(snippet => ({
-    "display-name": snippet.name,
-    id: uuidv4(),
-    name: `snippet: ${snippet.name}`,
-    "snippet-id": snippet.id,
-    "snippet-name": snippet.name,
-    type: "snippet"
-  }))
-  return Object.fromEntries(snippetTags.map(tag => [tag.name, tag]))
 }
 
-async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
-  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse;
+async function updateSnippets(ctes: CTE[]): Promise<[CTE[], Record<string, SnippetTemplateTag>]> {
+  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse[];
   console.log("allSnippets", allSnippets);
   const settings = RPCs.getAppSettings()
   const selectedCatalog = settings.selectedCatalog
   const cleanSelectedCatalog = selectedCatalog.replace(/[^a-zA-Z0-9]/g, "_")
+  const snippetTags: SnippetTemplateTag[] = []
   const updates = ctes.map(async (cte) => {
     const [name, sql] = cte
-    const snippetName = `${name}_x_${cleanSelectedCatalog}`
+    const snippetName = `${name}_${cleanSelectedCatalog}`
     // const snippetName = name
     const existing = allSnippets.find(
       (s) => s.name === snippetName
@@ -90,13 +77,26 @@ async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
     };
 
     try {
+      let response: AllSnippetsResponse;
       if (existing) {
         if (existing.content !== sql) {
-          await RPCs.fetchData(`/api/native-query-snippet/${existing.id}`, 'PUT', snippetPayload);
+          response = await RPCs.fetchData(`/api/native-query-snippet/${existing.id}`, 'PUT', snippetPayload) as AllSnippetsResponse
+          console.log('Updated snippet:', response);
+        } else {
+          response = existing
         }
       } else {
-        await RPCs.fetchData('/api/native-query-snippet', 'POST', snippetPayload);
+        response = await RPCs.fetchData('/api/native-query-snippet', 'POST', snippetPayload) as AllSnippetsResponse
+        console.log('Created snippet:', response); 
       }
+      snippetTags.push({
+        "display-name": snippetName,
+        id: uuidv4(),
+        name: `snippet: ${snippetName}`,
+        "snippet-id": response.id,
+        "snippet-name": snippetName,
+        type: "snippet"
+      })
   
       return [name, `{{snippet: ${snippetName}}}`] as [string, string];
     }
@@ -106,7 +106,8 @@ async function updateSnippets(ctes: CTE[]): Promise<CTE[]> {
     }
     
   });
-  return await Promise.all(updates);
+  const updatedCTEs = await Promise.all(updates);
+  return [updatedCTEs, Object.fromEntries(snippetTags.map(tag => [tag.name, tag]))]
 }
 
 function addCtesToQuery(
@@ -149,8 +150,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    ctes = await updateSnippets(ctes)
-    const snippetTemplateTags = await getSnippetTagsFromCTEs(ctes);
+    let snippetTemplateTags: Record<string, SnippetTemplateTag>
+    [ctes, snippetTemplateTags] = await updateSnippets(ctes)
     sql = addCtesToQuery(ctes, sql);
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
@@ -200,15 +201,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    ctes = await updateSnippets(ctes)
+    let snippetTemplateTags: Record<string, SnippetTemplateTag>
+    [ctes, snippetTemplateTags] = await updateSnippets(ctes)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
-    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict);
     const response = await runSQLQueryFromDashboard(sql, dbID, snippetTemplateTags);
     if (response.error) {
       actionContent.content = response.error;
