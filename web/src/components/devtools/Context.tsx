@@ -30,6 +30,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const currentUserId = useSelector((state: RootState) => state.auth.profile_id)
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const origin = getParsedIframeInfo().origin
+    const visibleCatalogs = availableCatalogs.filter((catalog: ContextCatalog) => !catalog.origin || catalog.origin === origin)
     
     useEffect(() => {
         refreshMemberships(currentUserId)
@@ -134,7 +135,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
           <>
             <Select mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
                 {
-                    [...availableCatalogs, defaultTableCatalog].map((context: ContextCatalog) => {
+                    [...visibleCatalogs, defaultTableCatalog].map((context: ContextCatalog) => {
                         return <option key={context.name} value={context.name}>{context.name}</option>
                     })
                 }
