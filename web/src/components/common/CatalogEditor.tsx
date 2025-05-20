@@ -73,14 +73,14 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                     name: title,
                     contents: JSON.stringify({
                         content,
-                        dbName: dbName,
+                        dbName,
                         dbId: dbId,
                         dbDialect: dbDialect,
                         origin
                     })
                 })
                 setIsSaving(false);
-                dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName: dbName, currentUserId }));
+                dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, origin, currentUserId }));
             }
             dispatch(setSelectedCatalog(title))
         } catch(err) {

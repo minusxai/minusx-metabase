@@ -29,6 +29,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
     const currentUserId = useSelector((state: RootState) => state.auth.profile_id)
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const origin = getParsedIframeInfo().origin
     
     useEffect(() => {
         refreshMemberships(currentUserId)
@@ -63,6 +64,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                     name,
                     content: dashboardYaml,
                     dbName: dbInfo.name,
+                    origin,
                     currentUserId
                 }))
                 dispatch(setSelectedCatalog(name))
