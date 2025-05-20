@@ -107,6 +107,7 @@ interface Settings {
   groups: Record<string, UserGroup>
   groupsEnabled: boolean
   snippetsMode: boolean
+  viewAllCatalogs: boolean
 }
 
 const initialState: Settings = {
@@ -144,7 +145,8 @@ const initialState: Settings = {
   users: {},
   groups: {},
   groupsEnabled: false,
-  snippetsMode: false
+  snippetsMode: false,
+  viewAllCatalogs: false
 }
 
 export const settingsSlice = createSlice({
@@ -189,6 +191,9 @@ export const settingsSlice = createSlice({
     },
     setSnippetsMode: (state, action: PayloadAction<boolean>) => {
       state.snippetsMode = action.payload
+    },
+    setViewAllCatalogs: (state, action: PayloadAction<boolean>) => {
+      state.viewAllCatalogs = action.payload
     },
     setAppRecording: (state, action: PayloadAction<boolean>) => {
       state.isRecording = action.payload
@@ -329,7 +334,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode
+  setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode, setViewAllCatalogs
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

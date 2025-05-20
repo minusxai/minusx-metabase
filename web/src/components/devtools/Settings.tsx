@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled, setSnippetsMode  } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled, setSnippetsMode, setViewAllCatalogs  } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -57,6 +57,7 @@ const SettingsPage = () => {
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const groupsEnabled = useSelector((state: RootState) => state.settings.groupsEnabled)
   const snippetsMode = useSelector((state: RootState) => state.settings.snippetsMode)
+  const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
   const savedQueries = useSelector((state: RootState) => state.settings.savedQueries)
   const auth = useSelector((state: RootState) => state.auth)
@@ -102,6 +103,9 @@ const SettingsPage = () => {
   }
   const updateSnippetsMode = (value: boolean) => {
     dispatch(setSnippetsMode(value))
+  }
+  const updateViewAllCatalogs = (value: boolean) => {
+    dispatch(setViewAllCatalogs(value))
   }
   const updateDRMode = (value: boolean) => {
     dispatch(setDRMode(value))
@@ -181,6 +185,10 @@ const SettingsPage = () => {
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Enable Snippets</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={snippetsMode} onChange={(e) => updateSnippetsMode(e.target.checked)} />
+          </HStack>}
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">View all catalogs</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={viewAllCatalogs} onChange={(e) => updateViewAllCatalogs(e.target.checked)} />
           </HStack>}
           <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Agent Mode</Text>
