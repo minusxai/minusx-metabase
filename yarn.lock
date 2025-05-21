@@ -1579,6 +1579,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.11.0":
+  version: 7.27.1
+  resolution: "@babel/runtime@npm:7.27.1"
+  checksum: 10c0/530a7332f86ac5a7442250456823a930906911d895c0b743bf1852efc88a20a016ed4cd26d442d0ca40ae6d5448111e02a08dd638a4f1064b47d080e2875dc05
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.12.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
   version: 7.26.0
   resolution: "@babel/runtime@npm:7.26.0"
@@ -4965,6 +4972,15 @@ __metadata:
   dependencies:
     "@types/react": "npm:*"
   checksum: 10c0/8fbf0dcc1b81985cdcebe3c59d769fe2ea3f4525f12c3a10a7429a59f93e303c82b2abb744d21cb762879f4514969d70a7ab11b9bf486f92213e8fe70e04098d
+  languageName: node
+  linkType: hard
+
+"@types/react-window@npm:^1":
+  version: 1.8.8
+  resolution: "@types/react-window@npm:1.8.8"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: 10c0/2170a3957752603e8b994840c5d31b72ddf94c427c0f42b0175b343cc54f50fe66161d8871e11786ec7a59906bd33861945579a3a8f745455a3744268ec1069f
   languageName: node
   linkType: hard
 
@@ -11018,6 +11034,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"memoize-one@npm:>=3.1.1 <6":
+  version: 5.2.1
+  resolution: "memoize-one@npm:5.2.1"
+  checksum: 10c0/fd22dbe9a978a2b4f30d6a491fc02fb90792432ad0dab840dc96c1734d2bd7c9cdeb6a26130ec60507eb43230559523615873168bcbe8fafab221c30b11d54c1
+  languageName: node
+  linkType: hard
+
 "memoize-one@npm:^6.0.0":
   version: 6.0.0
   resolution: "memoize-one@npm:6.0.0"
@@ -12993,6 +13016,43 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-virtualized-auto-sizer@npm:^1.0.26":
+  version: 1.0.26
+  resolution: "react-virtualized-auto-sizer@npm:1.0.26"
+  peerDependencies:
+    react: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^15.3.0 || ^16.0.0-alpha || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/788b438c9cb55f94a0561ef07e6bb6e5051ad3d5ececd9b2131014324ffe773b507ac7060f965e44c84bd8d6aa85c686754ac944384878c97f7304c0473a7754
+  languageName: node
+  linkType: hard
+
+"react-vtree@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "react-vtree@npm:2.0.4"
+  dependencies:
+    "@babel/runtime": "npm:^7.11.0"
+  peerDependencies:
+    "@types/react-window": ^1.8.2
+    react: ^16.13.1
+    react-dom: ^16.13.1
+    react-window: ^1.8.5
+  checksum: 10c0/4dd7ef3d4d7fed701d02bbdf7acbad7b7a0fa6e88e7e4d01b37a6db2b40547b5154ef46638d5ed9c99d87812724a64af49c7dffa60eebcdba9cbcf5db6a23869
+  languageName: node
+  linkType: hard
+
+"react-window@npm:^1.8.11":
+  version: 1.8.11
+  resolution: "react-window@npm:1.8.11"
+  dependencies:
+    "@babel/runtime": "npm:^7.0.0"
+    memoize-one: "npm:>=3.1.1 <6"
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/5ae8da1bc5c47d8f0a428b28a600256e2db511975573e52cb65a9b27ed1a0e5b9f7b3bee5a54fb0da93956d782c24010be434be451072f46ba5a89159d2b3944
+  languageName: node
+  linkType: hard
+
 "react-zoom-pan-pinch@npm:^3.6.1":
   version: 3.6.1
   resolution: "react-zoom-pan-pinch@npm:3.6.1"
@@ -13449,6 +13509,7 @@ __metadata:
   resolution: "root-workspace-0b6124@workspace:."
   dependencies:
     react-syntax-highlighter: "npm:^15.5.0"
+    react-window: "npm:^1.8.11"
   languageName: unknown
   linkType: soft
 
@@ -15017,6 +15078,7 @@ __metadata:
     "@types/jest": "npm:^29.5.12"
     "@types/react": "npm:^18.0.26"
     "@types/react-dom": "npm:^18.0.10"
+    "@types/react-window": "npm:^1"
     "@types/redux-logger": "npm:^3.0.13"
     "@typescript-eslint/eslint-plugin": "npm:^5.57.0"
     "@typescript-eslint/parser": "npm:^5.57.0"
@@ -15053,6 +15115,9 @@ __metadata:
     react-redux: "npm:^9.1.2"
     react-textarea-autosize: "npm:^8.5.3"
     react-use-intercom: "npm:^5.4.1"
+    react-virtualized-auto-sizer: "npm:^1.0.26"
+    react-vtree: "npm:^2.0.4"
+    react-window: "npm:^1.8.11"
     react-zoom-pan-pinch: "npm:^3.6.1"
     redux-logger: "npm:^3.0.6"
     redux-persist: "npm:^6.0.0"
