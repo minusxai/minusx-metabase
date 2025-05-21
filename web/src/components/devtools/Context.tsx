@@ -31,7 +31,9 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
     const origin = getParsedIframeInfo().origin
-    const visibleCatalogs = viewAllCatalogs ? availableCatalogs : availableCatalogs.filter((catalog: ContextCatalog) => !catalog.origin || catalog.origin === origin)
+    // Enable to limit catalog visibility
+    // const visibleCatalogs = viewAllCatalogs ? availableCatalogs : availableCatalogs.filter((catalog: ContextCatalog) => !catalog.origin || catalog.origin === origin)
+    const visibleCatalogs = availableCatalogs
     
     useEffect(() => {
         refreshMemberships(currentUserId)
