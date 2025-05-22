@@ -218,7 +218,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const response = await runSQLQueryFromDashboard(sql, dbID, snippetTemplateTags);
     if (response.error) {
-      actionContent.content = response.error;
+      actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
       const asMarkdown = metabaseToCSV(response.data);
       actionContent.content = asMarkdown;
@@ -639,7 +639,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     await waitForQueryExecution();
     const sqlErrorMessage = await getSqlErrorMessage();
     if (sqlErrorMessage) {
-      actionContent.content = sqlErrorMessage;
+      actionContent.content = `<ERROR>${sqlErrorMessage}</ERROR>`;
     } else {
       // table output
       let tableOutput = ""
