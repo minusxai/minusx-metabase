@@ -13,13 +13,15 @@ export async function planActionsRemote({
   llmSettings,
   signal,
   deepResearch,
-  tasks
+  tasks,
+  conversationID
 }: PlanActionsParams): Promise<LLMResponse> {
   const payload = {
     messages,
     actions,
     llmSettings,
-    tasks
+    tasks,
+    conversationID
   }
   if (!deepResearch) {
     unset(payload, 'tasks')

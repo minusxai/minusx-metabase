@@ -331,7 +331,7 @@ export const store = configureStore({
 })
 
 export const getState = () => {
-  return store.getState()
+  return store.getState() as RootState
 }
 
 window.__GET_STATE__ = () => {
