@@ -161,7 +161,7 @@ export const LLMContext: React.FC<null> = () => {
     // removing this useEffect because its hurting my brain fixing it
     // useEffect(reloadAppState, [])
     const reloadMetabaseReduxState = () => {
-      const fieldsToFetch = ['qb', 'admin', 'dashboard']
+      const fieldsToFetch = ['qb', 'admin', 'dashboard', 'entities.snippets']
       const promises = fieldsToFetch.map( (field) => ( getMetabaseState(field)).then((data) => ({[field]: data}) ))
       Promise.all(promises).then((fieldsData) => {
         const data = fieldsData.reduce((acc, fieldData) => {

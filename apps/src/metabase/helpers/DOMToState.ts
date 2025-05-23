@@ -11,6 +11,7 @@ import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
+import { modifySqlForSnippets } from '../../../../web/src/helpers/catalogAsSnippets';
 
 interface ExtractedDataBase {
   name: string;
@@ -191,6 +192,9 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
+    if (appSettings.snippetsMode) {
+      metabaseAppStateSQLEditor.sqlQuery = modifySqlForSnippets(metabaseAppStateSQLEditor.sqlQuery, selectedCatalog)
+    }
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;

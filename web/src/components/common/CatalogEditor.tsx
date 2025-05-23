@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../state/store";
 import { toast } from "../../app/toast";
 import { getParsedIframeInfo } from "../../helpers/origin";
+import { createOrUpdateSnippetsForCatalog, getAllSnippets } from "../../helpers/catalogAsSnippets";
 
 const useAppStore = getApp().useStore()
 
@@ -43,7 +44,8 @@ export const updateCatalog = async ({ id, name, contents }: { id: string; name: 
 }
 
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
-    const catalog: ContextCatalog = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
+    const catalog: ContextCatalog | undefined = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
+    const snippetsMode: boolean = useSelector((state: RootState) => state.settings.snippetsMode)
     const origin = getParsedIframeInfo().origin
     if (catalog) {
         defaultTitle = catalog.name
@@ -63,6 +65,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     const handleSave = async () => {
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
+        const allSnippets = await getAllSnippets()
         try {
             if (anyChange) {
                 const fn = defaultTitle ? updateCatalog : createCatalog
@@ -79,6 +82,17 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                         origin
                     })
                 })
+                if (snippetsMode) {
+                    await createOrUpdateSnippetsForCatalog(allSnippets, {
+                        type: 'manual',
+                        id: catalogID,
+                        name: title,
+                        content,
+                        dbName,
+                        origin,
+                        allowWrite: false // ?? dont care for this call. really should respect types more
+                    })
+                }
                 setIsSaving(false);
                 dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, origin, currentUserId }));
             }

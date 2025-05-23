@@ -15,10 +15,11 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from '../common/CreditsPill';
 import { SettingsBlock } from '../common/SettingsBlock';
 import { GroupViewer } from '../common/GroupViewer';
+import { createOrUpdateSnippetsForAllCatalogs, getAllSnippets } from '../../helpers/catalogAsSnippets';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
-  const setUploadLogs = (value) => {
+  const setUploadLogs = (value: any) => {
     dispatch(updateUploadLogs(value))
   }
   return (
@@ -31,7 +32,7 @@ export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'})
 
 export const DevToolsToggle: React.FC<{size: 'micro' | 'mini'}> = ({size}) => {
   const devTools = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const setshowDevTools = async (value) => {
+  const setshowDevTools = async (value: any) => {
     console.log('Show Devtools', value)
     dispatch(updateIsDevToolsOpen(value))
     if (value) {
@@ -63,6 +64,7 @@ const SettingsPage = () => {
   const auth = useSelector((state: RootState) => state.auth)
   const billing = useSelector((state: RootState) => state.billing)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
+  const catalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
 
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
@@ -102,6 +104,11 @@ const SettingsPage = () => {
     dispatch(setGroupsEnabled(value))
   }
   const updateSnippetsMode = (value: boolean) => {
+    if (value == true) {
+      getAllSnippets().then(allSnippets => {
+        createOrUpdateSnippetsForAllCatalogs(allSnippets, catalogs)
+      })
+    }
     dispatch(setSnippetsMode(value))
   }
   const updateViewAllCatalogs = (value: boolean) => {
