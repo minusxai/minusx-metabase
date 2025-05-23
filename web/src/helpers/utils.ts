@@ -30,3 +30,5 @@ export const getPlatformLanguage = (platform: string): string => {
 export function contains<T>(collection: T[], item: T): boolean {
   return some(collection, (i) => isEqual(i, item));
 }
+
+export const getUniqueString = () => Math.random().toString(36).slice(2) + Date.now().toString(36);

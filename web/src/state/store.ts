@@ -1,5 +1,5 @@
 import { Action, combineReducers, configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
-import chat, { initialUserConfirmationState, initialTasks } from './chat/reducer'
+import chat, { initialUserConfirmationState, initialTasks, getID } from './chat/reducer'
 import auth from './auth/reducer'
 import thumbnails from './thumbnails/reducer'
 import settings, { ContextCatalog, DEFAULT_TABLES } from './settings/reducer'
@@ -291,12 +291,23 @@ const migrations = {
     let newState = {...state}
     newState.settings.snippetsMode = false
     return newState
+  },
+  27: (state: RootState) => {
+    let newState = {...state}
+    const uniqueIDPrefix = `v0-${getID()}`
+    newState.chat.threads.forEach((thread) => {
+      if (!thread.id) {
+        thread.id = `${uniqueIDPrefix}-${thread.index}`
+      }
+    })
+    newState.settings.snippetsMode = false
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 26,
+  version: 27,
   storage,
   blacklist: ['billing'],
   migrate: createMigrate(migrations, { debug: true }),

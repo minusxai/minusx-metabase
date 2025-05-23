@@ -3,9 +3,10 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import _, { get } from 'lodash'
 
 import { ChatCompletionMessageToolCall, ChatCompletionRole, ChatCompletionToolMessageParam, ChatCompletion, Chat } from 'openai/resources';
-import { Subset } from '../../helpers/utils'
+import { getUniqueString, Subset } from '../../helpers/utils'
 import { LLMResponse } from '../../helpers/LLM/types';
 import { ActionRenderInfo, BlankMessageContent, ChatMessageContentType, DefaultMessageContent } from './types';
+import { getParsedIframeInfo } from '../../helpers/origin';
 
 const MAX_THREADS = 10
 
@@ -128,6 +129,7 @@ interface ChatThread {
   userConfirmation: UserConfirmationState
   interrupted: boolean
   tasks: Tasks
+  id: string
 }
 
 interface ChatState {
@@ -143,6 +145,10 @@ export const initialUserConfirmationState: UserConfirmationState = {
 
 export const initialTasks: Tasks = []
 
+export function getID() {
+  return getUniqueString() + '_' + getParsedIframeInfo().r
+}
+
 const initialState: ChatState = {
   threads: [{
     index: 0,
@@ -151,7 +157,8 @@ const initialState: ChatState = {
     status: 'FINISHED',
     userConfirmation: initialUserConfirmationState,
     interrupted: false,
-    tasks: initialTasks
+    tasks: initialTasks,
+    id: `v0-${getID()}-0`
   }],
   activeThread: 0,
 }
@@ -339,6 +346,16 @@ export const chatSlice = createSlice({
         });
       }
       state.activeThread = state.threads.length
+      let previousID = state.threads[state.threads.length - 1].id
+      let newID = ''
+      if (!previousID) {
+        newID = `v0-${getID()}-0`
+      }
+      else {
+        const splitID = previousID.split('-')
+        const oldIndex = splitID[splitID.length - 1]
+        newID = splitID.slice(0, -1).join('-') + '-' + (parseInt(oldIndex) + 1)
+      }
       state.threads.push({
         index: state.threads.length,
         messages: [],
@@ -350,7 +367,8 @@ export const chatSlice = createSlice({
           userInput: 'NULL'
         },
         interrupted: false,
-        tasks: []
+        tasks: [],
+        id: newID
       })
     },
     addReaction: (
