@@ -1,5 +1,5 @@
 import { RPCs } from 'web'
-import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo, getTablesWithFields } from './getDatabaseSchema';
+import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo, getTablesWithFields } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -12,6 +12,7 @@ import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
+import { modifySqlForSnippets } from '../../../../web/src/helpers/catalogAsSnippets';
 
 interface ExtractedDataBase {
   name: string;
@@ -129,6 +130,9 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
+    if (appSettings.snippetsMode) {
+      metabaseAppStateSQLEditor.sqlQuery = modifySqlForSnippets(metabaseAppStateSQLEditor.sqlQuery, selectedCatalog)
+    }
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
