@@ -352,9 +352,13 @@ export const chatSlice = createSlice({
         newID = `v0-${getID()}-0`
       }
       else {
-        const splitID = previousID.split('-')
-        const oldIndex = splitID[splitID.length - 1]
-        newID = splitID.slice(0, -1).join('-') + '-' + (parseInt(oldIndex) + 1)
+        try {
+          const splitID = previousID.split('-')
+          const oldIndex = splitID[splitID.length - 1]
+          newID = splitID.slice(0, -1).join('-') + '-' + (parseInt(oldIndex) + 1)
+        } catch (e) {
+          newID = `v0-${getID()}-${state.threads.length}`
+        }
       }
       state.threads.push({
         index: state.threads.length,
