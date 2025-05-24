@@ -15,11 +15,37 @@ import { getDashboardAppState } from "./helpers/dashboard/appState";
 
 const runStoreTasks = createRunner()
 
+type Collection = {
+  name: string
+  id: string | number
+  namespace: null | string
+}
+type AllCollectionsResponse = Collection[]
+type CreateCollectionResponse = Collection
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
+  async updateMinusxCollectionId() {
+    const state = this.useStore().getState()
+    const allCollections = await RPCs.fetchData('/api/collection?namespace=mx_internal', 'GET') as AllCollectionsResponse
+    let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
+    if (!minusxCollection) {
+      // create the collection
+      minusxCollection = await RPCs.fetchData('/api/collection', 'POST', {
+        "name": "mx_internal",
+        "namespace": "mx_internal"
+      }) as CreateCollectionResponse
+    }
+    state.update({
+      ...state,
+      toolContext: {
+        ...state.toolContext,
+        minusxCollectionId: typeof minusxCollection.id === 'string' ? parseInt(minusxCollection.id) : minusxCollection.id
+      }
+    })
+  }
   public async setup() {
     const state = this.useStore().getState();
     const whitelistQuery = state.whitelistQuery
@@ -83,6 +109,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
     });
     
+    await this.updateMinusxCollectionId();
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']
