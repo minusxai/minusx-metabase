@@ -19,7 +19,7 @@ import { createOrUpdateSnippetsForAllCatalogs, getAllSnippets } from '../../help
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
-  const setUploadLogs = (value: any) => {
+  const setUploadLogs = (value: boolean) => {
     dispatch(updateUploadLogs(value))
   }
   return (
@@ -32,7 +32,7 @@ export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'})
 
 export const DevToolsToggle: React.FC<{size: 'micro' | 'mini'}> = ({size}) => {
   const devTools = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const setshowDevTools = async (value: any) => {
+  const setshowDevTools = async (value: boolean) => {
     console.log('Show Devtools', value)
     dispatch(updateIsDevToolsOpen(value))
     if (value) {
