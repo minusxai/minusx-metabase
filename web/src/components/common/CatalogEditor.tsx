@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Text, Box, Button, Input, Textarea, HStack, Link} from "@chakra-ui/react";
-import { ContextCatalog, saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
+import { saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
+import { ContextCatalog } from '../../helpers/utils';
 import { dispatch } from '../../state/dispatch';
 import { load, dump } from 'js-yaml';
 import { MetabaseContext } from "apps/types";

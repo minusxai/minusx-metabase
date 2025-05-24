@@ -30,3 +30,14 @@ export const getPlatformLanguage = (platform: string): string => {
 export function contains<T>(collection: T[], item: T): boolean {
   return some(collection, (i) => isEqual(i, item));
 }
+export interface ContextCatalog {
+  type: 'manual' | 'aiGenerated'
+  id: string
+  name: string
+  content: any
+  dbName: string
+  origin: string
+  allowWrite: boolean
+  primaryGroup?: string
+  owner?: string
+}
