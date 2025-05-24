@@ -160,7 +160,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     const drMode = useSelector((state: RootState) => state.settings.drMode)
     return (
         <HStack>
-            { !subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidLockAlt /> Lite Mode</Link> }
+            { !subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A best effort by analyzing your queries and dashboards automatically. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for a fine-tuned reliable experience." ><BiSolidLockAlt /> Lite Mode</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Mode</Link> }
             {/* {drMode && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Mode</Link> } */}
         </HStack>
