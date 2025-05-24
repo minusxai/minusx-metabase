@@ -1,6 +1,6 @@
 import { get } from "lodash";
 import { fetchData } from "../app/rpc";
-import { ContextCatalog } from "../state/settings/reducer";
+import { ContextCatalog } from './utils';
 
 export type AllSnippetsResponse = {
   name: string;

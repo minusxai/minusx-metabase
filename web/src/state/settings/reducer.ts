@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 import { isEqual } from 'lodash'
-import { contains } from '../../helpers/utils'
+import { contains, ContextCatalog } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
@@ -27,18 +27,6 @@ export interface TableInfo {
 export interface TableDiff {
   add: TableInfo[]
   remove: TableInfo[]
-}
-
-export interface ContextCatalog {
-  type: 'manual' | 'aiGenerated'
-  id: string
-  name: string
-  content: any
-  dbName: string
-  origin: string
-  allowWrite: boolean
-  primaryGroup?: string
-  owner?: string
 }
 
 interface UserPermission {
