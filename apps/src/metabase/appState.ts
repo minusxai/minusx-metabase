@@ -27,7 +27,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   actionController = new MetabaseController(this);
 
   async updateMinusxCollectionId() {
-    const state = this.useStore().getState()
     const allCollections = await RPCs.fetchData('/api/collection', 'GET') as AllCollectionsResponse
     let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
     if (!minusxCollection) {
@@ -36,14 +35,16 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         "name": "mx_internal",
       }) as CreateCollectionResponse
     }
-    console.log("<><><> setting collection id", minusxCollection.id)
-    state.update({
-      ...state,
+    console.log("<><><> setting collection id hello", minusxCollection.id)
+    const state = this.useStore().getState()
+    console.log("<><><> existing state toolContext", state.toolContext)
+    state.update((oldState) => ({
+      ...oldState,
       toolContext: {
-        ...state.toolContext,
+        ...oldState.toolContext,
         minusxCollectionId: typeof minusxCollection.id === 'string' ? parseInt(minusxCollection.id) : minusxCollection.id
       }
-    })
+    }))
   }
   public async setup() {
     const state = this.useStore().getState();
@@ -54,9 +55,10 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     subscribe(whitelistQuery, ({elements, url}) => {
       const state = this.useStore().getState();
       const toolEnabledNew = shouldEnable(elements, url);
-      state.update({
+      state.update((oldState) => ({
+        ...oldState,
         isEnabled: toolEnabledNew,
-      });
+      }));
       runStoreTasks(async () => {
         const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
         const dbId = await getSelectedDbId();
@@ -64,34 +66,37 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         const oldDbId = get(currentToolContext, 'dbId')
         const oldPageType = get(currentToolContext, 'pageType')
         if (oldPageType != pageType) {
-          state.update({
+          state.update((oldState) => ({
+            ...oldState,
             toolContext: {
-              ...currentToolContext,
+              ...oldState.toolContext,
               pageType
             }
-          })
+          }))
         }
         if (dbId && dbId !== oldDbId) {
-          const toolContext = state.toolContext
-          state.update({
+          state.update((oldState) => ({
+            ...oldState,
             toolContext: {
-              ...toolContext,
+              ...oldState.toolContext,
               loading: true
             }
-          })
+          }))
           const [relevantTables, dbInfo] = await Promise.all([
             handlePromise(getRelevantTablesForSelectedDb(''), "Failed to get relevant tables", []),
             handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database info", DB_INFO_DEFAULT)
           ])
-          state.update({
+          state.update((oldState) => ({
+            ...oldState,
             toolContext: {
+              ...oldState.toolContext,
               pageType,
               dbId,
               relevantTables,
               dbInfo,
               loading: false
             }
-          })
+          }))
         }
       })
     })
@@ -108,7 +113,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
     });
     // runStoreTasks(async () => {
-    //   await this.updateMinusxCollectionId();
+    await this.updateMinusxCollectionId();
     // })
 
     // Listen to clicks on Error Message

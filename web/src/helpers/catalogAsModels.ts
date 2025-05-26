@@ -148,7 +148,9 @@ const getModelDefinitionForEntity = (entity: Entity) => {
   if (typeof entity.from_ == 'string') {
     baseSubquery = `WITH base as (SELECT * from ${entity.from_})\n`
   } else {
-    baseSubquery = `WITH base as (${entity.from_.sql})\n`
+    // remove trailing semicolon, and any trailing spaces
+    const sqlWithoutTrailingSemicolon = entity.from_.sql.replace(/\s+$/, '').replace(/;$/, '')
+    baseSubquery = `WITH base as (${sqlWithoutTrailingSemicolon})\n`
   }
   let selectQuery = "SELECT\n"
   for (const dimension of entity.dimensions) {
@@ -183,6 +185,8 @@ export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, all
                       }
                     }
                   }, existingModel.id)
+                } else {
+                  console.log("<><>< sqls match. not updating model", modelIdentifier, existingModel.dataset_query.native.query, sql)
                 }
               } else {
                   await createModel({
