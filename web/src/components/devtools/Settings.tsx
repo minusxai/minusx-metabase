@@ -15,7 +15,8 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from '../common/CreditsPill';
 import { SettingsBlock } from '../common/SettingsBlock';
 import { GroupViewer } from '../common/GroupViewer';
-import { createOrUpdateSnippetsForAllCatalogs, getAllSnippets } from '../../helpers/catalogAsSnippets';
+import { createOrUpdateModelsForAllCatalogs, getAllMxInternalModels } from '../../helpers/catalogAsModels';
+import { getApp } from '../../helpers/app';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
@@ -29,6 +30,8 @@ export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'})
     </Stack>
   )
 }
+
+const useAppStore = getApp().useStore()
 
 export const DevToolsToggle: React.FC<{size: 'micro' | 'mini'}> = ({size}) => {
   const devTools = useSelector((state: RootState) => state.settings.isDevToolsOpen)
@@ -65,6 +68,7 @@ const SettingsPage = () => {
   const billing = useSelector((state: RootState) => state.billing)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
   const catalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
+  const mxCollectionId = useAppStore((state) => state.toolContext.minusxCollectionId)
 
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
@@ -105,9 +109,12 @@ const SettingsPage = () => {
   }
   const updateSnippetsMode = (value: boolean) => {
     if (value == true) {
-      getAllSnippets().then(allSnippets => {
-        createOrUpdateSnippetsForAllCatalogs(allSnippets, catalogs)
-      })
+      console.log("<><><> mxCollectionId", mxCollectionId)
+      if (mxCollectionId) {
+        getAllMxInternalModels(mxCollectionId).then(allModels => {
+          createOrUpdateModelsForAllCatalogs(mxCollectionId, allModels, catalogs)
+        })
+      }
     }
     dispatch(setSnippetsMode(value))
   }

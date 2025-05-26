@@ -36,7 +36,7 @@ configureMonacoYaml(monaco, {
         }
     ]
 });
-import { createOrUpdateSnippetsForCatalog, getAllSnippets } from "../../helpers/catalogAsSnippets";
+import { createOrUpdateModelsForCatalog, getAllMxInternalModels } from "../../helpers/catalogAsModels";
 
 const useAppStore = getApp().useStore()
 
@@ -91,7 +91,8 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     const handleSave = async () => {
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
-        const allSnippets = await getAllSnippets()
+        const mxCollectionId = toolContext.minusxCollectionId
+        const allModels = mxCollectionId ? await getAllMxInternalModels(mxCollectionId) : []
         try {
             if (anyChange) {
                 const fn = defaultTitle ? updateCatalog : createCatalog
@@ -108,19 +109,20 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                         origin
                     })
                 })
-                if (snippetsMode) {
-                    await createOrUpdateSnippetsForCatalog(allSnippets, {
+                if (snippetsMode && mxCollectionId) {
+                    await createOrUpdateModelsForCatalog(mxCollectionId, allModels, {
                         type: 'manual',
                         id: catalogID,
                         name: title,
                         content,
                         dbName,
+                        dbId,
                         origin,
                         allowWrite: false // ?? dont care for this call. really should respect types more
                     })
                 }
                 setIsSaving(false);
-                dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, origin, currentUserId }));
+                dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, dbId, origin, currentUserId }));
             }
             dispatch(setSelectedCatalog(title))
         } catch(err) {
@@ -138,7 +140,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                 isClosable: true,
                 position: 'bottom-right',
             })
-            console.error('Error saving catalog:', e);
+            console.error('Error saving catalog:', err);
         } finally {
             setIsSaving(false);
             onCancel();

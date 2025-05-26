@@ -38,6 +38,7 @@ export interface ContextCatalog {
   name: string
   content: any
   dbName: string
+  dbId: number
   origin: string
   allowWrite: boolean
   primaryGroup?: string

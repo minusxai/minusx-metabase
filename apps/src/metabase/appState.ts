@@ -18,7 +18,6 @@ const runStoreTasks = createRunner()
 type Collection = {
   name: string
   id: string | number
-  namespace: null | string
 }
 type AllCollectionsResponse = Collection[]
 type CreateCollectionResponse = Collection
@@ -29,15 +28,15 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
   async updateMinusxCollectionId() {
     const state = this.useStore().getState()
-    const allCollections = await RPCs.fetchData('/api/collection?namespace=mx_internal', 'GET') as AllCollectionsResponse
+    const allCollections = await RPCs.fetchData('/api/collection', 'GET') as AllCollectionsResponse
     let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
     if (!minusxCollection) {
       // create the collection
       minusxCollection = await RPCs.fetchData('/api/collection', 'POST', {
         "name": "mx_internal",
-        "namespace": "mx_internal"
       }) as CreateCollectionResponse
     }
+    console.log("<><><> setting collection id", minusxCollection.id)
     state.update({
       ...state,
       toolContext: {
@@ -108,8 +107,9 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     getCardsCountSplitByType().then(cardsCount => {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
     });
-    
-    await this.updateMinusxCollectionId();
+    // runStoreTasks(async () => {
+    //   await this.updateMinusxCollectionId();
+    // })
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']

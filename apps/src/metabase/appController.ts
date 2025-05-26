@@ -44,7 +44,7 @@ import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
 import { memoizedFetchTableData } from "./helpers/parseTables";
-import { replaceEntityNamesInSqlWithSnippets } from "../../../web/src/helpers/catalogAsSnippets";
+import { replaceEntityNamesInSqlWithSnippets } from "../../../web/src/helpers/catalogAsModels";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]

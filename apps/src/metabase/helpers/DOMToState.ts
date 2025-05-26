@@ -12,7 +12,7 @@ import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
-import { modifySqlForSnippets } from '../../../../web/src/helpers/catalogAsSnippets';
+import { modifySqlForSnippets } from '../../../../web/src/helpers/catalogAsModels';
 
 interface ExtractedDataBase {
   name: string;

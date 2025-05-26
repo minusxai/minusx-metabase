@@ -127,6 +127,7 @@ const initialState: Settings = {
     name: DEFAULT_TABLES,
     content: {},
     dbName: '',
+    dbId: 0,
     origin: '',
     allowWrite: true
   },
@@ -233,7 +234,7 @@ export const settingsSlice = createSlice({
       }
     },
     saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'> & { currentUserId: string }>) => {
-        const { type, id, name, content, dbName, origin, currentUserId } = action.payload
+        const { type, id, name, content, dbName, origin, currentUserId, dbId } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.id === id)
         if (existingCatalog) {
           if (state.selectedCatalog == existingCatalog.name) {
@@ -242,11 +243,12 @@ export const settingsSlice = createSlice({
           existingCatalog.name = name
           existingCatalog.content = content
           existingCatalog.dbName = dbName
+          existingCatalog.dbId = dbId
           existingCatalog.origin = origin
           existingCatalog.owner = currentUserId
           existingCatalog.allowWrite = true
         } else {
-          state.availableCatalogs.push({ type, id, name, content, dbName, origin, allowWrite: true, owner: currentUserId })
+          state.availableCatalogs.push({ type, id, name, content, dbName, dbId, origin, allowWrite: true, owner: currentUserId })
         }
     },
     setMemberships: (state, action: PayloadAction<SetMembershipsPayload>) => {
@@ -264,6 +266,7 @@ export const settingsSlice = createSlice({
           name: asset.name,
           content: parsedContents.content || "",
           dbName: parsedContents.dbName || "",
+          dbId: parsedContents.dbId || 0,
           origin: parsedContents.origin || "",
           allowWrite: asset.owner === currentUserId,
           owner: asset.owner,

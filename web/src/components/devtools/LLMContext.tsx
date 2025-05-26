@@ -41,6 +41,7 @@ async function encodingForModel(
 ) {
   return getEncoding(getEncodingNameForModel(model), extendedSpecialTokens);
 }
+const useAppStore = getApp().useStore()
 
 export const LLMContext: React.FC<null> = () => {
     const [metabaseReduxState, setMetabaseReduxState] = useState<object>({})
@@ -77,6 +78,7 @@ export const LLMContext: React.FC<null> = () => {
     }
     const [resolvedPlannerConfig, setResolvedPlannerConfig] = useState(getApp().useStore().getState().llmConfigs.default)
     const tool = getParsedIframeInfo().tool
+    const toolContext = useAppStore((state) => state.toolContext)
     
     const getTokensForAppState = async(appState: any, enc: any) => {
       const appStateTokens = await enc.encode(JSON.stringify(appState)).length
@@ -247,6 +249,17 @@ export const LLMContext: React.FC<null> = () => {
             </HStack>
             </HStack>
             <ReactJson src={metabaseReduxState} collapsed={0}  style={jsonStyle}/>
+          </Box>
+        }
+        {
+          tool == "metabase" && <Box mt={4} backgroundColor="minusxBW.300" p={2} borderRadius={5}>
+            <HStack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+              <Text fontSize="md" fontWeight="bold">Tool Context</Text>
+              <HStack>
+              <Button size={"xs"} onClick={() => {}} colorScheme="minusxGreen">Reload Tool Context</Button>
+            </HStack>
+            </HStack>
+            <ReactJson src={toolContext} collapsed={0}  style={jsonStyle}/>
           </Box>
         }
       </Box>

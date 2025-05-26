@@ -69,6 +69,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                     name,
                     content: dashboardYaml,
                     dbName: dbInfo.name,
+                    dbId: dbId || 0,
                     origin,
                     currentUserId
                 }))
