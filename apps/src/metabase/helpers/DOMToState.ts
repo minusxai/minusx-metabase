@@ -11,6 +11,7 @@ import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
+import { getTableContextYAML } from './catalog';
 
 interface ExtractedDataBase {
   name: string;
@@ -80,69 +81,6 @@ export interface MetabaseSemanticQueryAppState {
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
 
-const createCatalogFromTables = (tables: FormattedTable[]) => {
-  return {
-    entities: tables.map(table => {
-      const { name, columns, schema } = table;
-      return {
-        name,
-        description: table.description,
-        schema,
-        dimensions: map(columns, (column) => ({
-          name: column.name,
-          type: column.type,
-          description: column.description
-        }))
-      }
-    })
-  }
-}
-
-function modifyCatalog(catalog: object, tables: FormattedTable[]) {
-  const tableEntities = get(createCatalogFromTables(tables), 'entities', [])
-  const tableEntityMap = keyBy(tableEntities, 'name')
-  const newEntities: object[] = []
-  get(catalog, 'entities', []).forEach((entity: object) => {
-    if (get(entity, 'extends')) {
-      const from_ = get(entity, 'from_', '')
-      const tableEntity = get(tableEntityMap, from_, {})
-      newEntities.push({
-        ...tableEntity,
-        ...entity,
-        dimensions: [...get(tableEntity, 'dimensions', []),  ...get(entity, 'dimensions', [])]
-      })
-    } else {
-      newEntities.push(entity)
-    }
-  })
-  const newCatalog = {
-    ...catalog,
-    entities: newEntities
-  }
-  return newCatalog
-}
-
-export function getTableContextYAML(relevantTablesWithFields: FormattedTable[]) {
-    const appSettings = RPCs.getAppSettings()
-    const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
-  
-    let tableContextYAML = undefined
-    if (appSettings.drMode) {
-        if (selectedCatalog) {
-            const modifiedCatalog = modifyCatalog(selectedCatalog, relevantTablesWithFields)
-            console.log('modifiedCatalog', modifiedCatalog)
-            tableContextYAML = {
-                ...modifiedCatalog,
-            }
-        } else {
-            tableContextYAML = {
-                ...createCatalogFromTables(relevantTablesWithFields)
-            }
-        } 
-    }
-    return tableContextYAML
-}
-
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
@@ -162,7 +100,7 @@ export async function convertDOMtoStateSQLQuery() {
     })
   }
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields)
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
   
   const queryExecuted = await getMetabaseState('qb.queryResults') !== null;
   const isNativeEditorOpen = await getMetabaseState('qb.uiControls.isNativeEditorOpen')

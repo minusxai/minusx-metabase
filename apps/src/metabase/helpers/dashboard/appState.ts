@@ -1,12 +1,13 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { forEach, reduce, template, values } from 'lodash';
-import { MetabaseAppStateDashboard, getTableContextYAML , MetabaseAppStateType} from '../DOMToState';
+import { MetabaseAppStateDashboard,  MetabaseAppStateType} from '../DOMToState';
 import { getTablesWithFields, getDatabaseInfoForSelectedDb } from '../getDatabaseSchema';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
 import { memoizedGetFieldResolvedName } from './util';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
+import { getTableContextYAML } from '../catalog';
 
 const { getMetabaseState } = RPCs
 
@@ -263,7 +264,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   })
   sqlTables = _.uniqBy(sqlTables, (table) => `${table.schema}::${table.name}`)
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields)
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
   dashboardInfo.cards = filteredCards
   // filter out dashcards with null names or ids
   .filter(dashcard => dashcard.name !== null && dashcard.id !== null);
