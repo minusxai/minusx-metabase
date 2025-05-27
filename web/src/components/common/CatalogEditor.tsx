@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../state/store";
 import { toast } from "../../app/toast";
 import { getParsedIframeInfo } from "../../helpers/origin";
+import Editor from '@monaco-editor/react';
 
 const useAppStore = getApp().useStore()
 
@@ -125,7 +126,13 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
         />
         
         <Text fontSize="sm" mb={1}>Catalog Definition (YAML)</Text>
-        <Textarea
+        <Editor
+            height="400px"
+            defaultLanguage="yaml"
+            value={yamlContent}
+            onChange={(value) => setYamlContent(value || '')}
+        />
+        {/* <Textarea
             placeholder="Enter YAML definition"
             value={yamlContent}
             onChange={(e) => setYamlContent(e.target.value)}
@@ -135,7 +142,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
             size="sm"
             borderRadius="md"
             borderColor="gray.300"
-        />
+        /> */}
             
             <HStack spacing={4} justifyContent="flex-end">
                 <Button size="sm" onClick={onCancel} variant="outline">Cancel</Button>
