@@ -12,6 +12,8 @@ import { RootState } from "../../state/store";
 import { toast } from "../../app/toast";
 import { getParsedIframeInfo } from "../../helpers/origin";
 import Editor from '@monaco-editor/react';
+import { CodeBlock } from "./CodeBlock";
+import { ModelView } from "./ModelView";
 
 const useAppStore = getApp().useStore()
 
@@ -45,6 +47,7 @@ export const updateCatalog = async ({ id, name, contents }: { id: string; name: 
 
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
     const catalog: ContextCatalog = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
+    const [isViewing, setIsViewing] = useState(false);
     const origin = getParsedIframeInfo().origin
     if (catalog) {
         defaultTitle = catalog.name
@@ -125,13 +128,23 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
             borderColor="gray.300"
         />
         
+        <HStack>
         <Text fontSize="sm" mb={1}>Catalog Definition (YAML)</Text>
-        <Editor
-            height="400px"
-            defaultLanguage="yaml"
-            value={yamlContent}
-            onChange={(value) => setYamlContent(value || '')}
-        />
+        <Button size="xs" variant="link" onClick={() => setIsViewing(!isViewing)}>
+            {isViewing ? 'Back to Edit' : 'Model View'}
+        </Button>
+        </HStack>
+        
+        {isViewing ? (
+            <ModelView yamlContent={yamlContent} />
+            ) : (
+            <Editor
+                height="400px"
+                defaultLanguage="yaml"
+                value={yamlContent}
+                onChange={(value) => setYamlContent(value || '')}
+            />
+        )}
         {/* <Textarea
             placeholder="Enter YAML definition"
             value={yamlContent}
