@@ -1,4 +1,4 @@
-import { get, keyBy, map } from "lodash";
+import { get, isEmpty, keyBy, map } from "lodash";
 import { FormattedTable } from "./types";
 
 const createCatalogFromTables = (tables: FormattedTable[]) => {
@@ -21,12 +21,21 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
 
 function modifyCatalog(catalog: object, tables: FormattedTable[]) {
   const tableEntities = get(createCatalogFromTables(tables), 'entities', [])
-  const tableEntityMap = keyBy(tableEntities, 'name')
+  const tableEntityMap = keyBy(tableEntities, entity => {
+    const schema = get(entity, 'schema', '');
+    const name = get(entity, 'name', '');
+    if (schema) {
+      return `${schema}.${name}`;
+    }
+    return name;
+  })
   const newEntities: object[] = []
   get(catalog, 'entities', []).forEach((entity: object) => {
     if (get(entity, 'extends')) {
       const from_ = get(entity, 'from_', '')
-      const tableEntity = get(tableEntityMap, from_, {})
+      const fromSchema = get(entity, 'schema', '')
+      const fromRef = fromSchema ? `${fromSchema}.${from_}` : from_;
+      const tableEntity = get(tableEntityMap, fromRef, {})
       newEntities.push({
         ...tableEntity,
         ...entity,
