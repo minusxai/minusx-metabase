@@ -6,7 +6,7 @@ import { FormattedTable, MetabaseContext } from 'apps/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { load, dump } from 'js-yaml';
-import { getTableContextYAML, memoizedFetchTableData } from 'apps';
+import { filterTablesByCatalog, getTableContextYAML, memoizedFetchTableData } from 'apps';
 import { createSchemaFromDataModel } from '../../helpers/catalog';
 import { isEmpty } from 'lodash';
 
@@ -20,7 +20,13 @@ const useAppStore = getApp().useStore()
 export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const drMode = useSelector((state: RootState) => state.settings.drMode);
-  const relevantTables = tables ? tables : toolContext.relevantTables || []
+  let yamlContentJSON
+  try {
+    yamlContentJSON = yamlContent ? load(yamlContent) : {}
+  } catch (e) {
+    console.error('Invalid YAML content:', e);
+  }
+  const relevantTables = tables ? tables : filterTablesByCatalog(toolContext.dbInfo.tables, yamlContentJSON)
   const [isLoading, setIsLoading] = useState(true)
   const [loadedTables, setLoadedTables] = useState<FormattedTable[]>([])
 
@@ -32,7 +38,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
     }).catch(() => {
       setIsLoading(false)
     });
-  }, [relevantTables])
+  }, [])
 
   if (isLoading) {
     return (
@@ -40,18 +46,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
     )
   }
 
-  let entityJSON
-  if (!tables) {
-    let yamlContentJSON
-    try {
-      yamlContentJSON = yamlContent ? load(yamlContent) : {}
-    } catch (e) {
-      console.error('Invalid YAML content:', e);
-    }
-    entityJSON = getTableContextYAML(loadedTables, yamlContentJSON, drMode) || {};
-  } else {
-    entityJSON = getTableContextYAML(loadedTables, undefined, drMode) || {};
-  }
+  const entityJSON = getTableContextYAML(loadedTables, !tables ? yamlContentJSON : undefined, drMode) || {};
   const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
   return (
     <Box w="100%">
