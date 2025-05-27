@@ -52,6 +52,15 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
   return newCatalog
 }
 
+export function filterTablesByCatalog(tables: FormattedTable[], catalog: object): FormattedTable[] {
+  if (isEmpty(catalog)) {
+    return tables;
+  }
+  const catalogEntities = get(catalog, 'entities', []);
+  const catalogTableNames = new Set(catalogEntities.map((entity: any) => entity.from_));
+  return tables.filter(table => catalogTableNames.has(table.name));
+}
+
 export function getTableContextYAML(relevantTablesWithFields: FormattedTable[], selectedCatalog?: object, drMode = false): Record<string, any> | undefined {
   let tableContextYAML = undefined
   if (drMode) {
