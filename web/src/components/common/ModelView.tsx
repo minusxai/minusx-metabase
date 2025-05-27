@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { load, dump } from 'js-yaml';
 import { getTableContextYAML } from 'apps';
+import { createSchemaFromDataModel } from '../../helpers/catalog';
 
 interface ModelViewProps {
   yamlContent?: string;
@@ -24,11 +25,12 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent }) => {
   } catch (e) {
     console.error('Invalid YAML content:', e);
   }
-  const modelViewYAML = getTableContextYAML(relevantTables, yamlContentJSON, drMode);
+  const entityJSON = getTableContextYAML(relevantTables, yamlContentJSON, drMode) || {};
+  const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
   return (
     <Box w="100%">
       <CodeBlock 
-        code={JSON.stringify(modelViewYAML, null, 2)} 
+        code={modelViewSchema} 
         tool="" 
         language="yaml" 
       />
