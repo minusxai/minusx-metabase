@@ -17,6 +17,9 @@ import { ModelView } from "./ModelView";
 import * as monaco from 'monaco-editor';
 import { configureMonacoYaml } from 'monaco-yaml';
 import { dataModelSchema } from "../../helpers/catalog";
+import { CodeEditor } from "./YAMLEditor";
+
+const schema_uri = `${configs.BASE_SERVER_URL}/deepresearch/json_schema`
 
 configureMonacoYaml(monaco, {
     enableSchemaRequest: true,
@@ -26,7 +29,7 @@ configureMonacoYaml(monaco, {
     format: true,
     schemas: [
         {
-            uri: 'http://myserver/data-model-schema.json',
+            uri: schema_uri,
             fileMatch: ['*'],
             schema: dataModelSchema
         }
@@ -156,9 +159,9 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
         {isViewing ? (
             <ModelView yamlContent={yamlContent} />
             ) : (
-            <Editor
+            <CodeEditor
                 height="400px"
-                defaultLanguage="yaml"
+                language="yaml"
                 value={yamlContent}
                 onChange={(value) => setYamlContent(value || '')}
             />
