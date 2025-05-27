@@ -16,27 +16,21 @@ import { CodeBlock } from "./CodeBlock";
 import { ModelView } from "./ModelView";
 import * as monaco from 'monaco-editor';
 import { configureMonacoYaml } from 'monaco-yaml';
+import { dataModelSchema } from "../../helpers/catalog";
 
 configureMonacoYaml(monaco, {
-  enableSchemaRequest: true,
-  hover: true,
-  completion: true,
-  validate: true,
-  format: true,
-  schemas: [
-    {
-      uri: 'http://myserver/schema.json', // Unique URI for the schema
-      fileMatch: ['*'], // Apply to all YAML files
-      schema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' },
-          version: { type: 'string' }
-        },
-        required: ['name']
-      }
-    }
-  ]
+    enableSchemaRequest: true,
+    hover: true,
+    completion: true,
+    validate: true,
+    format: true,
+    schemas: [
+        {
+            uri: 'http://myserver/data-model-schema.json',
+            fileMatch: ['*'],
+            schema: dataModelSchema
+        }
+    ]
 });
 
 const useAppStore = getApp().useStore()
