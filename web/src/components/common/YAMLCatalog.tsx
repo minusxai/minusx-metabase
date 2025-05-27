@@ -10,6 +10,7 @@ import { ContextCatalog, deleteCatalog, setMemberships, UserGroup, UserInfo } fr
 import { dispatch } from '../../state/dispatch';
 import { configs } from "../../constants";
 import { get } from "lodash";
+import { ModelView } from "./ModelView";
 
 interface Asset {
   id: string;
@@ -36,6 +37,7 @@ export const YAMLCatalog: React.FC<null> = () => {
   const [isEditing, setIsEditing] = useState(false);
   const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs);
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog);
+  const [isModelView, setIsModelView] = useState(false);
   
   const currentCatalog = availableCatalogs.find(catalog => catalog.name === selectedCatalog);
   const yamlContent = dump(currentCatalog?.content || {});
@@ -63,7 +65,12 @@ export const YAMLCatalog: React.FC<null> = () => {
         {isDeleting && (
           <Text fontSize="md" fontWeight="bold">Deleting...</Text>
         )}
-        <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>        
+        <HStack>
+          <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>        
+          <Button size="xs" variant="link" onClick={() => setIsModelView(!isModelView)}>
+              {isModelView ? 'Catalog View' : 'Model View'}
+          </Button>
+        </HStack>
         {!isEditing && (
             <HStack spacing={2}>
           <Button 
@@ -95,6 +102,10 @@ export const YAMLCatalog: React.FC<null> = () => {
         <CatalogEditor 
           onCancel={handleCancelEdit} 
           id={currentCatalog?.id || ''}
+        />
+      ) : isModelView ? (
+        <ModelView
+          yamlContent={yamlContent}
         />
       ) : (
         <Box w="100%">

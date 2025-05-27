@@ -150,10 +150,10 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
         />
         
         <HStack>
-        <Text fontSize="sm" mb={1}>Catalog Definition (YAML)</Text>
-        <Button size="xs" variant="link" onClick={() => setIsViewing(!isViewing)}>
-            {isViewing ? 'Back to Edit' : 'Model View'}
-        </Button>
+            <Text fontSize="sm" mb={1}>Catalog Definition (YAML)</Text>
+            <Button size="xs" variant="link" onClick={() => setIsViewing(!isViewing)}>
+                {isViewing ? 'Back to Edit' : 'Model View'}
+            </Button>
         </HStack>
         
         {isViewing ? (
