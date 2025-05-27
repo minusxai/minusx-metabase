@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
@@ -10,6 +10,7 @@ import { RootState } from '../../state/store';
 import { applyTableDiffs } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
+import { ModelView } from "./ModelView";
 
 const useAppStore = getApp().useStore()
 
@@ -42,6 +43,7 @@ export const resetRelevantTables = (relevantTables: TableInfo[], dbId: number) =
 export const TablesCatalog: React.FC<null> = () => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
+  const [isModelView, setIsModelView] = useState(false);
 
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo
@@ -76,7 +78,12 @@ export const TablesCatalog: React.FC<null> = () => {
 
   return <>
     <HStack w={"100%"} justify={"space-between"}>
-        <Text fontSize="md" fontWeight="bold">Catalog: Default Tables</Text>
+        <HStack>
+          <Text fontSize="md" fontWeight="bold">Catalog: Default Tables</Text>
+          <Button size="xs" variant="link" onClick={() => setIsModelView(!isModelView)}>
+              {isModelView ? 'Tables View' : 'Model View'}
+          </Button>
+        </HStack>
         <Button 
             size={"xs"} 
             onClick={_resetRelevantTables} 
@@ -89,7 +96,11 @@ export const TablesCatalog: React.FC<null> = () => {
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
     <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166007-default-tables" isExternal>What are Default Tables?</Link></Text>
-    <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={validAddedTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
+    {
+      isModelView ? (
+        <ModelView tables={validAddedTables} />
+      ) : <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={validAddedTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
+    }
     <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text>
   </>
 }

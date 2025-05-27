@@ -2,30 +2,37 @@ import React from 'react';
 import { Box } from '@chakra-ui/react';
 import { CodeBlock } from './CodeBlock'
 import { getApp } from '../../helpers/app';
-import { MetabaseContext } from 'apps/types';
+import { FormattedTable, MetabaseContext } from 'apps/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { load, dump } from 'js-yaml';
 import { getTableContextYAML } from 'apps';
 import { createSchemaFromDataModel } from '../../helpers/catalog';
+import { isEmpty } from 'lodash';
 
 interface ModelViewProps {
   yamlContent?: string;
+  tables?: FormattedTable[]
 }
 
 const useAppStore = getApp().useStore()
 
-export const ModelView: React.FC<ModelViewProps> = ({ yamlContent }) => {
+export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const drMode = useSelector((state: RootState) => state.settings.drMode);
   const relevantTables = toolContext.relevantTables || []
-  let yamlContentJSON = {}
-  try {
-    yamlContentJSON = yamlContent ? load(yamlContent) : {}
-  } catch (e) {
-    console.error('Invalid YAML content:', e);
+  let entityJSON
+  if (!tables) {
+    let yamlContentJSON
+    try {
+      yamlContentJSON = yamlContent ? load(yamlContent) : {}
+    } catch (e) {
+      console.error('Invalid YAML content:', e);
+    }
+    entityJSON = getTableContextYAML(relevantTables, yamlContentJSON, drMode) || {};
+  } else {
+    entityJSON = getTableContextYAML(tables, undefined, drMode) || {};
   }
-  const entityJSON = getTableContextYAML(relevantTables, yamlContentJSON, drMode) || {};
   const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
   return (
     <Box w="100%">
