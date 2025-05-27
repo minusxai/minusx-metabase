@@ -38,7 +38,7 @@ export interface MetabaseContext {
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTables
   loading: boolean
-  minusxCollectionId?: number
+  mxCollectionId?: number
 }
 
 interface MetabaseInternalState extends InternalState {

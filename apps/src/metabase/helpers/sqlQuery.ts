@@ -28,6 +28,14 @@ export type SnippetTemplateTag = {
   type: "snippet"
 }
 
+export type ModelTemplateTag = {
+  "card-id": number,
+  "display-name": string,
+  id: string, // this is the uuid
+  name: string, // this looks like "#{modelNumber}-{modelSlug}"
+  type: "card"
+}
+
 function slugToDisplayName(slug: string): string {
   return slug
     .split('_')                  // Split the string by underscores
@@ -102,7 +110,7 @@ export const getSnippetsInQuery = (query: string, allSnippets: MetabaseStateSnip
     // the id is the key in allSnippets
     let snippetId = Object.keys(allSnippets).find(id => allSnippets[id].name === snippetName);
     if (!snippetId) {
-      console.warn(`Snippet ${snippetName} not found in allSnippets`);
+      console.warn(`[minusx] Snippet ${snippetName} not found in allSnippets`);
       snippetId = ""
     }
     tags.push({
@@ -112,6 +120,26 @@ export const getSnippetsInQuery = (query: string, allSnippets: MetabaseStateSnip
       "snippet-id": parseInt(snippetId),
       "snippet-name": snippetName,
       type: "snippet"
+    })
+  }
+  // convert to dictionary with name as key
+  return Object.fromEntries(tags.map(tag => [tag.name, tag]))
+}
+
+export const getModelsInQuery = (query: string) => {
+  // it looks like {{#{modelNumber}-{modelSlug}}}
+  const regex = /{{(\s*#(\d+)-([\w-]+)\s*)}}/g;
+  let match;
+  let tags: ModelTemplateTag[] = [];
+  while ((match = regex.exec(query)) !== null) {
+    // extract all three parts; the full match, the number, and the slug
+    const [, fullMatch, modelNumber, slug] = match;
+    tags.push({
+      "card-id": parseInt(modelNumber),
+      "display-name": slugToDisplayName(slug),
+      id: uuidv4(),
+      name: fullMatch,
+      type: "card"
     })
   }
   // convert to dictionary with name as key

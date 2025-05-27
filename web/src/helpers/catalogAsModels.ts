@@ -1,6 +1,7 @@
 import { get } from "lodash";
 import { fetchData } from "../app/rpc";
 import { ContextCatalog } from './utils';
+import slugg from "slugg";
 
 export type AllSnippetsResponse = {
   name: string;
@@ -59,7 +60,10 @@ export type MxModelsUpdateParams = {
   dataset_query: MxModel['dataset_query']
 }
 
+export const getSlugForModelName = (name: string) => slugg(name)
+
 export const getAllMxInternalModels = async (mxCollectionId: number) => {
+  console.log("<><><> in getAllMxInternalModels, mxCollectionId", mxCollectionId)
   const response = await fetchData(`/api/collection/${mxCollectionId}/items?models=dataset`, 'GET') as CollectionItemsResponse;
   const modelIds = response.data.map(item => item.id)
   // for each, fetch the model
@@ -94,28 +98,49 @@ export type Entity = {
   }[]
 };
 
-export const replaceEntityNamesInSqlWithSnippets = (sql: string, catalog: ContextCatalog) => {
+export const getTemplateIdentifierForModel = (model: MxModel) => {
+  return `#${model.id}-${getSlugForModelName(model.name)}`
+}
+
+export const replaceEntityNamesInSqlWithModels = (sql: string, catalog: ContextCatalog, mxModels: MxModel[]) => {
   const entities: Entity[] = get(catalog, 'content.entities', [])
   for (const entity of entities) {
     if (doesEntityRequireModel(entity)) {
-      const snippetIdentifier = getModelIdentifierForEntity(entity, catalog.name)
-      const fullSnippetIdentifier = "{{snippet: " + snippetIdentifier + "}}"
+      const modelIdentifier = getModelIdentifierForEntity(entity, catalog.name)
+      // search models by name to find the right model
+      const model = mxModels.find(model => model.name === modelIdentifier)
+      if (!model) {
+        console.warn(`[minusx] Could not find model ${modelIdentifier} in mxModels`)
+        continue
+      }
+      const fullModelIdentifier = "{{" + getTemplateIdentifierForModel(model) + "}}"
       const pattern = new RegExp(`(?<!\\w)${entity.name}(?!\\w)`, 'g');
-      sql = sql.replace(pattern, fullSnippetIdentifier)
+      sql = sql.replace(pattern, fullModelIdentifier)
     }
   }
+  console.log("<><><> sql after replacing entity names with model templates:", sql)
   return sql
 }
 
-// replace {{snippet: snippetIdentifier}} with entity.name for the entity
-export function modifySqlForSnippets(sql: string, catalog: ContextCatalog) {
-  const entities: Entity[] = get(catalog, 'content.entities', [])
+// replace {{#modelId-slug}} with entity.name for the entity
+export function modifySqlForMxModels(sql: string, entities: Entity[], catalogName: string, mxModels: MxModel[]) {
+  console.log("<><><> entities:", entities)
   for (const entity of entities) {
     if (doesEntityRequireModel(entity)) {
-      const snippetIdentifier = getModelIdentifierForEntity(entity, catalog.name)
-      sql = sql.replace(new RegExp(`{{\\s*snippet:\\s*${snippetIdentifier}\\s*}}`, 'g'), entity.name)
+      const modelIdentifier = getModelIdentifierForEntity(entity, catalogName)
+      const model = mxModels.find(model => model.name === modelIdentifier)
+      if (!model) {
+        console.warn(`[minusx] Could not find model ${entity.name} in mxModels`)
+        continue
+      }
+      const templateIdentifier = getTemplateIdentifierForModel(model)
+      console.log("<><><> template identifier for model:", templateIdentifier)
+      sql = sql.replace(new RegExp(`{{\\s*${templateIdentifier}\\s*}}`, 'g'), entity.name)
+    } else {
+      console.log("<><><> enitty does not reuqire model", entity)
     }
   }
+  console.log("<><><> sql after replacing model templates with entity names:", sql)
   return sql
 }
 
@@ -138,6 +163,7 @@ export const getModelIdentifierForEntity = (entity: Entity, catalogName: string)
   const cleanedCatalogName = catalogName.replace(/[^a-zA-Z0-9]/g, "_")
   return `${cleanedCatalogName}_${entity.name}`
 }
+
 
 const getModelDefinitionForEntity = (entity: Entity) => {
   if (!doesEntityRequireModel(entity)) {

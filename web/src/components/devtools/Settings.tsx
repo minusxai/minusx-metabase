@@ -68,7 +68,7 @@ const SettingsPage = () => {
   const billing = useSelector((state: RootState) => state.billing)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
   const catalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
-  const mxCollectionId = useAppStore((state) => state.toolContext.minusxCollectionId)
+  const mxCollectionId = useAppStore((state) => state.toolContext.mxCollectionId)
 
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {

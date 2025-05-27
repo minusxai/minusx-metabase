@@ -12,7 +12,6 @@ import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
-
 const runStoreTasks = createRunner()
 
 type Collection = {
@@ -26,7 +25,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
-  async updateMinusxCollectionId() {
+  async updateMinusxCollection() {
     const allCollections = await RPCs.fetchData('/api/collection', 'GET') as AllCollectionsResponse
     let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
     if (!minusxCollection) {
@@ -35,6 +34,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         "name": "mx_internal",
       }) as CreateCollectionResponse
     }
+    
+    const mxCollectionId = typeof minusxCollection.id === 'string' ? parseInt(minusxCollection.id) : minusxCollection.id
     console.log("<><><> setting collection id hello", minusxCollection.id)
     const state = this.useStore().getState()
     console.log("<><><> existing state toolContext", state.toolContext)
@@ -42,7 +43,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       ...oldState,
       toolContext: {
         ...oldState.toolContext,
-        minusxCollectionId: typeof minusxCollection.id === 'string' ? parseInt(minusxCollection.id) : minusxCollection.id
+        mxCollectionId
       }
     }))
   }
@@ -112,9 +113,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     getCardsCountSplitByType().then(cardsCount => {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
     });
-    // runStoreTasks(async () => {
-    await this.updateMinusxCollectionId();
-    // })
+    await this.updateMinusxCollection();
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']

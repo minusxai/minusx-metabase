@@ -37,17 +37,20 @@ import {
   getVariablesAndUuidsInQuery,
   SnippetTemplateTag,
   MetabaseStateSnippetsDict,
-  getSnippetsInQuery
+  getSnippetsInQuery,
+  getModelsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
 import { memoizedFetchTableData } from "./helpers/parseTables";
-import { replaceEntityNamesInSqlWithSnippets } from "../../../web/src/helpers/catalogAsModels";
+import { getAllMxInternalModels, replaceEntityNamesInSqlWithModels } from "../../../web/src/helpers/catalogAsModels";
+import { getAppStateConfigs } from "../package";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
+
 
 type AllSnippetsResponse = {
   name: string;
@@ -156,11 +159,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
       if (selectedCatalog) {
-        sql = replaceEntityNamesInSqlWithSnippets(sql, selectedCatalog)
+        const toolContext = getAppStateConfigs()['metabase'].useStore().getState().toolContext
+        console.log("<><><> in MetabaseController, toolContext", toolContext)
+        const mxModels = await getAllMxInternalModels(toolContext.mxCollectionId)
+        sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
       }
     }
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
+    const modelTemplateTags = getModelsInQuery(sql)
+    console.log("<><><> modelTemplateTags", modelTemplateTags)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {
@@ -175,7 +183,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const existingParameters = currentCard.parameters;
     const templateTags = {
       ...getTemplateTagsForVars(varsAndUuids, existingTemplateTags || {}),
-      ...snippetTemplateTags
+      ...snippetTemplateTags,
+      ...modelTemplateTags
     }
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
@@ -216,7 +225,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
       if (selectedCatalog) {
-        sql = replaceEntityNamesInSqlWithSnippets(sql, selectedCatalog)
+        const toolContext = getAppStateConfigs()['metabase'].useStore().getState().toolContext
+        const mxModels = await getAllMxInternalModels(toolContext.mxCollectionId)
+        sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
       }
     }
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;

@@ -91,7 +91,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     const handleSave = async () => {
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
-        const mxCollectionId = toolContext.minusxCollectionId
+        const mxCollectionId = toolContext.mxCollectionId
         const allModels = mxCollectionId ? await getAllMxInternalModels(mxCollectionId) : []
         try {
             if (anyChange) {

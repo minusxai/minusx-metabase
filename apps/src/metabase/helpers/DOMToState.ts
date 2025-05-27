@@ -12,7 +12,8 @@ import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
-import { modifySqlForSnippets } from '../../../../web/src/helpers/catalogAsModels';
+import { getAllMxInternalModels, modifySqlForMxModels } from '../../../../web/src/helpers/catalogAsModels';
+import { getAppStateConfigs } from '../../package';
 
 interface ExtractedDataBase {
   name: string;
@@ -131,7 +132,11 @@ export async function convertDOMtoStateSQLQuery() {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
     if (appSettings.snippetsMode) {
-      metabaseAppStateSQLEditor.sqlQuery = modifySqlForSnippets(metabaseAppStateSQLEditor.sqlQuery, selectedCatalog)
+      const toolContext = getAppStateConfigs()['metabase'].useStore().getState().toolContext
+      console.log("<><><> in DOMToState, toolContext", toolContext)
+      console.log("<><><> in DOMToState, selectedCatalog", selectedCatalog)
+      const mxModels = await getAllMxInternalModels(toolContext.mxCollectionId)
+      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, mxModels)
     }
   }
   if (sqlErrorMessage) {
@@ -191,14 +196,22 @@ async function getSqlVariables() {
     type: string,
     displayName: string
   }> = {};
+  // ignore snippets and models
+  // snippets are parameters that start with snippet:
+  // models are parameters that start with #modelNumber-modelSlug
+  // keep in mind leading spaces
   for (const [key, value] of Object.entries(parameters)) {
     const parameterId = value.id;
     const parameterValue = currentParameterValues[parameterId];
-    sqlVariables[key] = {
-      value: parameterValue,
-      type: value.type,
-      displayName: value['display-name']
-    };
+    const snippetsRegex = /^\s*snippet:/g;
+    const modelsRegex = /^\s*#(\d+)/g;
+    if (!snippetsRegex.test(key) && !modelsRegex.test(key)) {
+      sqlVariables[key] = {
+        value: parameterValue,
+        type: value.type,
+        displayName: value['display-name']
+      };
+    }
   }
   return sqlVariables; 
 }

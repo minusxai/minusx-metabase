@@ -67,6 +67,7 @@
     "react-zoom-pan-pinch": "^3.6.1",
     "redux-logger": "^3.0.6",
     "redux-persist": "^6.0.0",
+    "slugg": "^1.2.1",
     "styled-components": "^6.1.11"
   },
   "devDependencies": {

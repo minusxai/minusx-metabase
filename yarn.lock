@@ -14004,6 +14004,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"slugg@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "slugg@npm:1.2.1"
+  checksum: 10c0/dd09143a83e93ba5f632813af9a21f84ca73fc870a933ea9550f4446a25e5f11c5baf77e9e5cc28958a660c38b2cfcb7701bb966d9ca8daa802668ff5cf40d59
+  languageName: node
+  linkType: hard
+
 "smart-buffer@npm:^4.2.0":
   version: 4.2.0
   resolution: "smart-buffer@npm:4.2.0"
@@ -15287,6 +15294,7 @@ __metadata:
     redux-logger: "npm:^3.0.6"
     redux-persist: "npm:^6.0.0"
     serve: "npm:^14.2.3"
+    slugg: "npm:^1.2.1"
     styled-components: "npm:^6.1.11"
     typescript: "npm:5"
     vite: "npm:^5.3.2"
