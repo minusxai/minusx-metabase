@@ -15,7 +15,6 @@ import {
   waitForQueryExecution,
 } from "./helpers/operations";
 import {
-  memoizedFetchTableData,
   searchTables,
 } from "./helpers/getDatabaseSchema";
 import { get, isEmpty, map, set, truncate } from "lodash";
@@ -42,6 +41,7 @@ import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
+import { memoizedFetchTableData } from "./helpers/parseTables";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
