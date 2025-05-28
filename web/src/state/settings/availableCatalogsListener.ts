@@ -44,7 +44,9 @@ catalogsListener.startListening({
         dispatch(setMxModels(mxModels))
       }
     } else if (setMemberships.match(action)) {
-      await listenerApi.pause(createOrUpdateModelsForAllCatalogs(state.settings.mxCollectionId, state.settings.mxModels, state.settings.availableCatalogs))
+      // refetching oldMxModels just in case there's some race condition? dunno being safe
+      const oldMxModels = await listenerApi.pause(getAllMxInternalModels(state.settings.mxCollectionId))
+      await listenerApi.pause(createOrUpdateModelsForAllCatalogs(state.settings.mxCollectionId, oldMxModels, state.settings.availableCatalogs))
       const mxModels = await listenerApi.pause(getAllMxInternalModels(state.settings.mxCollectionId))
       dispatch(setMxModels(mxModels))
     } 

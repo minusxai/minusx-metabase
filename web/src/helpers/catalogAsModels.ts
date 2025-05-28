@@ -151,6 +151,10 @@ export const doesEntityRequireModel = (entity: Entity) => {
         return true
       }
     }
+    // check if name matches from_; if it doesn't we still need a model
+    if (entity.name != entity.from_) {
+      return true
+    }
     return false
   } else {
     return true
