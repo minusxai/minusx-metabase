@@ -167,7 +167,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
     const modelTemplateTags = getModelsInQuery(sql)
-    console.log("<><><> modelTemplateTags", modelTemplateTags)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {

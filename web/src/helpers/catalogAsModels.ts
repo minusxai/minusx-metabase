@@ -61,7 +61,6 @@ export const getOrCreateMxCollectionId = async (): Promise<number | null> => {
 }
 
 export const getAllMxInternalModels = async (mxCollectionId: number) => {
-  console.log("<><><> in getAllMxInternalModels, mxCollectionId", mxCollectionId)
   const response = await fetchData(`/api/collection/${mxCollectionId}/items?models=dataset`, 'GET') as CollectionItemsResponse;
   const modelIds = response.data.map(item => item.id)
   // for each, fetch the model
@@ -116,13 +115,11 @@ export const replaceEntityNamesInSqlWithModels = (sql: string, catalog: ContextC
       sql = sql.replace(pattern, fullModelIdentifier)
     }
   }
-  console.log("<><><> sql after replacing entity names with model templates:", sql)
   return sql
 }
 
 // replace {{#modelId-slug}} with entity.name for the entity
 export function modifySqlForMxModels(sql: string, entities: Entity[], catalogName: string, mxModels: MxModel[]) {
-  console.log("<><><> entities:", entities)
   for (const entity of entities) {
     if (doesEntityRequireModel(entity)) {
       const modelIdentifier = getModelIdentifierForEntity(entity, catalogName)
@@ -132,13 +129,10 @@ export function modifySqlForMxModels(sql: string, entities: Entity[], catalogNam
         continue
       }
       const templateIdentifier = getTemplateIdentifierForModel(model)
-      console.log("<><><> template identifier for model:", templateIdentifier)
       sql = sql.replace(new RegExp(`{{\\s*${templateIdentifier}\\s*}}`, 'g'), entity.name)
     } else {
-      console.log("<><><> enitty does not reuqire model", entity)
     }
   }
-  console.log("<><><> sql after replacing model templates with entity names:", sql)
   return sql
 }
 

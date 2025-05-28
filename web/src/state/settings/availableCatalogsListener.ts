@@ -18,7 +18,6 @@ catalogsListener.startListening({
     listenerApi.cancelActiveListeners()
     // Delay before starting actual work
     await listenerApi.delay(50)
-    console.log("<><><><> in catalogsListener and doing work", action.type, action.payload)
     const state = listenerApi.getState() as RootState
     const dispatch = listenerApi.dispatch as AppDispatch
     // if it's a full refresh with snippets mode on,
@@ -43,7 +42,6 @@ catalogsListener.startListening({
           dispatch(setMxModels(newMxModels))
         }
       } catch (e) {
-        console.log("<><><> Error in refreshMxCache/setModelsMode/setMemberships", e)
       }
       return
     }
