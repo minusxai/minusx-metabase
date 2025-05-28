@@ -41,8 +41,9 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
       get(entity, 'dimensions', []).forEach((dimension: any) => {
         if (get(dimension, 'unique')) {
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
-          dimension.unique_values = get(tableDimension, 'unique_values', []);
-          if (!isEmpty(dimension.unique_values)) {
+          const unique_values = get(tableDimension, 'unique_values', []);
+          if (!isEmpty(unique_values)) {
+            dimension.unique_values  = unique_values
             dimension.has_more_values = get(tableDimension, 'has_more_values', false);
           }
         }
