@@ -9,13 +9,20 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
         name,
         description: table.description,
         schema,
-        dimensions: map(columns, (column) => ({
-          name: column.name,
-          type: column.type,
-          description: column.description,
-          unique_values: column.unique_values,
-          has_more_values: column.has_more_values
-        }))
+        dimensions: map(columns, (column) => {
+          const newDim = {
+            name: column.name,
+            type: column.type,
+            description: column.description,
+          }
+          if (!isEmpty(column.unique_values)) {
+            //@ts-ignore
+            newDim.unique_values = column.unique_values
+            //@ts-ignore
+            newDim.has_more_values = column.has_more_values
+          }
+          return newDim
+        })
       }
     })
   }
