@@ -12,7 +12,9 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
         dimensions: map(columns, (column) => ({
           name: column.name,
           type: column.type,
-          description: column.description
+          description: column.description,
+          unique_values: column.unique_values,
+          has_more_values: column.has_more_values
         }))
       }
     })
