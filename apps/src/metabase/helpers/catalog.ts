@@ -2,6 +2,17 @@ import { get, isEmpty, keyBy, map } from "lodash";
 import { FormattedTable } from "./types";
 import { deterministicSample } from "../../common/utils";
 
+// Helper function to safely extract string value from from_ field
+function getFromString(from_: any): string {
+  if (typeof from_ === 'string') {
+    return from_;
+  }
+  if (typeof from_ === 'object' && from_ !== null) {
+    return get(from_, 'alias', '') || '';
+  }
+  return '';
+}
+
 const createCatalogFromTables = (tables: FormattedTable[]) => {
   return {
     entities: tables.map(table => {
@@ -50,8 +61,9 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
   const newEntities: object[] = []
   get(catalog, 'entities', []).forEach((entity: object) => {
     const from_ = get(entity, 'from_', '')
+    const fromString = getFromString(from_)
     const fromSchema = get(entity, 'schema', '')
-    const fromRef = fromSchema ? `${fromSchema}.${from_}` : from_;
+    const fromRef = fromSchema ? `${fromSchema}.${fromString}` : fromString;
     const tableEntity = get(tableEntityMap, fromRef, {})
     if (!isEmpty(tableEntity)) {
       get(entity, 'dimensions', []).forEach((dimension: any) => {
@@ -61,7 +73,7 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
           if (!isEmpty(unique_values)) {
             // Limit unique_values to 20 items max with deterministic sampling
             if (unique_values.length > 20) {
-              dimension.unique_values = deterministicSample(unique_values, 20, `${from_}.${dimension.name}`)
+              dimension.unique_values = deterministicSample(unique_values, 20, `${fromString}.${dimension.name}`)
               dimension.has_more_values = true
             } else {
               dimension.unique_values = unique_values
