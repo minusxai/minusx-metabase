@@ -91,8 +91,6 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
 
     const handleSave = async () => {
         const anyChange = yamlContent !== defaultContent || title !== defaultTitle
-        const mxCollectionId = toolContext.mxCollectionId
-        const allModels = mxCollectionId ? await getAllMxInternalModels(mxCollectionId) : []
         try {
             if (anyChange) {
                 const fn = defaultTitle ? updateCatalog : createCatalog
@@ -109,18 +107,6 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                         origin
                     })
                 })
-                if (snippetsMode && mxCollectionId) {
-                    await createOrUpdateModelsForCatalog(mxCollectionId, allModels, {
-                        type: 'manual',
-                        id: catalogID,
-                        name: title,
-                        content,
-                        dbName,
-                        dbId,
-                        origin,
-                        allowWrite: false // ?? dont care for this call. really should respect types more
-                    })
-                }
                 setIsSaving(false);
                 dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, dbId, origin, currentUserId }));
             }

@@ -1,6 +1,6 @@
 import { get } from "lodash";
 import { fetchData } from "../app/rpc";
-import { ContextCatalog } from './utils';
+import { ContextCatalog, MxModel } from './utils';
 import slugg from "slugg";
 
 export type AllSnippetsResponse = {
@@ -17,36 +17,6 @@ export type CollectionItemsResponse = {
   }[]
 }
 
-export type MxModel = {
-  name: string
-  id: number
-  database_id: number
-  dataset_query: {
-    database: number,
-    type: "native",
-    native: {
-      query: string
-      "template-tags": {}
-    }
-  }
-}
-
-// {
-//   "visualization_settings": {},
-//   "display": "table",
-//   "collection_id": 17,
-//   "name": "model_create_test",
-//   "type": "model",
-//   "dataset_query": {
-//     "database": 2,
-//     "type": "native",
-//     "native": {
-//       "query": "select * from salesorderdetail",
-//       "template-tags": {}
-//     }
-//   }
-// }
-
 export type MxModelsCreateParams = {
   visualization_settings: {}
   display: "table"
@@ -61,6 +31,34 @@ export type MxModelsUpdateParams = {
 }
 
 export const getSlugForModelName = (name: string) => slugg(name)
+
+type Collection = {
+  name: string
+  id: string | number
+}
+type AllCollectionsResponse = Collection[]
+type CreateCollectionResponse = Collection
+
+export const createMxCollection = async (): Promise<number | null> => {
+  const allCollections = await fetchData('/api/collection', 'GET') as AllCollectionsResponse
+  let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
+  if (!minusxCollection) {
+    // create the collection
+    try {
+      minusxCollection = await fetchData('/api/collection', 'POST', {
+        "name": "mx_internal",
+      }) as CreateCollectionResponse
+      if (!minusxCollection || !minusxCollection.id) {
+        throw new Error('Invalid response from create collection')
+      }
+    } catch (err) {
+      console.error('[minusx] Error creating mx collection', err)
+      return null
+    }
+  }
+  const mxCollectionId = typeof minusxCollection.id === 'string' ? parseInt(minusxCollection.id) : minusxCollection.id
+  return mxCollectionId
+}
 
 export const getAllMxInternalModels = async (mxCollectionId: number) => {
   console.log("<><><> in getAllMxInternalModels, mxCollectionId", mxCollectionId)
@@ -191,48 +189,48 @@ const getModelDefinitionForEntity = (entity: Entity) => {
 }
 
 
-export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, allMxModels: MxModel[], contextCatalog: ContextCatalog) => { 
+export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, allMxModels: MxModel[], contextCatalog: ContextCatalog) => {
   const entities: Entity[] = get(contextCatalog, 'content.entities', [])
   for (const entity of entities) {
-      if (doesEntityRequireModel(entity)) {
-          const sql = getModelDefinitionForEntity(entity)
-          const modelIdentifier = getModelIdentifierForEntity(entity, contextCatalog.name)
-          if (modelIdentifier) {
-              const existingModel = allMxModels.find(model => model.name === modelIdentifier)
-              if (existingModel) {
-                if (existingModel.dataset_query.native.query !== sql) {
-                  await updateModel({
-                    dataset_query: {
-                      database: contextCatalog.dbId,
-                      type: "native",
-                      native: {
-                        query: sql,
-                        "template-tags": {}
-                      }
-                    }
-                  }, existingModel.id)
-                } else {
-                  console.log("<><>< sqls match. not updating model", modelIdentifier, existingModel.dataset_query.native.query, sql)
+    if (doesEntityRequireModel(entity)) {
+      const sql = getModelDefinitionForEntity(entity)
+      const modelIdentifier = getModelIdentifierForEntity(entity, contextCatalog.name)
+      if (modelIdentifier) {
+        const existingModel = allMxModels.find(model => model.name === modelIdentifier)
+        if (existingModel) {
+          if (existingModel.dataset_query.native.query !== sql) {
+            await updateModel({
+              dataset_query: {
+                database: contextCatalog.dbId,
+                type: "native",
+                native: {
+                  query: sql,
+                  "template-tags": {}
                 }
-              } else {
-                  await createModel({
-                    visualization_settings: {},
-                    display: "table",
-                    collection_id: mxCollectionId,
-                    name: modelIdentifier,
-                    type: "model",
-                    dataset_query: {
-                      database: contextCatalog.dbId,
-                      type: "native",
-                      native: {
-                        query: sql,
-                        "template-tags": {}
-                      }
-                    }
-                  })
               }
+            }, existingModel.id)
+          } else {
+            console.log("<><>< sqls match. not updating model", modelIdentifier, existingModel.dataset_query.native.query, sql)
           }
+        } else {
+          await createModel({
+            visualization_settings: {},
+            display: "table",
+            collection_id: mxCollectionId,
+            name: modelIdentifier,
+            type: "model",
+            dataset_query: {
+              database: contextCatalog.dbId,
+              type: "native",
+              native: {
+                query: sql,
+                "template-tags": {}
+              }
+            }
+          })
+        }
       }
+    }
   }
 }
 

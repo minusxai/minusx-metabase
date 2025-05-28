@@ -11,6 +11,7 @@ import { configs } from '../constants'
 import { plannerListener } from '../planner/planner'
 import billing from './billing/reducer'
 import semanticLayer from './semantic-layer/reducer'
+import { catalogsListener } from './settings/availableCatalogsListener'
 
 const combinedReducer = combineReducers({
   chat,
@@ -323,11 +324,14 @@ export const store = configureStore({
   reducer: persistReducer(persistConfig, rootReducer),
   middleware: (getDefaultMiddleware) => {
     const defaults = getDefaultMiddleware()
-    const withPlanner = defaults.prepend(eventListener.middleware).prepend(plannerListener.middleware)
+    const withPlannerAndCatalogListener = defaults
+      .prepend(eventListener.middleware)
+      .prepend(plannerListener.middleware)
+      .prepend(catalogsListener.middleware)
     if (configs.IS_DEV) {
-      return withPlanner.concat(logger)
+      return withPlannerAndCatalogListener.concat(logger)
     }
-    return withPlanner
+    return withPlannerAndCatalogListener
   }
 })
 

@@ -38,7 +38,6 @@ export interface MetabaseContext {
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTables
   loading: boolean
-  mxCollectionId?: number
 }
 
 interface MetabaseInternalState extends InternalState {

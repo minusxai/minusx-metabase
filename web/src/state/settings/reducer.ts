@@ -1,8 +1,8 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 import { isEqual } from 'lodash'
-import { contains, ContextCatalog } from '../../helpers/utils'
+import { contains, ContextCatalog, MxModel } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
@@ -70,6 +70,10 @@ interface SetMembershipsPayload {
   currentUserId: string
 }
 
+export interface SaveCatalogPayload extends Omit<ContextCatalog, 'allowWrite'> {
+  currentUserId: string
+}
+
 interface Settings {
   isLocal: boolean,
   uploadLogs: boolean,
@@ -90,6 +94,8 @@ interface Settings {
   drMode: boolean,
   selectedCatalog: string,
   availableCatalogs: ContextCatalog[],
+  mxCollectionId: number | null,
+  mxModels: MxModel[],
   defaultTableCatalog: ContextCatalog
   users: Record<string, UserInfo>
   groups: Record<string, UserGroup>
@@ -121,6 +127,8 @@ const initialState: Settings = {
   drMode: true,
   selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
+  mxCollectionId: null,
+  mxModels: [],
   defaultTableCatalog: {
     type: 'manual',
     id: 'default',
@@ -233,7 +241,7 @@ export const settingsSlice = createSlice({
         state.selectedCatalog = action.payload
       }
     },
-    saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'> & { currentUserId: string }>) => {
+    saveCatalog: (state, action: PayloadAction<SaveCatalogPayload>) => {
         const { type, id, name, content, dbName, origin, currentUserId, dbId } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.id === id)
         if (existingCatalog) {
@@ -315,9 +323,23 @@ export const settingsSlice = createSlice({
                 state.selectedCatalog = DEFAULT_TABLES
             }
         }
-    }    
-  }
+    },
+    setMxModels: (state, action: PayloadAction<MxModel[]>) => {
+      state.mxModels = action.payload
+    },
+    setMxCollectionId: (state, action: PayloadAction<number | null>) => {
+      state.mxCollectionId = action.payload
+    }
+  },
 })
+
+// const {saveCatalog: saveCatalogOriginal} = settingsSlice.actions
+
+// const saveCatalogWithSideEffects = createAsyncThunk('settings/saveCatalogWithSideEffects', (args: SaveCatalogPayload, thunkApi) => {
+//   const snippetsMode = (thunkApi.getState() as RootState).settings.snippetsMode
+//   return thunkApi.dispatch(saveCatalogOriginal(args))
+// })
+
 
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
@@ -325,7 +347,8 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode, setViewAllCatalogs
+  setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode, setViewAllCatalogs,
+  setMxModels, setMxCollectionId
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

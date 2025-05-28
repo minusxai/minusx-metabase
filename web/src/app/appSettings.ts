@@ -14,6 +14,8 @@ export const getAppSettings = () => {
     selectedCatalog: settings.selectedCatalog,
     availableCatalogs: settings.availableCatalogs,
     snippetsMode: settings.snippetsMode,
+    mxCollectionId: settings.mxCollectionId,
+    mxModels: settings.mxModels,
   }
 }
 

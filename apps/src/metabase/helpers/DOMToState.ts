@@ -12,8 +12,7 @@ import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
-import { getAllMxInternalModels, modifySqlForMxModels } from '../../../../web/src/helpers/catalogAsModels';
-import { getAppStateConfigs } from '../../package';
+import { modifySqlForMxModels } from '../../../../web/src/helpers/catalogAsModels';
 
 interface ExtractedDataBase {
   name: string;
@@ -132,11 +131,7 @@ export async function convertDOMtoStateSQLQuery() {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
     if (appSettings.snippetsMode) {
-      const toolContext = getAppStateConfigs()['metabase'].useStore().getState().toolContext
-      console.log("<><><> in DOMToState, toolContext", toolContext)
-      console.log("<><><> in DOMToState, selectedCatalog", selectedCatalog)
-      const mxModels = await getAllMxInternalModels(toolContext.mxCollectionId)
-      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, mxModels)
+      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, appSettings.mxModels)
     }
   }
   if (sqlErrorMessage) {

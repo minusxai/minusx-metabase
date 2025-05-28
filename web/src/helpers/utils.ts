@@ -44,3 +44,17 @@ export interface ContextCatalog {
   primaryGroup?: string
   owner?: string
 }
+
+export type MxModel = {
+  name: string
+  id: number
+  database_id: number
+  dataset_query: {
+    database: number,
+    type: "native",
+    native: {
+      query: string
+      "template-tags": {}
+    }
+  }
+}

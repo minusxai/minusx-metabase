@@ -159,9 +159,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
       if (selectedCatalog) {
-        const toolContext = getAppStateConfigs()['metabase'].useStore().getState().toolContext
-        console.log("<><><> in MetabaseController, toolContext", toolContext)
-        const mxModels = await getAllMxInternalModels(toolContext.mxCollectionId)
+        const mxModels = settings.mxModels
         sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
       }
     }
@@ -225,8 +223,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
       if (selectedCatalog) {
-        const toolContext = getAppStateConfigs()['metabase'].useStore().getState().toolContext
-        const mxModels = await getAllMxInternalModels(toolContext.mxCollectionId)
+        const mxModels = settings.mxModels
         sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
       }
     }

@@ -15,7 +15,6 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from '../common/CreditsPill';
 import { SettingsBlock } from '../common/SettingsBlock';
 import { GroupViewer } from '../common/GroupViewer';
-import { createOrUpdateModelsForAllCatalogs, getAllMxInternalModels } from '../../helpers/catalogAsModels';
 import { getApp } from '../../helpers/app';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
@@ -67,8 +66,6 @@ const SettingsPage = () => {
   const auth = useSelector((state: RootState) => state.auth)
   const billing = useSelector((state: RootState) => state.billing)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
-  const catalogs = useSelector((state: RootState) => state.settings.availableCatalogs)
-  const mxCollectionId = useAppStore((state) => state.toolContext.mxCollectionId)
 
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
@@ -108,14 +105,6 @@ const SettingsPage = () => {
     dispatch(setGroupsEnabled(value))
   }
   const updateSnippetsMode = (value: boolean) => {
-    if (value == true) {
-      console.log("<><><> mxCollectionId", mxCollectionId)
-      if (mxCollectionId) {
-        getAllMxInternalModels(mxCollectionId).then(allModels => {
-          createOrUpdateModelsForAllCatalogs(mxCollectionId, allModels, catalogs)
-        })
-      }
-    }
     dispatch(setSnippetsMode(value))
   }
   const updateViewAllCatalogs = (value: boolean) => {
