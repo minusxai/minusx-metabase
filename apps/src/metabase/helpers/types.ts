@@ -1,7 +1,10 @@
 interface FormattedColumn {
   description?: string;
   name: string;
+  id: number;
   type: string;
+  unique_values?: any[]; 
+  has_more_values?: boolean;
   // only populated for foreign keys
   fk_table_id?: number;
   foreign_key_target?: string | null;

@@ -11,6 +11,8 @@ interface Dimension {
   type: string;
   description?: string;
   sql?: string;
+  unique_values?: any[];
+  has_more_values?: boolean
 }
 
 interface Metric {
@@ -137,6 +139,8 @@ export function createSchemaFromDataModel(dataModel: DataModel): Schema {
       name: dim.name,
       type: dim.type,
       description: dim.description,
+      unique_values: dim.unique_values,
+      has_more_values: dim.has_more_values
     }));
 
     const metrics: Metric[] = entity.metrics || [];

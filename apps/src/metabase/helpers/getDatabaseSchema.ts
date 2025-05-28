@@ -123,10 +123,14 @@ function getDefaultSchema(databaseInfo) {
 async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
   const jsonResponse = await fetchData(`/api/database/${dbId}?include=tables`, 'GET');
   const defaultSchema = getDefaultSchema(jsonResponse);
+  const tables = await Promise.all(
+      _.map(_.get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
+  );
+
   return {
-    ...extractDbInfo(jsonResponse, defaultSchema),
-    tables: _.map(_.get(jsonResponse, 'tables', []), (table: any) => (extractTableInfo(table, false)))
-  }
+      ...extractDbInfo(jsonResponse, defaultSchema),
+      tables
+  };
 }
 // only memoize for DEFAULT_TTL seconds
 export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);

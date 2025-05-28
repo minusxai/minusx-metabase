@@ -9,11 +9,20 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
         name,
         description: table.description,
         schema,
-        dimensions: map(columns, (column) => ({
-          name: column.name,
-          type: column.type,
-          description: column.description
-        }))
+        dimensions: map(columns, (column) => {
+          const newDim = {
+            name: column.name,
+            type: column.type,
+            description: column.description,
+          }
+          if (!isEmpty(column.unique_values)) {
+            //@ts-ignore
+            newDim.unique_values = column.unique_values
+            //@ts-ignore
+            newDim.has_more_values = column.has_more_values
+          }
+          return newDim
+        })
       }
     })
   }
@@ -31,19 +40,33 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
   })
   const newEntities: object[] = []
   get(catalog, 'entities', []).forEach((entity: object) => {
+    const from_ = get(entity, 'from_', '')
+    const fromSchema = get(entity, 'schema', '')
+    const fromRef = fromSchema ? `${fromSchema}.${from_}` : from_;
+    const tableEntity = get(tableEntityMap, fromRef, {})
+    if (!isEmpty(tableEntity)) {
+      get(entity, 'dimensions', []).forEach((dimension: any) => {
+        if (get(dimension, 'unique')) {
+          const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
+          const unique_values = get(tableDimension, 'unique_values', []);
+          if (!isEmpty(unique_values)) {
+            dimension.unique_values  = unique_values
+            dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+          }
+        }
+      })
+    }
+    let newEntity 
     if (get(entity, 'extends')) {
-      const from_ = get(entity, 'from_', '')
-      const fromSchema = get(entity, 'schema', '')
-      const fromRef = fromSchema ? `${fromSchema}.${from_}` : from_;
-      const tableEntity = get(tableEntityMap, fromRef, {})
-      newEntities.push({
+      newEntity = {
         ...tableEntity,
         ...entity,
         dimensions: [...get(tableEntity, 'dimensions', []),  ...get(entity, 'dimensions', [])]
-      })
+      }
     } else {
-      newEntities.push(entity)
+      newEntity = entity
     }
+    newEntities.push(newEntity) 
   })
   const newCatalog = {
     ...catalog,
