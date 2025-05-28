@@ -12,6 +12,7 @@ import { plannerListener } from '../planner/planner'
 import billing from './billing/reducer'
 import semanticLayer from './semantic-layer/reducer'
 import { catalogsListener } from './settings/availableCatalogsListener'
+import cache from './cache/reducer'
 
 const combinedReducer = combineReducers({
   chat,
@@ -19,7 +20,8 @@ const combinedReducer = combineReducers({
   settings,
   thumbnails,
   billing,
-  semanticLayer
+  semanticLayer,
+  cache
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -302,18 +304,31 @@ const migrations = {
         thread.id = `${uniqueIDPrefix}-${thread.index}`
       }
     })
-    newState.settings.snippetsMode = false
+    return newState
+  },
+  28: (state: any) => {
+    let newState = {...state}
+    newState.cache.mxCollectionId = null
+    newState.cache.mxModels = []
+    // remove mxModels and mxCollectionId from settings (in case they exist)
+    if (newState.settings.mxModels) {
+      delete newState.settings.mxModels
+    } 
+    if (newState.settings.mxCollectionId) {
+      delete newState.settings.mxCollectionId
+    }
     return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 27,
+  version: 28,
   storage,
-  blacklist: ['billing'],
+  blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),
 };
+
 
 export const eventListener = createListenerMiddleware();
 

@@ -23,7 +23,7 @@ import chat from '../../chat/chat'
 import _, { get, isEmpty, isUndefined, sortBy } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, TableInfo, setMxCollectionId, setMxModels } from '../../state/settings/reducer'
+import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, TableInfo } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
@@ -55,7 +55,7 @@ import { getApp } from '../../helpers/app';
 import { applyTableDiffs } from "apps";
 import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
-import { createMxCollection, createOrUpdateModelsForAllCatalogs, getAllMxInternalModels } from '../../helpers/catalogAsModels'
+import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, getAllMxInternalModels } from '../../helpers/catalogAsModels'
 import { refreshMxCache } from '../../state/settings/availableCatalogsListener'
 
 

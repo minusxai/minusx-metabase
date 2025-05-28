@@ -94,8 +94,6 @@ interface Settings {
   drMode: boolean,
   selectedCatalog: string,
   availableCatalogs: ContextCatalog[],
-  mxCollectionId: number | null,
-  mxModels: MxModel[],
   defaultTableCatalog: ContextCatalog
   users: Record<string, UserInfo>
   groups: Record<string, UserGroup>
@@ -127,8 +125,6 @@ const initialState: Settings = {
   drMode: true,
   selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
-  mxCollectionId: null,
-  mxModels: [],
   defaultTableCatalog: {
     type: 'manual',
     id: 'default',
@@ -323,12 +319,6 @@ export const settingsSlice = createSlice({
                 state.selectedCatalog = DEFAULT_TABLES
             }
         }
-    },
-    setMxModels: (state, action: PayloadAction<MxModel[]>) => {
-      state.mxModels = action.payload
-    },
-    setMxCollectionId: (state, action: PayloadAction<number | null>) => {
-      state.mxCollectionId = action.payload
     }
   },
 })
@@ -348,7 +338,6 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode, setViewAllCatalogs,
-  setMxModels, setMxCollectionId
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

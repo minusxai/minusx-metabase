@@ -152,6 +152,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     const settings = RPCs.getAppSettings()
+    const cache = RPCs.getCache()
     const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
     const snippetsMode = settings.snippetsMode
     if (!snippetsMode) {
@@ -159,7 +160,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
       if (selectedCatalog) {
-        const mxModels = settings.mxModels
+        const mxModels = cache.mxModels
         sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
       }
     }
@@ -216,6 +217,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     const settings = RPCs.getAppSettings()
+    const cache = RPCs.getCache()
     const snippetsMode = settings.snippetsMode
     const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
     if (!snippetsMode) {
@@ -223,7 +225,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
       if (selectedCatalog) {
-        const mxModels = settings.mxModels
+        const mxModels = cache.mxModels
         sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
       }
     }

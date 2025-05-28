@@ -1,6 +1,8 @@
-import { createMxCollection, createOrUpdateModelsForAllCatalogs, createOrUpdateModelsForCatalog, getAllMxInternalModels } from '../../helpers/catalogAsModels';
+import { Action } from '../../../../apps/src/base/appController';
+import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, createOrUpdateModelsForCatalog, getAllMxInternalModels } from '../../helpers/catalogAsModels';
 import type { RootState, AppDispatch } from '../../state/store';
-import { saveCatalog, setMemberships, setMxCollectionId, setMxModels, setSnippetsMode } from './reducer';
+import { setMxCollectionId, setMxModels } from '../cache/reducer';
+import { saveCatalog, setMemberships, setSnippetsMode } from './reducer';
 import { createAction, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit'
 
 export const refreshMxCache = createAction('settings/refreshMxCache')
@@ -9,16 +11,28 @@ export const catalogsListener = createListenerMiddleware();
 catalogsListener.startListening({
   matcher: isAnyOf(saveCatalog, setMemberships, setSnippetsMode, refreshMxCache),
   effect: async (action, listenerApi) => {
+    // just debounce this listener by 50 ms for all actions and cancel existing listeners 
+    // this is to handle app startup races; this is kind of a hack;
+    // should have more sophistated logic to separate refreshMxCache and setMemberships
+    // not cancelling each other
+    listenerApi.cancelActiveListeners()
+    // Delay before starting actual work
+    await listenerApi.delay(50)
+    console.log("<><><><> in catalogsListener and doing work", action.type, action.payload)
     const state = listenerApi.getState() as RootState
     const dispatch = listenerApi.dispatch as AppDispatch
     // if it's a full refresh with snippets mode on,
-    // or if snippets mode is just turned on, then we need to create the mx collection
+    // or if snippets mode is just turned on, 
+    // or if setMemberships is called with snippets mode on,
+    // then we need to re-create the mx collection
     // and repopulate models
     if (
       (setSnippetsMode.match(action) && action.payload == true) || 
-      (refreshMxCache.match(action) && state.settings.snippetsMode == true) ) {
+      (refreshMxCache.match(action) && state.settings.snippetsMode == true) ||
+      (setMemberships.match(action) && state.settings.snippetsMode == true)
+    ) {
       try {
-        const mxCollectionId = await listenerApi.pause(createMxCollection())
+        const mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId())
         dispatch(setMxCollectionId(mxCollectionId))
         if (mxCollectionId) {
           // also get all models
@@ -29,26 +43,21 @@ catalogsListener.startListening({
           dispatch(setMxModels(newMxModels))
         }
       } catch (e) {
+        console.log("<><><> Error in refreshMxCache/setSnippetsMode/setMemberships", e)
       }
       return
     }
-    if (!state.settings.mxCollectionId || !state.settings.snippetsMode) {
+    if (!state.cache.mxCollectionId || !state.settings.snippetsMode) {
       // don't want to do anything if snippets mode is off or mx collection id is not set
       return
     }
     if (saveCatalog.match(action)) {
       const catalog = state.settings.availableCatalogs.find(catalog => catalog.id == action.payload.id)
       if (catalog) {
-        await listenerApi.pause(createOrUpdateModelsForCatalog(state.settings.mxCollectionId, state.settings.mxModels, catalog))
-        const mxModels = await listenerApi.pause(getAllMxInternalModels(state.settings.mxCollectionId))
+        await listenerApi.pause(createOrUpdateModelsForCatalog(state.cache.mxCollectionId, state.cache.mxModels, catalog))
+        const mxModels = await listenerApi.pause(getAllMxInternalModels(state.cache.mxCollectionId))
         dispatch(setMxModels(mxModels))
       }
-    } else if (setMemberships.match(action)) {
-      // refetching oldMxModels just in case there's some race condition? dunno being safe
-      const oldMxModels = await listenerApi.pause(getAllMxInternalModels(state.settings.mxCollectionId))
-      await listenerApi.pause(createOrUpdateModelsForAllCatalogs(state.settings.mxCollectionId, oldMxModels, state.settings.availableCatalogs))
-      const mxModels = await listenerApi.pause(getAllMxInternalModels(state.settings.mxCollectionId))
-      dispatch(setMxModels(mxModels))
-    } 
+    }
   }
 });

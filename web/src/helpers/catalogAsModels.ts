@@ -39,7 +39,7 @@ type Collection = {
 type AllCollectionsResponse = Collection[]
 type CreateCollectionResponse = Collection
 
-export const createMxCollection = async (): Promise<number | null> => {
+export const getOrCreateMxCollectionId = async (): Promise<number | null> => {
   const allCollections = await fetchData('/api/collection', 'GET') as AllCollectionsResponse
   let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
   if (!minusxCollection) {

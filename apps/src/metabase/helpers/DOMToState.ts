@@ -91,6 +91,7 @@ export async function convertDOMtoStateSQLQuery() {
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
+  const cache = RPCs.getCache()
   const sqlTables = getTablesFromSqlRegex(sqlQuery)
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   if (defaultSchema) {
@@ -131,7 +132,7 @@ export async function convertDOMtoStateSQLQuery() {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
     if (appSettings.snippetsMode) {
-      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, appSettings.mxModels)
+      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, cache.mxModels)
     }
   }
   if (sqlErrorMessage) {

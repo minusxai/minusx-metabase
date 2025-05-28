@@ -14,8 +14,14 @@ export const getAppSettings = () => {
     selectedCatalog: settings.selectedCatalog,
     availableCatalogs: settings.availableCatalogs,
     snippetsMode: settings.snippetsMode,
-    mxCollectionId: settings.mxCollectionId,
-    mxModels: settings.mxModels,
+  }
+}
+
+export const getCache = () => {
+  const state: RootState = getState()
+  return {
+    mxCollectionId: state.cache.mxCollectionId,
+    mxModels: state.cache.mxModels,
   }
 }
 
