@@ -230,13 +230,17 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
+    const modelTemplateTags = getModelsInQuery(sql)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const response = await runSQLQueryFromDashboard(sql, dbID, snippetTemplateTags);
+    const response = await runSQLQueryFromDashboard(sql, dbID, {
+      ...snippetTemplateTags,
+      ...modelTemplateTags
+    });
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {

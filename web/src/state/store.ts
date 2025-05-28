@@ -291,9 +291,9 @@ const migrations = {
     }
     return newState
   },
-  26: (state: RootState) => {
+  26: (state: any) => {
     let newState = {...state}
-    newState.settings.modelsMode = false
+    newState.settings.snippetsMode = false
     return newState
   },
   27: (state: RootState) => {
@@ -308,13 +308,16 @@ const migrations = {
   },
   28: (state: any) => {
     let newState = {...state}
+    if (!newState.cache) {
+      newState.cache = {}
+    }
     newState.cache.mxCollectionId = null
     newState.cache.mxModels = []
     // remove mxModels and mxCollectionId from settings (in case they exist)
-    if (newState.settings.mxModels) {
+    if (newState.settings?.mxModels) {
       delete newState.settings.mxModels
     } 
-    if (newState.settings.mxCollectionId) {
+    if (newState.settings?.mxCollectionId) {
       delete newState.settings.mxCollectionId
     }
     return newState
@@ -322,7 +325,7 @@ const migrations = {
   28: (state: any) => {
     let newState = {...state}
     // check if snippetsMode exists
-    if (newState.settings.snippetsMode != undefined) {
+    if (newState.settings?.snippetsMode != undefined) {
       newState.settings.modelsMode = newState.settings.snippetsMode
       delete newState.settings.snippetsMode
     } else if (newState.settings.modelsMode == undefined) {

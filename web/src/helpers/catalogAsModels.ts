@@ -2,6 +2,7 @@ import { get } from "lodash";
 import { fetchData } from "../app/rpc";
 import { ContextCatalog, MxModel } from './utils';
 import slugg from "slugg";
+import { getParsedIframeInfo } from "./origin";
 
 export type AllSnippetsResponse = {
   name: string;
@@ -189,6 +190,13 @@ const getModelDefinitionForEntity = (entity: Entity) => {
 
 export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, allMxModels: MxModel[], contextCatalog: ContextCatalog) => {
   const entities: Entity[] = get(contextCatalog, 'content.entities', [])
+  // check if origin matches the context catalog
+  const catalogOrigin = contextCatalog.origin
+  const origin = getParsedIframeInfo().origin
+  if (origin !== catalogOrigin) {
+    console.warn(`[minusx] Catalog origin ${catalogOrigin} does not match iframe origin ${origin}`)
+    return
+  }
   for (const entity of entities) {
     if (doesEntityRequireModel(entity)) {
       const sql = getModelDefinitionForEntity(entity)
