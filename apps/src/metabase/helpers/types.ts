@@ -1,6 +1,7 @@
 interface FormattedColumn {
   description?: string;
   name: string;
+  id: number;
   type: string;
   // only populated for foreign keys
   fk_table_id?: number;

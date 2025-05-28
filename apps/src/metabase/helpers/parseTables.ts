@@ -17,6 +17,7 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
     ? {
       columns: _.map(_.get(table, 'fields', []), (field: any) => ({
         name: _.get(field, 'name', ''),
+        id: _.get(field, 'id'),
         type: field?.target?.id ? 'FOREIGN KEY' : _.get(field, 'database_type', null),
         // only keep description if it exists. helps prune down context
         ...(_.get(field, 'description', null) != null && { description: _.get(field, 'description', null) }),
