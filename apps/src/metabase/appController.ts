@@ -17,7 +17,7 @@ import {
 import {
   searchTables,
 } from "./helpers/getDatabaseSchema";
-import { get, isEmpty, map, set, truncate } from "lodash";
+import { find, get, isEmpty, map, set, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -32,19 +32,26 @@ import {
   SearchApiResponse
  } from "./helpers/types";
 import {
-  getTemplateTags,
+  getTemplateTags as getTemplateTagsForVars,
   getParameters,
   getVariablesAndUuidsInQuery,
-  SnippetTemplateTag
+  SnippetTemplateTag,
+  MetabaseStateSnippetsDict,
+  getSnippetsInQuery,
+  getModelsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
 import { memoizedFetchTableData } from "./helpers/parseTables";
+import { catalogAsModels } from "web";
+
+const {replaceEntityNamesInSqlWithModels} = catalogAsModels
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
+
 
 type AllSnippetsResponse = {
   name: string;
@@ -146,14 +153,21 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     const settings = RPCs.getAppSettings()
-    const snippetsMode = settings.snippetsMode
-    let snippetTemplateTags: Record<string, SnippetTemplateTag>
-    if (snippetsMode) {
-      [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    const cache = RPCs.getCache()
+    const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
+    const modelsMode = settings.modelsMode
+    if (!modelsMode) {
+      sql = addCtesToQuery(ctes, sql);
     } else {
-      snippetTemplateTags = {}
+      // for entities for which snippets were created, replace entity.name with their snippet identifier
+      if (selectedCatalog) {
+        const mxModels = cache.mxModels
+        sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
+      }
     }
-    sql = addCtesToQuery(ctes, sql);
+    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
+    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
+    const modelTemplateTags = getModelsInQuery(sql)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {
@@ -167,8 +181,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
     const templateTags = {
-      ...getTemplateTags(varsAndUuids, existingTemplateTags || {}),
-      ...snippetTemplateTags
+      ...getTemplateTagsForVars(varsAndUuids, existingTemplateTags || {}),
+      ...snippetTemplateTags,
+      ...modelTemplateTags
     }
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
@@ -202,21 +217,31 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     const settings = RPCs.getAppSettings()
-    const snippetsMode = settings.snippetsMode
-    let snippetTemplateTags: Record<string, SnippetTemplateTag>
-    if (snippetsMode) {
-      [ctes, snippetTemplateTags] = await updateSnippets(ctes)
+    const cache = RPCs.getCache()
+    const modelsMode = settings.modelsMode
+    const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
+    if (!modelsMode) {
+      sql = addCtesToQuery(ctes, sql);
     } else {
-      snippetTemplateTags = {}
+      // for entities for which snippets were created, replace entity.name with their snippet identifier
+      if (selectedCatalog) {
+        const mxModels = cache.mxModels
+        sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
+      }
     }
-    sql = addCtesToQuery(ctes, sql);
+    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
+    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
+    const modelTemplateTags = getModelsInQuery(sql)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const response = await runSQLQueryFromDashboard(sql, dbID, snippetTemplateTags);
+    const response = await runSQLQueryFromDashboard(sql, dbID, {
+      ...snippetTemplateTags,
+      ...modelTemplateTags
+    });
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
@@ -670,7 +695,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     try{
       const query = await fetchData();
-      return await this.updateSQLQuery({ sql: query, executeImmediately: true });
+      return await this.updateSQLQuery({ sql: query, executeImmediately: true, ctes: [] });
     }
     catch(error){
       console.error("Failed to get query from semantic layer", error)

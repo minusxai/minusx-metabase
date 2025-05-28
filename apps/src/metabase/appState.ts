@@ -12,9 +12,7 @@ import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
-
 const runStoreTasks = createRunner()
-
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
@@ -29,9 +27,10 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     subscribe(whitelistQuery, ({elements, url}) => {
       const state = this.useStore().getState();
       const toolEnabledNew = shouldEnable(elements, url);
-      state.update({
+      state.update((oldState) => ({
+        ...oldState,
         isEnabled: toolEnabledNew,
-      });
+      }));
       runStoreTasks(async () => {
         const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
         const dbId = await getSelectedDbId();
@@ -39,34 +38,37 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         const oldDbId = get(currentToolContext, 'dbId')
         const oldPageType = get(currentToolContext, 'pageType')
         if (oldPageType != pageType) {
-          state.update({
+          state.update((oldState) => ({
+            ...oldState,
             toolContext: {
-              ...currentToolContext,
+              ...oldState.toolContext,
               pageType
             }
-          })
+          }))
         }
         if (dbId && dbId !== oldDbId) {
-          const toolContext = state.toolContext
-          state.update({
+          state.update((oldState) => ({
+            ...oldState,
             toolContext: {
-              ...toolContext,
+              ...oldState.toolContext,
               loading: true
             }
-          })
+          }))
           const [relevantTables, dbInfo] = await Promise.all([
             handlePromise(getRelevantTablesForSelectedDb(''), "Failed to get relevant tables", []),
             handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database info", DB_INFO_DEFAULT)
           ])
-          state.update({
+          state.update((oldState) => ({
+            ...oldState,
             toolContext: {
+              ...oldState.toolContext,
               pageType,
               dbId,
               relevantTables,
               dbInfo,
               loading: false
             }
-          })
+          }))
         }
       })
     })
@@ -82,7 +84,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     getCardsCountSplitByType().then(cardsCount => {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
     });
-    
 
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']

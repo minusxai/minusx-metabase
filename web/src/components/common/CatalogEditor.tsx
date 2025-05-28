@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { Text, Box, Button, Input, Textarea, HStack, Link} from "@chakra-ui/react";
-import { ContextCatalog, saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
+import { saveCatalog, setSelectedCatalog } from "../../state/settings/reducer";
+import { ContextCatalog } from '../../helpers/utils';
 import { dispatch } from '../../state/dispatch';
 import { load, dump } from 'js-yaml';
 import { MetabaseContext } from "apps/types";
@@ -35,6 +36,7 @@ configureMonacoYaml(monaco, {
         }
     ]
 });
+import { createOrUpdateModelsForCatalog, getAllMxInternalModels } from "../../helpers/catalogAsModels";
 
 const useAppStore = getApp().useStore()
 
@@ -67,7 +69,7 @@ export const updateCatalog = async ({ id, name, contents }: { id: string; name: 
 }
 
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
-    const catalog: ContextCatalog = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
+    const catalog: ContextCatalog | undefined = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
     const [isViewing, setIsViewing] = useState(false);
     const origin = getParsedIframeInfo().origin
     if (catalog) {
@@ -105,7 +107,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                     })
                 })
                 setIsSaving(false);
-                dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, origin, currentUserId }));
+                dispatch(saveCatalog({ type: 'manual', id: catalogID, name: title, content, dbName, dbId, origin, currentUserId }));
             }
             dispatch(setSelectedCatalog(title))
         } catch(err) {
@@ -123,7 +125,7 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
                 isClosable: true,
                 position: 'bottom-right',
             })
-            console.error('Error saving catalog:', e);
+            console.error('Error saving catalog:', err);
         } finally {
             setIsSaving(false);
             onCancel();

@@ -1,5 +1,5 @@
 import { RPCs } from 'web'
-import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, extractTableInfo, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo, getTablesWithFields } from './getDatabaseSchema';
+import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo, getTablesWithFields } from './getDatabaseSchema';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -12,6 +12,9 @@ import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
+import { catalogAsModels } from 'web';
+
+const {modifySqlForMxModels} = catalogAsModels
 
 interface ExtractedDataBase {
   name: string;
@@ -90,6 +93,7 @@ export async function convertDOMtoStateSQLQuery() {
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   const sqlQuery = await getMetabaseState('qb.card.dataset_query.native.query') as string
   const appSettings = RPCs.getAppSettings()
+  const cache = RPCs.getCache()
   const sqlTables = getTablesFromSqlRegex(sqlQuery)
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   if (defaultSchema) {
@@ -129,6 +133,9 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
+    if (appSettings.modelsMode) {
+      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, cache.mxModels)
+    }
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
@@ -187,14 +194,22 @@ async function getSqlVariables() {
     type: string,
     displayName: string
   }> = {};
+  // ignore snippets and models
+  // snippets are parameters that start with snippet:
+  // models are parameters that start with #modelNumber-modelSlug
+  // keep in mind leading spaces
   for (const [key, value] of Object.entries(parameters)) {
     const parameterId = value.id;
     const parameterValue = currentParameterValues[parameterId];
-    sqlVariables[key] = {
-      value: parameterValue,
-      type: value.type,
-      displayName: value['display-name']
-    };
+    const snippetsRegex = /^\s*snippet:/g;
+    const modelsRegex = /^\s*#(\d+)/g;
+    if (!snippetsRegex.test(key) && !modelsRegex.test(key)) {
+      sqlVariables[key] = {
+        value: parameterValue,
+        type: value.type,
+        displayName: value['display-name']
+      };
+    }
   }
   return sqlVariables; 
 }

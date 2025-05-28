@@ -32,3 +32,29 @@ export function contains<T>(collection: T[], item: T): boolean {
 }
 
 export const getUniqueString = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+export interface ContextCatalog {
+  type: 'manual' | 'aiGenerated'
+  id: string
+  name: string
+  content: any
+  dbName: string
+  dbId: number
+  origin: string
+  allowWrite: boolean
+  primaryGroup?: string
+  owner?: string
+}
+
+export type MxModel = {
+  name: string
+  id: number
+  database_id: number
+  dataset_query: {
+    database: number,
+    type: "native",
+    native: {
+      query: string
+      "template-tags": {}
+    }
+  }
+}

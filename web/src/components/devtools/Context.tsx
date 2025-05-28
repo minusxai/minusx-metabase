@@ -4,7 +4,8 @@ import { CatalogEditor, createCatalog } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
 import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link, Spinner} from "@chakra-ui/react";
-import { ContextCatalog, DEFAULT_TABLES, setSelectedCatalog, saveCatalog } from "../../state/settings/reducer";
+import { DEFAULT_TABLES, setSelectedCatalog, saveCatalog } from "../../state/settings/reducer";
+import { ContextCatalog } from '../../helpers/utils';
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -68,6 +69,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                     name,
                     content: dashboardYaml,
                     dbName: dbInfo.name,
+                    dbId: dbId || 0,
                     origin,
                     currentUserId
                 }))

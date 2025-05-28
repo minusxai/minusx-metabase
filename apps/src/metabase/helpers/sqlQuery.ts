@@ -28,6 +28,14 @@ export type SnippetTemplateTag = {
   type: "snippet"
 }
 
+export type ModelTemplateTag = {
+  "card-id": number,
+  "display-name": string,
+  id: string, // this is the uuid
+  name: string, // this looks like "#{modelNumber}-{modelSlug}"
+  type: "card"
+}
+
 function slugToDisplayName(slug: string): string {
   return slug
     .split('_')                  // Split the string by underscores
@@ -83,3 +91,57 @@ export function getParameters(varsAndUuids: VarAndUuids, existingParameters: QBP
   return parameters;
 }
 
+
+export type MetabaseStateSnippetsDict = {
+  [key: string]: {
+    name: string,
+    id: number
+  }
+};
+
+export const getSnippetsInQuery = (query: string, allSnippets: MetabaseStateSnippetsDict): {[key: string]: SnippetTemplateTag} => {
+  const regex = /{{(\s*snippet:\s*(\w+)\s*)}}/g;
+  let match;
+  let tags: SnippetTemplateTag[] = [];
+  while ((match = regex.exec(query)) !== null) {
+    const fullSnippetIdentifier = match[1];
+    const snippetName = match[2];
+    // search in allSnippets by snippetName to find the id
+    // the id is the key in allSnippets
+    let snippetId = Object.keys(allSnippets).find(id => allSnippets[id].name === snippetName);
+    if (!snippetId) {
+      console.warn(`[minusx] Snippet ${snippetName} not found in allSnippets`);
+      snippetId = ""
+    }
+    tags.push({
+      "display-name": slugToDisplayName(snippetName),
+      id: uuidv4(),
+      name: fullSnippetIdentifier,
+      "snippet-id": parseInt(snippetId),
+      "snippet-name": snippetName,
+      type: "snippet"
+    })
+  }
+  // convert to dictionary with name as key
+  return Object.fromEntries(tags.map(tag => [tag.name, tag]))
+}
+
+export const getModelsInQuery = (query: string) => {
+  // it looks like {{#{modelNumber}-{modelSlug}}}
+  const regex = /{{(\s*#(\d+)-([\w-]+)\s*)}}/g;
+  let match;
+  let tags: ModelTemplateTag[] = [];
+  while ((match = regex.exec(query)) !== null) {
+    // extract all three parts; the full match, the number, and the slug
+    const [, fullMatch, modelNumber, slug] = match;
+    tags.push({
+      "card-id": parseInt(modelNumber),
+      "display-name": slugToDisplayName(slug),
+      id: uuidv4(),
+      name: fullMatch,
+      type: "card"
+    })
+  }
+  // convert to dictionary with name as key
+  return Object.fromEntries(tags.map(tag => [tag.name, tag]))
+}

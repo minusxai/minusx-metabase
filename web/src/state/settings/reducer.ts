@@ -1,8 +1,8 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 import { isEqual } from 'lodash'
-import { contains } from '../../helpers/utils'
+import { contains, ContextCatalog, MxModel } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
@@ -27,18 +27,6 @@ export interface TableInfo {
 export interface TableDiff {
   add: TableInfo[]
   remove: TableInfo[]
-}
-
-export interface ContextCatalog {
-  type: 'manual' | 'aiGenerated'
-  id: string
-  name: string
-  content: any
-  dbName: string
-  origin: string
-  allowWrite: boolean
-  primaryGroup?: string
-  owner?: string
 }
 
 interface UserPermission {
@@ -82,6 +70,10 @@ interface SetMembershipsPayload {
   currentUserId: string
 }
 
+export interface SaveCatalogPayload extends Omit<ContextCatalog, 'allowWrite'> {
+  currentUserId: string
+}
+
 interface Settings {
   isLocal: boolean,
   uploadLogs: boolean,
@@ -106,7 +98,7 @@ interface Settings {
   users: Record<string, UserInfo>
   groups: Record<string, UserGroup>
   groupsEnabled: boolean
-  snippetsMode: boolean
+  modelsMode: boolean
   viewAllCatalogs: boolean
 }
 
@@ -139,13 +131,14 @@ const initialState: Settings = {
     name: DEFAULT_TABLES,
     content: {},
     dbName: '',
+    dbId: 0,
     origin: '',
     allowWrite: true
   },
   users: {},
   groups: {},
   groupsEnabled: false,
-  snippetsMode: false,
+  modelsMode: false,
   viewAllCatalogs: false
 }
 
@@ -189,8 +182,8 @@ export const settingsSlice = createSlice({
     setGroupsEnabled: (state, action: PayloadAction<boolean>) => {
       state.groupsEnabled = action.payload
     },
-    setSnippetsMode: (state, action: PayloadAction<boolean>) => {
-      state.snippetsMode = action.payload
+    setModelsMode: (state, action: PayloadAction<boolean>) => {
+      state.modelsMode = action.payload
     },
     setViewAllCatalogs: (state, action: PayloadAction<boolean>) => {
       state.viewAllCatalogs = action.payload
@@ -244,8 +237,8 @@ export const settingsSlice = createSlice({
         state.selectedCatalog = action.payload
       }
     },
-    saveCatalog: (state, action: PayloadAction<Omit<ContextCatalog, 'allowWrite'> & { currentUserId: string }>) => {
-        const { type, id, name, content, dbName, origin, currentUserId } = action.payload
+    saveCatalog: (state, action: PayloadAction<SaveCatalogPayload>) => {
+        const { type, id, name, content, dbName, origin, currentUserId, dbId } = action.payload
         const existingCatalog = state.availableCatalogs.find(catalog => catalog.id === id)
         if (existingCatalog) {
           if (state.selectedCatalog == existingCatalog.name) {
@@ -254,11 +247,12 @@ export const settingsSlice = createSlice({
           existingCatalog.name = name
           existingCatalog.content = content
           existingCatalog.dbName = dbName
+          existingCatalog.dbId = dbId
           existingCatalog.origin = origin
           existingCatalog.owner = currentUserId
           existingCatalog.allowWrite = true
         } else {
-          state.availableCatalogs.push({ type, id, name, content, dbName, origin, allowWrite: true, owner: currentUserId })
+          state.availableCatalogs.push({ type, id, name, content, dbName, dbId, origin, allowWrite: true, owner: currentUserId })
         }
     },
     setMemberships: (state, action: PayloadAction<SetMembershipsPayload>) => {
@@ -276,6 +270,7 @@ export const settingsSlice = createSlice({
           name: asset.name,
           content: parsedContents.content || "",
           dbName: parsedContents.dbName || "",
+          dbId: parsedContents.dbId || 0,
           origin: parsedContents.origin || "",
           allowWrite: asset.owner === currentUserId,
           owner: asset.owner,
@@ -324,9 +319,10 @@ export const settingsSlice = createSlice({
                 state.selectedCatalog = DEFAULT_TABLES
             }
         }
-    }    
-  }
+    }
+  },
 })
+
 
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
@@ -334,7 +330,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode, setViewAllCatalogs
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs,
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

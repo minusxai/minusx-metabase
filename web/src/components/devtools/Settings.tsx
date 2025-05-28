@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled, setSnippetsMode, setViewAllCatalogs  } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs  } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -15,10 +15,11 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from '../common/CreditsPill';
 import { SettingsBlock } from '../common/SettingsBlock';
 import { GroupViewer } from '../common/GroupViewer';
+import { getApp } from '../../helpers/app';
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
-  const setUploadLogs = (value) => {
+  const setUploadLogs = (value: boolean) => {
     dispatch(updateUploadLogs(value))
   }
   return (
@@ -29,9 +30,11 @@ export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'})
   )
 }
 
+const useAppStore = getApp().useStore()
+
 export const DevToolsToggle: React.FC<{size: 'micro' | 'mini'}> = ({size}) => {
   const devTools = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const setshowDevTools = async (value) => {
+  const setshowDevTools = async (value: boolean) => {
     console.log('Show Devtools', value)
     dispatch(updateIsDevToolsOpen(value))
     if (value) {
@@ -56,7 +59,7 @@ const SettingsPage = () => {
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const groupsEnabled = useSelector((state: RootState) => state.settings.groupsEnabled)
-  const snippetsMode = useSelector((state: RootState) => state.settings.snippetsMode)
+  const modelsMode = useSelector((state: RootState) => state.settings.modelsMode)
   const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
   const savedQueries = useSelector((state: RootState) => state.settings.savedQueries)
@@ -101,8 +104,8 @@ const SettingsPage = () => {
   const updateGroupsEnabled = (value: boolean) => {
     dispatch(setGroupsEnabled(value))
   }
-  const updateSnippetsMode = (value: boolean) => {
-    dispatch(setSnippetsMode(value))
+  const updateModelsMode = (value: boolean) => {
+    dispatch(setModelsMode(value))
   }
   const updateViewAllCatalogs = (value: boolean) => {
     dispatch(setViewAllCatalogs(value))
@@ -183,8 +186,8 @@ const SettingsPage = () => {
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={groupsEnabled} onChange={(e) => updateGroupsEnabled(e.target.checked)} />
           </HStack>}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
-            <Text color={"minusxBW.800"} fontSize="sm">Enable Snippets</Text>
-            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={snippetsMode} onChange={(e) => updateSnippetsMode(e.target.checked)} />
+            <Text color={"minusxBW.800"} fontSize="sm">Enable Catalog-as-Models</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={modelsMode} onChange={(e) => updateModelsMode(e.target.checked)} />
           </HStack>}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">View all catalogs</Text>

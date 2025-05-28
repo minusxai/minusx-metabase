@@ -2,7 +2,8 @@ import { Action, combineReducers, configureStore, createListenerMiddleware } fro
 import chat, { initialUserConfirmationState, initialTasks, getID } from './chat/reducer'
 import auth from './auth/reducer'
 import thumbnails from './thumbnails/reducer'
-import settings, { ContextCatalog, DEFAULT_TABLES } from './settings/reducer'
+import settings, { DEFAULT_TABLES } from './settings/reducer'
+import { ContextCatalog } from '../helpers/utils'
 import storage from 'redux-persist/lib/storage'
 import { persistReducer, createMigrate } from 'redux-persist'
 import logger from 'redux-logger'
@@ -10,6 +11,8 @@ import { configs } from '../constants'
 import { plannerListener } from '../planner/planner'
 import billing from './billing/reducer'
 import semanticLayer from './semantic-layer/reducer'
+import { catalogsListener } from './settings/availableCatalogsListener'
+import cache from './cache/reducer'
 
 const combinedReducer = combineReducers({
   chat,
@@ -17,7 +20,8 @@ const combinedReducer = combineReducers({
   settings,
   thumbnails,
   billing,
-  semanticLayer
+  semanticLayer,
+  cache
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -287,7 +291,7 @@ const migrations = {
     }
     return newState
   },
-  26: (state: RootState) => {
+  26: (state: any) => {
     let newState = {...state}
     newState.settings.snippetsMode = false
     return newState
@@ -300,18 +304,44 @@ const migrations = {
         thread.id = `${uniqueIDPrefix}-${thread.index}`
       }
     })
-    newState.settings.snippetsMode = false
     return newState
+  },
+  28: (state: any) => {
+    let newState = {...state}
+    if (!newState.cache) {
+      newState.cache = {}
+    }
+    newState.cache.mxCollectionId = null
+    newState.cache.mxModels = []
+    // remove mxModels and mxCollectionId from settings (in case they exist)
+    if (newState.settings?.mxModels) {
+      delete newState.settings.mxModels
+    } 
+    if (newState.settings?.mxCollectionId) {
+      delete newState.settings.mxCollectionId
+    }
+    return newState
+  },
+  29: (state: any) => {
+    let newState = {...state}
+    // check if snippetsMode exists
+    if (newState.settings?.snippetsMode != undefined) {
+      newState.settings.modelsMode = newState.settings.snippetsMode
+      delete newState.settings.snippetsMode
+    } else if (newState.settings.modelsMode == undefined) {
+      newState.settings.modelsMode = false
+    }
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 27,
+  version: 29,
   storage,
-  blacklist: ['billing'],
+  blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),
 };
+
 
 export const eventListener = createListenerMiddleware();
 
@@ -322,11 +352,14 @@ export const store = configureStore({
   reducer: persistReducer(persistConfig, rootReducer),
   middleware: (getDefaultMiddleware) => {
     const defaults = getDefaultMiddleware()
-    const withPlanner = defaults.prepend(eventListener.middleware).prepend(plannerListener.middleware)
+    const withPlannerAndCatalogListener = defaults
+      .prepend(eventListener.middleware)
+      .prepend(plannerListener.middleware)
+      .prepend(catalogsListener.middleware)
     if (configs.IS_DEV) {
-      return withPlanner.concat(logger)
+      return withPlannerAndCatalogListener.concat(logger)
     }
-    return withPlanner
+    return withPlannerAndCatalogListener
   }
 })
 
