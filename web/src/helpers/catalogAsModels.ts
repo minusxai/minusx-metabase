@@ -215,8 +215,6 @@ export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, all
                 }
               }
             }, existingModel.id)
-          } else {
-            console.log("<><>< sqls match. not updating model", modelIdentifier, existingModel.dataset_query.native.query, sql)
           }
         } else {
           await createModel({

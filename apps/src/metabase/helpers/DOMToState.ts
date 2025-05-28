@@ -12,7 +12,9 @@ import { getSelectedDbId } from './getUserInfo';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
-import { modifySqlForMxModels } from '../../../../web/src/helpers/catalogAsModels';
+import { catalogAsModels } from 'web';
+
+const {modifySqlForMxModels} = catalogAsModels
 
 interface ExtractedDataBase {
   name: string;

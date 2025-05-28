@@ -45,8 +45,9 @@ import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
 import { memoizedFetchTableData } from "./helpers/parseTables";
-import { getAllMxInternalModels, replaceEntityNamesInSqlWithModels } from "../../../web/src/helpers/catalogAsModels";
-import { getAppStateConfigs } from "../package";
+import { catalogAsModels } from "web";
+
+const {replaceEntityNamesInSqlWithModels} = catalogAsModels
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
