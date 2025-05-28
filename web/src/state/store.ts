@@ -322,7 +322,7 @@ const migrations = {
     }
     return newState
   },
-  28: (state: any) => {
+  29: (state: any) => {
     let newState = {...state}
     // check if snippetsMode exists
     if (newState.settings?.snippetsMode != undefined) {
@@ -336,7 +336,7 @@ const migrations = {
 
 const persistConfig = {
   key: 'root',
-  version: 28,
+  version: 29,
   storage,
   blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),
