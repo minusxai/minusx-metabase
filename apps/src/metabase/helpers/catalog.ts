@@ -33,19 +33,30 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
   })
   const newEntities: object[] = []
   get(catalog, 'entities', []).forEach((entity: object) => {
+    const from_ = get(entity, 'from_', '')
+    const fromSchema = get(entity, 'schema', '')
+    const fromRef = fromSchema ? `${fromSchema}.${from_}` : from_;
+    const tableEntity = get(tableEntityMap, fromRef, {})
+    if (!isEmpty(tableEntity)) {
+      get(entity, 'dimensions', []).forEach((dimension: any) => {
+        if (get(dimension, 'unique')) {
+          const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
+          dimension.unique_values = get(tableDimension, 'unique_values', []);
+          dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+        }
+      })
+    }
+    let newEntity 
     if (get(entity, 'extends')) {
-      const from_ = get(entity, 'from_', '')
-      const fromSchema = get(entity, 'schema', '')
-      const fromRef = fromSchema ? `${fromSchema}.${from_}` : from_;
-      const tableEntity = get(tableEntityMap, fromRef, {})
-      newEntities.push({
+      newEntity = {
         ...tableEntity,
         ...entity,
         dimensions: [...get(tableEntity, 'dimensions', []),  ...get(entity, 'dimensions', [])]
-      })
+      }
     } else {
-      newEntities.push(entity)
+      newEntity = entity
     }
+    newEntities.push(newEntity) 
   })
   const newCatalog = {
     ...catalog,
