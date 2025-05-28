@@ -16,10 +16,18 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
             description: column.description,
           }
           if (!isEmpty(column.unique_values)) {
-            //@ts-ignore
-            newDim.unique_values = column.unique_values
-            //@ts-ignore
-            newDim.has_more_values = column.has_more_values
+            // Limit unique_values to 20 items max
+            if (column.unique_values.length > 20) {
+              //@ts-ignore
+              newDim.unique_values = column.unique_values.slice(0, 20)
+              //@ts-ignore
+              newDim.has_more_values = true
+            } else {
+              //@ts-ignore
+              newDim.unique_values = column.unique_values
+              //@ts-ignore
+              newDim.has_more_values = column.has_more_values
+            }
           }
           return newDim
         })
@@ -50,8 +58,14 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
           const unique_values = get(tableDimension, 'unique_values', []);
           if (!isEmpty(unique_values)) {
-            dimension.unique_values  = unique_values
-            dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+            // Limit unique_values to 20 items max
+            if (unique_values.length > 20) {
+              dimension.unique_values = unique_values.slice(0, 20)
+              dimension.has_more_values = true
+            } else {
+              dimension.unique_values = unique_values
+              dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+            }
           }
         }
       })
