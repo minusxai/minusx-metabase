@@ -131,7 +131,7 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
-    if (appSettings.snippetsMode) {
+    if (appSettings.modelsMode) {
       metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, cache.mxModels)
     }
   }

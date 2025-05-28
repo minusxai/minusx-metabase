@@ -154,8 +154,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const settings = RPCs.getAppSettings()
     const cache = RPCs.getCache()
     const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
-    const snippetsMode = settings.snippetsMode
-    if (!snippetsMode) {
+    const modelsMode = settings.modelsMode
+    if (!modelsMode) {
       sql = addCtesToQuery(ctes, sql);
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
@@ -218,9 +218,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     const settings = RPCs.getAppSettings()
     const cache = RPCs.getCache()
-    const snippetsMode = settings.snippetsMode
+    const modelsMode = settings.modelsMode
     const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
-    if (!snippetsMode) {
+    if (!modelsMode) {
       sql = addCtesToQuery(ctes, sql);
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier

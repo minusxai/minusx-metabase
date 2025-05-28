@@ -71,7 +71,6 @@ export const updateCatalog = async ({ id, name, contents }: { id: string; name: 
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
     const catalog: ContextCatalog | undefined = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
     const [isViewing, setIsViewing] = useState(false);
-    const snippetsMode: boolean = useSelector((state: RootState) => state.settings.snippetsMode)
     const origin = getParsedIframeInfo().origin
     if (catalog) {
         defaultTitle = catalog.name

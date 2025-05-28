@@ -2,14 +2,14 @@ import { Action } from '../../../../apps/src/base/appController';
 import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, createOrUpdateModelsForCatalog, getAllMxInternalModels } from '../../helpers/catalogAsModels';
 import type { RootState, AppDispatch } from '../../state/store';
 import { setMxCollectionId, setMxModels } from '../cache/reducer';
-import { saveCatalog, setMemberships, setSnippetsMode } from './reducer';
+import { saveCatalog, setMemberships, setModelsMode } from './reducer';
 import { createAction, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit'
 
 export const refreshMxCache = createAction('settings/refreshMxCache')
 export const catalogsListener = createListenerMiddleware();
 
 catalogsListener.startListening({
-  matcher: isAnyOf(saveCatalog, setMemberships, setSnippetsMode, refreshMxCache),
+  matcher: isAnyOf(saveCatalog, setMemberships, setModelsMode, refreshMxCache),
   effect: async (action, listenerApi) => {
     // just debounce this listener by 50 ms for all actions and cancel existing listeners 
     // this is to handle app startup races; this is kind of a hack;
@@ -27,9 +27,9 @@ catalogsListener.startListening({
     // then we need to re-create the mx collection
     // and repopulate models
     if (
-      (setSnippetsMode.match(action) && action.payload == true) || 
-      (refreshMxCache.match(action) && state.settings.snippetsMode == true) ||
-      (setMemberships.match(action) && state.settings.snippetsMode == true)
+      (setModelsMode.match(action) && action.payload == true) || 
+      (refreshMxCache.match(action) && state.settings.modelsMode == true) ||
+      (setMemberships.match(action) && state.settings.modelsMode == true)
     ) {
       try {
         const mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId())
@@ -43,11 +43,11 @@ catalogsListener.startListening({
           dispatch(setMxModels(newMxModels))
         }
       } catch (e) {
-        console.log("<><><> Error in refreshMxCache/setSnippetsMode/setMemberships", e)
+        console.log("<><><> Error in refreshMxCache/setModelsMode/setMemberships", e)
       }
       return
     }
-    if (!state.cache.mxCollectionId || !state.settings.snippetsMode) {
+    if (!state.cache.mxCollectionId || !state.settings.modelsMode) {
       // don't want to do anything if snippets mode is off or mx collection id is not set
       return
     }

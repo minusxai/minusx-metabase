@@ -98,7 +98,7 @@ interface Settings {
   users: Record<string, UserInfo>
   groups: Record<string, UserGroup>
   groupsEnabled: boolean
-  snippetsMode: boolean
+  modelsMode: boolean
   viewAllCatalogs: boolean
 }
 
@@ -138,7 +138,7 @@ const initialState: Settings = {
   users: {},
   groups: {},
   groupsEnabled: false,
-  snippetsMode: false,
+  modelsMode: false,
   viewAllCatalogs: false
 }
 
@@ -182,8 +182,8 @@ export const settingsSlice = createSlice({
     setGroupsEnabled: (state, action: PayloadAction<boolean>) => {
       state.groupsEnabled = action.payload
     },
-    setSnippetsMode: (state, action: PayloadAction<boolean>) => {
-      state.snippetsMode = action.payload
+    setModelsMode: (state, action: PayloadAction<boolean>) => {
+      state.modelsMode = action.payload
     },
     setViewAllCatalogs: (state, action: PayloadAction<boolean>) => {
       state.viewAllCatalogs = action.payload
@@ -323,13 +323,6 @@ export const settingsSlice = createSlice({
   },
 })
 
-// const {saveCatalog: saveCatalogOriginal} = settingsSlice.actions
-
-// const saveCatalogWithSideEffects = createAsyncThunk('settings/saveCatalogWithSideEffects', (args: SaveCatalogPayload, thunkApi) => {
-//   const snippetsMode = (thunkApi.getState() as RootState).settings.snippetsMode
-//   return thunkApi.dispatch(saveCatalogOriginal(args))
-// })
-
 
 // Action creators are generated for each case reducer function
 export const { updateIsLocal, updateUploadLogs,
@@ -337,7 +330,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setSnippetsMode, setViewAllCatalogs,
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs,
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

@@ -293,7 +293,7 @@ const migrations = {
   },
   26: (state: RootState) => {
     let newState = {...state}
-    newState.settings.snippetsMode = false
+    newState.settings.modelsMode = false
     return newState
   },
   27: (state: RootState) => {
@@ -318,6 +318,16 @@ const migrations = {
       delete newState.settings.mxCollectionId
     }
     return newState
+  },
+  28: (state: any) => {
+    let newState = {...state}
+    // check if snippetsMode exists
+    if (newState.settings.snippetsMode != undefined) {
+      newState.settings.modelsMode = newState.settings.snippetsMode
+      delete newState.settings.snippetsMode
+    } else if (newState.settings.modelsMode == undefined) {
+      newState.settings.modelsMode = false
+    }
   }
 }
 

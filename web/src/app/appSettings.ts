@@ -13,7 +13,7 @@ export const getAppSettings = () => {
     drMode: settings.drMode,
     selectedCatalog: settings.selectedCatalog,
     availableCatalogs: settings.availableCatalogs,
-    snippetsMode: settings.snippetsMode,
+    modelsMode: settings.modelsMode,
   }
 }
 
