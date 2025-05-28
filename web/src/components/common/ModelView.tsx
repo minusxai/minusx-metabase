@@ -31,7 +31,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
   const [loadedTables, setLoadedTables] = useState<FormattedTable[]>([])
 
   useEffect(() => {
-    Promise.all(relevantTables.map(table => memoizedFetchTableData(table.id))).then((tableInfos) => {
+    Promise.all(relevantTables.map(table => memoizedFetchTableData(table.id, true))).then((tableInfos) => {
       setIsLoading(false)
       const loadedTableInfos = tableInfos.filter(tableInfo => tableInfo != "missing")
       setLoadedTables(loadedTableInfos)

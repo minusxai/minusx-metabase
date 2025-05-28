@@ -46,12 +46,6 @@ interface DatabaseInfo {
   }
 }
 
-async function getUniqueValsFromField(fieldId: number) {
-  const resp: any = await fetchData(`/api/field/${fieldId}/values`, 'GET');
-  return resp;
-}
-
-
 export interface DatabaseInfoWithTables extends DatabaseInfo {
   tables: FormattedTable[];
 }
