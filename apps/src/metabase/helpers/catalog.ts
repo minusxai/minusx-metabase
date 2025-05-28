@@ -1,5 +1,6 @@
 import { get, isEmpty, keyBy, map } from "lodash";
 import { FormattedTable } from "./types";
+import { deterministicSample } from "../../common/utils";
 
 const createCatalogFromTables = (tables: FormattedTable[]) => {
   return {
@@ -16,10 +17,10 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
             description: column.description,
           }
           if (!isEmpty(column.unique_values)) {
-            // Limit unique_values to 20 items max
+            // Limit unique_values to 20 items max with deterministic sampling
             if (column.unique_values.length > 20) {
               //@ts-ignore
-              newDim.unique_values = column.unique_values.slice(0, 20)
+              newDim.unique_values = deterministicSample(column.unique_values, 20, `${table.name}.${column.name}`)
               //@ts-ignore
               newDim.has_more_values = true
             } else {
@@ -58,9 +59,9 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
           const unique_values = get(tableDimension, 'unique_values', []);
           if (!isEmpty(unique_values)) {
-            // Limit unique_values to 20 items max
+            // Limit unique_values to 20 items max with deterministic sampling
             if (unique_values.length > 20) {
-              dimension.unique_values = unique_values.slice(0, 20)
+              dimension.unique_values = deterministicSample(unique_values, 20, `${from_}.${dimension.name}`)
               dimension.has_more_values = true
             } else {
               dimension.unique_values = unique_values
