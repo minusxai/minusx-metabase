@@ -42,7 +42,9 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
         if (get(dimension, 'unique')) {
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
           dimension.unique_values = get(tableDimension, 'unique_values', []);
-          dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+          if (!isEmpty(dimension.unique_values)) {
+            dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+          }
         }
       })
     }
