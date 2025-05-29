@@ -306,7 +306,7 @@ const migrations = {
     })
     return newState
   },
-  28: (state: any) => {
+  28: (state: RootState) => {
     let newState = {...state}
     if (!newState.cache) {
       newState.cache = {}
@@ -322,7 +322,7 @@ const migrations = {
     }
     return newState
   },
-  29: (state: any) => {
+  29: (state: RootState) => {
     let newState = {...state}
     // check if snippetsMode exists
     if (newState.settings?.snippetsMode != undefined) {
@@ -331,6 +331,7 @@ const migrations = {
     } else if (newState.settings.modelsMode == undefined) {
       newState.settings.modelsMode = false
     }
+    return newState
   }
 }
 
