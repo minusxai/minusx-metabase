@@ -36,24 +36,54 @@ export const getSlugForModelName = (name: string) => slugg(name)
 type Collection = {
   name: string
   id: string | number
+  location: string
 }
 type AllCollectionsResponse = Collection[]
 type CreateCollectionResponse = Collection
 
-export const getOrCreateMxCollectionId = async (): Promise<number | null> => {
+
+const getOrCreateMxRootCollectionId = async (): Promise<number | null> => {
   const allCollections = await fetchData('/api/collection', 'GET') as AllCollectionsResponse
-  let minusxCollection = allCollections.find(collection => collection.name === 'mx_internal')
-  if (!minusxCollection) {
+  let minusxRootCollection = allCollections
+    .filter(collection => collection.location == "/")
+    .find(collection => collection.name === 'mx_internal')
+  if (!minusxRootCollection) {
     // create the collection
     try {
-      minusxCollection = await fetchData('/api/collection', 'POST', {
+      minusxRootCollection = await fetchData('/api/collection', 'POST', {
         "name": "mx_internal",
+      }) as CreateCollectionResponse
+      if (!minusxRootCollection || !minusxRootCollection.id) {
+        throw new Error('Invalid response from create collection')
+      }
+    } catch (err) {
+      console.error('[minusx] Error creating mx root collection', err)
+      return null
+    }
+  }
+  const mxRootCollectionId = typeof minusxRootCollection.id === 'string' ? parseInt(minusxRootCollection.id) : minusxRootCollection.id
+  return mxRootCollectionId
+}
+
+export const getOrCreateMxCollectionId = async(userEmail: string): Promise<number | null> => {
+  const mxRootCollectionId = await getOrCreateMxRootCollectionId()
+  if (!mxRootCollectionId) {
+    return null
+  }
+  const allCollections = await fetchData('/api/collection', 'GET') as AllCollectionsResponse
+  const mxInternalCollections = allCollections.filter(collection => collection.location === `/${mxRootCollectionId}/`)
+  let minusxCollection = mxInternalCollections.find(collection => collection.name === userEmail)
+  if (!minusxCollection) {
+    try {
+      minusxCollection = await fetchData('/api/collection', 'POST', {
+        "name": userEmail,
+        "parent_id": mxRootCollectionId
       }) as CreateCollectionResponse
       if (!minusxCollection || !minusxCollection.id) {
         throw new Error('Invalid response from create collection')
       }
     } catch (err) {
-      console.error('[minusx] Error creating mx collection', err)
+      console.error('[minusx] Error creating mx user collection', err)
       return null
     }
   }

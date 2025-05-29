@@ -55,7 +55,6 @@ import { getApp } from '../../helpers/app';
 import { applyTableDiffs } from "apps";
 import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
-import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, getAllMxInternalModels } from '../../helpers/catalogAsModels'
 import { refreshMxCache } from '../../state/settings/availableCatalogsListener'
 
 

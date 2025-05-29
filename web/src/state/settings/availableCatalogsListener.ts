@@ -31,7 +31,11 @@ catalogsListener.startListening({
       (setMemberships.match(action) && state.settings.modelsMode == true)
     ) {
       try {
-        const mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId())
+        if (!state.auth.email) {
+          console.warn('[minusx] No email found, cant create mx collection')
+          return
+        }
+        const mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId(state.auth.email))
         dispatch(setMxCollectionId(mxCollectionId))
         if (mxCollectionId) {
           // also get all models
