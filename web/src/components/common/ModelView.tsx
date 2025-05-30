@@ -20,6 +20,7 @@ const useAppStore = getApp().useStore()
 export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const drMode = useSelector((state: RootState) => state.settings.drMode);
+  const enableUnique = useSelector((state: RootState) => state.settings.enableUnique);
   let yamlContentJSON
   try {
     yamlContentJSON = yamlContent ? load(yamlContent) : {}
@@ -31,14 +32,14 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
   const [loadedTables, setLoadedTables] = useState<FormattedTable[]>([])
 
   useEffect(() => {
-    Promise.all(relevantTables.map(table => memoizedFetchTableData(table.id, true))).then((tableInfos) => {
+    Promise.all(relevantTables.map(table => memoizedFetchTableData(table.id, enableUnique))).then((tableInfos) => {
       setIsLoading(false)
       const loadedTableInfos = tableInfos.filter(tableInfo => tableInfo != "missing")
       setLoadedTables(loadedTableInfos)
     }).catch(() => {
       setIsLoading(false)
     });
-  }, [])
+  }, [enableUnique])
 
   if (isLoading) {
     return (
@@ -46,7 +47,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
     )
   }
 
-  const entityJSON = getTableContextYAML(loadedTables, !tables ? yamlContentJSON : undefined, drMode) || {};
+  const entityJSON = getTableContextYAML(loadedTables, !tables ? yamlContentJSON : undefined, drMode, enableUnique) || {};
   const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
   return (
     <Box w="100%">

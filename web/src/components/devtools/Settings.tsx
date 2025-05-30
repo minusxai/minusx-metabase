@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs  } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setSavedQueries, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableUnique  } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -63,6 +63,7 @@ const SettingsPage = () => {
   const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
   const savedQueries = useSelector((state: RootState) => state.settings.savedQueries)
+  const enableUnique = useSelector((state: RootState) => state.settings.enableUnique)
   const auth = useSelector((state: RootState) => state.auth)
   const billing = useSelector((state: RootState) => state.billing)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
@@ -112,6 +113,9 @@ const SettingsPage = () => {
   }
   const updateDRMode = (value: boolean) => {
     dispatch(setDRMode(value))
+  }
+  const updateEnableUnique = (value: boolean) => {
+    dispatch(setEnableUnique(value))
   }
   const setDevToolsPage = (value: DevToolsTabName) => {
     dispatch(updateIsDevToolsOpen(true))
@@ -192,6 +196,10 @@ const SettingsPage = () => {
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">View all catalogs</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={viewAllCatalogs} onChange={(e) => updateViewAllCatalogs(e.target.checked)} />
+          </HStack>}
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Enable Unique Mode?</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableUnique} onChange={(e) => updateEnableUnique(e.target.checked)} />
           </HStack>}
           <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Agent Mode</Text>
