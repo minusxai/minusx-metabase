@@ -73,6 +73,10 @@ MinusX is organized as a yarn workspace monorepo with 3 main packages:
 - **Cross-workspace Imports**: Apps and web can import from each other using workspace names
 - **Package Exports**: Check `web/src/package.ts` and `apps/src/package.ts` for current available exports
 
+### Development Best Practices
+- **Concurrency Control**: Batch API calls to prevent resource exhaustion when fetching data for multiple entities
+- **Settings Pattern**: New settings require updates in reducer, settings UI, and `appSettings.ts` for cross-workspace access
+
 ## Important File Locations
 - Metabase controller: `apps/src/metabase/appController.ts`
 - Metabase state: `apps/src/metabase/appState.ts`
