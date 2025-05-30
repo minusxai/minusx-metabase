@@ -264,7 +264,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   })
   sqlTables = _.uniqBy(sqlTables, (table) => `${table.schema}::${table.name}`)
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode, appSettings.enableUnique);
   dashboardInfo.cards = filteredCards
   // filter out dashcards with null names or ids
   .filter(dashcard => dashcard.name !== null && dashcard.id !== null);

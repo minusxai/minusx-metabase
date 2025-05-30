@@ -20,6 +20,7 @@ const useAppStore = getApp().useStore()
 export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const drMode = useSelector((state: RootState) => state.settings.drMode);
+  const enableUnique = useSelector((state: RootState) => state.settings.enableUnique);
   let yamlContentJSON
   try {
     yamlContentJSON = yamlContent ? load(yamlContent) : {}
@@ -46,7 +47,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
     )
   }
 
-  const entityJSON = getTableContextYAML(loadedTables, !tables ? yamlContentJSON : undefined, drMode) || {};
+  const entityJSON = getTableContextYAML(loadedTables, !tables ? yamlContentJSON : undefined, drMode, enableUnique) || {};
   const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
   return (
     <Box w="100%">

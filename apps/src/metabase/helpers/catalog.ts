@@ -13,7 +13,7 @@ function getFromString(from_: any): string {
   return '';
 }
 
-const createCatalogFromTables = (tables: FormattedTable[]) => {
+const createCatalogFromTables = (tables: FormattedTable[], enableUnique = false) => {
   return {
     entities: tables.map(table => {
       const { name, columns, schema } = table;
@@ -27,7 +27,7 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
             type: column.type,
             description: column.description,
           }
-          if (!isEmpty(column.unique_values)) {
+          if (enableUnique && !isEmpty(column.unique_values)) {
             // Limit unique_values to 20 items max with deterministic sampling
             if (column.unique_values.length > 20) {
               //@ts-ignore
@@ -48,8 +48,8 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
   }
 }
 
-function modifyCatalog(catalog: object, tables: FormattedTable[]) {
-  const tableEntities = get(createCatalogFromTables(tables), 'entities', [])
+function modifyCatalog(catalog: object, tables: FormattedTable[], enableUnique = false) {
+  const tableEntities = get(createCatalogFromTables(tables, enableUnique), 'entities', [])
   const tableEntityMap = keyBy(tableEntities, entity => {
     const schema = get(entity, 'schema', '');
     const name = get(entity, 'name', '');
@@ -67,7 +67,7 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
     const tableEntity = get(tableEntityMap, fromRef, {})
     if (!isEmpty(tableEntity)) {
       get(entity, 'dimensions', []).forEach((dimension: any) => {
-        if (get(dimension, 'unique')) {
+        if (enableUnique && get(dimension, 'unique')) {
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
           const unique_values = get(tableDimension, 'unique_values', []);
           if (!isEmpty(unique_values)) {
@@ -111,17 +111,17 @@ export function filterTablesByCatalog(tables: FormattedTable[], catalog: object)
   return tables.filter(table => catalogTableNames.has(table.name));
 }
 
-export function getTableContextYAML(relevantTablesWithFields: FormattedTable[], selectedCatalog?: object, drMode = false): Record<string, any> | undefined {
+export function getTableContextYAML(relevantTablesWithFields: FormattedTable[], selectedCatalog?: object, drMode = false, enableUnique = false): Record<string, any> | undefined {
   let tableContextYAML = undefined
   if (drMode) {
       if (selectedCatalog) {
-          const modifiedCatalog = modifyCatalog(selectedCatalog, relevantTablesWithFields)
+          const modifiedCatalog = modifyCatalog(selectedCatalog, relevantTablesWithFields, enableUnique)
           tableContextYAML = {
               ...modifiedCatalog,
           }
       } else {
           tableContextYAML = {
-              ...createCatalogFromTables(relevantTablesWithFields)
+              ...createCatalogFromTables(relevantTablesWithFields, enableUnique)
           }
       } 
   }
