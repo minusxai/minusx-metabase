@@ -67,8 +67,16 @@ MinusX is organized as a yarn workspace monorepo with 3 main packages:
 - Node.js and Yarn for package management
 - Chrome Developer Mode for extension loading
 
+### Environment Configuration
+- **Dev vs Prod Detection**: Use `configs.IS_DEV` from `web/src/constants.ts`
+- **Environment Files**: `.env.development` and `.env.production` files per workspace, with `env.defaults.json` as fallback
+- **Cross-workspace Imports**: Apps and web can import from each other using workspace names
+- **Package Exports**: Check `web/src/package.ts` and `apps/src/package.ts` for current available exports
+
 ## Important File Locations
 - Metabase controller: `apps/src/metabase/appController.ts`
 - Metabase state: `apps/src/metabase/appState.ts`
 - Planner configurations: `web/src/planner/`
 - Extension manifest: `extension/src/manifest.json`
+- Environment config: `web/src/constants.ts`
+- Package exports: `web/src/package.ts`, `apps/src/package.ts`
