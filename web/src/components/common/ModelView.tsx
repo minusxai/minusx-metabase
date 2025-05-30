@@ -32,14 +32,14 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
   const [loadedTables, setLoadedTables] = useState<FormattedTable[]>([])
 
   useEffect(() => {
-    Promise.all(relevantTables.map(table => memoizedFetchTableData(table.id, true))).then((tableInfos) => {
+    Promise.all(relevantTables.map(table => memoizedFetchTableData(table.id, enableUnique))).then((tableInfos) => {
       setIsLoading(false)
       const loadedTableInfos = tableInfos.filter(tableInfo => tableInfo != "missing")
       setLoadedTables(loadedTableInfos)
     }).catch(() => {
       setIsLoading(false)
     });
-  }, [])
+  }, [enableUnique])
 
   if (isLoading) {
     return (
