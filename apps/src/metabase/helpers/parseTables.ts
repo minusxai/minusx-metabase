@@ -72,15 +72,22 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   const uniqueValsResults = await limitConcurrency(
     fieldIds,
     async (fieldId) => {
-      const uniqueVals = await getUniqueValsFromField(fieldId);
-      return { fieldId, uniqueVals };
+      try {
+        const uniqueVals = await getUniqueValsFromField(fieldId);
+        return { fieldId, uniqueVals };
+      } catch (error) {
+        console.warn(`Failed to fetch unique values for field ${fieldId}:`, error);
+        return { fieldId, uniqueVals: null };
+      }
     },
     15 // Limit to 15 concurrent requests
   );
   
   // Map results back to fieldIdUniqueValMapping
   uniqueValsResults.forEach(({ fieldId, uniqueVals }) => {
-    fieldIdUniqueValMapping[fieldId] = uniqueVals;
+    if (uniqueVals !== null) {
+      fieldIdUniqueValMapping[fieldId] = uniqueVals;
+    }
   });
   Object.values(tableInfo.columns || {}).forEach((field) => {
     const fieldUnique = fieldIdUniqueValMapping[field.id]
