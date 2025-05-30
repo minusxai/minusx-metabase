@@ -46,6 +46,7 @@ import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDas
 import { v4 as uuidv4 } from 'uuid';
 import { memoizedFetchTableData } from "./helpers/parseTables";
 import { catalogAsModels } from "web";
+import { canUseModelsModeForCatalog } from "../../../web/src/helpers/catalogAsModels";
 
 const {replaceEntityNamesInSqlWithModels} = catalogAsModels
 
@@ -57,59 +58,6 @@ type AllSnippetsResponse = {
   name: string;
   content: string;
   id: number;
-}
-
-async function updateSnippets(ctes: CTE[]): Promise<[CTE[], Record<string, SnippetTemplateTag>]> {
-  const allSnippets = await RPCs.fetchData('/api/native-query-snippet', 'GET') as AllSnippetsResponse[];
-  const settings = RPCs.getAppSettings()
-  const selectedCatalog = settings.selectedCatalog
-  const cleanSelectedCatalog = selectedCatalog.replace(/[^a-zA-Z0-9]/g, "_")
-  const snippetTags: SnippetTemplateTag[] = []
-  const updates = ctes.map(async (cte) => {
-    const [name, sql] = cte
-    const snippetName = `${name}_${cleanSelectedCatalog}`
-    // const snippetName = name
-    const existing = allSnippets.find(
-      (s) => s.name === snippetName
-    );
-
-    const snippetPayload = {
-      name: snippetName,
-      content: sql,
-      collection_id: null,
-      description: 'created by minusx'
-    };
-
-    try {
-      let response: AllSnippetsResponse;
-      if (existing) {
-        if (existing.content !== sql) {
-          response = await RPCs.fetchData(`/api/native-query-snippet/${existing.id}`, 'PUT', snippetPayload) as AllSnippetsResponse
-        } else {
-          response = existing
-        }
-      } else {
-        response = await RPCs.fetchData('/api/native-query-snippet', 'POST', snippetPayload) as AllSnippetsResponse
-      }
-      snippetTags.push({
-        "display-name": snippetName,
-        id: uuidv4(),
-        name: `snippet: ${snippetName}`,
-        "snippet-id": response.id,
-        "snippet-name": snippetName,
-        type: "snippet"
-      })
-  
-      return [name, `{{snippet: ${snippetName}}}`] as [string, string];
-    }
-    catch (error) {
-      console.error(`Failed to update snippet ${snippetName}:`, error);
-      return cte;
-    }
-    
-  });
-  const updatedCTEs = await Promise.all(updates);
-  return [updatedCTEs, Object.fromEntries(snippetTags.map(tag => [tag.name, tag]))]
 }
 
 function addCtesToQuery(
@@ -156,7 +104,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const cache = RPCs.getCache()
     const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
     const modelsMode = settings.modelsMode
-    if (!modelsMode) {
+    if (!modelsMode || (selectedCatalog && !canUseModelsModeForCatalog(selectedCatalog, cache.mxModels))) {
       sql = addCtesToQuery(ctes, sql);
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier
@@ -220,7 +168,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const cache = RPCs.getCache()
     const modelsMode = settings.modelsMode
     const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
-    if (!modelsMode) {
+    if (!modelsMode || (selectedCatalog && !canUseModelsModeForCatalog(selectedCatalog, cache.mxModels))) {
       sql = addCtesToQuery(ctes, sql);
     } else {
       // for entities for which snippets were created, replace entity.name with their snippet identifier

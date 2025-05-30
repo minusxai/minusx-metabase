@@ -217,14 +217,13 @@ const getModelDefinitionForEntity = (entity: Entity) => {
   return snippetSubquery
 }
 
-
+const doesCatalogOriginMatch = (catalog: ContextCatalog ) => catalog.origin == getParsedIframeInfo().origin
+  
 export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, allMxModels: MxModel[], contextCatalog: ContextCatalog) => {
   const entities: Entity[] = get(contextCatalog, 'content.entities', [])
   // check if origin matches the context catalog
-  const catalogOrigin = contextCatalog.origin
-  const origin = getParsedIframeInfo().origin
-  if (origin !== catalogOrigin) {
-    console.warn(`[minusx] Catalog origin ${catalogOrigin} does not match iframe origin ${origin}`)
+  if (!doesCatalogOriginMatch(contextCatalog)) {
+    console.warn(`[minusx] Catalog origin ${contextCatalog.origin} does not match iframe origin ${origin}`)
     return
   }
   for (const entity of entities) {
@@ -270,6 +269,28 @@ export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, all
 
 export const createOrUpdateModelsForAllCatalogs = async (mxCollectionId: number, allMxModels: MxModel[], contextCatalogs: ContextCatalog[]) => {
   for (const catalog of contextCatalogs) {
-    await createOrUpdateModelsForCatalog(mxCollectionId, allMxModels, catalog)
+    try {
+      await createOrUpdateModelsForCatalog(mxCollectionId, allMxModels, catalog)
+    } catch (e) {
+      console.log("[minusx] Error creating models for catalog", catalog.name, e)
+    }
   }
+}
+
+// right now just checks if metabase models exist for each entity in the catalog
+// if so, then models mode can be used
+export const canUseModelsModeForCatalog = (catalog: ContextCatalog, allMxModels: MxModel[]) => {
+  if (!doesCatalogOriginMatch(catalog)) {
+    return false
+  }
+  const entities: Entity[] = get(catalog, 'content.entities', [])
+  for (const entity of entities) {
+    if (doesEntityRequireModel(entity)) {
+      const modelIdentifier = getModelIdentifierForEntity(entity, catalog.name)
+      if (!allMxModels.find(model => model.name === modelIdentifier)) {
+        return false
+      }
+    }
+  }
+  return true
 }

@@ -13,6 +13,7 @@ import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
 import { catalogAsModels } from 'web';
+import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -133,7 +134,7 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
-    if (appSettings.modelsMode) {
+    if (appSettings.modelsMode && canUseModelsModeForCatalog(selectedCatalog, cache.mxModels)) {
       metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, cache.mxModels)
     }
   }
