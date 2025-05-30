@@ -35,6 +35,23 @@ async function getUniqueValsFromField(fieldId: number) {
   return resp
 }
 
+// Utility to limit concurrent promises
+async function limitConcurrency<T, R>(
+  items: T[],
+  asyncFn: (item: T) => Promise<R>,
+  concurrencyLimit: number = 5
+): Promise<R[]> {
+  const results: R[] = [];
+  
+  for (let i = 0; i < items.length; i += concurrencyLimit) {
+    const batch = items.slice(i, i + concurrencyLimit);
+    const batchResults = await Promise.all(batch.map(asyncFn));
+    results.push(...batchResults);
+  }
+  
+  return results;
+}
+
 const fetchTableData = async (tableId: number, uniqueValues = false) => {
   const resp: any = await RPCs.fetchData(
     `/api/table/${tableId}/query_metadata`,
@@ -50,12 +67,21 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   }
   const fieldIds = Object.values(tableInfo.columns || {}).map((field) => field.id);
   const fieldIdUniqueValMapping: Record<number, any> = {}
-  await Promise.all(
-    fieldIds.map(async (fieldId) => {
+  
+  // Use limited concurrency to avoid overwhelming the server
+  const uniqueValsResults = await limitConcurrency(
+    fieldIds,
+    async (fieldId) => {
       const uniqueVals = await getUniqueValsFromField(fieldId);
-      fieldIdUniqueValMapping[fieldId] = uniqueVals 
-    })
-  )
+      return { fieldId, uniqueVals };
+    },
+    15 // Limit to 15 concurrent requests
+  );
+  
+  // Map results back to fieldIdUniqueValMapping
+  uniqueValsResults.forEach(({ fieldId, uniqueVals }) => {
+    fieldIdUniqueValMapping[fieldId] = uniqueVals;
+  });
   Object.values(tableInfo.columns || {}).forEach((field) => {
     const fieldUnique = fieldIdUniqueValMapping[field.id]
     if (fieldUnique) {
