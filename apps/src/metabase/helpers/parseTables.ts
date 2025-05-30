@@ -1,8 +1,8 @@
 import _, { flatMap, get } from 'lodash';
-import { memoize, RPCs } from 'web'
+import { memoize, RPCs, configs } from 'web'
 import { FormattedTable } from './types';
 
-export const DEFAULT_TTL = 60 * 5;
+export const DEFAULT_TTL = configs.IS_DEV ? 60 * 5 : 60 * 60;
 
 export const extractTableInfo = (table: any, includeFields: boolean = false, schemaKey: string = 'schema'): FormattedTable => ({
   name: _.get(table, 'name', ''),
