@@ -72,6 +72,7 @@ MinusX is organized as a yarn workspace monorepo with 3 main packages:
 - **Environment Files**: `.env.development` and `.env.production` files per workspace, with `env.defaults.json` as fallback
 - **Cross-workspace Imports**: Apps and web can import from each other using workspace names
 - **Package Exports**: Check `web/src/package.ts` and `apps/src/package.ts` for current available exports
+- **Settings Access**: `web/src/app/appSettings.ts` exposes a curated subset of Redux settings to apps workspace via `RPCs.getAppSettings()`
 
 ### Development Best Practices
 - **Concurrency Control**: Batch API calls to prevent resource exhaustion when fetching data for multiple entities
