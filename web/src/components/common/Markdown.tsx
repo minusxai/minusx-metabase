@@ -31,11 +31,11 @@ function ModifiedOL(props: any) {
   )
 }
 
-function ModifiedCode(props: any) {
+function ModifiedPre(props: any) {
     return (
-        <code style={{backgroundColor: '#ddd', padding: '2px', borderRadius: '5px', color: "#16a085", fontWeight: '800', fontSize: '0.9em'}} className="code">
+        <pre style={{backgroundColor: '#333', padding: '10px', borderRadius: '5px', color: "#fff", fontWeight: '800', fontSize: '0.9em', whiteSpace: 'break-spaces' }} className="code">
             {props.children}
-        </code>
+        </pre>
     )
 }
 
@@ -58,6 +58,6 @@ function ImageComponent(props: any) {
 
 export function Markdown({content}: {content: string}) {
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, code: ModifiedCode}}>{content}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre}}>{content}</MarkdownComponent>
   )
 }
