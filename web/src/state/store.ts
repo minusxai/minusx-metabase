@@ -309,10 +309,11 @@ const migrations = {
   28: (state: RootState) => {
     let newState = {...state}
     if (!newState.cache) {
-      newState.cache = {}
+      newState.cache = {
+        mxCollectionId: null,
+        mxModels: []
+      }
     }
-    newState.cache.mxCollectionId = null
-    newState.cache.mxModels = []
     // remove mxModels and mxCollectionId from settings (in case they exist)
     if (newState.settings?.mxModels) {
       delete newState.settings.mxModels
