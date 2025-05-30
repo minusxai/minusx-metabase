@@ -108,7 +108,8 @@ export const LLMContext: React.FC<null> = () => {
       }
       // ToDo Vivek: get model name from state
       // Also ToDo Vivek: update frontend/web/public/ with model encodings
-      const model_name = "gpt-4.1"
+      // const model_name: TiktokenModel = "gpt-4.1"
+      const model_name: TiktokenModel = "gpt-4o"
       const enc = await encodingForModel(model_name)
       const systemMessageTokens = await enc.encode(JSON.stringify(systemMessage)).length
       const userMessageTokens = await enc.encode(JSON.stringify(userMessages)).length
@@ -158,8 +159,32 @@ export const LLMContext: React.FC<null> = () => {
       const appState = await app.getState() as AppState
       setAppState(appState)
       setResolvedPlannerConfig(await app.getPlannerConfig())
-      countAllTokens(systemMessage, nonSystemMessages, appState, actionDescriptions)
     }
+    
+    // Recalculate token counts whenever appState or resolvedPlannerConfig changes
+    useEffect(() => {
+      if (!appState || Object.keys(appState).length === 0) return;
+      
+      let currentSimplePlannerConfig;
+      if (resolvedPlannerConfig.type === 'cot') {
+        currentSimplePlannerConfig = resolvedPlannerConfig.thinkingStage
+      } else if (resolvedPlannerConfig.type === 'simple') {
+        currentSimplePlannerConfig = resolvedPlannerConfig
+      } else {
+        return;
+      }
+      
+      const currentPrompts = {
+        system: currentSimplePlannerConfig.systemPrompt,
+        user: currentSimplePlannerConfig.userPrompt,
+      }
+      const currentActionDescriptions = currentSimplePlannerConfig.actionDescriptions
+      const currentMessages = getLLMContextFromState(currentPrompts, appState as AppState, appState as AppState, extendedMessageHistory)
+      const currentSystemMessage = currentMessages.length ? currentMessages[0] : {}
+      const currentNonSystemMessages = currentMessages.length ? currentMessages.slice(1, currentMessages.length - 1) : []
+      
+      countAllTokens(currentSystemMessage, currentNonSystemMessages, appState, currentActionDescriptions)
+    }, [appState, resolvedPlannerConfig])
     // removing this useEffect because its hurting my brain fixing it
     // useEffect(reloadAppState, [])
     const reloadMetabaseReduxState = () => {
