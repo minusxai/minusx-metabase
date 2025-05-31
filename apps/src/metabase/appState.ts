@@ -72,14 +72,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         }
       })
     })
-    // heat up cache
-    const heatUpCache = async (times = 0) => {
-      const filledTableInfo = await getTablesWithFields()
-      if (isEmpty(filledTableInfo)) {
-        setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
-      }
-    }
-    heatUpCache();
     
     getCardsCountSplitByType().then(cardsCount => {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
