@@ -84,11 +84,29 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   if (!uniqueValues) {
     return tableInfo
   }
-  // Only fetch unique values for non-numeric columns
+  // Only fetch unique values for non-numeric columns with distinct-count < 100
   const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
     !isNumericType(field.type)
   );
-  const fieldIds = nonNumericFields.map((field) => field.id);
+  
+  // Get distinct counts from the network response fingerprint data
+  const fieldsWithDistinctCount = (resp.fields || []).map((field: any) => ({
+    id: field.id,
+    distinctCount: field.fingerprint?.global?.['distinct-count'] || 0
+  }));
+  
+  // Create a map for quick lookup
+  const distinctCountMap = Object.fromEntries(
+    fieldsWithDistinctCount.map((field: {id: number, distinctCount: number}) => [field.id, field.distinctCount])
+  );
+  
+  // Filter fields that have distinct-count < 100
+  const fieldsToFetchUniqueValues = nonNumericFields.filter((field) => {
+    const distinctCount = distinctCountMap[field.id] || 0;
+    return distinctCount > 0 && distinctCount < 100;
+  });
+  
+  const fieldIds = fieldsToFetchUniqueValues.map((field) => field.id);
   const fieldIdUniqueValMapping: Record<number, any> = {}
   
   // Use limited concurrency to avoid overwhelming the server
