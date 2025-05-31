@@ -1,6 +1,7 @@
 import _, { flatMap, get } from 'lodash';
 import { memoize, RPCs, configs } from 'web'
 import { FormattedTable } from './types';
+import { deterministicSample } from '../../common/utils';
 
 export const DEFAULT_TTL = configs.IS_DEV ? 60 * 5 : 60 * 60 * 24;
 
@@ -114,8 +115,17 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   Object.values(tableInfo.columns || {}).forEach((field) => {
     const fieldUnique = fieldIdUniqueValMapping[field.id]
     if (fieldUnique) {
-      field.unique_values = flatMap(get(fieldUnique, 'values', [])).map(truncateUniqueValue)
-      field.has_more_values = get(fieldUnique, 'has_more_values', false)
+      const rawValues = flatMap(get(fieldUnique, 'values', [])).map(truncateUniqueValue)
+      const originalHasMore = get(fieldUnique, 'has_more_values', false)
+      
+      // Limit to 20 values with deterministic sampling at storage time
+      if (rawValues.length > 20) {
+        field.unique_values = deterministicSample(rawValues, 20, `${tableInfo.name}.${field.name}`)
+        field.has_more_values = true
+      } else {
+        field.unique_values = rawValues
+        field.has_more_values = originalHasMore
+      }
     }
   })
   return tableInfo

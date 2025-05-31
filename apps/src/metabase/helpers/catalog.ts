@@ -1,6 +1,5 @@
 import { get, isEmpty, keyBy, map } from "lodash";
 import { FormattedTable } from "./types";
-import { deterministicSample } from "../../common/utils";
 
 // Helper function to safely extract string value from from_ field
 function getFromString(from_: any): string {
@@ -28,18 +27,10 @@ const createCatalogFromTables = (tables: FormattedTable[], enableUnique = false)
             description: column.description,
           }
           if (enableUnique && !isEmpty(column.unique_values)) {
-            // Limit unique_values to 20 items max with deterministic sampling
-            if (column.unique_values.length > 20) {
-              //@ts-ignore
-              newDim.unique_values = deterministicSample(column.unique_values, 20, `${table.name}.${column.name}`)
-              //@ts-ignore
-              newDim.has_more_values = true
-            } else {
-              //@ts-ignore
-              newDim.unique_values = column.unique_values
-              //@ts-ignore
-              newDim.has_more_values = column.has_more_values
-            }
+            //@ts-ignore
+            newDim.unique_values = column.unique_values
+            //@ts-ignore
+            newDim.has_more_values = column.has_more_values
           }
           return newDim
         })
@@ -71,14 +62,8 @@ function modifyCatalog(catalog: object, tables: FormattedTable[], enableUnique =
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
           const unique_values = get(tableDimension, 'unique_values', []);
           if (!isEmpty(unique_values)) {
-            // Limit unique_values to 20 items max with deterministic sampling
-            if (unique_values.length > 20) {
-              dimension.unique_values = deterministicSample(unique_values, 20, `${fromString}.${dimension.name}`)
-              dimension.has_more_values = true
-            } else {
-              dimension.unique_values = unique_values
-              dimension.has_more_values = get(tableDimension, 'has_more_values', false);
-            }
+            dimension.unique_values = unique_values
+            dimension.has_more_values = get(tableDimension, 'has_more_values', false);
           }
         }
       })
