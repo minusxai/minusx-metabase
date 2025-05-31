@@ -13,6 +13,7 @@ import ReactJson from 'react-json-view';
 import { forwardToTab } from '../../app/rpc';
 import DashboardModelling from './DashboardModelling';
 import DashboardCrossValidation from './DashboardCrossValidation';
+import { resetCache } from '../../cache/indexedDb';
 
 const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px"}
 
@@ -22,6 +23,7 @@ export const Testing: React.FC<null> = () => {
   const [apiBody, setApiBody] = React.useState<object>({})
   const [text, setText] = React.useState("generate a random number and tell me what it is")
   const [jupyterResponse, setJupyterResponse] = React.useState("")
+  const [cacheResetStatus, setCacheResetStatus] = React.useState("")
 
   const downloadState = () => {
     const stateString = JSON.stringify(getState(), null, 2)
@@ -68,6 +70,18 @@ export const Testing: React.FC<null> = () => {
     }
   }
 
+  const handleResetCache = async () => {
+    try {
+      setCacheResetStatus("Resetting...")
+      await resetCache()
+      setCacheResetStatus("Cache reset successfully!")
+      setTimeout(() => setCacheResetStatus(""), 3000)
+    } catch (error) {
+      setCacheResetStatus("Error resetting cache")
+      setTimeout(() => setCacheResetStatus(""), 3000)
+    }
+  }
+
   return (
     <Box>
       <Text fontSize="lg" fontWeight="bold">Testing Tools</Text>
@@ -87,6 +101,23 @@ export const Testing: React.FC<null> = () => {
           </HStack>
         </HStack>
       </Box>
+      
+      <Box mt={4} backgroundColor="minusxBW.300" p={2} borderRadius={5}>
+        <HStack alignItems={"center"} marginTop={0} justifyContent={"space-between"}>
+          <Text fontSize="sm">IndexedDB Cache</Text>
+          <HStack>
+            <Button size={"xs"} onClick={handleResetCache} colorScheme="red">
+              Reset Cache
+            </Button>
+            {cacheResetStatus && (
+              <Text fontSize="xs" color={cacheResetStatus.includes("Error") ? "red.500" : "green.500"}>
+                {cacheResetStatus}
+              </Text>
+            )}
+          </HStack>
+        </HStack>
+      </Box>
+      
       <Text fontSize="lg" fontWeight="bold">Debug API</Text>
       <HStack>
         <Input placeholder="Enter API endpoint" value={apiEndpoint} onChange={(e) => setApiEndpoint(e.target.value)} />

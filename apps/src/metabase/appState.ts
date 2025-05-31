@@ -7,11 +7,12 @@ import { getDashboardPrimaryDbId, isDashboardPageUrl } from "./helpers/dashboard
 import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
-import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, getTablesWithFields } from "./helpers/getDatabaseSchema";
+import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
+import { fetchTableData } from "../package";
 const runStoreTasks = createRunner()
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
@@ -69,17 +70,11 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
               loading: false
             }
           }))
+          // Perf caching to fetch unique values
+          relevantTables.forEach((table) => fetchTableData(table.id, true))
         }
       })
     })
-    // heat up cache
-    const heatUpCache = async (times = 0) => {
-      const filledTableInfo = await getTablesWithFields()
-      if (isEmpty(filledTableInfo)) {
-        setTimeout(() => heatUpCache(times+1), Math.pow(2, times) * 1000);
-      }
-    }
-    heatUpCache();
     
     getCardsCountSplitByType().then(cardsCount => {
         captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })

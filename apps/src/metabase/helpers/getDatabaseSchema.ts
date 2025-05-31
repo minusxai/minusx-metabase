@@ -5,7 +5,7 @@ import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
-import { DEFAULT_TTL, extractTableInfo, memoizedFetchTableData } from './parseTables';
+import { extractTableInfo, fetchTableData } from './parseTables';
 
 const { fetchData } = RPCs;
 
@@ -21,8 +21,7 @@ async function getDatabases() {
   const resp = await fetchData('/api/database', 'GET') as DatabaseResponse
   return resp;
 }
-// only memoize for DEFAULT_TTL seconds
-export const memoizedGetDatabases = memoize(getDatabases, DEFAULT_TTL);
+export const memoizedGetDatabases = memoize(getDatabases);
 
 export async function getDatabaseIds(): Promise<number[]> {
   const resp = await memoizedGetDatabases();
@@ -132,8 +131,7 @@ async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInf
       tables
   };
 }
-// only memoize for DEFAULT_TTL seconds
-export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
+export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields);
 
 // only database info, no table info at all
 const getDatabaseInfo = async (dbId: number) => {
@@ -144,7 +142,7 @@ const getDatabaseInfo = async (dbId: number) => {
   }
 };
 
-export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo, DEFAULT_TTL);
+export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo);
 
 export const getDatabaseInfoForSelectedDb = async () => {
   const dbId = await getSelectedDbId();
@@ -305,7 +303,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
     return tables;
   }
   const tableIds = tables.map((table) => table.id);
-  let tableInfos = await Promise.all(tableIds.map(memoizedFetchTableData));
+  let tableInfos = await Promise.all(tableIds.map(id => fetchTableData(id)));
   return tableInfos.filter(tableInfo => tableInfo != "missing")
 }
 
@@ -318,25 +316,28 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
   
   // Filter out tables with > 100 columns to reduce context size
-  const filteredTables = [];
-  for (const table of relevantTables) {
+  // Fetch all table data in parallel for better performance
+  const tableDataPromises = relevantTables.map(async (table) => {
     try {
-      const tableWithFields = await memoizedFetchTableData(table.id, false);
+      const tableWithFields = await fetchTableData(table.id, false);
       if (tableWithFields !== "missing") {
         const columnCount = Object.keys(tableWithFields.columns || {}).length;
-        if (columnCount <= 100) {
-          filteredTables.push(table);
-        }
+        return { table, columnCount, valid: columnCount <= 100 };
       }
     } catch (error) {
       // If we can't fetch table data, include it anyway to be safe
-      filteredTables.push(table);
+      return { table, columnCount: 0, valid: true };
     }
-    // Stop once we have 20 tables
-    if (filteredTables.length >= 20) {
-      break;
-    }
-  }
+    return { table, columnCount: 0, valid: false };
+  });
+
+  const tableResults = await Promise.all(tableDataPromises);
+  
+  // Filter and limit to 20 tables
+  const filteredTables = tableResults
+    .filter(result => result.valid)
+    .slice(0, 20)
+    .map(result => result.table);
   
   return filteredTables;
 }

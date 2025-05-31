@@ -134,7 +134,8 @@ export const dataModelSchema = {
 };
 
 export function createSchemaFromDataModel(dataModel: DataModel): Schema {
-  const tables: Table[] = dataModel.entities.map((entity) => {
+  const entities = dataModel?.entities || [];
+  const tables: Table[] = entities.map((entity) => {
     const columns: Column[] = (entity.dimensions || []).map((dim) => ({
       name: dim.name,
       type: dim.type,

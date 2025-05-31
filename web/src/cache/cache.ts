@@ -1,5 +1,8 @@
 import { getCache, setCache } from "./indexedDb"
 
+// Default TTL set to 1 week (7 days * 24 hours * 60 minutes * 60 seconds)
+export const DEFAULT_TTL = 7 * 24 * 60 * 60;
+
 type AsyncFunction = (...args: any[]) => Promise<any>;
 /**
  * Memoizes a function with a TTL (time to live) and adds coalescing functionality
@@ -8,7 +11,7 @@ type AsyncFunction = (...args: any[]) => Promise<any>;
  * @param ttl - The time to live in seconds. Negative values will never expire
  * @returns The memoized function with coalescing
  */
-export function memoize<T extends AsyncFunction>(fn: T, ttl: number) {
+export function memoize<T extends AsyncFunction>(fn: T, ttl: number = DEFAULT_TTL) {
   const inProgressPromises: Record<string, Promise<Awaited<ReturnType<T>>> | null> = {};
 
   return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {

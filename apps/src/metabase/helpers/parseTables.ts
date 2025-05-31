@@ -1,8 +1,7 @@
 import _, { flatMap, get } from 'lodash';
 import { memoize, RPCs, configs } from 'web'
 import { FormattedTable } from './types';
-
-export const DEFAULT_TTL = configs.IS_DEV ? 60 * 5 : 60 * 60 * 24;
+import { deterministicSample } from '../../common/utils';
 
 export const extractTableInfo = (table: any, includeFields: boolean = false, schemaKey: string = 'schema'): FormattedTable => ({
   name: _.get(table, 'name', ''),
@@ -70,7 +69,7 @@ async function limitConcurrency<T, R>(
   return results;
 }
 
-const fetchTableData = async (tableId: number, uniqueValues = false) => {
+const fetchTableMetadata = async (tableId: number) => {
   const resp: any = await RPCs.fetchData(
     `/api/table/${tableId}/query_metadata`,
     "GET"
@@ -80,14 +79,34 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
     return "missing";
   }
   const tableInfo = extractTableInfo(resp, true);
-  if (!uniqueValues) {
-    return tableInfo
-  }
-  // Only fetch unique values for non-numeric columns
+  
+  // Get distinct counts from the network response fingerprint data
+  const fieldsWithDistinctCount = (resp.fields || []).map((field: any) => ({
+    id: field.id,
+    distinctCount: field.fingerprint?.global?.['distinct-count'] || 0
+  }));
+  
+  return { tableInfo, fieldsWithDistinctCount };
+}
+
+const fetchUniqueValues = async (tableInfo: FormattedTable, fieldsWithDistinctCount: any[]) => {
+  // Only fetch unique values for non-numeric columns with distinct-count < 100
   const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
     !isNumericType(field.type)
   );
-  const fieldIds = nonNumericFields.map((field) => field.id);
+  
+  // Create a map for quick lookup
+  const distinctCountMap = Object.fromEntries(
+    fieldsWithDistinctCount.map((field: {id: number, distinctCount: number}) => [field.id, field.distinctCount])
+  );
+  
+  // Filter fields that have distinct-count < 100
+  const fieldsToFetchUniqueValues = nonNumericFields.filter((field) => {
+    const distinctCount = distinctCountMap[field.id] || 0;
+    return distinctCount > 0 && distinctCount < 100;
+  });
+  
+  const fieldIds = fieldsToFetchUniqueValues.map((field) => field.id);
   const fieldIdUniqueValMapping: Record<number, any> = {}
   
   // Use limited concurrency to avoid overwhelming the server
@@ -111,14 +130,44 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
       fieldIdUniqueValMapping[fieldId] = uniqueVals;
     }
   });
+  
+  return fieldIdUniqueValMapping;
+}
+
+const memoizedFetchTableMetadata = memoize(fetchTableMetadata);
+const memoizedFetchUniqueValues = memoize(fetchUniqueValues);
+
+export const fetchTableData = async (tableId: number, uniqueValues = false) => {
+  const metadataResult = await memoizedFetchTableMetadata(tableId);
+  if (metadataResult === "missing") {
+    return "missing";
+  }
+  
+  const { tableInfo, fieldsWithDistinctCount } = metadataResult;
+  
+  if (!uniqueValues) {
+    return tableInfo;
+  }
+  
+  const fieldIdUniqueValMapping = await memoizedFetchUniqueValues(tableInfo, fieldsWithDistinctCount);
+  
+  // Apply unique values to table info
   Object.values(tableInfo.columns || {}).forEach((field) => {
     const fieldUnique = fieldIdUniqueValMapping[field.id]
     if (fieldUnique) {
-      field.unique_values = flatMap(get(fieldUnique, 'values', [])).map(truncateUniqueValue)
-      field.has_more_values = get(fieldUnique, 'has_more_values', false)
+      const rawValues = flatMap(get(fieldUnique, 'values', [])).map(truncateUniqueValue)
+      const originalHasMore = get(fieldUnique, 'has_more_values', false)
+      
+      // Limit to 20 values with deterministic sampling at storage time
+      if (rawValues.length > 20) {
+        field.unique_values = deterministicSample(rawValues, 20, `${tableInfo.name}.${field.name}`)
+        field.has_more_values = true
+      } else {
+        field.unique_values = rawValues
+        field.has_more_values = originalHasMore
+      }
     }
   })
-  return tableInfo
+  
+  return tableInfo;
 }
-
-export const memoizedFetchTableData = memoize(fetchTableData, DEFAULT_TTL);
