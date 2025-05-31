@@ -19,4 +19,5 @@
 
 # outputs
 *output*.txt
+*output*.log
 *semantic-layer*.md
