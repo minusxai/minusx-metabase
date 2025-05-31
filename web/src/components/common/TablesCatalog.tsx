@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
-import { Text, Link, HStack, Button} from "@chakra-ui/react";
+import { Text, Link, HStack, Button, Tabs, TabList, TabPanels, TabPanel, Tab, VStack} from "@chakra-ui/react";
 import { applyTableDiff, TableInfo, resetDefaultTablesDB } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
@@ -78,12 +78,15 @@ export const TablesCatalog: React.FC<null> = () => {
 
   return <>
     <HStack w={"100%"} justify={"space-between"}>
-        <HStack>
-          <Text fontSize="md" fontWeight="bold">Catalog: Default Tables</Text>
-          <Button size="xs" variant="link" onClick={() => setIsModelView(!isModelView)}>
+        <VStack textAlign={"left"} alignItems={"flex-start"} justifyContent={"flex-start"} gap={0} m={0} p={0}>
+            <Text fontSize="md" fontWeight="bold">Catalog: Default Tables</Text>
+            <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"left"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166007-default-tables" isExternal>What are Default Tables?</Link></Text>
+    
+        </VStack>
+          {/* <Button size="xs" variant="link" onClick={() => setIsModelView(!isModelView)}>
               {isModelView ? 'Tables View' : 'Model View'}
-          </Button>
-        </HStack>
+          </Button> */}
+        <VStack alignItems={"flex-end"} justifyContent={"flex-end"} gap={0} m={0} p={0}>
         <Button 
             size={"xs"} 
             onClick={_resetRelevantTables} 
@@ -93,14 +96,28 @@ export const TablesCatalog: React.FC<null> = () => {
         >
             Reset to Smart Defaults
         </Button>
+        <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text>
+        </VStack>
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
-    <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166007-default-tables" isExternal>What are Default Tables?</Link></Text>
-    {
+    <Tabs isFitted variant='enclosed-colored' colorScheme="minusxGreen" mt={5}>
+        <TabList mb='1em'>
+            <Tab><VStack gap={0} p={0} m={0}><Text>Catalog</Text><Text fontSize={"xs"} m={"-5px"}>[user editable]</Text></VStack></Tab>
+            <Tab><VStack gap={0} p={0} m={0}><Text>Preview</Text><Text fontSize={"xs"} m={"-5px"}>[what MinusX sees]</Text></VStack></Tab>
+        </TabList>
+        <TabPanels>
+            <TabPanel pt={0}>
+                <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={validAddedTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
+            </TabPanel>
+            <TabPanel pt={0}>
+                <ModelView tables={validAddedTables} />
+            </TabPanel>
+        </TabPanels>
+    </Tabs>
+    {/* {
       isModelView ? (
         <ModelView tables={validAddedTables} />
       ) : <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={validAddedTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
-    }
-    <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text>
+    } */}
   </>
 }
