@@ -45,6 +45,14 @@ function isNumericType(type: string): boolean {
   return numericTypes.some(numericType => type.toUpperCase().includes(numericType));
 }
 
+// Helper function to truncate long unique values
+function truncateUniqueValue(value: any): any {
+  if (typeof value === 'string' && value.length > 100) {
+    return value.substring(0, 100) + '... (truncated)';
+  }
+  return value;
+}
+
 // Utility to limit concurrent promises
 async function limitConcurrency<T, R>(
   items: T[],
@@ -106,7 +114,7 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   Object.values(tableInfo.columns || {}).forEach((field) => {
     const fieldUnique = fieldIdUniqueValMapping[field.id]
     if (fieldUnique) {
-      field.unique_values = flatMap(get(fieldUnique, 'values', []))
+      field.unique_values = flatMap(get(fieldUnique, 'values', [])).map(truncateUniqueValue)
       field.has_more_values = get(fieldUnique, 'has_more_values', false)
     }
   })

@@ -316,8 +316,29 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
     return [];
   }
   const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
-  const relevantTablesTop50 = relevantTables.slice(0, 20);
-  return relevantTablesTop50;
+  
+  // Filter out tables with > 100 columns to reduce context size
+  const filteredTables = [];
+  for (const table of relevantTables) {
+    try {
+      const tableWithFields = await memoizedFetchTableData(table.id, false);
+      if (tableWithFields !== "missing") {
+        const columnCount = Object.keys(tableWithFields.columns || {}).length;
+        if (columnCount <= 100) {
+          filteredTables.push(table);
+        }
+      }
+    } catch (error) {
+      // If we can't fetch table data, include it anyway to be safe
+      filteredTables.push(table);
+    }
+    // Stop once we have 20 tables
+    if (filteredTables.length >= 20) {
+      break;
+    }
+  }
+  
+  return filteredTables;
 }
 
 // Empty Placeholder
