@@ -133,14 +133,17 @@ export const GroupViewer: React.FC = () => {
   // Assets owned by the user
   const ownedAssets = assets.filter(a => a.owner === currentUserId)
 
+  // Get the selected group's assets array
+  const selectedGroupAssets = selectedGroup?.assets || []
+
   // Owned assets already shared to the selected group
   const sharedAssetsToGroup = selectedGroupId
-    ? ownedAssets.filter(a => a.primaryGroup === selectedGroupId)
+    ? ownedAssets.filter(a => selectedGroupAssets.includes(a.id))
     : []
 
   // Owned assets NOT yet shared to the selected group
   const availableToShare = ownedAssets.filter(
-    a => a.primaryGroup !== selectedGroupId
+    a => !selectedGroupAssets.includes(a.id)
   )
 
   return (
@@ -287,7 +290,7 @@ export const GroupViewer: React.FC = () => {
                   </TableContainer>
                 </Box>
               )}
-              <Button colorScheme="red" onClick={() => deleteGroup(selectedGroupId)}>
+              <Button colorScheme="red" onClick={() => selectedGroupId && deleteGroup(selectedGroupId)}>
                 Delete Group
               </Button>
             </VStack>

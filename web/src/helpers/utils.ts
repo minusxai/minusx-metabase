@@ -41,7 +41,6 @@ export interface ContextCatalog {
   dbId: number
   origin: string
   allowWrite: boolean
-  primaryGroup?: string
   owner?: string
 }
 

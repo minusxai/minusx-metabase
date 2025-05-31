@@ -42,6 +42,7 @@ export interface UserGroup {
   owner: any,
   permission: string
   members: UserPermission[]
+  assets?: string[]
 }
 
 export interface UserInfo {
@@ -275,9 +276,7 @@ export const settingsSlice = createSlice({
           dbId: parsedContents.dbId || 0,
           origin: parsedContents.origin || "",
           allowWrite: asset.owner === currentUserId,
-          owner: asset.owner,
-          primaryGroup: groups.find(g =>
-            g.assets?.includes(asset.id))?.id
+          owner: asset.owner
         }
       })
       if (!state.availableCatalogs.some(catalog => catalog.name == state.selectedCatalog)) {
@@ -308,7 +307,8 @@ export const settingsSlice = createSlice({
           members: (group.members || []).map((m: any): UserPermission => ({
             id: m.id,
             permission: m.permission
-          }))
+          })),
+          assets: group.assets || []
         }
         state.groups[group.id] = formattedGroup
       })
