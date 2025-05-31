@@ -141,7 +141,7 @@ const initialState: Settings = {
   groupsEnabled: false,
   modelsMode: false,
   viewAllCatalogs: false,
-  enableUnique: false
+  enableUnique: true
 }
 
 export const settingsSlice = createSlice({
