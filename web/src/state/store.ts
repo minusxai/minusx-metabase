@@ -352,12 +352,17 @@ const migrations = {
       })
     }
     return newState
+  },
+  31: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.modelsMode = true
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 30,
+  version: 31,
   storage,
   blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),
