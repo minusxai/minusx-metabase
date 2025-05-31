@@ -35,6 +35,16 @@ async function getUniqueValsFromField(fieldId: number) {
   return resp
 }
 
+// Helper function to determine if a field type is numeric
+function isNumericType(type: string): boolean {
+  if (!type) return false;
+  const numericTypes = [
+    'INTEGER', 'BIGINT', 'DECIMAL', 'DOUBLE', 'FLOAT', 'NUMERIC', 'REAL',
+    'SMALLINT', 'TINYINT', 'NUMBER', 'INT', 'LONG', 'SHORT'
+  ];
+  return numericTypes.some(numericType => type.toUpperCase().includes(numericType));
+}
+
 // Utility to limit concurrent promises
 async function limitConcurrency<T, R>(
   items: T[],
@@ -65,7 +75,11 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   if (!uniqueValues) {
     return tableInfo
   }
-  const fieldIds = Object.values(tableInfo.columns || {}).map((field) => field.id);
+  // Only fetch unique values for non-numeric columns
+  const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
+    !isNumericType(field.type)
+  );
+  const fieldIds = nonNumericFields.map((field) => field.id);
   const fieldIdUniqueValMapping: Record<number, any> = {}
   
   // Use limited concurrency to avoid overwhelming the server
