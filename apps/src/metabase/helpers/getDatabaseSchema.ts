@@ -316,25 +316,28 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
   
   // Filter out tables with > 100 columns to reduce context size
-  const filteredTables = [];
-  for (const table of relevantTables) {
+  // Fetch all table data in parallel for better performance
+  const tableDataPromises = relevantTables.map(async (table) => {
     try {
       const tableWithFields = await memoizedFetchTableData(table.id, false);
       if (tableWithFields !== "missing") {
         const columnCount = Object.keys(tableWithFields.columns || {}).length;
-        if (columnCount <= 100) {
-          filteredTables.push(table);
-        }
+        return { table, columnCount, valid: columnCount <= 100 };
       }
     } catch (error) {
       // If we can't fetch table data, include it anyway to be safe
-      filteredTables.push(table);
+      return { table, columnCount: 0, valid: true };
     }
-    // Stop once we have 20 tables
-    if (filteredTables.length >= 20) {
-      break;
-    }
-  }
+    return { table, columnCount: 0, valid: false };
+  });
+
+  const tableResults = await Promise.all(tableDataPromises);
+  
+  // Filter and limit to 20 tables
+  const filteredTables = tableResults
+    .filter(result => result.valid)
+    .slice(0, 20)
+    .map(result => result.table);
   
   return filteredTables;
 }
