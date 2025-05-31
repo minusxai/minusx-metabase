@@ -333,12 +333,31 @@ const migrations = {
       newState.settings.modelsMode = false
     }
     return newState
+  },
+  30: (state: RootState) => {
+    let newState = {...state}
+    // Remove primaryGroup field from availableCatalogs
+    if (newState.settings?.availableCatalogs) {
+      newState.settings.availableCatalogs = newState.settings.availableCatalogs.map((catalog: any) => {
+        const { primaryGroup, ...catalogWithoutPrimaryGroup } = catalog
+        return catalogWithoutPrimaryGroup
+      })
+    }
+    // Add assets array to existing groups if they don't have it
+    if (newState.settings?.groups) {
+      Object.keys(newState.settings.groups).forEach(groupId => {
+        if (!newState.settings.groups[groupId].assets) {
+          newState.settings.groups[groupId].assets = []
+        }
+      })
+    }
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 29,
+  version: 30,
   storage,
   blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),
