@@ -3,8 +3,6 @@ import { memoize, RPCs, configs } from 'web'
 import { FormattedTable } from './types';
 import { deterministicSample } from '../../common/utils';
 
-export const DEFAULT_TTL = configs.IS_DEV ? 60 * 5 : 60 * 60 * 24;
-
 export const extractTableInfo = (table: any, includeFields: boolean = false, schemaKey: string = 'schema'): FormattedTable => ({
   name: _.get(table, 'name', ''),
   ...(_.get(table, 'description', null) != null && { description: _.get(table, 'description', null) }),
@@ -149,4 +147,4 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   return tableInfo
 }
 
-export const memoizedFetchTableData = memoize(fetchTableData, DEFAULT_TTL);
+export const memoizedFetchTableData = memoize(fetchTableData);

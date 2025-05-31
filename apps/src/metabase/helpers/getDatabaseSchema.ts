@@ -5,7 +5,7 @@ import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
-import { DEFAULT_TTL, extractTableInfo, memoizedFetchTableData } from './parseTables';
+import { extractTableInfo, memoizedFetchTableData } from './parseTables';
 
 const { fetchData } = RPCs;
 
@@ -21,8 +21,7 @@ async function getDatabases() {
   const resp = await fetchData('/api/database', 'GET') as DatabaseResponse
   return resp;
 }
-// only memoize for DEFAULT_TTL seconds
-export const memoizedGetDatabases = memoize(getDatabases, DEFAULT_TTL);
+export const memoizedGetDatabases = memoize(getDatabases);
 
 export async function getDatabaseIds(): Promise<number[]> {
   const resp = await memoizedGetDatabases();
@@ -132,8 +131,7 @@ async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInf
       tables
   };
 }
-// only memoize for DEFAULT_TTL seconds
-export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields, DEFAULT_TTL);
+export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields);
 
 // only database info, no table info at all
 const getDatabaseInfo = async (dbId: number) => {
@@ -144,7 +142,7 @@ const getDatabaseInfo = async (dbId: number) => {
   }
 };
 
-export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo, DEFAULT_TTL);
+export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo);
 
 export const getDatabaseInfoForSelectedDb = async () => {
   const dbId = await getSelectedDbId();

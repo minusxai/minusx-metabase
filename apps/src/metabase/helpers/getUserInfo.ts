@@ -114,7 +114,6 @@ export async function searchUserQueries(id: number, dbId: number, query: string)
   return allQueries.map(getTablesFromSqlRegex).flat()
 }
 
-const DEFAULT_TTL = 60 * 5;
-const memoizedGetUserEdits = memoize(getUserEdits, DEFAULT_TTL);
-const memoizedGetUserCreations = memoize(getUserCreations, DEFAULT_TTL);
-const memoizedGetAllCreations = memoize(getAllCreations, DEFAULT_TTL);
+const memoizedGetUserEdits = memoize(getUserEdits);
+const memoizedGetUserCreations = memoize(getUserCreations);
+const memoizedGetAllCreations = memoize(getAllCreations);
