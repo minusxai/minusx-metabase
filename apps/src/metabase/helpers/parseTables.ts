@@ -69,7 +69,7 @@ async function limitConcurrency<T, R>(
   return results;
 }
 
-const fetchTableData = async (tableId: number, uniqueValues = false) => {
+const fetchTableMetadata = async (tableId: number) => {
   const resp: any = await RPCs.fetchData(
     `/api/table/${tableId}/query_metadata`,
     "GET"
@@ -79,19 +79,21 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
     return "missing";
   }
   const tableInfo = extractTableInfo(resp, true);
-  if (!uniqueValues) {
-    return tableInfo
-  }
-  // Only fetch unique values for non-numeric columns with distinct-count < 100
-  const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
-    !isNumericType(field.type)
-  );
   
   // Get distinct counts from the network response fingerprint data
   const fieldsWithDistinctCount = (resp.fields || []).map((field: any) => ({
     id: field.id,
     distinctCount: field.fingerprint?.global?.['distinct-count'] || 0
   }));
+  
+  return { tableInfo, fieldsWithDistinctCount };
+}
+
+const fetchUniqueValues = async (tableInfo: FormattedTable, fieldsWithDistinctCount: any[]) => {
+  // Only fetch unique values for non-numeric columns with distinct-count < 100
+  const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
+    !isNumericType(field.type)
+  );
   
   // Create a map for quick lookup
   const distinctCountMap = Object.fromEntries(
@@ -128,6 +130,28 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
       fieldIdUniqueValMapping[fieldId] = uniqueVals;
     }
   });
+  
+  return fieldIdUniqueValMapping;
+}
+
+const memoizedFetchTableMetadata = memoize(fetchTableMetadata);
+const memoizedFetchUniqueValues = memoize(fetchUniqueValues);
+
+const fetchTableData = async (tableId: number, uniqueValues = false) => {
+  const metadataResult = await memoizedFetchTableMetadata(tableId);
+  if (metadataResult === "missing") {
+    return "missing";
+  }
+  
+  const { tableInfo, fieldsWithDistinctCount } = metadataResult;
+  
+  if (!uniqueValues) {
+    return tableInfo;
+  }
+  
+  const fieldIdUniqueValMapping = await memoizedFetchUniqueValues(tableInfo, fieldsWithDistinctCount);
+  
+  // Apply unique values to table info
   Object.values(tableInfo.columns || {}).forEach((field) => {
     const fieldUnique = fieldIdUniqueValMapping[field.id]
     if (fieldUnique) {
@@ -144,7 +168,8 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
       }
     }
   })
-  return tableInfo
+  
+  return tableInfo;
 }
 
-export const memoizedFetchTableData = memoize(fetchTableData);
+export const memoizedFetchTableData = fetchTableData;
