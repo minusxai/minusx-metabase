@@ -96,7 +96,8 @@ export async function convertDOMtoStateSQLQuery() {
   const appSettings = RPCs.getAppSettings()
   const cache = RPCs.getCache()
   const sqlTables = getTablesFromSqlRegex(sqlQuery)
-  const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
+  const selectedCatalogObj = find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog })
+  const selectedCatalog = get(selectedCatalogObj, 'content')
   if (defaultSchema) {
     sqlTables.forEach((table) => {
       if (table.schema === undefined || table.schema === '') {
@@ -134,7 +135,7 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
-    if (appSettings.modelsMode && canUseModelsModeForCatalog(selectedCatalog, cache.mxModels)) {
+    if (appSettings.modelsMode && selectedCatalogObj && canUseModelsModeForCatalog(selectedCatalogObj, cache.mxModels)) {
       metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, cache.mxModels)
     }
   }
