@@ -17,7 +17,8 @@ import {
   VStack,
   Collapse,
   Flex,
-  Spacer
+  Spacer,
+  HStack
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FormattedTable } from 'apps/types';
@@ -216,6 +217,33 @@ export const FilteredTable = ({
     setClicks(1);
   }, [addFn, removeFn, dbId, selectedSet]);
 
+  const handleOverallCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const allTables: TableInfo[] = [];
+    Object.values(filteredGroupedData).flat().forEach(table => {
+      allTables.push({ name: table.name, schema: table.schema, dbId: dbId });
+    });
+
+    if (e.target.checked) {
+      const unselectedTables = allTables.filter(table => 
+        !selectedSet.has(`${table.schema}/${table.name}`)
+      );
+      addFn(unselectedTables);
+    } else {
+      const selectedTables = allTables.filter(table => 
+        selectedSet.has(`${table.schema}/${table.name}`)
+      );
+      removeFn(selectedTables);
+    }
+    setClicks(1);
+  }, [addFn, removeFn, dbId, selectedSet, filteredGroupedData]);
+
+  const totalFilteredTables = Object.values(filteredGroupedData).flat().length;
+  const totalSelectedFilteredTables = Object.values(filteredGroupedData).flat().filter(table =>
+    selectedSet.has(`${table.schema}/${table.name}`)
+  ).length;
+  const isOverallChecked = totalSelectedFilteredTables === totalFilteredTables && totalFilteredTables > 0;
+  const isOverallIndeterminate = totalSelectedFilteredTables > 0 && totalSelectedFilteredTables < totalFilteredTables;
+
   const rootNode: DummyRootDataNode = {
     type: 'root',
     id: 'rootNode',
@@ -270,7 +298,23 @@ export const FilteredTable = ({
 
   return (
     <Box>
-      <Box position="relative" width="100%" mb={2} mt={2} p={0}>
+      <HStack justifyContent={"space-between"} m={0} p={0} gap={0}>
+      <Flex align="center" mb={2} mt={2}>
+        <Checkbox
+          isChecked={isOverallChecked}
+          isIndeterminate={isOverallIndeterminate}
+          onChange={handleOverallCheckboxChange}
+          colorScheme="minusxGreen"
+          mr={3}
+        />
+        <Text fontWeight="semibold">
+          {totalSelectedFilteredTables === totalFilteredTables ? "Deselect All Tables" : "Select All Tables" }
+        </Text>
+      </Flex>
+      <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{totalSelectedFilteredTables} out of {totalFilteredTables} tables selected]</Text>
+
+      </HStack>
+      <Box position="relative" width="100%" mb={2} p={0}>
         <Input
           placeholder={`Search table name (${data.length} tables across ${Object.keys(groupedData).length} schemas)`}
           value={search}

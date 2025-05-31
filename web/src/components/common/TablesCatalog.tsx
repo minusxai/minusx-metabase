@@ -96,7 +96,7 @@ export const TablesCatalog: React.FC<null> = () => {
         >
             Reset to Smart Defaults
         </Button>
-        <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text>
+        {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text> */}
         </VStack>
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
