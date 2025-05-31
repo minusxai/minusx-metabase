@@ -3,12 +3,12 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import { MxModel } from '../../helpers/utils'
 
 interface CacheState {
-  mxCollectionId: number | null
+  mxCollectionId: number | null | undefined
   mxModels: MxModel[]
 }
 
 const initialState: CacheState = {
-  mxCollectionId: null,
+  mxCollectionId: undefined,
   mxModels: [],
 }
 
