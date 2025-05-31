@@ -1,4 +1,3 @@
-import { Action } from '../../../../apps/src/base/appController';
 import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, createOrUpdateModelsForCatalog, getAllMxInternalModels } from '../../helpers/catalogAsModels';
 import type { RootState, AppDispatch } from '../../state/store';
 import { setMxCollectionId, setMxModels } from '../cache/reducer';
@@ -24,11 +23,13 @@ startListening({
       state.settings.modelsMode == true
     ) {
       try {
-        if (!state.auth.email) {
-          console.warn('[minusx] No email found, cant create mx collection')
+        // check if there are available catalogs; if not, set mxCollectionId to null
+        // we don't want to create a collection for users not using catalogs
+        if (state.settings.availableCatalogs.length == 0) {
+          dispatch(setMxCollectionId(null))
           return
         }
-        const mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId(state.auth.email))
+        const mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId(state.auth.email || "no_email"))
         if (mxCollectionId) {
           try {
             // also get all models
@@ -38,7 +39,6 @@ startListening({
             const newMxModels = await listenerApi.pause(getAllMxInternalModels(mxCollectionId))
             dispatch(setMxModels(newMxModels))
           } catch (e) {
-
           }
         }
         // only set mxCollectionId after mxModels so that the below listener has mxModels available after condition
@@ -66,7 +66,7 @@ startListening({
         return
       }
       // check if mxCollectionId is undefined -> if so, we need to wait for setupCollectionsAndModels to finish
-      if (state.cache.mxCollectionId == undefined) {
+      if (state.cache.mxCollectionId === undefined) {
         await listenerApi.condition(
           (action, currentState: RootState) => {
             return currentState.cache.mxCollectionId !== undefined
@@ -75,24 +75,42 @@ startListening({
         )
         state = listenerApi.getState()
       }
-      if (!state.cache.mxCollectionId) {
-        // either couldn't create collection or we timed out
+      let mxCollectionId = state.cache.mxCollectionId
+      if (mxCollectionId === undefined) {
+        // something went seriously wrong with collection creation, no point in re-attempting
+        console.warn('[minusx] Got mxCollectionId undefined in setMemberships listener; not retrying')
         return
+      }
+      if (mxCollectionId === null) {
+        // something mildy wrong happened, maybe there were no catalogs available.
+        // check original state vs current state if earlier availableCatalogs is empty
+        const originalState = listenerApi.getOriginalState()
+        if (originalState.settings.availableCatalogs.length == 0 && state.settings.availableCatalogs.length > 0 && state.settings.modelsMode) {
+          // create collection
+          mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId(state.auth.email || "no_email"))
+          dispatch(setMxCollectionId(mxCollectionId))
+        }
+        if (mxCollectionId === null) {
+          // something went wrong, no point in re-attempting
+          console.warn('[minusx] still getting null when creating mx collection; not retrying')
+          return
+        }
       }
       if (setMemberships.match(action)) {
         // create new models (if required) for all catalogs
-        await listenerApi.pause(createOrUpdateModelsForAllCatalogs(state.cache.mxCollectionId, state.cache.mxModels, state.settings.availableCatalogs))
-        const newMxModels = await listenerApi.pause(getAllMxInternalModels(state.cache.mxCollectionId))
+        await listenerApi.pause(createOrUpdateModelsForAllCatalogs(mxCollectionId, state.cache.mxModels, state.settings.availableCatalogs))
+        const newMxModels = await listenerApi.pause(getAllMxInternalModels(mxCollectionId))
         dispatch(setMxModels(newMxModels))
       } else if (saveCatalog.match(action)) {
         const catalog = state.settings.availableCatalogs.find(catalog => catalog.id == action.payload.id)
         if (catalog) {
-          await listenerApi.pause(createOrUpdateModelsForCatalog(state.cache.mxCollectionId, state.cache.mxModels, catalog))
-          const mxModels = await listenerApi.pause(getAllMxInternalModels(state.cache.mxCollectionId))
+          await listenerApi.pause(createOrUpdateModelsForCatalog(mxCollectionId, state.cache.mxModels, catalog))
+          const mxModels = await listenerApi.pause(getAllMxInternalModels(mxCollectionId))
           dispatch(setMxModels(mxModels))
         }
       }
     } catch(e) {
+      console.log("[minusx]some error happened during saveCatalog/setMemberships:", e)
     } finally {
       listenerApi.subscribe()
     }
