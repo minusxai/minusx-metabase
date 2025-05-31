@@ -55,7 +55,7 @@ import { getApp } from '../../helpers/app';
 import { applyTableDiffs } from "apps";
 import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
-import { refreshMxCache } from '../../state/settings/availableCatalogsListener'
+import { setupCollectionsAndModels } from '../../state/settings/availableCatalogsListener'
 
 
 
@@ -95,7 +95,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const [isChanged, setIsChanged] = React.useState(false) 
 
   useEffect(() => {
-    dispatch(refreshMxCache())
+    dispatch(setupCollectionsAndModels())
   }, [])
 
   useEffect(() => {
