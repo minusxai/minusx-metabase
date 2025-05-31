@@ -43,7 +43,7 @@ export const resetRelevantTables = (relevantTables: TableInfo[], dbId: number) =
 export const TablesCatalog: React.FC<null> = () => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
-  const [isModelView, setIsModelView] = useState(false);
+//   const [isModelView, setIsModelView] = useState(false);
 
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { Text, Link, HStack, VStack, Button, Box } from "@chakra-ui/react";
+import { Text, Link, HStack, VStack, Button, Box, Tabs, TabList, TabPanels, TabPanel, Tab } from "@chakra-ui/react";
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { CodeBlock } from './CodeBlock';
@@ -38,7 +38,7 @@ export const YAMLCatalog: React.FC<null> = () => {
   const [isEditing, setIsEditing] = useState(false);
   const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs);
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog);
-  const [isModelView, setIsModelView] = useState(false);
+//   const [isModelView, setIsModelView] = useState(false);
   
   const currentCatalog = availableCatalogs.find(catalog => catalog.name === selectedCatalog);
   const yamlContent = dump(currentCatalog?.content || {});
@@ -66,16 +66,17 @@ export const YAMLCatalog: React.FC<null> = () => {
         {isDeleting && (
           <Text fontSize="md" fontWeight="bold">Deleting...</Text>
         )}
-        <HStack>
-          <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>        
-          <Button size="xs" variant="link" onClick={() => setIsModelView(!isModelView)}>
+        <VStack textAlign={"left"} alignItems={"flex-start"} justifyContent={"flex-start"} gap={0} m={0} p={0}>
+          <Text fontSize="md" fontWeight="bold">Catalog: {currentCatalog?.name || 'None selected'}</Text>
+          <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166107-advanced-catalogs" isExternal>How to create a catalog?</Link></Text>
+          {/* <Button size="xs" variant="link" onClick={() => setIsModelView(!isModelView)}>
               {isModelView ? 'Catalog View' : 'Model View'}
-          </Button>
-        </HStack>
+          </Button> */}
+        </VStack>
         {!isEditing && (
             <HStack spacing={2}>
           <Button 
-            size="xs" 
+            size="xs"
             colorScheme="minusxGreen" 
             onClick={handleEditClick}
             isDisabled={isDeleting || !allowWrite}
@@ -97,26 +98,34 @@ export const YAMLCatalog: React.FC<null> = () => {
           </HStack>
         )}
       </HStack>
-      <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166107-advanced-catalogs" isExternal>How to create a catalog?</Link></Text>
       
-      {isEditing ? (
-        <CatalogEditor 
-          onCancel={handleCancelEdit} 
-          id={currentCatalog?.id || ''}
-        />
-      ) : isModelView ? (
-        <ModelView
-          yamlContent={yamlContent}
-        />
-      ) : (
-        <Box w="100%">
-            <CodeBlock 
-              code={yamlContent} 
-              tool="" 
-              language="yaml" 
-            />
-          </Box>
-      )}
+        <Tabs isFitted variant='enclosed-colored' colorScheme="minusxGreen" mt={5}>
+            <TabList mb='1em'>
+                <Tab><VStack gap={0} p={0} m={0}><Text>Catalog</Text><Text fontSize={"xs"} m={"-5px"}>[user editable]</Text></VStack></Tab>
+                <Tab><VStack gap={0} p={0} m={0}><Text>Preview</Text><Text fontSize={"xs"} m={"-5px"}>[what MinusX sees]</Text></VStack></Tab>
+            </TabList>
+            <TabPanels>
+                <TabPanel pt={0}>
+                    {isEditing ? (
+                        <CatalogEditor 
+                        onCancel={handleCancelEdit} 
+                        id={currentCatalog?.id || ''}
+                        />
+                    ) : (
+                        <Box w="100%">
+                            <CodeBlock 
+                            code={yamlContent} 
+                            tool="" 
+                            language="yaml" 
+                            />
+                        </Box>
+                    )}
+                </TabPanel>
+                <TabPanel pt={0}>
+                    <ModelView yamlContent={yamlContent} />
+                </TabPanel>
+            </TabPanels>
+        </Tabs>
     </VStack>
   );
 }

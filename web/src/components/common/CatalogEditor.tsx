@@ -70,7 +70,7 @@ export const updateCatalog = async ({ id, name, contents }: { id: string; name: 
 
 export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultTitle = '', defaultContent = '', id = '' }) => {
     const catalog: ContextCatalog | undefined = useSelector((state: RootState) => state.settings.availableCatalogs.find(catalog => catalog.id === id))
-    const [isViewing, setIsViewing] = useState(false);
+    // const [isViewing, setIsViewing] = useState(false);
     const origin = getParsedIframeInfo().origin
     if (catalog) {
         defaultTitle = catalog.name
@@ -137,8 +137,21 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
             {isSaving && (
                 <Text fontSize="sm" color="green.500" mb={2}>Saving...</Text>
             )}
-        <Text fontSize="md" fontWeight="bold">{defaultTitle ? 'Edit Catalog' : 'Create New Catalog'}</Text>
-        <Text fontSize="xs" color={"minusxGreen.600"} mb={3}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166107-advanced-catalogs" isExternal>How to create a catalog?</Link></Text>
+        <HStack justifyContent="space-between" mb={4}>
+            <Text fontSize="md" fontWeight="bold">{defaultTitle ? 'Edit Catalog' : 'Create New Catalog'}</Text>
+            <HStack spacing={4} justifyContent="flex-end">
+                <Button size="xs" onClick={onCancel} variant="outline">Cancel</Button>
+                <Button 
+                    size="xs" 
+                    colorScheme="minusxGreen" 
+                    onClick={handleSave}
+                    isDisabled={!title.trim() || !yamlContent.trim() || isSaving}
+                >
+                    Save Catalog
+                </Button>
+            </HStack>
+        </HStack>
+        {/* <Text fontSize="xs" color={"minusxGreen.600"} mb={3}><Link width={"100%"} textAlign={"center"} textDecoration={"underline"} href="https://docs.minusx.ai/en/articles/11166107-advanced-catalogs" isExternal>How to create a catalog?</Link></Text> */}
         
         <Text fontSize="sm" mb={1}>Catalog Name</Text>
         <Input 
@@ -153,21 +166,17 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
         
         <HStack>
             <Text fontSize="sm" mb={1}>Catalog Definition (YAML)</Text>
-            <Button size="xs" variant="link" onClick={() => setIsViewing(!isViewing)}>
+            {/* <Button size="xs" variant="link" onClick={() => setIsViewing(!isViewing)}>
                 {isViewing ? 'Back to Edit' : 'Model View'}
-            </Button>
+            </Button> */}
         </HStack>
         
-        {isViewing ? (
-            <ModelView yamlContent={yamlContent} />
-            ) : (
-            <CodeEditor
-                height="400px"
-                language="yaml"
-                value={yamlContent}
-                onChange={(value) => setYamlContent(value || '')}
-            />
-        )}
+        <CodeEditor
+            height="400px"
+            language="yaml"
+            value={yamlContent}
+            onChange={(value) => setYamlContent(value || '')}
+        />
         {/* <Textarea
             placeholder="Enter YAML definition"
             value={yamlContent}
@@ -179,18 +188,6 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
             borderRadius="md"
             borderColor="gray.300"
         /> */}
-            
-            <HStack spacing={4} justifyContent="flex-end">
-                <Button size="sm" onClick={onCancel} variant="outline">Cancel</Button>
-                <Button 
-                    size="sm" 
-                    colorScheme="minusxGreen" 
-                    onClick={handleSave}
-                    isDisabled={!title.trim() || !yamlContent.trim() || isSaving}
-                >
-                    Save Catalog
-                </Button>
-            </HStack>
         </Box>
     );
 };

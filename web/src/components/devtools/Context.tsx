@@ -183,9 +183,9 @@ export const Context: React.FC = () => {
         <Modal isOpen={isOpen} onClose={modalClose} size="3xl">
             <ModalOverlay />
             <ModalContent>
-                <ModalHeader>Catalogs</ModalHeader>
+                <ModalHeader>Context</ModalHeader>
                 <ModalCloseButton />
-                <ModalBody minH={"400px"} maxH={"600px"} overflowY={"auto"}>
+                <ModalBody minH={"400px"} maxH={"650px"} overflowY={"auto"}>
                     <CatalogDisplay isInModal={true} modalOpen={modalOpen}/>
                 </ModalBody>
             </ModalContent>
