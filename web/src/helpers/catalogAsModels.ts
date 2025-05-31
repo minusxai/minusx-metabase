@@ -10,6 +10,14 @@ export type AllSnippetsResponse = {
   id: number;
 }[]
 
+type CollectionItemsCollectionsOnlyResponse = {
+  total: number
+  data: {
+    name: string
+    id: number | string
+    can_write: boolean
+  }[]
+}
 export type CollectionItemsResponse = {
   total: number
   data: {
@@ -32,52 +40,44 @@ export type MxModelsUpdateParams = {
 }
 
 export const getSlugForModelName = (name: string) => slugg(name)
+const collectionIdToNumber = (id: string | number) => typeof id === 'string' ? parseInt(id) : id
 
 type Collection = {
   name: string
   id: string | number
   location: string
+  can_write: boolean
 }
 type AllCollectionsResponse = Collection[]
 type CreateCollectionResponse = Collection
 
-
-const getOrCreateMxRootCollectionId = async (): Promise<number | null> => {
-  const allCollections = await fetchData('/api/collection', 'GET') as AllCollectionsResponse
-  let minusxRootCollection = allCollections
-    .filter(collection => collection.location == "/")
-    .find(collection => collection.name === 'mx_internal')
-  if (!minusxRootCollection) {
-    // create the collection
-    try {
-      minusxRootCollection = await fetchData('/api/collection', 'POST', {
-        "name": "mx_internal",
-      }) as CreateCollectionResponse
-      if (!minusxRootCollection || !minusxRootCollection.id) {
-        throw new Error('Invalid response from create collection')
-      }
-    } catch (err) {
-      console.error('[minusx] Error creating mx root collection', err)
-      return null
-    }
+const getPersonalRootCollectionId = async (): Promise<number | null> => {
+  const personalCollections = (await 
+    fetchData('/api/collection/?exclude-other-user-collections=true&personal-only=true', 'GET') as AllCollectionsResponse)
+    .filter(collection => collection.can_write)
+    .filter(collection => collection.location == '/')
+  if (personalCollections.length == 0) {
+    console.log("[minusx] No root personal collection found, can't use models mode")
+    return null
   }
-  const mxRootCollectionId = typeof minusxRootCollection.id === 'string' ? parseInt(minusxRootCollection.id) : minusxRootCollection.id
-  return mxRootCollectionId
+  return collectionIdToNumber(personalCollections[0].id)
 }
 
 export const getOrCreateMxCollectionId = async(userEmail: string): Promise<number | null> => {
-  const mxRootCollectionId = await getOrCreateMxRootCollectionId()
-  if (!mxRootCollectionId) {
+  const personalRootCollectionId = await getPersonalRootCollectionId()
+  if (!personalRootCollectionId) {
     return null
   }
-  const allCollections = await fetchData('/api/collection', 'GET') as AllCollectionsResponse
-  const mxInternalCollections = allCollections.filter(collection => collection.location === `/${mxRootCollectionId}/`)
-  let minusxCollection = mxInternalCollections.find(collection => collection.name === userEmail)
+  const allPersonalCollectionsResponse = await 
+    fetchData(`/api/collection/${personalRootCollectionId}/items?models=collection`, 'GET') as CollectionItemsCollectionsOnlyResponse
+  const allPersonalCollections = allPersonalCollectionsResponse.data
+  const mxCollectionName = 'mx_internal_' +  userEmail
+  let minusxCollection = allPersonalCollections.find(collection => collection.name === mxCollectionName)
   if (!minusxCollection) {
     try {
       minusxCollection = await fetchData('/api/collection', 'POST', {
-        "name": userEmail,
-        "parent_id": mxRootCollectionId
+        "name": mxCollectionName,
+        "parent_id": personalRootCollectionId
       }) as CreateCollectionResponse
       if (!minusxCollection || !minusxCollection.id) {
         throw new Error('Invalid response from create collection')
@@ -87,7 +87,7 @@ export const getOrCreateMxCollectionId = async(userEmail: string): Promise<numbe
       return null
     }
   }
-  const mxCollectionId = typeof minusxCollection.id === 'string' ? parseInt(minusxCollection.id) : minusxCollection.id
+  const mxCollectionId = collectionIdToNumber(minusxCollection.id)
   return mxCollectionId
 }
 
