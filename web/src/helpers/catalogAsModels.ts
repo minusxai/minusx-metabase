@@ -63,6 +63,10 @@ const getPersonalRootCollectionId = async (): Promise<number | null> => {
   return collectionIdToNumber(personalCollections[0].id)
 }
 
+export const currentOriginCatalogs = (catalogs: ContextCatalog[]): ContextCatalog[] => {
+  return catalogs.filter(catalog => doesCatalogOriginMatch(catalog))
+}
+
 export const getOrCreateMxCollectionId = async(userEmail: string): Promise<number | null> => {
   const personalRootCollectionId = await getPersonalRootCollectionId()
   if (!personalRootCollectionId) {

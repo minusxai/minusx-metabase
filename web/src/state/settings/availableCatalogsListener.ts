@@ -1,8 +1,8 @@
-import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, createOrUpdateModelsForCatalog, getAllMxInternalModels } from '../../helpers/catalogAsModels';
+import { getOrCreateMxCollectionId, createOrUpdateModelsForAllCatalogs, createOrUpdateModelsForCatalog, getAllMxInternalModels, currentOriginCatalogs } from '../../helpers/catalogAsModels';
 import type { RootState, AppDispatch } from '../../state/store';
 import { setMxCollectionId, setMxModels } from '../cache/reducer';
 import { saveCatalog, setMemberships, setModelsMode } from './reducer';
-import { createAction, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit'
+import { createAction, createListenerMiddleware, current, isAnyOf } from '@reduxjs/toolkit'
 
 export const setupCollectionsAndModels = createAction('cache/setupCollectionsAndModels')
 export const catalogsListener = createListenerMiddleware();
@@ -23,9 +23,9 @@ startListening({
       state.settings.modelsMode == true
     ) {
       try {
-        // check if there are available catalogs; if not, set mxCollectionId to null
+        // check if there are available catalogs for current origin; if not, set mxCollectionId to null
         // we don't want to create a collection for users not using catalogs
-        if (state.settings.availableCatalogs.length == 0) {
+        if (currentOriginCatalogs(state.settings.availableCatalogs).length == 0) {
           dispatch(setMxCollectionId(null))
           return
         }
@@ -85,7 +85,9 @@ startListening({
         // something mildy wrong happened, maybe there were no catalogs available.
         // check original state vs current state if earlier availableCatalogs is empty
         const originalState = listenerApi.getOriginalState()
-        if (originalState.settings.availableCatalogs.length == 0 && state.settings.availableCatalogs.length > 0 && state.settings.modelsMode) {
+        const oldRelevantCatalogs = currentOriginCatalogs(originalState.settings.availableCatalogs)
+        const currentRelevantCatalogs = currentOriginCatalogs(state.settings.availableCatalogs)
+        if (oldRelevantCatalogs.length == 0 && currentRelevantCatalogs.length > 0 && state.settings.modelsMode) {
           // create collection
           mxCollectionId = await listenerApi.pause(getOrCreateMxCollectionId(state.auth.email || "no_email"))
           dispatch(setMxCollectionId(mxCollectionId))
