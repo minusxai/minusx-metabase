@@ -39,7 +39,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
     }).catch(() => {
       setIsLoading(false)
     });
-  }, [enableUnique])
+  }, [enableUnique, relevantTables])
 
   if (isLoading) {
     return (
