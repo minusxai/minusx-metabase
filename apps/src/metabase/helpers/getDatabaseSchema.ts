@@ -5,7 +5,7 @@ import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
-import { extractTableInfo, memoizedFetchTableData } from './parseTables';
+import { extractTableInfo, fetchTableData } from './parseTables';
 
 const { fetchData } = RPCs;
 
@@ -303,7 +303,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
     return tables;
   }
   const tableIds = tables.map((table) => table.id);
-  let tableInfos = await Promise.all(tableIds.map(memoizedFetchTableData));
+  let tableInfos = await Promise.all(tableIds.map(id => fetchTableData(id)));
   return tableInfos.filter(tableInfo => tableInfo != "missing")
 }
 
@@ -319,7 +319,7 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   // Fetch all table data in parallel for better performance
   const tableDataPromises = relevantTables.map(async (table) => {
     try {
-      const tableWithFields = await memoizedFetchTableData(table.id, false);
+      const tableWithFields = await fetchTableData(table.id, false);
       if (tableWithFields !== "missing") {
         const columnCount = Object.keys(tableWithFields.columns || {}).length;
         return { table, columnCount, valid: columnCount <= 100 };

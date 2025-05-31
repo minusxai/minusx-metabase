@@ -137,7 +137,7 @@ const fetchUniqueValues = async (tableInfo: FormattedTable, fieldsWithDistinctCo
 const memoizedFetchTableMetadata = memoize(fetchTableMetadata);
 const memoizedFetchUniqueValues = memoize(fetchUniqueValues);
 
-const fetchTableData = async (tableId: number, uniqueValues = false) => {
+export const fetchTableData = async (tableId: number, uniqueValues = false) => {
   const metadataResult = await memoizedFetchTableMetadata(tableId);
   if (metadataResult === "missing") {
     return "missing";
@@ -171,5 +171,3 @@ const fetchTableData = async (tableId: number, uniqueValues = false) => {
   
   return tableInfo;
 }
-
-export const memoizedFetchTableData = fetchTableData;

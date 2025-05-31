@@ -44,7 +44,7 @@ import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
-import { memoizedFetchTableData } from "./helpers/parseTables";
+import { fetchTableData } from "./helpers/parseTables";
 import { catalogAsModels } from "web";
 import { canUseModelsModeForCatalog } from "../../../web/src/helpers/catalogAsModels";
 
@@ -384,7 +384,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   async getTableSchemasById({ ids }: { ids: number[] }) {
     const actionContent: BlankMessageContent = { type: "BLANK" };
     // need to fetch schemas
-    const tablesPromises = ids.map(memoizedFetchTableData);
+    const tablesPromises = ids.map(id => fetchTableData(id));
     const tables = await Promise.all(tablesPromises);
     const tableSchemasContent = JSON.stringify(tables);
     actionContent.content = tableSchemasContent;
@@ -421,7 +421,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const searchResults = await searchTables(userInfo.id, selectedDbId, query);
     const tableIds = map(searchResults, (table) => table.id);
-    const tablesPromises = tableIds.slice(0, 20).map(memoizedFetchTableData);
+    const tablesPromises = tableIds.slice(0, 20).map(id => fetchTableData(id));
     const tableSchemas = await Promise.all(tablesPromises);
     tableSchemas.forEach((tableInfo, index) => {
       if (tableInfo != "missing") {
