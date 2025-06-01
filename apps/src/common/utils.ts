@@ -45,15 +45,16 @@ export function createRunner() {
       taskStatus.status = 'cancelled'
       return;
     }
-    taskStatus.status = 'running';
-    try {
-      await task(taskStatus);
-    } finally {
-      taskStatus.status = 'finished';
-      if (nextTask) {
-        const taskToRun = nextTask;
+    
+    let currentTask: TaskToRun | null = task;
+    while (currentTask) {
+      taskStatus.status = 'running';
+      try {
+        await currentTask(taskStatus);
+      } finally {
+        taskStatus.status = 'finished';
+        currentTask = nextTask;
         nextTask = null;
-        await run(taskToRun);
       }
     }
   }
