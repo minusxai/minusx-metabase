@@ -109,7 +109,7 @@ export const TablesCatalog: React.FC<null> = () => {
         </VStack>
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
-    <Tabs isFitted variant='enclosed-colored' colorScheme="minusxGreen" mt={5}>
+    <Tabs isFitted variant='enclosed-colored' colorScheme="minusxGreen" mt={5} isLazy={true}>
         <TabList mb='1em'>
             <Tab><VStack gap={0} p={0} m={0}><Text>Catalog</Text><Text fontSize={"xs"} m={"-5px"}>[user editable]</Text></VStack></Tab>
             <Tab><VStack gap={0} p={0} m={0}><Text>Preview</Text><Text fontSize={"xs"} m={"-5px"}>[what MinusX sees]</Text></VStack></Tab>
