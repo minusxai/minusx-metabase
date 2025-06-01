@@ -1,17 +1,6 @@
 import { get, isEmpty, keyBy, map } from "lodash";
 import { FormattedTable } from "./types";
 
-// Helper function to safely extract string value from from_ field
-function getFromString(from_: any): string {
-  if (typeof from_ === 'string') {
-    return from_;
-  }
-  if (typeof from_ === 'object' && from_ !== null) {
-    return get(from_, 'alias', '') || '';
-  }
-  return '';
-}
-
 const createCatalogFromTables = (tables: FormattedTable[], enableUnique = false) => {
   return {
     entities: tables.map(table => {
@@ -51,10 +40,7 @@ function modifyCatalog(catalog: object, tables: FormattedTable[], enableUnique =
   })
   const newEntities: object[] = []
   get(catalog, 'entities', []).forEach((entity: object) => {
-    const from_ = get(entity, 'from_', '')
-    const fromString = getFromString(from_)
-    const fromSchema = get(entity, 'schema', '')
-    const fromRef = fromSchema ? `${fromSchema}.${fromString}` : fromString;
+    const fromRef = get(entity, 'sql_table', '') || get(entity, 'name', '')
     const tableEntity = get(tableEntityMap, fromRef, {})
     if (!isEmpty(tableEntity)) {
       get(entity, 'dimensions', []).forEach((dimension: any) => {
@@ -92,7 +78,7 @@ export function filterTablesByCatalog(tables: FormattedTable[], catalog: object)
     return tables;
   }
   const catalogEntities = get(catalog, 'entities', []);
-  const catalogTableNames = new Set(catalogEntities.map((entity: any) => entity.from_));
+  const catalogTableNames = new Set(catalogEntities.map((entity: any) => entity.sql_table));
   return tables.filter(table => catalogTableNames.has(table.name));
 }
 
