@@ -27,7 +27,6 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const [isCreatingDashboardToCatalog, setIsCreatingDashboardToCatalog] = useState(false);
     const selectedCatalog: string = useSelector((state: RootState) => state.settings.selectedCatalog)
     const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs)
-    const defaultTableCatalog = useSelector((state: RootState) => state.settings.defaultTableCatalog)
     const currentUserId = useSelector((state: RootState) => state.auth.profile_id)
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
@@ -35,6 +34,16 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     // Enable to limit catalog visibility
     // const visibleCatalogs = viewAllCatalogs ? availableCatalogs : availableCatalogs.filter((catalog: ContextCatalog) => !catalog.origin || catalog.origin === origin)
     const visibleCatalogs = availableCatalogs
+    const defaultTableCatalog: ContextCatalog = {
+        type: 'manual',
+        name: DEFAULT_TABLES,
+        id: 'default',
+        content: {},
+        allowWrite: true,
+        origin,
+        dbName: toolContext.dbInfo.name,
+        dbId: toolContext.dbInfo.id || 0
+    }
     
     useEffect(() => {
         refreshMemberships(currentUserId)

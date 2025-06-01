@@ -94,7 +94,6 @@ interface Settings {
   drMode: boolean,
   selectedCatalog: string,
   availableCatalogs: ContextCatalog[],
-  defaultTableCatalog: ContextCatalog
   users: Record<string, UserInfo>
   groups: Record<string, UserGroup>
   groupsEnabled: boolean
@@ -126,16 +125,6 @@ const initialState: Settings = {
   drMode: true,
   selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
-  defaultTableCatalog: {
-    type: 'manual',
-    id: 'default',
-    name: DEFAULT_TABLES,
-    content: {},
-    dbName: '',
-    dbId: 0,
-    origin: '',
-    allowWrite: true
-  },
   users: {},
   groups: {},
   groupsEnabled: false,
@@ -201,13 +190,6 @@ export const settingsSlice = createSlice({
     },
     resetDefaultTablesDB(state, action: PayloadAction<{dbId: Number}>) {
       state.tableDiff.add = state.tableDiff.add.filter((t) => t.dbId != action.payload.dbId)
-      state.defaultTableCatalog.content = {
-        "tables": state.tableDiff.add.map((t) => {
-            return {
-                name: t.name
-            }
-        })
-      }
     },
     applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, tables: TableInfo[]}>) {
       const {actionType, tables} = action.payload
@@ -237,13 +219,6 @@ export const settingsSlice = createSlice({
           return !tablesToRemoveSet.has(tableKey);
         });
       }
-      
-      // Update catalog content once at the end
-      state.defaultTableCatalog.content = {
-        "tables": state.tableDiff.add.map((t) => ({
-          name: t.name
-        }))
-      };
     },
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
