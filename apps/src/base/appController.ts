@@ -61,6 +61,18 @@ export abstract class AppController<T> {
   talkToUser({ content }: { content: string }) {
     return this.respondToUser({ content });
   }
+
+  @Action({
+    labelRunning: "Responding to user",
+    labelDone: "Reply Sent",
+    description: "Responds to the user with the given content.",
+    renderBody: ({ content }: { content: string }) => {
+      return {text: null, code: null}
+    }
+  })
+  TalkToUser({ content }: { content: string }) {
+    return this.respondToUser({ content });
+  }
   
 
   // 1. Internal actions --------------------------------------------
