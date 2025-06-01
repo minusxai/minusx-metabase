@@ -157,7 +157,6 @@ export const FilteredTable = ({
   removeFn
 }: HierarchicalFilteredTableProps) => {
   const [search, setSearch] = useState("");
-  const [clicks, setClicks] = useState(0);
 
   const groupedData = useMemo(() => {
     return _.groupBy(data, 'schema');
@@ -193,7 +192,6 @@ export const FilteredTable = ({
     } else {
       removeFn([tableInfo]);
     }
-    setClicks(1);
   }, [addFn, removeFn, dbId]);
 
   const handleSchemaCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, schema: string) => {
@@ -214,7 +212,6 @@ export const FilteredTable = ({
       });
       removeFn(tables);
     }
-    setClicks(1);
   }, [addFn, removeFn, dbId, selectedSet]);
 
   const handleOverallCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,7 +231,6 @@ export const FilteredTable = ({
       );
       removeFn(selectedTables);
     }
-    setClicks(1);
   }, [addFn, removeFn, dbId, selectedSet, filteredGroupedData]);
 
   const totalFilteredTables = Object.values(filteredGroupedData).flat().length;
