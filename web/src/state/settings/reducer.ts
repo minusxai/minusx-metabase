@@ -1,8 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
-import { isEqual } from 'lodash'
-import { contains, ContextCatalog, MxModel } from '../../helpers/utils'
+import { ContextCatalog, MxModel } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
@@ -212,24 +211,39 @@ export const settingsSlice = createSlice({
     },
     applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, tables: TableInfo[]}>) {
       const {actionType, tables} = action.payload
-      for (const table of tables) {
-        if (actionType === 'add') {
-          if (!contains(state.tableDiff.add, table)) {
-            state.tableDiff.add.push(table)
-          }
-        } else if (actionType === 'remove') {
-          if (contains(state.tableDiff.add, table)) {
-            state.tableDiff.add = state.tableDiff.add.filter((t) => !isEqual(t, table))
+      
+      if (actionType === 'add') {
+        // Create a Set for O(1) lookups of existing tables
+        const existingTablesSet = new Set(
+          state.tableDiff.add.map(t => `${t.dbId}-${t.schema}-${t.name}`)
+        );
+        
+        // Only add tables that don't already exist
+        for (const table of tables) {
+          const tableKey = `${table.dbId}-${table.schema}-${table.name}`;
+          if (!existingTablesSet.has(tableKey)) {
+            state.tableDiff.add.push(table);
           }
         }
-        state.defaultTableCatalog.content = {
-          "tables": state.tableDiff.add.map((t) => {
-              return {
-                  name: t.name
-              }
-          })
-        }
-      } 
+      } else if (actionType === 'remove') {
+        // Create a Set for O(1) lookups of tables to remove
+        const tablesToRemoveSet = new Set(
+          tables.map(t => `${t.dbId}-${t.schema}-${t.name}`)
+        );
+        
+        // Filter out tables that should be removed
+        state.tableDiff.add = state.tableDiff.add.filter(t => {
+          const tableKey = `${t.dbId}-${t.schema}-${t.name}`;
+          return !tablesToRemoveSet.has(tableKey);
+        });
+      }
+      
+      // Update catalog content once at the end
+      state.defaultTableCatalog.content = {
+        "tables": state.tableDiff.add.map((t) => ({
+          name: t.name
+        }))
+      };
     },
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
