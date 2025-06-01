@@ -25,30 +25,30 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if (!whitelistQuery) {
       return
     }
-    subscribe(whitelistQuery, ({elements, url}) => {
-      const state = this.useStore().getState();
+    subscribe(whitelistQuery, async ({elements, url}) => {
+      const getState = this.useStore().getState
       const toolEnabledNew = shouldEnable(elements, url);
-      state.update((oldState) => ({
+      const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
+      getState().update((oldState) => ({
         ...oldState,
         isEnabled: toolEnabledNew,
-      }));
-      runStoreTasks(async (taskStatus) => {
-        const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
-        const dbId = await getSelectedDbId();
-        const currentToolContext = this.useStore().getState().toolContext
-        const oldDbId = get(currentToolContext, 'dbId')
-        const oldPageType = get(currentToolContext, 'pageType')
-        if (oldPageType != pageType) {
-          state.update((oldState) => ({
-            ...oldState,
-            toolContext: {
-              ...oldState.toolContext,
-              pageType,
-              dbId,
-            }
-          }))
+        toolContext: {
+          ...oldState.toolContext,
+          pageType
         }
-        if (dbId && dbId !== oldDbId) {
+      }));
+      const dbId = await getSelectedDbId();
+      const currentToolContext = getState().toolContext
+      const oldDbId = get(currentToolContext, 'dbId')
+      if (dbId && dbId !== oldDbId) {
+        getState().update((oldState) => ({
+          ...oldState,
+          toolContext: {
+            ...oldState.toolContext,
+            dbId
+          }
+        }))
+        runStoreTasks(async (taskStatus) => {
           state.update((oldState) => ({
             ...oldState,
             toolContext: {
@@ -72,8 +72,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           }))
           // Perf caching to fetch unique values
           relevantTables.forEach((table) => fetchTableData(table.id, true))
-        }
-      })
+        })
+      }
     })
     
     getCardsCountSplitByType().then(cardsCount => {

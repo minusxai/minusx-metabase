@@ -31,26 +31,25 @@ export async function handlePromise<T> (promise: Promise<T>, errMessage: string,
 }
 
 interface TaskStatus {
-  status: 'running' | 'cancelled'
+  status: 'running' | 'cancelled' | 'finished'
 }
 type TaskToRun = (t: TaskStatus) => Promise<void>;
 
 export function createRunner() {
-  let running = false;
   let nextTask: (TaskToRun) | null = null;
+  const taskStatus: TaskStatus = { status: 'finished' }
 
   async function run(task: TaskToRun): Promise<void> {
-    const taskStatus: TaskStatus = { status: 'running' }
-    if (running) {
+    if (taskStatus.status !== 'finished') {
       nextTask = task;
       taskStatus.status = 'cancelled'
       return;
     }
-    running = true;
+    taskStatus.status = 'running';
     try {
       await task(taskStatus);
     } finally {
-      running = false;
+      taskStatus.status = 'finished';
       if (nextTask) {
         const taskToRun = nextTask;
         nextTask = null;
