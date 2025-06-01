@@ -1,6 +1,6 @@
 import { BlankMessageContent, SemanticFilter, DefaultMessageContent, TimeDimension, Order } from "web/types";
 import { RPCs, configs } from "web";
-import { AppController, Action } from "../base/appController";
+import { AppController, Action, App } from "../base/appController";
 import {
   MetabaseAppState,
   MetabaseAppStateDashboard,
@@ -224,11 +224,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: null, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql, _client_type, _ctes = [] }: { sql: string, _client_type?: string, _ctes?: CTE[] }) {
-    if (_client_type === MetabaseAppStateType.SQLEditor) {
+  async ExecuteSQLClient({ sql, _ctes = [] }: { sql: string, _ctes?: CTE[] }) {
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const pageType = metabaseState.useStore().getState().toolContext?.pageType;
+    
+    if (pageType === 'sql') {
         return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
     }
-    else if (_client_type === MetabaseAppStateType.Dashboard) {
+    else if (pageType === 'dashboard') {
         return await this.runSQLQuery({ sql, ctes: _ctes });      
     }
   }
