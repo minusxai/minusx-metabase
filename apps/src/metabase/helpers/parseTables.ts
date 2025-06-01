@@ -3,6 +3,43 @@ import { memoize, RPCs, configs } from 'web'
 import { FormattedTable } from './types';
 import { deterministicSample } from '../../common/utils';
 
+// Wrapper around RPCs.fetchData with concurrency control
+const fetchDataQueue: (() => Promise<any>)[] = [];
+let activeFetches = 0;
+const MAX_CONCURRENT_FETCHES = 20;
+
+async function fetchDataWithConcurrency(url: string, method: string = 'GET'): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const fetchTask = async () => {
+      try {
+        activeFetches++;
+        const result = await RPCs.fetchData(url, method);
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      } finally {
+        activeFetches--;
+        processQueue();
+      }
+    };
+
+    if (activeFetches < MAX_CONCURRENT_FETCHES) {
+      fetchTask();
+    } else {
+      fetchDataQueue.push(fetchTask);
+    }
+  });
+}
+
+function processQueue() {
+  while (fetchDataQueue.length > 0 && activeFetches < MAX_CONCURRENT_FETCHES) {
+    const nextTask = fetchDataQueue.shift();
+    if (nextTask) {
+      nextTask();
+    }
+  }
+}
+
 export const extractTableInfo = (table: any, includeFields: boolean = false, schemaKey: string = 'schema'): FormattedTable => ({
   name: _.get(table, 'name', ''),
   ...(_.get(table, 'description', null) != null && { description: _.get(table, 'description', null) }),
@@ -30,7 +67,7 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
 })
 
 async function getUniqueValsFromField(fieldId: number) {
-  const resp: any = await RPCs.fetchData(`/api/field/${fieldId}/values`, 'GET');
+  const resp: any = await fetchDataWithConcurrency(`/api/field/${fieldId}/values`, 'GET');
   return resp
 }
 
@@ -52,25 +89,9 @@ function truncateUniqueValue(value: any): any {
   return value;
 }
 
-// Utility to limit concurrent promises
-async function limitConcurrency<T, R>(
-  items: T[],
-  asyncFn: (item: T) => Promise<R>,
-  concurrencyLimit: number = 5
-): Promise<R[]> {
-  const results: R[] = [];
-  
-  for (let i = 0; i < items.length; i += concurrencyLimit) {
-    const batch = items.slice(i, i + concurrencyLimit);
-    const batchResults = await Promise.all(batch.map(asyncFn));
-    results.push(...batchResults);
-  }
-  
-  return results;
-}
 
 const fetchTableMetadata = async (tableId: number) => {
-  const resp: any = await RPCs.fetchData(
+  const resp: any = await fetchDataWithConcurrency(
     `/api/table/${tableId}/query_metadata`,
     "GET"
   );
@@ -109,10 +130,8 @@ const fetchUniqueValues = async (tableInfo: FormattedTable, fieldsWithDistinctCo
   const fieldIds = fieldsToFetchUniqueValues.map((field) => field.id);
   const fieldIdUniqueValMapping: Record<number, any> = {}
   
-  // Use limited concurrency to avoid overwhelming the server
-  const uniqueValsResults = await limitConcurrency(
-    fieldIds,
-    async (fieldId) => {
+  const uniqueValsResults = await Promise.all(
+    fieldIds.map(async (fieldId) => {
       try {
         const uniqueVals = await getUniqueValsFromField(fieldId);
         return { fieldId, uniqueVals };
@@ -120,8 +139,7 @@ const fetchUniqueValues = async (tableInfo: FormattedTable, fieldsWithDistinctCo
         console.warn(`Failed to fetch unique values for field ${fieldId}:`, error);
         return { fieldId, uniqueVals: null };
       }
-    },
-    15 // Limit to 15 concurrent requests
+    })
   );
   
   // Map results back to fieldIdUniqueValMapping
