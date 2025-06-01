@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
-import { Text, Link, HStack, Button, Tabs, TabList, TabPanels, TabPanel, Tab, VStack} from "@chakra-ui/react";
+import { Text, Link, HStack, Button, Tabs, TabList, TabPanels, TabPanel, Tab, VStack, Spinner, Box} from "@chakra-ui/react";
 import { applyTableDiff, TableInfo, resetDefaultTablesDB } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
@@ -76,6 +76,15 @@ export const TablesCatalog: React.FC<null> = () => {
     resetRelevantTables(relevantTablesInfo, dbInfo.id)
   }
 
+  if (toolContext.loading) {
+    return (
+      <Box textAlign="center" py={8}>
+        <Spinner size="lg" color="minusxGreen.500" />
+        <Text mt={4} fontSize="md" color="gray.600">Loading catalog...</Text>
+      </Box>
+    )
+  }
+
   return <>
     <HStack w={"100%"} justify={"space-between"}>
         <VStack textAlign={"left"} alignItems={"flex-start"} justifyContent={"flex-start"} gap={0} m={0} p={0}>
@@ -100,7 +109,7 @@ export const TablesCatalog: React.FC<null> = () => {
         </VStack>
         {/* <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"}>[{validAddedTables.length} out of {allTables.length} tables selected]</Text> */}
     </HStack>
-    <Tabs isFitted variant='enclosed-colored' colorScheme="minusxGreen" mt={5}>
+    <Tabs isFitted variant='enclosed-colored' colorScheme="minusxGreen" mt={5} isLazy={true}>
         <TabList mb='1em'>
             <Tab><VStack gap={0} p={0} m={0}><Text>Catalog</Text><Text fontSize={"xs"} m={"-5px"}>[user editable]</Text></VStack></Tab>
             <Tab><VStack gap={0} p={0} m={0}><Text>Preview</Text><Text fontSize={"xs"} m={"-5px"}>[what MinusX sees]</Text></VStack></Tab>

@@ -30,29 +30,58 @@ export async function handlePromise<T> (promise: Promise<T>, errMessage: string,
   }
 }
 
-export function createRunner() {
-  let running = false;
-  let nextTask: (() => Promise<void>) | null = null;
+interface TaskStatus {
+  status: 'running' | 'cancelled' | 'finished'
+}
+type TaskToRun = (t: TaskStatus) => Promise<void>;
 
-  async function run(task: () => Promise<void>): Promise<void> {
-    if (running) {
+export function createRunner() {
+  let nextTask: (TaskToRun) | null = null;
+  const taskStatus: TaskStatus = { status: 'finished' }
+
+  async function run(task: TaskToRun): Promise<void> {
+    if (taskStatus.status !== 'finished') {
       nextTask = task;
+      taskStatus.status = 'cancelled'
       return;
     }
-    running = true;
-    try {
-      await task();
-    } finally {
-      running = false;
-      if (nextTask) {
-        const taskToRun = nextTask;
+    
+    let currentTask: TaskToRun | null = task;
+    while (currentTask) {
+      taskStatus.status = 'running';
+      try {
+        await currentTask(taskStatus);
+      } finally {
+        taskStatus.status = 'finished';
+        currentTask = nextTask;
         nextTask = null;
-        await run(taskToRun);
       }
     }
   }
 
   return run;
+}
+
+export function abortable<T>(promise: Promise<T>, isAborted: () => boolean): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const checkAbort = () => {
+      if (isAborted()) {
+        reject(new Error('Aborted due to status change'));
+      }
+    };
+
+    const interval = setInterval(checkAbort, 100); // Poll every 100ms
+
+    promise.then((result) => {
+      clearInterval(interval);
+      resolve(result);
+    }).catch((err) => {
+      clearInterval(interval);
+      reject(err);
+    });
+
+    checkAbort(); // in case it was already aborted
+  });
 }
 
 export const applyTableDiffs = (allTables: FormattedTable[], tableDiff: TableDiff, dbId: number, sqlTables: TableAndSchema[] = []) => {

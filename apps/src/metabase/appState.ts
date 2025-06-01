@@ -7,10 +7,10 @@ import { getDashboardPrimaryDbId, isDashboardPageUrl } from "./helpers/dashboard
 import { cloneDeep, get, isEmpty } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
-import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType } from "./helpers/getDatabaseSchema";
+import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, memoizedGetDatabaseInfo } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
-import { createRunner, handlePromise } from "../common/utils";
+import { abortable, createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
 import { fetchTableData } from "../package";
 const runStoreTasks = createRunner()
@@ -25,29 +25,30 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if (!whitelistQuery) {
       return
     }
-    subscribe(whitelistQuery, ({elements, url}) => {
-      const state = this.useStore().getState();
+    subscribe(whitelistQuery, async ({elements, url}) => {
+      const getState = this.useStore().getState
       const toolEnabledNew = shouldEnable(elements, url);
-      state.update((oldState) => ({
+      const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
+      getState().update((oldState) => ({
         ...oldState,
         isEnabled: toolEnabledNew,
-      }));
-      runStoreTasks(async () => {
-        const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
-        const dbId = await getSelectedDbId();
-        const currentToolContext = this.useStore().getState().toolContext
-        const oldDbId = get(currentToolContext, 'dbId')
-        const oldPageType = get(currentToolContext, 'pageType')
-        if (oldPageType != pageType) {
-          state.update((oldState) => ({
-            ...oldState,
-            toolContext: {
-              ...oldState.toolContext,
-              pageType
-            }
-          }))
+        toolContext: {
+          ...oldState.toolContext,
+          pageType
         }
-        if (dbId && dbId !== oldDbId) {
+      }));
+      const dbId = await getSelectedDbId();
+      const currentToolContext = getState().toolContext
+      const oldDbId = get(currentToolContext, 'dbId')
+      if (dbId && dbId !== oldDbId) {
+        getState().update((oldState) => ({
+          ...oldState,
+          toolContext: {
+            ...oldState.toolContext,
+            dbId
+          }
+        }))
+        runStoreTasks(async (taskStatus) => {
           state.update((oldState) => ({
             ...oldState,
             toolContext: {
@@ -55,25 +56,25 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
               loading: true
             }
           }))
+          const isCancelled = () => taskStatus.status === 'cancelled';
           const [relevantTables, dbInfo] = await Promise.all([
-            handlePromise(getRelevantTablesForSelectedDb(''), "Failed to get relevant tables", []),
-            handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database info", DB_INFO_DEFAULT)
+            handlePromise(abortable(getRelevantTablesForSelectedDb(''), isCancelled), "Failed to get relevant tables", []),
+            handlePromise(abortable(memoizedGetDatabaseTablesWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
           ])
           state.update((oldState) => ({
             ...oldState,
             toolContext: {
               ...oldState.toolContext,
-              pageType,
-              dbId,
               relevantTables,
               dbInfo,
               loading: false
             }
           }))
-          // Perf caching to fetch unique values
+          // Perf caching
           relevantTables.forEach((table) => fetchTableData(table.id, true))
-        }
-      })
+          memoizedGetDatabaseInfo(dbId)
+        })
+      }
     })
     
     getCardsCountSplitByType().then(cardsCount => {

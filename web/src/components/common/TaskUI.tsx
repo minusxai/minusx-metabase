@@ -92,24 +92,28 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const allTables = dbInfo.tables || []
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
-  const [isChanged, setIsChanged] = React.useState(false) 
+  const [isChangedByDb, setIsChangedByDb] = React.useState<Record<number, boolean>>({}) 
 
   useEffect(() => {
     dispatch(setupCollectionsAndModels())
   }, [])
 
   useEffect(() => {
-    if (!isEmpty(relevantTables)) {
-      if (isEmpty(validAddedTables) && !isChanged) {
+    const currentDbId = dbInfo.id
+    if (!isEmpty(relevantTables) && currentDbId) {
+      const isCurrentDbChanged = isChangedByDb[currentDbId] || false
+      
+      if (isEmpty(validAddedTables) && !isCurrentDbChanged) {
         resetRelevantTables(relevantTables.map(table => ({
           name: table.name,
           schema: table.schema,
-          dbId: dbInfo.id
-        })), dbInfo.id)
+          dbId: currentDbId
+        })), currentDbId)
       }
-      setIsChanged(true)
+      
+      setIsChangedByDb(prev => ({ ...prev, [currentDbId]: true }))
     }
-  }, [relevantTables])
+  }, [relevantTables, dbInfo.id])
 
   const debouncedSetInstruction = useCallback(
     _.debounce((instructions) => dispatch(setTaskInstructions(instructions)), 500),
