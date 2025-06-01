@@ -79,6 +79,8 @@ MinusX is organized as a yarn workspace monorepo with 3 main packages:
 ### Development Best Practices
 - **Concurrency Control**: Batch API calls to prevent resource exhaustion when fetching data for multiple entities
 - **Settings Pattern**: New settings require updates in reducer, settings UI, and `appSettings.ts` for cross-workspace access
+- **Code Reuse**: When implementing similar logic in multiple places, extract reusable functions to shared modules rather than duplicating code
+- **Template Tag Handling**: Metabase template tags (model references like `{{#1-model_name}}` and snippets like `{{snippet: name}}`) require proper template tag definitions in the `dataset_query.native.template-tags` object to avoid "missing required parameters" errors when generating URLs
 
 ## Important File Locations
 - Metabase controller: `apps/src/metabase/appController.ts`
