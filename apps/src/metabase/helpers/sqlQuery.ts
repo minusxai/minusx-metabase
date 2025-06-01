@@ -145,3 +145,9 @@ export const getModelsInQuery = (query: string) => {
   // convert to dictionary with name as key
   return Object.fromEntries(tags.map(tag => [tag.name, tag]))
 }
+
+export const getAllTemplateTagsInQuery = (query: string, allSnippets?: MetabaseStateSnippetsDict) => {
+  const snippetTags = allSnippets ? getSnippetsInQuery(query, allSnippets) : {};
+  const modelTags = getModelsInQuery(query);
+  return { ...snippetTags, ...modelTags };
+}

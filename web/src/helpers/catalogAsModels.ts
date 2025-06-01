@@ -329,8 +329,6 @@ export function processSQLWithCtesOrModels(
 ): string {
   const state = getState();
   
-  console.log('processSQLWithCtesOrModels - state.cache.mxModels:', state.cache.mxModels);
-  
   const selectedCatalog = find(state.settings.availableCatalogs, { name: state.settings.selectedCatalog });
   const modelsMode = state.settings.modelsMode;
   const mxModels = state.cache.mxModels;

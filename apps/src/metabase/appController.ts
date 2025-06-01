@@ -38,7 +38,8 @@ import {
   SnippetTemplateTag,
   MetabaseStateSnippetsDict,
   getSnippetsInQuery,
-  getModelsInQuery
+  getModelsInQuery,
+  getAllTemplateTagsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
@@ -76,8 +77,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
-    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
-    const modelTemplateTags = getModelsInQuery(sql)
+    const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {
@@ -92,8 +92,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const existingParameters = currentCard.parameters;
     const templateTags = {
       ...getTemplateTagsForVars(varsAndUuids, existingTemplateTags || {}),
-      ...snippetTemplateTags,
-      ...modelTemplateTags
+      ...allTemplateTags
     }
     const parameters = getParameters(varsAndUuids, existingParameters || []);
     currentCard.dataset_query.native['template-tags'] = templateTags;
@@ -128,18 +127,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
-    const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
-    const modelTemplateTags = getModelsInQuery(sql)
+    const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
       actionContent.content = "No database selected";
       return actionContent;
     }
-    const response = await runSQLQueryFromDashboard(sql, dbID, {
-      ...snippetTemplateTags,
-      ...modelTemplateTags
-    });
+    const response = await runSQLQueryFromDashboard(sql, dbID, allTemplateTags);
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {

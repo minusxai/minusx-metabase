@@ -10,6 +10,7 @@ import { renderString } from '../../helpers/templatize'
 import { getOrigin } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
+import { getAllTemplateTagsInQuery } from 'apps'
 
 function LinkRenderer(props: any) {
   return (
@@ -63,13 +64,16 @@ function ImageComponent(props: any) {
 }
 
 function generateMetabaseQuestionURL(origin: string, sql: string, databaseId: number | null = null) {
+  // Get all template tags in the query (we don't have access to snippets here, so pass undefined)
+  const templateTags = getAllTemplateTagsInQuery(sql);
+  
   const cardData = {
     "dataset_query": {
       "database": databaseId,
       "type": "native",
       "native": {
         "query": sql,
-        "template-tags": {}
+        "template-tags": templateTags
       }
     },
     "display": "table",
@@ -136,7 +140,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
         const lastSQL = messageIndex !== undefined 
           ? extractLastSQLFromMessages(currentThread?.messages || [], messageIndex)
           : null;
-        console.log('Content includes', content.includes('{{MX_LAST_SQL_URL}}'), lastSQL, 'messageIndex:', messageIndex)
         
         if (lastSQL) {
           // Get Metabase origin from iframe info
@@ -145,7 +148,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
           // Get current database ID from app state
           const databaseId = toolContext?.dbId || null;
           
-          console.log('Origin', origin, lastSQL, databaseId)
           const questionURL = generateMetabaseQuestionURL(metabaseOrigin, lastSQL, databaseId);
           
           return renderString(content, {
