@@ -74,9 +74,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const settings = RPCs.getAppSettings()
-    const cache = RPCs.getCache()
-    sql = processSQLWithCtesOrModels(sql, ctes, settings, cache);
+    sql = processSQLWithCtesOrModels(sql, ctes);
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
     const modelTemplateTags = getModelsInQuery(sql)
@@ -128,9 +126,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const settings = RPCs.getAppSettings()
-    const cache = RPCs.getCache()
-    sql = processSQLWithCtesOrModels(sql, ctes, settings, cache);
+    sql = processSQLWithCtesOrModels(sql, ctes);
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
     const modelTemplateTags = getModelsInQuery(sql)

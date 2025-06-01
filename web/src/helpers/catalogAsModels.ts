@@ -3,6 +3,7 @@ import { fetchData } from "../app/rpc";
 import { ContextCatalog, MxModel } from './utils';
 import slugg from "slugg";
 import { getParsedIframeInfo } from "./origin";
+import { getState } from "../state/store";
 
 export type AllSnippetsResponse = {
   name: string;
@@ -324,19 +325,21 @@ export function addCtesToQuery(ctes: [string, string][], sql: string): string {
 // Process SQL with either CTEs or Metabase models
 export function processSQLWithCtesOrModels(
   sql: string,
-  ctes: [string, string][],
-  settings: any,
-  cache: any
+  ctes: [string, string][]
 ): string {
-  const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog });
-  const modelsMode = settings.modelsMode;
+  const state = getState();
   
-  if (!modelsMode || (selectedCatalog && !canUseModelsModeForCatalog(selectedCatalog, cache.mxModels))) {
+  console.log('processSQLWithCtesOrModels - state.cache.mxModels:', state.cache.mxModels);
+  
+  const selectedCatalog = find(state.settings.availableCatalogs, { name: state.settings.selectedCatalog });
+  const modelsMode = state.settings.modelsMode;
+  const mxModels = state.cache.mxModels;
+  
+  if (!modelsMode || (selectedCatalog && !canUseModelsModeForCatalog(selectedCatalog, mxModels))) {
     sql = addCtesToQuery(ctes, sql);
   } else {
     // for entities for which snippets were created, replace entity.name with their snippet identifier
     if (selectedCatalog) {
-      const mxModels = cache.mxModels;
       sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels);
     }
   }

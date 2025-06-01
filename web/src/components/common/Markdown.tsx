@@ -10,7 +10,6 @@ import { renderString } from '../../helpers/templatize'
 import { getOrigin } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
-import { getAppSettings, getCache } from '../../app/appSettings'
 
 function LinkRenderer(props: any) {
   return (
@@ -98,11 +97,9 @@ function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number
             const args = JSON.parse(toolCall.function.arguments);
             if (args.sql) {
               // Use the same logic as in the controller to process SQL + CTEs
-              const settings = getAppSettings();
-              const cache = getCache();
               const ctes: [string, string][] = args._ctes || args.ctes || [];
               
-              return processSQLWithCtesOrModels(args.sql, ctes, settings, cache);
+              return processSQLWithCtesOrModels(args.sql, ctes);
             }
           } catch (e) {
             // Ignore parsing errors
@@ -122,6 +119,14 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   );
   
   const toolContext = useAppStore((state) => state.toolContext);
+  
+  // Get settings and cache for dependencies
+  const settings = useSelector((state: RootState) => ({
+    selectedCatalog: state.settings.selectedCatalog,
+    availableCatalogs: state.settings.availableCatalogs,
+    modelsMode: state.settings.modelsMode
+  }));
+  const mxModels = useSelector((state: RootState) => state.cache.mxModels);
   
   // Process template variables like {{MX_LAST_SQL_URL}}
   const processedContent = React.useMemo(() => {
@@ -153,7 +158,7 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
     }
     
     return content;
-  }, [content, currentThread?.messages, toolContext?.dbId, messageIndex]);
+  }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
   return (
     <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre}}>{processedContent}</MarkdownComponent>
