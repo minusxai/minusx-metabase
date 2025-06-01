@@ -1,7 +1,7 @@
 import { getCache, setCache } from "./indexedDb"
 
-// Default TTL set to 5 days (5 days * 24 hours * 60 minutes * 60 seconds)
-export const DEFAULT_TTL = 5 * 24 * 60 * 60;
+// Default TTL set to 7 days (7 days * 24 hours * 60 minutes * 60 seconds)
+export const DEFAULT_TTL = 7 * 24 * 60 * 60;
 // Default rewarm TTL set to 12 hours
 export const DEFAULT_REWARM_TTL = 12 * 60 * 60;
 
