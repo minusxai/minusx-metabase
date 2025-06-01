@@ -30,18 +30,25 @@ export async function handlePromise<T> (promise: Promise<T>, errMessage: string,
   }
 }
 
+interface TaskStatus {
+  status: 'running' | 'cancelled'
+}
+type TaskToRun = (t: TaskStatus) => Promise<void>;
+
 export function createRunner() {
   let running = false;
-  let nextTask: (() => Promise<void>) | null = null;
+  let nextTask: (TaskToRun) | null = null;
 
-  async function run(task: () => Promise<void>): Promise<void> {
+  async function run(task: TaskToRun): Promise<void> {
+    const taskStatus: TaskStatus = { status: 'running' }
     if (running) {
       nextTask = task;
+      taskStatus.status = 'cancelled'
       return;
     }
     running = true;
     try {
-      await task();
+      await task(taskStatus);
     } finally {
       running = false;
       if (nextTask) {
@@ -53,6 +60,28 @@ export function createRunner() {
   }
 
   return run;
+}
+
+export function abortable<T>(promise: Promise<T>, isAborted: () => boolean): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const checkAbort = () => {
+      if (isAborted()) {
+        reject(new Error('Aborted due to status change'));
+      }
+    };
+
+    const interval = setInterval(checkAbort, 100); // Poll every 100ms
+
+    promise.then((result) => {
+      clearInterval(interval);
+      resolve(result);
+    }).catch((err) => {
+      clearInterval(interval);
+      reject(err);
+    });
+
+    checkAbort(); // in case it was already aborted
+  });
 }
 
 export const applyTableDiffs = (allTables: FormattedTable[], tableDiff: TableDiff, dbId: number, sqlTables: TableAndSchema[] = []) => {

@@ -10,7 +10,7 @@ import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
-import { createRunner, handlePromise } from "../common/utils";
+import { abortable, createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
 import { fetchTableData } from "../package";
 const runStoreTasks = createRunner()
@@ -32,7 +32,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         ...oldState,
         isEnabled: toolEnabledNew,
       }));
-      runStoreTasks(async () => {
+      runStoreTasks(async (taskStatus) => {
         const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
         const dbId = await getSelectedDbId();
         const currentToolContext = this.useStore().getState().toolContext
@@ -43,7 +43,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
             ...oldState,
             toolContext: {
               ...oldState.toolContext,
-              pageType
+              pageType,
+              dbId,
             }
           }))
         }
@@ -55,16 +56,15 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
               loading: true
             }
           }))
+          const isCancelled = () => taskStatus.status === 'cancelled';
           const [relevantTables, dbInfo] = await Promise.all([
-            handlePromise(getRelevantTablesForSelectedDb(''), "Failed to get relevant tables", []),
-            handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database info", DB_INFO_DEFAULT)
+            handlePromise(abortable(getRelevantTablesForSelectedDb(''), isCancelled), "Failed to get relevant tables", []),
+            handlePromise(abortable(memoizedGetDatabaseTablesWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
           ])
           state.update((oldState) => ({
             ...oldState,
             toolContext: {
               ...oldState.toolContext,
-              pageType,
-              dbId,
               relevantTables,
               dbInfo,
               loading: false
