@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react"
 import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
-import { Text, Link, HStack, Button, Tabs, TabList, TabPanels, TabPanel, Tab, VStack} from "@chakra-ui/react";
+import { Text, Link, HStack, Button, Tabs, TabList, TabPanels, TabPanel, Tab, VStack, Spinner, Box} from "@chakra-ui/react";
 import { applyTableDiff, TableInfo, resetDefaultTablesDB } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
@@ -74,6 +74,15 @@ export const TablesCatalog: React.FC<null> = () => {
       dbId: dbInfo.id
     }))
     resetRelevantTables(relevantTablesInfo, dbInfo.id)
+  }
+
+  if (toolContext.loading) {
+    return (
+      <Box textAlign="center" py={8}>
+        <Spinner size="lg" color="minusxGreen.500" />
+        <Text mt={4} fontSize="md" color="gray.600">Loading catalog...</Text>
+      </Box>
+    )
   }
 
   return <>
