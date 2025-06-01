@@ -4,6 +4,11 @@ import remarkGfm from 'remark-gfm'
 import './ChatContent.css'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { Image } from "@chakra-ui/react"
+import { useSelector } from 'react-redux'
+import { RootState } from '../../state/store'
+import { renderString } from '../../helpers/templatize'
+import { getOrigin } from '../../helpers/origin'
+import { getApp } from '../../helpers/app'
 
 function LinkRenderer(props: any) {
   return (
@@ -56,8 +61,94 @@ function ImageComponent(props: any) {
   return <ZoomableImage src={props.src} alt={props.alt}/>
 }
 
-export function Markdown({content}: {content: string}) {
+function generateMetabaseQuestionURL(origin: string, sql: string, databaseId: number | null = null) {
+  const cardData = {
+    "dataset_query": {
+      "database": databaseId,
+      "type": "native",
+      "native": {
+        "query": sql,
+        "template-tags": {}
+      }
+    },
+    "display": "table",
+    "parameters": [],
+    "visualization_settings": {},
+    "type": "question"
+  };
+  
+  const hash = btoa(JSON.stringify(cardData));
+  return `${origin}/question#${hash}`;
+}
+
+function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number): string | null {
+  // Look backwards from the message before the current one
+  for (let i = currentMessageIndex - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message.role === 'assistant' && message.content?.toolCalls) {
+      // Check tool calls in assistant messages
+      for (let j = message.content.toolCalls.length - 1; j >= 0; j--) {
+        const toolCall = message.content.toolCalls[j];
+        if (toolCall.function?.name === 'ExecuteSQLClient' || 
+            toolCall.function?.name === 'updateSQLQuery' || 
+            toolCall.function?.name === 'runSQLQuery') {
+          try {
+            const args = JSON.parse(toolCall.function.arguments);
+            if (args.sql) {
+              return args.sql;
+            }
+          } catch (e) {
+            // Ignore parsing errors
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+const useAppStore = getApp().useStore();
+
+export function Markdown({content, messageIndex}: {content: string, messageIndex?: number}) {
+  const currentThread = useSelector((state: RootState) => 
+    state.chat.threads[state.chat.activeThread]
+  );
+  
+  const toolContext = useAppStore((state) => state.toolContext);
+  
+  // Process template variables like {{MX_LAST_SQL_URL}}
+  const processedContent = React.useMemo(() => {
+    if (content.includes('{{MX_LAST_SQL_URL}}')) {
+      try {
+        // Extract last SQL from messages before the current message
+        const lastSQL = messageIndex !== undefined 
+          ? extractLastSQLFromMessages(currentThread?.messages || [], messageIndex)
+          : null;
+        console.log('Content includes', content.includes('{{MX_LAST_SQL_URL}}'), lastSQL, 'messageIndex:', messageIndex)
+        
+        if (lastSQL) {
+          // Get Metabase origin from iframe info
+          const metabaseOrigin = getOrigin();
+          
+          // Get current database ID from app state
+          const databaseId = toolContext?.dbId || null;
+          
+          console.log('Origin', origin, lastSQL, databaseId)
+          const questionURL = generateMetabaseQuestionURL(metabaseOrigin, lastSQL, databaseId);
+          
+          return renderString(content, {
+            'MX_LAST_SQL_URL': questionURL
+          });
+        }
+      } catch (error) {
+        console.warn('Failed to generate MX_LAST_SQL_URL:', error);
+      }
+    }
+    
+    return content;
+  }, [content, currentThread?.messages, toolContext?.dbId, messageIndex]);
+
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre}}>{content}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre}}>{processedContent}</MarkdownComponent>
   )
 }

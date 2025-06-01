@@ -2,8 +2,9 @@ import React from 'react';
 import { ChatMessageContent } from '../../state/chat/reducer'
 import { Markdown } from './Markdown';
 
-export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
-  content
+export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: number}> = ({
+  content,
+  messageIndex
 }) => {
   if (content.type == 'DEFAULT') {
     return (
@@ -11,7 +12,7 @@ export const ChatContent: React.FC<{content: ChatMessageContent}> = ({
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
-        <Markdown content={content.text} />
+        <Markdown content={content.text} messageIndex={messageIndex} />
       </div>
     )
   } else {
