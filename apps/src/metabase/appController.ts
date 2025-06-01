@@ -17,7 +17,7 @@ import {
 import {
   searchTables,
 } from "./helpers/getDatabaseSchema";
-import { find, get, isEmpty, map, set, truncate } from "lodash";
+import { get, isEmpty, map, set, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -45,10 +45,7 @@ import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
 import { fetchTableData } from "./helpers/parseTables";
-import { catalogAsModels } from "web";
-import { canUseModelsModeForCatalog } from "../../../web/src/helpers/catalogAsModels";
-
-const {replaceEntityNamesInSqlWithModels} = catalogAsModels
+import { processSQLWithCtesOrModels } from "web";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
@@ -60,29 +57,6 @@ type AllSnippetsResponse = {
   id: number;
 }
 
-function addCtesToQuery(
-  ctes: CTE[],
-  sql: string
-): string {
-  if (ctes.length === 0) {
-    return sql;
-  }
-
-  const pattern = /^\s*(?:--[^\n]*\n\s*)*(WITH)\b/i;
-  const match = sql.match(pattern);
-  const cteClauses = ctes.map(
-    ([name, query]) => `${name} AS (\n${query.trim()}\n)`
-  );
-
-  if (!match) {
-    const cteBlock = "WITH " + cteClauses.join(",\n");
-    return `${cteBlock}\n${sql.trim()}`;
-  } else {
-    const insertAt = match.index! + match[1].length;
-    const injected = " " + cteClauses.join(",\n") + ",";
-    return sql.slice(0, insertAt) + injected + sql.slice(insertAt);
-  }
-}
 
 
 export class MetabaseController extends AppController<MetabaseAppState> {
@@ -102,17 +76,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     const settings = RPCs.getAppSettings()
     const cache = RPCs.getCache()
-    const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
-    const modelsMode = settings.modelsMode
-    if (!modelsMode || (selectedCatalog && !canUseModelsModeForCatalog(selectedCatalog, cache.mxModels))) {
-      sql = addCtesToQuery(ctes, sql);
-    } else {
-      // for entities for which snippets were created, replace entity.name with their snippet identifier
-      if (selectedCatalog) {
-        const mxModels = cache.mxModels
-        sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
-      }
-    }
+    sql = processSQLWithCtesOrModels(sql, ctes, settings, cache);
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
     const modelTemplateTags = getModelsInQuery(sql)
@@ -166,17 +130,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     const settings = RPCs.getAppSettings()
     const cache = RPCs.getCache()
-    const modelsMode = settings.modelsMode
-    const selectedCatalog = find(settings.availableCatalogs, { name: settings.selectedCatalog })
-    if (!modelsMode || (selectedCatalog && !canUseModelsModeForCatalog(selectedCatalog, cache.mxModels))) {
-      sql = addCtesToQuery(ctes, sql);
-    } else {
-      // for entities for which snippets were created, replace entity.name with their snippet identifier
-      if (selectedCatalog) {
-        const mxModels = cache.mxModels
-        sql = replaceEntityNamesInSqlWithModels(sql, selectedCatalog, mxModels)
-      }
-    }
+    sql = processSQLWithCtesOrModels(sql, ctes, settings, cache);
     const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
     const snippetTemplateTags = getSnippetsInQuery(sql, allSnippetsDict)
     const modelTemplateTags = getModelsInQuery(sql)

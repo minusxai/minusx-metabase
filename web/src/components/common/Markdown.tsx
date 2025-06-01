@@ -9,6 +9,8 @@ import { RootState } from '../../state/store'
 import { renderString } from '../../helpers/templatize'
 import { getOrigin } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
+import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
+import { getAppSettings, getCache } from '../../app/appSettings'
 
 function LinkRenderer(props: any) {
   return (
@@ -95,7 +97,12 @@ function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number
           try {
             const args = JSON.parse(toolCall.function.arguments);
             if (args.sql) {
-              return args.sql;
+              // Use the same logic as in the controller to process SQL + CTEs
+              const settings = getAppSettings();
+              const cache = getCache();
+              const ctes: [string, string][] = args._ctes || args.ctes || [];
+              
+              return processSQLWithCtesOrModels(args.sql, ctes, settings, cache);
             }
           } catch (e) {
             // Ignore parsing errors
