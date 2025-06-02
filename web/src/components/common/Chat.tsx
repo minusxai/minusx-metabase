@@ -96,7 +96,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           className={'bubble'}
           bg={role == 'user' ? 'minusxBW.300' : 'minusxGreen.800'}
           // bg={role == 'user' ? 'minusxBW.300' : 'minusxBW.600'}
-          padding={3}
+          px={3} py={2}
           borderRadius={role == 'user' ? '10px 10px 0 10px' : '10px 10px 10px 0'}
           color={role == 'user' ? 'minusxBW.900' : 'minusxBW.50'}
           position="relative"
