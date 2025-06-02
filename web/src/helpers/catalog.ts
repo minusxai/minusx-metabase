@@ -21,16 +21,11 @@ interface Metric {
   description?: string;
 }
 
-interface From_ {
-  sql: string;
-  alias: string;
-}
-
 interface Entity {
   name: string;
   description?: string;
-  from_?: From_ | string;
-  schema?: string;
+  sql?: string;
+  sql_table?: string;
   joins?: EntityJoin[];
   dimensions?: Dimension[];
   metrics?: Metric[];
@@ -70,20 +65,8 @@ export const dataModelSchema = {
         properties: {
           name: { type: "string" },
           description: { type: "string" },
-          schema: { type: "string" },
-          from_: {
-            anyOf: [
-              { type: "string" },
-              {
-                type: "object",
-                properties: {
-                  sql: { type: "string" },
-                  alias: { type: "string" }
-                },
-                required: ["sql", "alias"]
-              }
-            ]
-          },
+          sql: { type: "string" },
+          sql_table: { type: "string" },
           joins: {
             type: "array",
             items: {
@@ -148,7 +131,6 @@ export function createSchemaFromDataModel(dataModel: DataModel): Schema {
 
     return {
       name: entity.name,
-      schema: entity.schema,
       description: entity.description,
       columns,
       metrics,

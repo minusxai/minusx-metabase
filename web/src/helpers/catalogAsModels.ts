@@ -145,14 +145,15 @@ export const replaceEntityNamesInSqlWithModels = (sql: string, catalog: ContextC
         continue
       }
       const fullModelIdentifier = "{{" + getTemplateIdentifierForModel(model) + "}}"
-      const pattern = new RegExp(`(?<!\\w)${entity.name}(?!\\w)`, 'g');
+      // it will always be referred to by minusx.entityName
+      const pattern = new RegExp(`(?<!\\w)minusx\.${entity.name}(?!\\w)`, 'g');
       sql = sql.replace(pattern, fullModelIdentifier)
     }
   }
   return sql
 }
 
-// replace {{#modelId-slug}} with entity.name for the entity
+// replace {{#modelId-slug}} with minusx.${entity.name} for the entity
 export function modifySqlForMxModels(sql: string, entities: Entity[], catalogName: string, mxModels: MxModel[]) {
   for (const entity of entities) {
     if (doesEntityRequireModel(entity)) {
@@ -163,7 +164,7 @@ export function modifySqlForMxModels(sql: string, entities: Entity[], catalogNam
         continue
       }
       const templateIdentifier = getTemplateIdentifierForModel(model)
-      sql = sql.replace(new RegExp(`{{\\s*${templateIdentifier}\\s*}}`, 'g'), entity.name)
+      sql = sql.replace(new RegExp(`{{\\s*${templateIdentifier}\\s*}}`, 'g'), 'minusx.' + entity.name)
     } else {
     }
   }
@@ -231,7 +232,7 @@ export const createOrUpdateModelsForCatalog = async (mxCollectionId: number, all
   const entities: Entity[] = get(contextCatalog, 'content.entities', [])
   // check if origin matches the context catalog
   if (!doesCatalogOriginMatch(contextCatalog)) {
-    console.warn(`[minusx] Catalog origin ${contextCatalog.origin} does not match iframe origin ${origin}`)
+    console.warn(`[minusx] Catalog origin ${contextCatalog.origin} does not match iframe origin ${getParsedIframeInfo().origin}`)
     return
   }
   for (const entity of entities) {

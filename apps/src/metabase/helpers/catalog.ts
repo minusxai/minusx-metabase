@@ -7,8 +7,8 @@ const createCatalogFromTables = (tables: FormattedTable[], enableUnique = false)
       const { name, columns, schema } = table;
       return {
         name,
+        sql_table: schema + '.' + name,
         description: table.description,
-        schema,
         dimensions: map(columns, (column) => {
           const newDim = {
             name: column.name,
