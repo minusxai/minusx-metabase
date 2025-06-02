@@ -32,7 +32,7 @@ configureMonacoYaml(monaco, {
         {
             uri: schema_uri,
             fileMatch: ['*'],
-            schema: dataModelSchema
+            // schema: dataModelSchema
         }
     ]
 });
