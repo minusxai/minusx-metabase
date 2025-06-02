@@ -13,6 +13,7 @@ import billing from './billing/reducer'
 import semanticLayer from './semantic-layer/reducer'
 import { catalogsListener } from './settings/availableCatalogsListener'
 import cache from './cache/reducer'
+import { get } from 'lodash'
 
 const combinedReducer = combineReducers({
   chat,
@@ -359,8 +360,27 @@ const migrations = {
     return newState
   },
   32: (state: RootState) => {
+    // migrate all catalogs to remove from_ field
+    // and replace with sql or sql_table
     let newState = {...state}
-    newState.settings.modelsMode = true
+    let newCatalogs = newState.settings.availableCatalogs.map((catalog: any) => {
+      let entities = get(catalog, 'content.entities', [])
+      entities = entities.map((entity: any) => {
+        let from_ = get(entity, 'from_')
+        if (from_) {
+          if (typeof from_ === 'string') {
+            entity.sql_table = from_
+          } else {
+            entity.sql = get(from_, 'sql', '')
+          }
+          delete entity.from_
+        }
+        return entity
+      })
+      catalog.content.entities = entities
+      return catalog
+    })
+    newState.settings.availableCatalogs = newCatalogs
     return newState
   }
 }

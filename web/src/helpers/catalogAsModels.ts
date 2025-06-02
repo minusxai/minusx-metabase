@@ -119,10 +119,8 @@ const updateModel = async (updateParams: MxModelsUpdateParams, modelId: number) 
 
 export type Entity = {
   name: string;
-  from_: string | {
-    sql: string;
-    // dont care about alias, just catalogName_entityName
-  }
+  sql?: string;
+  sql_table?: string;
   dimensions: {
     name: string;
     type: string;
@@ -174,15 +172,18 @@ export function modifySqlForMxModels(sql: string, entities: Entity[], catalogNam
 
 
 export const doesEntityRequireModel = (entity: Entity) => {
-  if (typeof entity.from_ == 'string') {
+  if (entity.sql) {
+    return true
+  }
+  if (entity.sql_table) {
     // check if there's any sql dimension
     for (const dimension of entity.dimensions) {
       if (dimension.sql) {
         return true
       }
     }
-    // check if name matches from_; if it doesn't we still need a model
-    if (entity.name != entity.from_) {
+    // check if name matches sql_table; if it doesn't we still need a model
+    if (entity.name != entity.sql_table) {
       return true
     }
     return false
@@ -203,12 +204,14 @@ const getModelDefinitionForEntity = (entity: Entity) => {
     return ""
   }
   let baseSubquery = ""
-  if (typeof entity.from_ == 'string') {
-    baseSubquery = `WITH base as (SELECT * from ${entity.from_})\n`
-  } else {
+  if (entity.sql_table) {
+    baseSubquery = `WITH base as (SELECT * from ${entity.sql_table})\n`
+  } else if (entity.sql){
     // remove trailing semicolon, and any trailing spaces
-    const sqlWithoutTrailingSemicolon = entity.from_.sql.replace(/\s+$/, '').replace(/;$/, '')
+    const sqlWithoutTrailingSemicolon = entity.sql.replace(/\s+$/, '').replace(/;$/, '')
     baseSubquery = `WITH base as (${sqlWithoutTrailingSemicolon})\n`
+  } else {
+    throw new Error("Entity has neither sql nor sql_table")
   }
   let selectQuery = "SELECT\n"
   for (const dimension of entity.dimensions) {
