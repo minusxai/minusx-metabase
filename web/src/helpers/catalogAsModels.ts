@@ -132,7 +132,12 @@ export type Entity = {
 export const getTemplateIdentifierForModel = (model: MxModel) => {
   return `#${model.id}-${getSlugForModelName(model.name)}`
 }
-
+const replaceEntityPatternWithModelIdentifier = (sql: string, entityName: string, modelIdentifier: string) => {
+  // it will always be referred to by minusx.${entityName} or "minusx"."${entityName}"
+  // should replace wither of these patterns with the full model identifier
+  const pattern = new RegExp(`(?<!\\w)(minusx\\.${entityName})|("minusx"\\."${entityName}")(?!\\w)`, 'g');
+  return sql.replace(pattern, modelIdentifier)
+}
 export const replaceEntityNamesInSqlWithModels = (sql: string, catalog: ContextCatalog, mxModels: MxModel[]) => {
   const entities: Entity[] = get(catalog, 'content.entities', [])
   for (const entity of entities) {
@@ -145,9 +150,7 @@ export const replaceEntityNamesInSqlWithModels = (sql: string, catalog: ContextC
         continue
       }
       const fullModelIdentifier = "{{" + getTemplateIdentifierForModel(model) + "}}"
-      // it will always be referred to by minusx.entityName
-      const pattern = new RegExp(`(?<!\\w)minusx\.${entity.name}(?!\\w)`, 'g');
-      sql = sql.replace(pattern, fullModelIdentifier)
+      sql = replaceEntityPatternWithModelIdentifier(sql, entity.name, fullModelIdentifier)
     }
   }
   return sql
