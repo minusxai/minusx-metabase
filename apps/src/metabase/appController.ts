@@ -164,12 +164,12 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Executes the SQL query",
     labelDone: "Executed query",
     description: "Executes the SQL query in the Metabase SQL editor.",
-    renderBody: ({ sql }: { sql: string }, appState: MetabaseAppStateSQLEditor) => {
+    renderBody: ({ sql, explanation }: { sql: string, explanation: string }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
-      return {text: null, code: sql, oldCode: sqlQuery, language: "sql"}
+      return {text: explanation, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql, _ctes = [] }: { sql: string, _ctes?: CTE[] }) {
+  async ExecuteSQLClient({ sql, _ctes = [], explanation = "" }: { sql: string, _ctes?: CTE[], explanation?: string }) {
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     
@@ -253,7 +253,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelDone: "Plotted data",
     description: "Plots the data in the SQL editor using the given visualization type.",
     renderBody: ({ visualization_type, dimensions, metrics}: { visualization_type: VisualizationType, dimensions?: string[], metrics?: string[] }) => {
-      return {text: `plot: ${visualization_type}`, code: JSON.stringify({dimensions, metrics})}
+    //   return {text: `plot: ${visualization_type}`, code: JSON.stringify({dimensions, metrics})}
+      return {text: null, code: JSON.stringify({dimensions, metrics})}
     }
   })
   async setVisualizationType({
