@@ -60,6 +60,10 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     title = [...new Set(titles)].join(', ')
 
   }
+  let preExpanderText = actions.map(action => {
+    const { text } = action.renderInfo || {}
+    return text || ''
+  }).filter(text => text !== '').join(', ')
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
@@ -91,23 +95,32 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         </>}
         <HStack
           // add border only if actions are present
-          paddingBottom={actions.length && isExpanded ? 1 : 0}
-          marginBottom={actions.length && isExpanded ? 1 : 0}
+        //   paddingBottom={actions.length && isExpanded ? 1 : 0}
+          p={0}
+        >
+          <VStack alignItems={"start"} flex={1} spacing={0}>
+            {preExpanderText !== '' && <Text marginBottom={2} borderBottomWidth={1} p={2} w={"100%"}>{preExpanderText}</Text>
+            }
+            <HStack
+              paddingBottom={actions.length && isExpanded ? 1 : 0}
+            marginBottom={actions.length && isExpanded ? 1 : 0}
           borderBottomWidth={ actions.length && isExpanded ? '1px' : '0px'}
           borderBottomColor={'minusxBW.50'}
           // borderBottomColor={'minusxGreen.800'}
           justifyContent={'space-between'}
           onClick={toggleExpand} cursor={"pointer"}
-        >
-          <HStack>
-            {isExpanded ? <BsChevronDown strokeWidth={1}/> : <BsChevronRight strokeWidth={1}/>}
-            <Box flex={5}>
-              <Text>{title}</Text>
-            </Box>
-            { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
-          </HStack>
-          { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
-          
+            width={"100%"}
+          >
+            <HStack>
+                {isExpanded ? <BsChevronDown strokeWidth={1}/> : <BsChevronRight strokeWidth={1}/>}
+                <Box flex={5}>
+                <Text>{title}</Text>
+                </Box>
+                { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
+            </HStack>
+            { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
+            </HStack>
+          </VStack>
         </HStack>
         {isExpanded && actions.map((action, index) => {
           const { text, code, oldCode, language } = action.renderInfo || {}
@@ -122,7 +135,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 }
                 boxSize={5}
               />
-              <Text>{action.function.name}{text ? " | " : ""}{text}</Text>
+              {/* <Text>{action.function.name}{text ? " | " : ""}{text}</Text> */}
+              <Text>{action.function.name}</Text>
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
