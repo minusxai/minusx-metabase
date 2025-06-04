@@ -99,7 +99,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           p={0}
         >
           <VStack alignItems={"start"} flex={1} spacing={0}>
-            {preExpanderText !== '' && <Text marginBottom={2} borderBottomWidth={1} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
+            {preExpanderText !== '' && <Text marginBottom={2} borderBottomWidth={1} 
+            borderBottomColor={'minusxGreen.800'}
+            p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
             }
             <HStack
               paddingBottom={actions.length && isExpanded ? 1 : 0}
