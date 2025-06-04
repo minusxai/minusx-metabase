@@ -72,15 +72,15 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   return (
     <HStack aria-label={title} className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
       <Box
-        bg={'minusxGreen.800'}
-        // bg={'minusxBW.600'}
+        // bg={'minusxGreen.800'}
+        bg={'minusxBW.200'}
         // p={2}
         px={2}
         py={1}
         my={0}
         borderRadius={5}
-        color={'minusxBW.50'}
-        // color={'minusxGreen.800'}
+        // color={'minusxBW.50'}
+        color={'minusxGreen.800'}
         border={'1px'}
         width={'100%'}
         position="relative"
@@ -99,14 +99,14 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           p={0}
         >
           <VStack alignItems={"start"} flex={1} spacing={0}>
-            {preExpanderText !== '' && <Text marginBottom={2} borderBottomWidth={1} p={2} w={"100%"}>{preExpanderText}</Text>
+            {preExpanderText !== '' && <Text marginBottom={2} borderBottomWidth={1} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
             }
             <HStack
               paddingBottom={actions.length && isExpanded ? 1 : 0}
             marginBottom={actions.length && isExpanded ? 1 : 0}
           borderBottomWidth={ actions.length && isExpanded ? '1px' : '0px'}
-          borderBottomColor={'minusxBW.50'}
-          // borderBottomColor={'minusxGreen.800'}
+        //   borderBottomColor={'minusxBW.50'}
+          borderBottomColor={'minusxGreen.800'}
           justifyContent={'space-between'}
           onClick={toggleExpand} cursor={"pointer"}
             width={"100%"}
