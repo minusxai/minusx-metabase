@@ -105,6 +105,29 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       });
     })
 
+    const sqlSelector = querySelectorMap['native_query_top_bar']
+    const uniqueIDSQL = await RPCs.addNativeElements(sqlSelector, {
+      tag: 'button',
+      attributes: {
+        class: 'Button Button--primary',
+        style: 'background-color: #16a085; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+      },
+      children: ['🔍 Explain SQL with MinusX']
+    })
+    addNativeEventListener({
+      type: "CSS",
+      selector: `#${uniqueIDSQL}`,
+    }, (event) => {
+      RPCs.toggleMinusXRoot('closed', false)
+      RPCs.addUserMessage({
+        content: {
+          type: "DEFAULT",
+          text: "Explain the current SQL query",
+          images: []
+        },
+      });
+    })
+
     const loginBoxSelector = querySelectorMap['login_box']
     const origin = getParsedIframeInfo().origin
     if (origin.includes('metabase.minusx.ai')) {

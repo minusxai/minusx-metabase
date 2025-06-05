@@ -102,5 +102,9 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//div[@id="DatabasePicker"]//div[contains(@class,"List-section") or @data-element-id="list-section"]/div/*'
   },
+  native_query_top_bar: {
+    type: 'XPATH',
+    selector: '//div[contains(@class, "GuiBuilder-data")] | //div[@data-testid="gui-builder-data"]'
+  },
   ...visualizationSelectors
 };
