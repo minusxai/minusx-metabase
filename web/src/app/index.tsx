@@ -66,7 +66,6 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
             }
             if (rpcEvent.payload.key == 'nativeEvent') {
                 const payload = rpcEvent.payload.value
-                // @ppsreejith: Backward compatible hack.
                 onNativeEvent(payload)
             }
             if (rpcEvent.payload.key == 'recordingInProgress') {

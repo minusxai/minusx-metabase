@@ -55,11 +55,11 @@ export const uClick = (selector: QuerySelector, index: number = 0) =>
   sendMessage('uClick', [selector, index], { log_rpc: true })
 export const uDblClick = (selector: QuerySelector, index: number = 0) =>
   sendMessage('uDblClick', [selector, index], { log_rpc: true })
-export const uHighlight = (
+export const uHighlight = async (
   selector: QuerySelector,
   index: number = 0,
   styles?: Partial<HTMLEmbedElement['style']>
-) => sendMessage('uHighlight', [selector, index, styles], { log_rpc: true })
+) => await sendMessage('uHighlight', [selector, index, styles], { log_rpc: true })
 export const scrollIntoView = (selector: QuerySelector, index: number = 0) =>
   sendMessage('scrollIntoView', [selector, index], { log_rpc: true })
 export const setMinusxMode = (mode: string) =>

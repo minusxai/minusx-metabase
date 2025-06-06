@@ -42,7 +42,7 @@ const notifyNativeEvent = memoize((event: string, eventID: number) => {
             }
         })
     }
-})
+}, (event, eventID) => `${event}_${eventID}`)
 
 const _masterCallback = () => {
     const newResponses: SubscriptionResults = domQueries.map((query) => {
