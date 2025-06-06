@@ -100,6 +100,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     currentCard.dataset_query.native.query = sql;
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+    try {
+      await this.uClick({ query: 'format_query_button' });
+    } catch (error) {
+      console.error('Error clicking format query button:', error);
+    }
     
     // await this.uDblClick({ query: "sql_query" });
     // await this.setValue({ query: "sql_query", value: sql });

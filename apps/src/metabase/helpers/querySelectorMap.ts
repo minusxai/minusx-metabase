@@ -106,5 +106,9 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//div[contains(@class, "GuiBuilder-data")] | //div[@data-testid="gui-builder-data"]'
   },
+  format_query_button: {
+    type: 'CSS',
+    selector: 'button[aria-label="Format query"]'
+  },
   ...visualizationSelectors
 };
