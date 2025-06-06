@@ -1,4 +1,4 @@
-interface FormattedColumn {
+export interface FormattedColumn {
   description?: string;
   name: string;
   id: number;

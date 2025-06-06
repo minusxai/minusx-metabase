@@ -32,7 +32,7 @@ export async function getDatabaseIds(): Promise<number[]> {
   return _.map(resp.data, (db: any) => db.id);
 }
 
-interface DatabaseInfo {
+export interface DatabaseInfo {
   name: string;
   description: string;
   id: number;
