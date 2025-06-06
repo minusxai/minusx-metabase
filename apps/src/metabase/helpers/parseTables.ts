@@ -163,6 +163,8 @@ export const fetchTableData = async (tableId: number, uniqueValues = false) => {
   
   const { tableInfo, fieldsWithDistinctCount } = metadataResult;
   
+  //#HACK to disable unique values for now
+  return tableInfo
   if (!uniqueValues) {
     return tableInfo;
   }
