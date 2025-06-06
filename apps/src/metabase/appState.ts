@@ -1,10 +1,10 @@
-import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInfo } from "web";
+import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInfo, unsubscribe } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, isDashboardPage, MetabaseAppState } from "./helpers/DOMToState";
 import { getDashboardPrimaryDbId, isDashboardPageUrl } from "./helpers/dashboard/util";
-import { cloneDeep, get, isEmpty } from "lodash";
+import { cloneDeep, get, isEmpty, memoize } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, memoizedGetDatabaseInfo } from "./helpers/getDatabaseSchema";
@@ -14,6 +14,7 @@ import { abortable, createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
 import { fetchTableData } from "../package";
 const runStoreTasks = createRunner()
+const explainSQLTasks = createRunner()
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
@@ -105,28 +106,69 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       });
     })
 
-    const sqlSelector = querySelectorMap['native_query_top_bar']
-    const uniqueIDSQL = await RPCs.addNativeElements(sqlSelector, {
-      tag: 'button',
-      attributes: {
-        class: 'Button Button--primary',
-        style: 'background-color: #519ee4; color: white; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+    const explainSQLBtnCls = 'minusx-explain-sql-btn'
+
+    const sqlExplainState = {
+      display: false
+    }
+
+    await subscribe({
+      editor: {
+      selector: {
+        type: "CSS",
+        selector: ".ace_text-layer"
       },
-      children: ['🔍 Explain SQL with MinusX']
+      attrs: ["text"],
+    },
+    }, ({elements, url}) => {
+      const elementText = get(elements, 'editor.0.attrs.text', '').trim();
+      const shouldDisplay = elementText.length > 100
+      explainSQLTasks(async (taskStatus) => {
+        if (shouldDisplay && !sqlExplainState['display']) {
+          await addExplainSQL() 
+          await RPCs.uHighlight({
+            type: "CSS",
+            selector: `.${explainSQLBtnCls}`,
+          }, 0, {
+            display: 'inline-block',
+          })
+          sqlExplainState['display'] = true
+        } else if (!shouldDisplay && sqlExplainState['display']) {
+          await RPCs.uHighlight({
+            type: "CSS",
+            selector: `.${explainSQLBtnCls}`,
+          }, 0, {
+            display: 'none',
+          })
+          sqlExplainState['display'] = false
+        }
+      }) 
     })
-    addNativeEventListener({
-      type: "CSS",
-      selector: `#${uniqueIDSQL}`,
-    }, (event) => {
-      RPCs.toggleMinusXRoot('closed', false)
-      RPCs.addUserMessage({
-        content: {
-          type: "DEFAULT",
-          text: "Explain the current SQL query",
-          images: []
+
+    const addExplainSQL = memoize(async () => {
+      const sqlSelector = querySelectorMap['native_query_top_bar']
+      const uniqueIDSQL = await RPCs.addNativeElements(sqlSelector, {
+        tag: 'button',
+        attributes: {
+          class: `Button Button--primary ${explainSQLBtnCls}`,
+          style: 'background-color: #519ee4; color: white; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer; display: inline-block;',
         },
-      });
-    }, ['mouseup'])
+        children: ['🔍 Explain SQL with MinusX']
+      })
+      addNativeEventListener({
+        type: "CSS",
+        selector: `#${uniqueIDSQL}`,
+      }, (event) => {
+        RPCs.toggleMinusXRoot('closed', false)
+        RPCs.addUserMessage({
+          content: {
+            type: "DEFAULT",
+            text: "Explain the current SQL query",
+            images: []
+          },
+        });
+      }, ['mouseup']) 
+    })
 
     const loginBoxSelector = querySelectorMap['login_box']
     const origin = getParsedIframeInfo().origin
