@@ -28,10 +28,6 @@ export default {
         debug: {}
       })
     )
-    const app = getApp()
-    const appState = await app.getState() as AppState
-    const messageId = state.chat.activeThread
-    app.setCachedState(messageId, appState)
   },
   addErrorMessage(err: string) {
     // TODO(@sreejith): implement this
