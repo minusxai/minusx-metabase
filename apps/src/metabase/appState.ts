@@ -126,7 +126,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           images: []
         },
       });
-    })
+    }, ['mouseup'])
 
     const loginBoxSelector = querySelectorMap['login_box']
     const origin = getParsedIframeInfo().origin
