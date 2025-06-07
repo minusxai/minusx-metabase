@@ -63,6 +63,22 @@ const fetchSearchByQuery = createAPI<{ db_id: number; query: string }>(
   '/api/search?table_db_id={{db_id}}&q={{query}}'
 );
 
+const fetchSearchByDatabase = createAPI<{ db_id: number }>(
+  '/api/search?table_db_id={{db_id}}'
+);
+
+const fetchSearchUserEditsByQuery = createAPI<{ db_id: number; query: string; user_id: number }>(
+  '/api/search?table_db_id={{db_id}}&q={{query}}&edited_by={{user_id}}'
+);
+
+const fetchSearchUserCreationsByQuery = createAPI<{ db_id: number; query: string; user_id: number }>(
+  '/api/search?table_db_id={{db_id}}&q={{query}}&created_by={{user_id}}'
+);
+
+const fetchSearchCards = createAPI<{ db_id: number; query: string }>(
+  '/api/search?models=card&table_db_id={{db_id}}&q={{query}}'
+);
+
 // System Operations
 const fetchSessionProperties = createAPI<{}>(
   '/api/session/properties'
@@ -311,4 +327,38 @@ export async function findRelevantTables(dbId: number, options: {
   }
 
   return tables;
+}
+
+/**
+ * Search helper functions to replace /api/search usage throughout the codebase
+ */
+
+export async function searchUserEdits(userId: number): Promise<string[]> {
+  const response = await fetchUserEdits({ user_id: userId });
+  return extractQueriesFromResponse(response);
+}
+
+export async function searchUserCreations(userId: number): Promise<string[]> {
+  const response = await fetchUserCreations({ user_id: userId });
+  return extractQueriesFromResponse(response);
+}
+
+export async function searchByDatabase(dbId: number): Promise<string[]> {
+  const response = await fetchSearchByDatabase({ db_id: dbId });
+  return extractQueriesFromResponse(response);
+}
+
+export async function searchUserEditsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
+  const response = await fetchSearchUserEditsByQuery({ db_id: dbId, query, user_id: userId });
+  return extractQueriesFromResponse(response);
+}
+
+export async function searchUserCreationsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
+  const response = await fetchSearchUserCreationsByQuery({ db_id: dbId, query, user_id: userId });
+  return extractQueriesFromResponse(response);
+}
+
+export async function searchCards(dbId: number, query: string): Promise<string[]> {
+  const response = await fetchSearchCards({ db_id: dbId, query });
+  return extractQueriesFromResponse(response);
 }

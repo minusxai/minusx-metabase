@@ -4,6 +4,14 @@ import { getTablesFromSqlRegex } from './parseSql';
 import { handlePromise } from '../../common/utils';
 const { getMetabaseState, fetchData } = RPCs;
 import { isDashboardPageUrl } from './dashboard/util';
+import { 
+  searchUserEdits, 
+  searchUserCreations, 
+  searchByDatabase, 
+  searchUserEditsByQuery, 
+  searchUserCreationsByQuery, 
+  searchCards 
+} from './metabaseAPI';
 
 interface UserInfo {
   id: number;
@@ -76,44 +84,28 @@ export const getUserTableMap = async () => {
   return {}
 }
 
-// For future reference
-async function getUserBookmarks(id: number) {
-  const jsonResponse = await fetchData(`/api/bookmark`, 'GET');
-  return []
-}
-
-async function getMetabaseQueries(api_endpoint: string) {
-  const jsonResponse = await fetchData(api_endpoint, 'GET');
-  const queries: string[] = _.get(
-    jsonResponse, 'data', []
-  ).map((entity: any) => {
-    return _.get(entity, "dataset_query.native.query")
-  }).filter(query => !_.isEmpty(query))
-  return queries
-}
-
 async function getUserEdits(id: number) {
-  return getMetabaseQueries(`/api/search?edited_by=${id}`)
+  return searchUserEdits(id);
 }
 
 async function getUserCreations(id: number) {
-  return getMetabaseQueries(`/api/search?created_by=${id}`)
+  return searchUserCreations(id);
 }
 
 async function getAllCreations(dbId: number) {
-  return getMetabaseQueries(`/api/search?table_db_id=${dbId}`)
+  return searchByDatabase(dbId);
 }
 
 export async function searchUserQueries(id: number, dbId: number, query: string) {
   const [edits, creations] = await Promise.all([
-    handlePromise(getMetabaseQueries(`/api/search?table_db_id=${dbId}&q=${query}&edited_by=${id}`), "[minusx] Error searching for user edits", []),
-    handlePromise(getMetabaseQueries(`/api/search?table_db_id=${dbId}&q=${query}&created_by=${id}`), "[minusx] Error searching for user creations", []),
+    handlePromise(searchUserEditsByQuery(id, dbId, query), "[minusx] Error searching for user edits", []),
+    handlePromise(searchUserCreationsByQuery(id, dbId, query), "[minusx] Error searching for user creations", []),
   ]);
   const queries = _.uniq([...edits, ...creations])
   if (!isEmpty(queries)) {
     return queries.map(getTablesFromSqlRegex).flat()
   }
-  const allQueries = await handlePromise(getMetabaseQueries(`/api/search?models=card&table_db_id=${dbId}&q=${query}`), "[minusx] Error searching for all queries", [])
+  const allQueries = await handlePromise(searchCards(dbId, query), "[minusx] Error searching for all queries", [])
   return allQueries.map(getTablesFromSqlRegex).flat()
 }
 

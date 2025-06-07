@@ -387,50 +387,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Searching for previous SQL queries",
-    labelDone: "Retrieved queries",
-    description: "Searches for previous SQL queries using the specified words.",
-    renderBody: ({words}: { words: string[] }) => {
-      return {text: null, code: JSON.stringify(words)}
-    }
-  })
-  async searchPreviousSQLQueries({ words }: { words: string[] }) {
-    const actionContent: BlankMessageContent = { type: "BLANK" };
-    const selectedDbId = await getSelectedDbId();
-    const endpoint = `/api/search?table_db_id=${selectedDbId}&search_native_query=true&models=card&models=dataset&q=${words.join(' ')}`;
-    let queries: {
-      name: string
-      description?: string
-      query: string
-    }[] = []
-    try {
-      const response = await RPCs.fetchData(endpoint, 'GET') as SearchApiResponse;
-      // need to get name, description, and query from each card and put into a json obj
-      queries = (response.data || []).map((card: any) => {
-        const query = get(card, 'dataset_query.native.query')
-        const name = get(card, 'name')
-        const description = get(card, 'description')
-        return {
-          name,
-          // only keep description if it's not null
-          ...(description != null && { description }),
-          query
-        }
-      }).filter(i => !!i)
-      // keep only the first 10 queries. TODO: pagination?
-      .slice(0, 10);
-    } catch (error) {
-      queries = [];
-    }
-    // truncate to 5k chars and add a ...[truncated] if needed
-    actionContent.content = JSON.stringify(queries, null, 2)
-    if (actionContent.content.length > 5000) {
-      actionContent.content = actionContent.content.slice(0, 5000) + '...[truncated]';
-    }
-    return actionContent
-  }
-
-  @Action({
     labelRunning: "Getting dashcard details",
     labelDone: "Retrieved dashcards",
     description: "Gets more detailed information about the specified dashcards, including the visualization type, the query, and the data displayed.",

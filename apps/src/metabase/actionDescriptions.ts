@@ -95,19 +95,6 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     },
     description: 'Searches for the specified query and finds the relevant tables in the database.',
   },
-  // {
-  //   name: 'searchPreviousSQLQueries',
-  //   args: {
-  //     words: {
-  //       type: 'array',
-  //       items: {
-  //         type: 'string',
-  //       },
-  //       description: "Array of words to search to search previous SQL queries."
-  //     }
-  //   },
-  //   description: 'Searches for previous SQL queries using the specified words.',
-  // },
   {
     name: 'selectDatabase',
     args: {
@@ -118,19 +105,6 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     },
     description: 'Selects the specified database. Use this tool if user asks to select a database or there is no database selected. ALWAYS confirm with the user before using this tool.',
   },
-  // TODO(@arpit): right now just stuffing the sql-variables-simple docs into prompt itself
-  // {
-  //   name: "getDocumentation",
-  //   args: {
-  //     // make this an enum
-  //     query: {
-  //       type: "string",
-  //       description: "The query to get documentation for", 
-  //       enum: ["sql-variables"]
-  //     }
-  //   },
-  //   description: "Gets the documentation for the specified query.",
-  // },
   {
     name: "setSqlVariable",
     args: {
