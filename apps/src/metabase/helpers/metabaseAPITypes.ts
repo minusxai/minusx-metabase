@@ -46,6 +46,7 @@ export interface FormattedTable {
   columns?: { [key: number]: FormattedColumn };
   related_tables_freq?: number[][];
   count?: number;
+  sample_values_completion_percentage?: number;
 }
 
 export interface DatabaseInfo {

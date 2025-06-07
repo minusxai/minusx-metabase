@@ -323,6 +323,8 @@ async function getSampleValuesWithTimeout(tableInfo: FormattedTable, timeout: nu
     !isNumericType(field.type) && (field.distinct_count || 0) > 0 && (field.distinct_count || 0) < 100
   );
   
+  const totalEligibleFields = eligibleFields.length;
+  
   const fieldPromises = eligibleFields.map(async (field) => {
     try {
       const sampleVals = await getFieldUniqueValues(field.id);
@@ -351,15 +353,26 @@ async function getSampleValuesWithTimeout(tableInfo: FormattedTable, timeout: nu
   
   // Process whatever results we got (could be partial)
   const fieldIdSampleValMapping: Record<number, any> = {};
+  let successfullyFetched = 0;
+  
   if (Array.isArray(completedResults)) {
     completedResults.forEach((result: any) => {
       if (result.status === 'fulfilled' && result.value.success && result.value.sampleVals) {
         fieldIdSampleValMapping[result.value.fieldId] = result.value.sampleVals;
+        successfullyFetched++;
       }
     });
   }
   
-  return fieldIdSampleValMapping;
+  // Calculate completion percentage
+  const completionPercentage = totalEligibleFields > 0 
+    ? Math.round((successfullyFetched / totalEligibleFields) * 100)
+    : 100; // 100% if no eligible fields (nothing to fetch)
+  
+  return {
+    fieldIdSampleValMapping,
+    completionPercentage
+  };
 }
 
 /**
@@ -377,16 +390,20 @@ export async function getTableData(tableId: number, sampleValuesTimeout?: number
   const { tableInfo } = metadataResult;
   
   if (!ENABLE_UNIQUE_VALUES) {
+    tableInfo.sample_values_completion_percentage = 100;
     return tableInfo;
   }
   
   try {
     // Get sample values with timeout - this will return immediately after timeout
     // but continue fetching in background to warm the cache for next time
-    const fieldIdSampleValMapping = await getSampleValuesWithTimeout(
+    const { fieldIdSampleValMapping, completionPercentage } = await getSampleValuesWithTimeout(
       tableInfo, 
       sampleValuesTimeout ?? DEFAULT_SAMPLE_VALUES_TIMEOUT
     );
+    
+    // Set completion percentage on the table
+    tableInfo.sample_values_completion_percentage = completionPercentage;
     
     // Apply whatever sample values we managed to get
     Object.values(tableInfo.columns || {}).forEach((field) => {
@@ -405,6 +422,8 @@ export async function getTableData(tableId: number, sampleValuesTimeout?: number
   } catch (error) {
     // If sample value fetching fails entirely, just return table without sample values
     console.warn("Sample value fetching failed:", error);
+    // Set completion percentage to 0 on error
+    tableInfo.sample_values_completion_percentage = 0;
   }
   
   return tableInfo;

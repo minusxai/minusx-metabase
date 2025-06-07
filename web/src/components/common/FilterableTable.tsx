@@ -1,4 +1,4 @@
-import React, { FC, useState, useMemo, useCallback } from "react";
+import React, { FC, useState, useMemo, useCallback, useEffect } from "react";
 
 import {
   Box,
@@ -23,6 +23,7 @@ import {
 import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FormattedTable } from 'apps/types';
 import { TableInfo } from "../../state/settings/reducer";
+import { getTableData } from 'apps';
 import _, { omit, set } from "lodash";
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {
@@ -157,6 +158,7 @@ export const FilteredTable = ({
   removeFn
 }: HierarchicalFilteredTableProps) => {
   const [search, setSearch] = useState("");
+  const [fetchedTableData, setFetchedTableData] = useState<Map<number, FormattedTable>>(new Map());
 
   const groupedData = useMemo(() => {
     return _.groupBy(data, 'schema');
@@ -183,6 +185,47 @@ export const FilteredTable = ({
   const selectedSet = useMemo(() => {
     return new Set(selectedData.map(item => `${item.schema}/${item.name}`));
   }, [selectedData]);
+
+  // Extract table IDs from selectedData by matching with data
+  const selectedTableIds = useMemo(() => {
+    const selectedKeys = new Set(selectedData.map(item => `${item.schema}/${item.name}`));
+    return data
+      .filter(table => selectedKeys.has(`${table.schema}/${table.name}`))
+      .map(table => table.id);
+  }, [selectedData, data]);
+
+  // Periodically fetch table data for selected tables
+  useEffect(() => {
+    if (selectedTableIds.length === 0) {
+      setFetchedTableData(new Map());
+      return;
+    }
+
+    const fetchTableDataForSelected = async () => {
+      const promises = selectedTableIds.map(async (tableId) => {
+        try {
+          const tableData = await getTableData(tableId);
+          if (tableData !== "missing") {
+            return [tableId, tableData] as const;
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch table data for ID ${tableId}:`, error);
+        }
+        return null;
+      });
+
+      const results = await Promise.all(promises);
+      const validResults = results.filter((result): result is [number, FormattedTable] => result !== null);
+      
+      setFetchedTableData(new Map(validResults));
+    };
+    fetchTableDataForSelected()
+
+    // Set up 3-second interval
+    const intervalId = setInterval(fetchTableDataForSelected, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [selectedTableIds]);
 
 
   const handleTableCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, schemaName: string, tableName: string) => {
@@ -239,6 +282,34 @@ export const FilteredTable = ({
   ).length;
   const isOverallChecked = totalSelectedFilteredTables === totalFilteredTables && totalFilteredTables > 0;
   const isOverallIndeterminate = totalSelectedFilteredTables > 0 && totalSelectedFilteredTables < totalFilteredTables;
+
+  // Calculate sync status from actively fetched table data
+  const syncStats = useMemo(() => {
+    const fetchedTables = Array.from(fetchedTableData.values());
+    const tablesWithCompletionData = fetchedTables.filter(table => 
+      typeof table.sample_values_completion_percentage === 'number'
+    );
+    
+    if (tablesWithCompletionData.length === 0) {
+      return { synced: 0, total: selectedTableIds.length, percentage: 0 };
+    }
+    
+    const fullyLoaded = tablesWithCompletionData.filter(table => 
+      table.sample_values_completion_percentage === 100
+    ).length;
+    
+    const avgPercentage = Math.round(
+      tablesWithCompletionData.reduce((sum, table) => 
+        sum + table.sample_values_completion_percentage!, 0
+      ) / tablesWithCompletionData.length
+    );
+    
+    return {
+      synced: fullyLoaded,
+      total: tablesWithCompletionData.length,
+      percentage: avgPercentage
+    };
+  }, [fetchedTableData, selectedTableIds]);
 
   const rootNode: DummyRootDataNode = {
     type: 'root',
@@ -307,7 +378,10 @@ export const FilteredTable = ({
           {totalSelectedFilteredTables === totalFilteredTables ? "Deselect All Tables" : "Select All Tables" }
         </Text>
       </Flex>
-      <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>[{totalSelectedFilteredTables} out of {totalFilteredTables} tables selected]</Text>
+      <Text fontSize="sm" color={"minusxGreen.600"} textAlign={"right"} fontWeight={"bold"}>
+        [{totalSelectedFilteredTables} out of {totalFilteredTables} tables selected
+        {syncStats.total > 0 && ` • ${syncStats.synced}/${syncStats.total} synced`}]
+      </Text>
 
       </HStack>
       <Box position="relative" width="100%" mb={2} p={0}>
