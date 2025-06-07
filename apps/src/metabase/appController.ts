@@ -42,7 +42,8 @@ import {
   getAllTemplateTagsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getSelectedDbId, getUserInfo } from "./helpers/getUserInfo";
+import { getSelectedDbId } from "./helpers/getUserInfo";
+import { getUserInfo } from "./helpers/metabaseAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
 import { fetchTableData } from "./helpers/parseTables";
@@ -573,4 +574,3 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
 }
-

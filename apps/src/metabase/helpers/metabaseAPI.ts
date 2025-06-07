@@ -7,8 +7,9 @@
 
 import { RPCs } from 'web';
 import { get, isEmpty } from 'lodash';
-import { getTablesFromSqlRegex } from './parseSql';
+import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise } from '../../common/utils';
+import { getSelectedDbId } from './getUserInfo';
 import { 
   type DatabaseInfo, 
   type DatabaseInfoWithTables, 
@@ -330,35 +331,113 @@ export async function findRelevantTables(dbId: number, options: {
 }
 
 /**
- * Search helper functions to replace /api/search usage throughout the codebase
+ * Internal search helper functions - not exported, used by main functions below
  */
 
-export async function searchUserEdits(userId: number): Promise<string[]> {
+async function searchUserEdits(userId: number): Promise<string[]> {
   const response = await fetchUserEdits({ user_id: userId });
   return extractQueriesFromResponse(response);
 }
 
-export async function searchUserCreations(userId: number): Promise<string[]> {
+async function searchUserCreations(userId: number): Promise<string[]> {
   const response = await fetchUserCreations({ user_id: userId });
   return extractQueriesFromResponse(response);
 }
 
-export async function searchByDatabase(dbId: number): Promise<string[]> {
+async function searchByDatabase(dbId: number): Promise<string[]> {
   const response = await fetchSearchByDatabase({ db_id: dbId });
   return extractQueriesFromResponse(response);
 }
 
-export async function searchUserEditsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
+async function searchUserEditsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
   const response = await fetchSearchUserEditsByQuery({ db_id: dbId, query, user_id: userId });
   return extractQueriesFromResponse(response);
 }
 
-export async function searchUserCreationsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
+async function searchUserCreationsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
   const response = await fetchSearchUserCreationsByQuery({ db_id: dbId, query, user_id: userId });
   return extractQueriesFromResponse(response);
 }
 
-export async function searchCards(dbId: number, query: string): Promise<string[]> {
+async function searchCards(dbId: number, query: string): Promise<string[]> {
   const response = await fetchSearchCards({ db_id: dbId, query });
   return extractQueriesFromResponse(response);
+}
+
+export async function searchNativeQuery(dbId: number, query: string): Promise<any> {
+  return await fetchSearchNativeQuery({ db_id: dbId, query });
+}
+
+// =============================================================================
+// MAIN EXPORTED FUNCTIONS (previously from getUserInfo.ts)
+// =============================================================================
+
+interface UserInfo {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  personal_collection_id: number;
+}
+
+/**
+ * Get current user information
+ */
+export async function getUserInfo(): Promise<UserInfo | undefined> {
+  const userInfo = await RPCs.getMetabaseState('currentUser') as UserInfo;
+  if (isEmpty(userInfo)) {
+    console.error('Failed to load user info');
+    return undefined;
+  }
+  return userInfo;
+}
+
+/**
+ * Get tables referenced in user's queries (with fallback to all database tables)
+ */
+export async function getUserTables(): Promise<TableAndSchema[]> {
+  const userInfo = await getUserInfo();
+  if (!userInfo) return [];
+
+  const { id } = userInfo;
+  const [edits, creations] = await Promise.all([
+    handlePromise(searchUserEdits(id), "[minusx] Error getting user edits", []),
+    handlePromise(searchUserCreations(id), "[minusx] Error getting user creations", []),
+  ]);
+  
+  const queries = Array.from(new Set([...edits, ...creations]));
+  if (queries.length > 0) {
+    return queries.map(getTablesFromSqlRegex).flat();
+  }
+  
+  // Fallback: if user has no queries, get ALL database queries
+  const dbId = await getSelectedDbId();
+  if (!dbId) return [];
+  
+  const allQueries = await handlePromise(searchByDatabase(dbId), "[minusx] Error getting all queries", []);
+  const uniqQueries = Array.from(new Set(allQueries));
+  return uniqQueries.map(getTablesFromSqlRegex).flat();
+}
+
+/**
+ * Get user table map (placeholder for future functionality)
+ */
+export async function getUserTableMap(): Promise<Record<string, any>> {
+  return {};
+}
+
+/**
+ * Search user queries with fallback to general search
+ */
+export async function searchUserQueries(id: number, dbId: number, query: string): Promise<TableAndSchema[]> {
+  const [edits, creations] = await Promise.all([
+    handlePromise(searchUserEditsByQuery(id, dbId, query), "[minusx] Error searching for user edits", []),
+    handlePromise(searchUserCreationsByQuery(id, dbId, query), "[minusx] Error searching for user creations", []),
+  ]);
+  const queries = Array.from(new Set([...edits, ...creations]));
+  if (queries.length > 0) {
+    return queries.map(getTablesFromSqlRegex).flat();
+  }
+  const allQueries = await handlePromise(searchCards(dbId, query), "[minusx] Error searching for all queries", []);
+  return allQueries.map(getTablesFromSqlRegex).flat();
 }
