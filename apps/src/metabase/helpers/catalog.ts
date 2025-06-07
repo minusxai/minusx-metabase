@@ -15,11 +15,13 @@ const createCatalogFromTables = (tables: FormattedTable[]) => {
             type: column.type,
             description: column.description,
           }
-          if (!isEmpty(column.unique_values)) {
+          if (!isEmpty(column.sample_values)) {
             //@ts-ignore
-            newDim.unique_values = column.unique_values
+            newDim.sample_values = column.sample_values
+          }
+          if (column.distinct_count !== undefined) {
             //@ts-ignore
-            newDim.has_more_values = column.has_more_values
+            newDim.distinct_count = column.distinct_count
           }
           return newDim
         })
@@ -46,10 +48,13 @@ function modifyCatalog(catalog: object, tables: FormattedTable[]) {
       get(entity, 'dimensions', []).forEach((dimension: any) => {
         if (get(dimension, 'unique')) {
           const tableDimension = get(tableEntity, 'dimensions', []).find((dim: any) => dim.name === dimension.name);
-          const unique_values = get(tableDimension, 'unique_values', []);
-          if (!isEmpty(unique_values)) {
-            dimension.unique_values = unique_values
-            dimension.has_more_values = get(tableDimension, 'has_more_values', false);
+          const sample_values = get(tableDimension, 'sample_values', []);
+          if (!isEmpty(sample_values)) {
+            dimension.sample_values = sample_values
+          }
+          const distinct_count = get(tableDimension, 'distinct_count');
+          if (distinct_count !== undefined) {
+            dimension.distinct_count = distinct_count;
           }
         }
       })

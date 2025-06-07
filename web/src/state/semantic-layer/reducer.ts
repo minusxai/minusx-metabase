@@ -14,7 +14,8 @@ export interface Measure {
 export interface Dimension {
   name: string
   description: string
-  unique_values?: string[]
+  sample_values?: string[]
+  distinct_count?: number
 }
 
 interface SemanticLayerState {

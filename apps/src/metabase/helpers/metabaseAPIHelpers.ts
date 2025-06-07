@@ -217,7 +217,7 @@ export async function searchAllQueries(dbId: number, query: string): Promise<Tab
 // =============================================================================
 
 /**
- * Get unique values for a field
+ * Get sample values for a field
  */
 export async function getFieldUniqueValues(fieldId: number) {
   return await fetchFieldUniqueValues({ field_id: fieldId });
@@ -236,7 +236,7 @@ function isNumericType(type: string): boolean {
 }
 
 /**
- * Helper function to truncate long unique values
+ * Helper function to truncate long sample values
  */
 function truncateUniqueValue(value: any): any {
   if (typeof value === 'string' && value.length > 100) {
@@ -256,7 +256,22 @@ export async function getTableMetadata(tableId: number) {
   }
   const tableInfo = extractTableInfo(resp, true);
   
-  // Get distinct counts from the network response fingerprint data
+  // Create a map of field ID to distinct count for quick lookup
+  const distinctCountMap = new Map();
+  (resp.fields || []).forEach((field: any) => {
+    const distinctCount = field.fingerprint?.global?.['distinct-count'] || 0;
+    distinctCountMap.set(field.id, distinctCount);
+  });
+  
+  // Add distinct_count to each column
+  if (tableInfo.columns) {
+    Object.values(tableInfo.columns).forEach((column) => {
+      const distinctCount = distinctCountMap.get(column.id) || 0;
+      column.distinct_count = distinctCount;
+    });
+  }
+  
+  // Get distinct counts from the network response fingerprint data for backward compatibility
   const fieldsWithDistinctCount = (resp.fields || []).map((field: any) => ({
     id: field.id,
     distinctCount: field.fingerprint?.global?.['distinct-count'] || 0
@@ -266,55 +281,44 @@ export async function getTableMetadata(tableId: number) {
 }
 
 /**
- * Fetch unique values for table fields
+ * Fetch sample values for table fields
  */
-async function getTableUniqueValues(tableInfo: FormattedTable, fieldsWithDistinctCount: any[]) {
-  // Only fetch unique values for non-numeric columns with distinct-count < 100
+async function getTableSampleValues(tableInfo: FormattedTable) {
+  // Only fetch sample values for non-numeric columns with distinct-count < 100
   const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
-    !isNumericType(field.type)
+    !isNumericType(field.type) && (field.distinct_count || 0) > 0 && (field.distinct_count || 0) < 100
   );
   
-  // Create a map for quick lookup
-  const distinctCountMap = Object.fromEntries(
-    fieldsWithDistinctCount.map((field: {id: number, distinctCount: number}) => [field.id, field.distinctCount])
-  );
+  const fieldIds = nonNumericFields.map((field) => field.id);
+  const fieldIdSampleValMapping: Record<number, any> = {}
   
-  // Filter fields that have distinct-count < 100
-  const fieldsToFetchUniqueValues = nonNumericFields.filter((field) => {
-    const distinctCount = distinctCountMap[field.id] || 0;
-    return distinctCount > 0 && distinctCount < 100;
-  });
-  
-  const fieldIds = fieldsToFetchUniqueValues.map((field) => field.id);
-  const fieldIdUniqueValMapping: Record<number, any> = {}
-  
-  const uniqueValsResults = await Promise.all(
+  const sampleValsResults = await Promise.all(
     fieldIds.map(async (fieldId) => {
       try {
-        const uniqueVals = await getFieldUniqueValues(fieldId);
-        return { fieldId, uniqueVals };
+        const sampleVals = await getFieldUniqueValues(fieldId);
+        return { fieldId, sampleVals };
       } catch (error) {
-        console.warn(`Failed to fetch unique values for field ${fieldId}:`, error);
-        return { fieldId, uniqueVals: null };
+        console.warn(`Failed to fetch sample values for field ${fieldId}:`, error);
+        return { fieldId, sampleVals: null };
       }
     })
   );
   
-  // Map results back to fieldIdUniqueValMapping
-  uniqueValsResults.forEach(({ fieldId, uniqueVals }) => {
-    if (uniqueVals !== null) {
-      fieldIdUniqueValMapping[fieldId] = uniqueVals;
+  // Map results back to fieldIdSampleValMapping
+  sampleValsResults.forEach(({ fieldId, sampleVals }) => {
+    if (sampleVals !== null) {
+      fieldIdSampleValMapping[fieldId] = sampleVals;
     }
   });
   
-  return fieldIdUniqueValMapping;
+  return fieldIdSampleValMapping;
 }
 
 
 /**
- * Fetch complete table data with optional unique values
+ * Fetch complete table data with optional sample values
  */
-const ENABLE_UNIQUE_VALUES = false; // Set to false to disable unique values for now
+const ENABLE_UNIQUE_VALUES = false; // Set to false to disable sample values for now
 
 export async function getTableData(tableId: number): Promise<FormattedTable | "missing"> {
   const metadataResult = await getTableMetadata(tableId);
@@ -322,29 +326,26 @@ export async function getTableData(tableId: number): Promise<FormattedTable | "m
     return "missing";
   }
   
-  const { tableInfo, fieldsWithDistinctCount } = metadataResult;
+  const { tableInfo } = metadataResult;
   
-  //#HACK to disable unique values for now
+  //#HACK to disable sample values for now
   if (!ENABLE_UNIQUE_VALUES) {
     return tableInfo;
   }
   
-  const fieldIdUniqueValMapping = await getTableUniqueValues(tableInfo, fieldsWithDistinctCount);
+  const fieldIdSampleValMapping = await getTableSampleValues(tableInfo);
   
-  // Apply unique values to table info
+  // Apply sample values to table info
   Object.values(tableInfo.columns || {}).forEach((field) => {
-    const fieldUnique = fieldIdUniqueValMapping[field.id]
-    if (fieldUnique) {
-      const rawValues = flatMap(get(fieldUnique, 'values', [])).map(truncateUniqueValue)
-      const originalHasMore = get(fieldUnique, 'has_more_values', false)
+    const fieldSample = fieldIdSampleValMapping[field.id]
+    if (fieldSample) {
+      const rawValues = flatMap(get(fieldSample, 'values', [])).map(truncateUniqueValue)
       
       // Limit to 20 values with deterministic sampling at storage time
       if (rawValues.length > 20) {
-        field.unique_values = deterministicSample(rawValues, 20, `${tableInfo.name}.${field.name}`)
-        field.has_more_values = true
+        field.sample_values = deterministicSample(rawValues, 20, `${tableInfo.name}.${field.name}`)
       } else {
-        field.unique_values = rawValues
-        field.has_more_values = originalHasMore
+        field.sample_values = rawValues
       }
     }
   })

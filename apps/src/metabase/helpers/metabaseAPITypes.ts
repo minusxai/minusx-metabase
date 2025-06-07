@@ -32,8 +32,8 @@ export interface FormattedColumn {
   name: string;
   id: number;
   type: string;
-  unique_values?: any[]; 
-  has_more_values?: boolean;
+  sample_values?: any[]; 
+  distinct_count?: number;
   fk_table_id?: number;
   foreign_key_target?: string | null;
 }
