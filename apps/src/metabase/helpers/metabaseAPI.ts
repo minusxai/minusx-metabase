@@ -5,66 +5,17 @@
  * All complexity is hidden in the imported modules.
  */
 
-import { memoize, RPCs } from 'web';
+import { RPCs } from 'web';
 import { get, isEmpty } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { handlePromise } from '../../common/utils';
 import { 
-  type APIConfig,
   type DatabaseInfo, 
   type DatabaseInfoWithTables, 
   type FormattedTable, 
   type UserContext,
-  DEFAULT_CACHE_TTL,
-  DEFAULT_CACHE_REWARM
 } from './metabaseAPITypes';
-import { getConcurrencyManager } from './metabaseAPIConcurrency';
-
-function createAPI<T extends Record<string, any>>(
-  template: string,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
-  config: APIConfig
-) {
-  // Template substitution
-  function substituteTemplate(params: T): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
-      if (!(key in params)) {
-        throw new Error(`Missing required parameter: ${key} for template: ${template}`);
-      }
-      return encodeURIComponent(String(params[key]));
-    });
-  }
-
-  // Validate required parameters
-  function validateParams(params: T): void {
-    const templateParams = template.match(/\{\{(\w+)\}\}/g) || [];
-    const requiredKeys = templateParams.map(param => param.slice(2, -2));
-    
-    for (const key of requiredKeys) {
-      if (!(key in params) || params[key] == null) {
-        throw new Error(`Missing required parameter: ${key} for API: ${template}`);
-      }
-    }
-  }
-
-  // Create memoized function with concurrency control
-  const memoizedFetch = memoize(
-    async (params: T): Promise<any> => {
-      validateParams(params);
-      const manager = getConcurrencyManager(template, config);
-      
-      return manager.execute(async () => {
-        const actualUrl = substituteTemplate(params);
-        return await RPCs.fetchData(actualUrl, method);
-      });
-    },
-    config.cache_ttl,
-    config.cache_rewarm_ttl
-  );
-
-  // Return the callable function
-  return memoizedFetch;
-}
+import { createAPI } from './metabaseAPIConcurrency';
 
 // =============================================================================
 // INTERNAL API ENDPOINTS - Not exported, implementation details only
@@ -72,61 +23,49 @@ function createAPI<T extends Record<string, any>>(
 
 // Database Operations
 const fetchDatabases = createAPI<{}>(
-  '/api/database',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 10, concurrency_delay: 50 }
+  '/api/database'
 );
 
 const fetchDatabaseInfo = createAPI<{ db_id: number }>(
-  '/api/database/{{db_id}}',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 10, concurrency_delay: 50 }
+  '/api/database/{{db_id}}'
 );
 
 const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
-  '/api/database/{{db_id}}?include=tables',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 5, concurrency_delay: 100 }
+  '/api/database/{{db_id}}?include=tables'
 );
 
 // Table Operations
 const fetchTableMetadata = createAPI<{ table_id: number }>(
-  '/api/table/{{table_id}}/query_metadata',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 8, concurrency_delay: 100 }
+  '/api/table/{{table_id}}/query_metadata'
 );
 
 // Field Operations - EXPENSIVE, very conservative limits
 const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
   '/api/field/{{field_id}}/values',
   'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM * 4, max_concurrency: 1, concurrency_delay: 10000 } // 2 days rewarm
+  { 
+    cache_rewarm_ttl: 2 * 24 * 60 * 60, // 2 days rewarm as requested
+    max_concurrency: 3,                  // Very conservative
+    concurrency_delay: 500               // Half-second delay between requests
+  }
 );
 
 // Search Operations - Can be expensive
 const fetchUserEdits = createAPI<{ user_id: number }>(
-  '/api/search?edited_by={{user_id}}',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 4, concurrency_delay: 200 }
+  '/api/search?edited_by={{user_id}}'
 );
 
 const fetchUserCreations = createAPI<{ user_id: number }>(
-  '/api/search?created_by={{user_id}}',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 4, concurrency_delay: 200 }
+  '/api/search?created_by={{user_id}}'
 );
 
 const fetchSearchByQuery = createAPI<{ db_id: number; query: string }>(
-  '/api/search?table_db_id={{db_id}}&q={{query}}',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 2, concurrency_delay: 300 }
+  '/api/search?table_db_id={{db_id}}&q={{query}}'
 );
 
 // System Operations
 const fetchSessionProperties = createAPI<{}>(
-  '/api/session/properties',
-  'GET',
-  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 5, concurrency_delay: 0 }
+  '/api/session/properties'
 );
 
 // =============================================================================

@@ -5,7 +5,14 @@
  * to prevent overwhelming the Metabase instance with too many simultaneous requests.
  */
 
-import type { APIConfig } from './metabaseAPITypes';
+import { memoize, RPCs } from 'web';
+import {
+  type APIConfig,
+  DEFAULT_CACHE_TTL,
+  DEFAULT_CACHE_REWARM,
+  DEFAULT_MAX_CONCURRENCY,
+  DEFAULT_CONCURRENCY_DELAY
+} from './metabaseAPITypes';
 
 // =============================================================================
 // TASK QUEUE TYPES
@@ -100,7 +107,7 @@ class EnhancedConcurrencyManager {
 
 const concurrencyManagers = new Map<string, EnhancedConcurrencyManager>();
 
-export function getConcurrencyManager(template: string, config: APIConfig): EnhancedConcurrencyManager {
+export function getConcurrencyManager(template: string, config: Required<APIConfig>): EnhancedConcurrencyManager {
   if (!concurrencyManagers.has(template)) {
     concurrencyManagers.set(
       template, 
@@ -108,4 +115,57 @@ export function getConcurrencyManager(template: string, config: APIConfig): Enha
     );
   }
   return concurrencyManagers.get(template)!;
+}
+
+export function createAPI<T extends Record<string, any>>(
+  template: string,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+  config: APIConfig = {}
+) {
+  // Apply defaults
+  const finalConfig = {
+    cache_ttl: config.cache_ttl ?? DEFAULT_CACHE_TTL,
+    cache_rewarm_ttl: config.cache_rewarm_ttl ?? DEFAULT_CACHE_REWARM,
+    max_concurrency: config.max_concurrency ?? DEFAULT_MAX_CONCURRENCY,
+    concurrency_delay: config.concurrency_delay ?? DEFAULT_CONCURRENCY_DELAY
+  };
+  // Template substitution
+  function substituteTemplate(params: T): string {
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      if (!(key in params)) {
+        throw new Error(`Missing required parameter: ${key} for template: ${template}`);
+      }
+      return encodeURIComponent(String(params[key]));
+    });
+  }
+
+  // Validate required parameters
+  function validateParams(params: T): void {
+    const templateParams = template.match(/\{\{(\w+)\}\}/g) || [];
+    const requiredKeys = templateParams.map(param => param.slice(2, -2));
+    
+    for (const key of requiredKeys) {
+      if (!(key in params) || params[key] == null) {
+        throw new Error(`Missing required parameter: ${key} for API: ${template}`);
+      }
+    }
+  }
+
+  // Create memoized function with concurrency control
+  const memoizedFetch = memoize(
+    async (params: T): Promise<any> => {
+      validateParams(params);
+      const manager = getConcurrencyManager(template, finalConfig);
+      
+      return manager.execute(async () => {
+        const actualUrl = substituteTemplate(params);
+        return await RPCs.fetchData(actualUrl, method);
+      });
+    },
+    finalConfig.cache_ttl,
+    finalConfig.cache_rewarm_ttl
+  );
+
+  // Return the callable function
+  return memoizedFetch;
 }

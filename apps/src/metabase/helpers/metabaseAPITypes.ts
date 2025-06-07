@@ -13,16 +13,18 @@ import { TableAndSchema } from './parseSql';
 
 export const DEFAULT_CACHE_TTL = 14 * 24 * 60 * 60; // 14 days in seconds
 export const DEFAULT_CACHE_REWARM = 12 * 60 * 60;   // 12 hours in seconds
+export const DEFAULT_MAX_CONCURRENCY = 15;          // Default max concurrent requests
+export const DEFAULT_CONCURRENCY_DELAY = 0;         // Default delay in milliseconds
 
 // =============================================================================
 // CORE TYPE DEFINITIONS
 // =============================================================================
 
 export interface APIConfig {
-  cache_ttl: number;        // Cache TTL in seconds
-  cache_rewarm_ttl: number; // Background refresh TTL in seconds
-  max_concurrency: number;  // Max concurrent requests for this endpoint
-  concurrency_delay: number; // Min delay between requests in milliseconds
+  cache_ttl?: number;        // Cache TTL in seconds (defaults to DEFAULT_CACHE_TTL)
+  cache_rewarm_ttl?: number; // Background refresh TTL in seconds (defaults to DEFAULT_CACHE_REWARM)
+  max_concurrency?: number;  // Max concurrent requests for this endpoint (defaults to DEFAULT_MAX_CONCURRENCY)
+  concurrency_delay?: number; // Min delay between requests in milliseconds (defaults to DEFAULT_CONCURRENCY_DELAY)
 }
 
 export interface FormattedColumn {
