@@ -9,7 +9,7 @@ import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, memoizedGetDatabaseInfo } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
-import { getSelectedDbId } from "./helpers/getUserInfo";
+import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
 import { getDashboardAppState } from "./helpers/dashboard/appState";
 import { fetchTableData } from "../package";

@@ -42,7 +42,7 @@ import {
   getAllTemplateTagsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getSelectedDbId } from "./helpers/getUserInfo";
+import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { getCurrentUserInfo as getUserInfo } from "./helpers/metabaseStateAPI";
 import { searchNativeQuery } from "./helpers/metabaseAPIHelpers";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";

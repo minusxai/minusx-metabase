@@ -8,7 +8,7 @@ import { visualizationSettings, Card, ParameterValues, FormattedTable } from './
 const { getMetabaseState, queryURL } = RPCs;
 import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
-import { getSelectedDbId } from './getUserInfo';
+import { getSelectedDbId } from './metabaseStateAPI';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
