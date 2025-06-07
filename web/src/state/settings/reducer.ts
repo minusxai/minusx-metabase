@@ -89,7 +89,6 @@ interface Settings {
   intercomBooted: boolean
   isRecording: boolean
   aiRules: string
-  savedQueries: boolean
   tableDiff: TableDiff
   drMode: boolean,
   selectedCatalog: string,
@@ -117,7 +116,6 @@ const initialState: Settings = {
   intercomBooted: false,
   isRecording: false,
   aiRules: '',
-  savedQueries: false,
   tableDiff: {
     add: [],
     remove: []
@@ -184,9 +182,6 @@ export const settingsSlice = createSlice({
     },
     setAiRules: (state, action: PayloadAction<string>) => {
       state.aiRules = action.payload
-    },
-    setSavedQueries: (state, action: PayloadAction<boolean>) => {
-      state.savedQueries = action.payload
     },
     resetDefaultTablesDB(state, action: PayloadAction<{dbId: Number}>) {
       state.tableDiff.add = state.tableDiff.add.filter((t) => t.dbId != action.payload.dbId)
@@ -322,7 +317,7 @@ export const settingsSlice = createSlice({
 export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
-  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules, setSavedQueries,
+  setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableUnique,
 } = settingsSlice.actions

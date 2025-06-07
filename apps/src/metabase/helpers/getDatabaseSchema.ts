@@ -2,7 +2,7 @@ import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _, { get, isEmpty } from 'lodash';
-import { getSelectedDbId, getUserQueries, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
+import { getSelectedDbId, getUserTableMap, getUserTables, searchUserQueries } from './getUserInfo';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
 import { extractTableInfo, fetchTableData } from './parseTables';
@@ -184,39 +184,6 @@ function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchem
     count: tableInfo.count
   }));
   return dedupeAndCountTables(lowered);
-}
-
-const CHAR_BUDGET = 200000
-
-const removeLowValueQueries = (queries: string[]) => {
-  return _.chain(queries).
-  filter(query => query.length >= 200).
-  uniqBy(i => i.replace(/\s+/g, '').slice(0, 200)).
-  value();
-}
-
-const replaceLongLiterals = (query: string) => {
-  const pattern = /\bIN\s*\(\s*('(?:[^']+)'(?:\s*,\s*'[^']+')+)\s*\)/gi;
-  let match;
-  while ((match = pattern.exec(query)) !== null) {
-    if (match[1].length > 100) {
-      const replacement = `(${match[1].slice(0, 40)}...truncated...${match[1].slice(-40)})`
-      query = query.replace(match[1], replacement)
-    }
-  }
-  return query
-}
-
-export const getCleanedTopQueries = async (dbId: number) => {
-  let queries = await getUserQueries()
-  queries = queries.map(replaceLongLiterals);
-  queries.sort((a,b) => a.length - b.length);
-  queries = removeLowValueQueries(queries);
-  let totalChars = queries.reduce((acc, query) => acc + query.length, 0);
-  while (totalChars > CHAR_BUDGET && queries.length > 0) {
-    totalChars -= queries.pop()?.length || 0;
-  }
-  return queries
 }
 
 const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTable[], default_schema?: string) => {

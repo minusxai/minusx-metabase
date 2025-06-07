@@ -7,7 +7,7 @@ import { getDashboardPrimaryDbId, isDashboardPageUrl } from "./helpers/dashboard
 import { cloneDeep, get, isEmpty, memoize } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
-import { getCleanedTopQueries, getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, memoizedGetDatabaseInfo } from "./helpers/getDatabaseSchema";
+import { getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields, getCardsCountSplitByType, memoizedGetDatabaseInfo } from "./helpers/getDatabaseSchema";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/getUserInfo";
 import { abortable, createRunner, handlePromise } from "../common/utils";
@@ -199,31 +199,12 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   }
 
   public async getPlannerConfig() {
-    const url = await RPCs.queryURL();
     const internalState = this.useStore().getState()
-    // Change depending on dashboard or SQL
-    // if (isDashboardPageUrl(url)) {
-    //   return internalState.llmConfigs.dashboard;
-    // }
     const appSettings = RPCs.getAppSettings()
     if(appSettings.semanticPlanner) {
       return internalState.llmConfigs.semanticQuery;
     }
-    const defaultConfig = internalState.llmConfigs.default;
-    if ('systemPrompt' in defaultConfig) {
-      const dbId = await getSelectedDbId();
-      let savedQueries: string[] = []
-      if (dbId && appSettings.savedQueries) {
-        savedQueries = await getCleanedTopQueries(dbId)
-      }
-      return {
-        ...defaultConfig,
-        systemPrompt: renderString(defaultConfig.systemPrompt, {
-          savedQueries: savedQueries.join('\n--END_OF_QUERY\n')
-        })
-      }
-    }
-    return defaultConfig
+    return internalState.llmConfigs.default;
   }
 }
 

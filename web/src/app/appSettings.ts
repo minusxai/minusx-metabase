@@ -7,7 +7,6 @@ export const getAppSettings = () => {
   const state: RootState = getState()
   const settings = state.settings
   return {
-    savedQueries: settings.savedQueries,
     semanticPlanner: settings.demoMode,
     tableDiff: settings.tableDiff,
     drMode: settings.drMode,

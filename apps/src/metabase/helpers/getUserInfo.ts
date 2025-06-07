@@ -44,7 +44,7 @@ export const getUserInfo = async () => {
   return userInfo
 }
 
-export const getUserQueries = async () => {
+const getUserQueries = async () => {
   const userInfo = await getUserInfo()
   if (userInfo == undefined) {
     return []
