@@ -14,7 +14,9 @@ import {
   type DatabaseInfo, 
   type DatabaseInfoWithTables, 
   type FormattedTable, 
-  type UserContext 
+  type UserContext,
+  DEFAULT_CACHE_TTL,
+  DEFAULT_CACHE_REWARM
 } from './metabaseAPITypes';
 import { getConcurrencyManager } from './metabaseAPIConcurrency';
 
@@ -72,52 +74,59 @@ function createAPI<T extends Record<string, any>>(
 const fetchDatabases = createAPI<{}>(
   '/api/database',
   'GET',
-  { cache_ttl: 1000, cache_rewarm_ttl: 600, max_concurrency: 10, concurrency_delay: 50 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 10, concurrency_delay: 50 }
 );
 
 const fetchDatabaseInfo = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}',
   'GET',
-  { cache_ttl: 1200, cache_rewarm_ttl: 600, max_concurrency: 10, concurrency_delay: 50 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 10, concurrency_delay: 50 }
 );
 
 const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}?include=tables',
   'GET',
-  { cache_ttl: 800, cache_rewarm_ttl: 400, max_concurrency: 5, concurrency_delay: 100 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 5, concurrency_delay: 100 }
 );
 
 // Table Operations
 const fetchTableMetadata = createAPI<{ table_id: number }>(
   '/api/table/{{table_id}}/query_metadata',
   'GET',
-  { cache_ttl: 1800, cache_rewarm_ttl: 900, max_concurrency: 8, concurrency_delay: 100 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 8, concurrency_delay: 100 }
 );
 
 // Field Operations - EXPENSIVE, very conservative limits
 const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
   '/api/field/{{field_id}}/values',
   'GET',
-  { cache_ttl: 3600, cache_rewarm_ttl: 1800, max_concurrency: 3, concurrency_delay: 500 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM * 4, max_concurrency: 1, concurrency_delay: 10000 } // 2 days rewarm
 );
 
 // Search Operations - Can be expensive
 const fetchUserEdits = createAPI<{ user_id: number }>(
   '/api/search?edited_by={{user_id}}',
   'GET',
-  { cache_ttl: 600, cache_rewarm_ttl: 300, max_concurrency: 4, concurrency_delay: 200 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 4, concurrency_delay: 200 }
 );
 
 const fetchUserCreations = createAPI<{ user_id: number }>(
   '/api/search?created_by={{user_id}}',
   'GET',
-  { cache_ttl: 600, cache_rewarm_ttl: 300, max_concurrency: 4, concurrency_delay: 200 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 4, concurrency_delay: 200 }
 );
 
 const fetchSearchByQuery = createAPI<{ db_id: number; query: string }>(
   '/api/search?table_db_id={{db_id}}&q={{query}}',
   'GET',
-  { cache_ttl: 300, cache_rewarm_ttl: 150, max_concurrency: 2, concurrency_delay: 300 }
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 2, concurrency_delay: 300 }
+);
+
+// System Operations
+const fetchSessionProperties = createAPI<{}>(
+  '/api/session/properties',
+  'GET',
+  { cache_ttl: DEFAULT_CACHE_TTL, cache_rewarm_ttl: DEFAULT_CACHE_REWARM, max_concurrency: 5, concurrency_delay: 0 }
 );
 
 // =============================================================================
