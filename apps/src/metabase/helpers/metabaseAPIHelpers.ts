@@ -10,32 +10,7 @@ import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
 import { extractTableInfo } from './parseTables';
-
-// Types
-interface DatabaseResponse {
-  total: number;
-  data: {
-    name: string;
-    id: number;
-  }[]
-}
-
-export interface DatabaseInfo {
-  name: string;
-  description: string;
-  id: number;
-  dialect: string;
-  default_schema?: string;
-  dbms_version: {
-    flavor: string;
-    version: string;
-    semantic_version: number[];
-  }
-}
-
-export interface DatabaseInfoWithTables extends DatabaseInfo {
-  tables: any[];
-}
+import { DatabaseResponse, DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPITypes';
 
 import {
   fetchUserEdits,
@@ -134,12 +109,10 @@ async function performFallbackSearch(apiFn: () => Promise<any>, errorMsg: string
 // DATABASE HELPER FUNCTIONS
 // =============================================================================
 
-// Note: No memoization needed - fetchDatabases already has caching in metabaseAPI.ts
 export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
 }
 
-// Note: No memoization needed - fetchDatabaseWithTables already has caching in metabaseAPI.ts
 export async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
@@ -153,7 +126,6 @@ export async function getDatabaseTablesWithoutFields(dbId: number): Promise<Data
   };
 }
 
-// Note: No memoization needed - fetchDatabaseInfo already has caching in metabaseAPI.ts
 export async function getDatabaseInfo(dbId: number) {
   const jsonResponse = await fetchDatabaseInfo({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
@@ -162,7 +134,6 @@ export async function getDatabaseInfo(dbId: number) {
   }
 }
 
-// Note: No memoization needed - fetchFieldInfo already has caching in metabaseAPI.ts
 export async function getFieldResolvedName(fieldId: number) {
   const fieldInfo = await fetchFieldInfo({ field_id: fieldId }) as any;
   return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`;

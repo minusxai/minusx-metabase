@@ -25,8 +25,8 @@ interface DatabaseResponse {
   }[]
 }
 
-// Types moved to metabaseAPIHelpers.ts
-export type { DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPIHelpers';
+// Types moved to metabaseAPITypes.ts
+export type { DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPITypes';
 
 
 

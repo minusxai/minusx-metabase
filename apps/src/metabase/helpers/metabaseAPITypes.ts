@@ -65,6 +65,14 @@ export interface DatabaseInfoWithTables extends DatabaseInfo {
   tables: FormattedTable[];
 }
 
+export interface DatabaseResponse {
+  total: number;
+  data: {
+    name: string;
+    id: number;
+  }[]
+}
+
 export interface UserContext {
   queries: string[];
   referencedTables: TableAndSchema[];
