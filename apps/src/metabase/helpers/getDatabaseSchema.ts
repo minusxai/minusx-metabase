@@ -3,7 +3,7 @@ import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId } from './getUserInfo';
-import { getUserTableMap, getUserTables, searchUserQueries } from './metabaseAPI';
+import { getUserTableMap, getUserTables, searchUserQueries } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
 import { extractTableInfo, fetchTableData } from './parseTables';

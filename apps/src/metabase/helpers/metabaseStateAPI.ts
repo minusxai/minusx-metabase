@@ -1,0 +1,104 @@
+/**
+ * Metabase State API Functions
+ * 
+ * Functions that interact with Metabase DOM state via getMetabaseState.
+ * These functions extract data directly from the Metabase interface.
+ */
+
+import { RPCs } from 'web';
+import { isEmpty } from 'lodash';
+import { isDashboardPageUrl } from './dashboard/util';
+import _ from 'lodash';
+
+const { getMetabaseState } = RPCs;
+
+// =============================================================================
+// USER STATE FUNCTIONS
+// =============================================================================
+
+interface UserInfo {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  personal_collection_id: number;
+}
+
+/**
+ * Get current user information from Metabase state
+ */
+export async function getCurrentUserInfo(): Promise<UserInfo | undefined> {
+  const userInfo = await getMetabaseState('currentUser') as UserInfo;
+  if (isEmpty(userInfo)) {
+    console.error('Failed to load user info');
+    return undefined;
+  }
+  return userInfo;
+}
+
+// =============================================================================
+// DATABASE STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Get selected database ID from current Metabase state
+ */
+export async function getSelectedDbId(): Promise<number | undefined> {
+  const url = await RPCs.queryURL();
+  const isDashboard = isDashboardPageUrl(url);
+  let dbId;
+  
+  if (isDashboard) {
+    const dashcards = await getMetabaseState('dashboard.dashcards') as any;
+    const dbIds = Object.values(dashcards || []).map((d: any) => d.card.database_id);
+    dbId = _.chain(dbIds).countBy().toPairs().maxBy(_.last).head().value();
+    try {
+      dbId = parseInt(dbId);
+    } catch (e) {}
+  } else {
+    dbId = await getMetabaseState('qb.card.dataset_query.database');
+  }
+  
+  if (!dbId || !Number(dbId)) {
+    console.error('Failed to find database id', JSON.stringify(dbId));
+    return undefined;
+  }
+  return Number(dbId);
+}
+
+// =============================================================================
+// QUERY STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Get current query from Metabase state
+ */
+export async function getCurrentQuery(): Promise<string | undefined> {
+  return await getMetabaseState('qb.card.dataset_query.native.query') as string;
+}
+
+/**
+ * Get current SQL from Metabase state
+ */
+export async function getCurrentSQL(): Promise<string | undefined> {
+  return await getCurrentQuery();
+}
+
+// =============================================================================
+// DASHBOARD STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Get dashboard cards from Metabase state
+ */
+export async function getDashboardCards(): Promise<any> {
+  return await getMetabaseState('dashboard.dashcards');
+}
+
+/**
+ * Check if current page is a dashboard
+ */
+export async function isDashboardPage(): Promise<boolean> {
+  const url = await RPCs.queryURL();
+  return isDashboardPageUrl(url);
+}
