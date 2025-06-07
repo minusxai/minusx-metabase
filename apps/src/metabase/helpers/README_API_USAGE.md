@@ -1,8 +1,8 @@
-# Metabase API Client Usage Examples
+# Metabase API Usage Examples
 
-This file demonstrates how to use the new type-safe Metabase API client with automatic caching, concurrency control, and rate limiting.
+This file demonstrates how to use the elegant, simplified Metabase API system with automatic caching, concurrency control, and rate limiting.
 
-## Basic Usage (Existing Functions - Backward Compatible)
+## Basic Usage (High-Level Functions)
 
 ```typescript
 import { 
@@ -36,44 +36,46 @@ const tables = await findRelevantTables(123, {
 });
 ```
 
-## Advanced Usage (Direct API Client)
+## Direct API Usage (Low-Level Functions)
 
 ```typescript
 import { 
-  fetchMetabaseAPI, 
-  createMetabaseAPIFetch 
-} from './metabaseAPIClient';
-import { 
-  API_DATABASE_INFO, 
-  API_FIELD_UNIQUE_VALUES 
-} from './metabaseAPITypes';
-
-// Direct API calls with automatic concurrency control and caching
-const dbInfo = await fetchMetabaseAPI(API_DATABASE_INFO, { db_id: 123 });
-
-// Create custom memoized function
-const memoizedFieldValues = createMetabaseAPIFetch(API_FIELD_UNIQUE_VALUES);
-const values = await memoizedFieldValues({ field_id: 789 });
-```
-
-## Monitoring and Debugging
-
-```typescript
-import { 
-  getConcurrencyStats, 
-  getAPIConfiguration 
+  fetchDatabaseList,
+  fetchDatabaseInfo,
+  fetchTableMetadata,
+  fetchFieldUniqueValues,
+  fetchSessionProperties
 } from './metabaseAPI';
 
-// Check current concurrency status
-const stats = getConcurrencyStats();
-console.log('Active requests:', stats['/api/field/{{field_id}}/values'].active);
-console.log('Queued requests:', stats['/api/field/{{field_id}}/values'].queued);
+// Direct API calls - automatically cached and rate-limited
+const databases = await fetchDatabaseList({});
+const dbInfo = await fetchDatabaseInfo({ db_id: 123 });
+const tableMetadata = await fetchTableMetadata({ table_id: 456 });
+const fieldValues = await fetchFieldUniqueValues({ field_id: 789 });
+const sessionProps = await fetchSessionProperties({});
+```
 
-// Check configuration for an endpoint
-const config = getAPIConfiguration('/api/field/{{field_id}}/values');
-console.log('Max concurrency:', config.max_concurrency); // 3
-console.log('Delay between requests:', config.concurrency_delay); // 500ms
-console.log('Cache TTL:', config.cache_ttl); // 3600 seconds
+## Creating Custom APIs
+
+The system uses a single `createAPI` function that handles everything:
+
+```typescript
+import { createAPI } from './metabaseAPI';
+
+// Create a new API endpoint
+const fetchCustomEndpoint = createAPI<{ id: number }>(
+  '/api/custom/{{id}}',
+  'GET',
+  {
+    cache_ttl: 600,        // 10 minutes
+    cache_rewarm_ttl: 300, // 5 minutes  
+    max_concurrency: 5,    // Max 5 concurrent requests
+    concurrency_delay: 100 // 100ms delay between requests
+  }
+);
+
+// Use it
+const result = await fetchCustomEndpoint({ id: 123 });
 ```
 
 ## Performance Features
