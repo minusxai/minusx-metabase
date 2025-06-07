@@ -2,9 +2,10 @@
  * Unified Metabase API Client
  * 
  * Minimal interface for all Metabase data operations with built-in:
- * - Persistent caching with stale-while-revalidate (via web/cache)
- * - Concurrency control to prevent API overload  
- * - Type safety for all operations
+ * - Type-safe API definitions with template substitution
+ * - Per-endpoint concurrency control and intelligent rate limiting
+ * - Persistent caching with stale-while-revalidate patterns
+ * - Automatic request queuing and performance optimization
  * 
  * Only 5 functions to cover all use cases:
  * 1. getDatabases() - list all databases
@@ -14,11 +15,29 @@
  * 5. findRelevantTables() - unified search/relevance function
  */
 
-import { RPCs, memoize } from 'web';
+import { RPCs } from 'web';
 import { get, flatMap, isEmpty, map } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise } from '../../common/utils';
-import { fetchData } from './concurrency';
+import { 
+  fetchMetabaseAPI, 
+  createMetabaseAPIFetch, 
+  getConcurrencyStats,
+  getAPIConfiguration
+} from './metabaseAPIClient';
+import {
+  API_DATABASE_LIST,
+  API_DATABASE_INFO,
+  API_DATABASE_WITH_TABLES,
+  API_TABLE_METADATA,
+  API_FIELD_UNIQUE_VALUES,
+  API_SEARCH_USER_EDITS,
+  API_SEARCH_USER_CREATIONS,
+  API_SEARCH_BY_QUERY,
+  API_SEARCH_USER_EDITS_WITH_QUERY,
+  API_SEARCH_USER_CREATIONS_WITH_QUERY,
+  API_SEARCH_ALL_WITH_QUERY
+} from './metabaseAPITypes';
 
 // =============================================================================
 // ESSENTIAL TYPES ONLY
@@ -68,150 +87,139 @@ export interface UserContext {
 }
 
 // =============================================================================
-// CACHE TTL CONSTANTS (in seconds for web/cache compatibility)
+// PRE-CREATED MEMOIZED FUNCTIONS FOR OPTIMAL PERFORMANCE
 // =============================================================================
 
-export const CACHE_TTL = {
-  databases: 1000,     // ~17 minutes - rarely changes
-  tables: 300,         // 5 minutes  
-  columns: 3600,       // 1 hour
-  uniqueValues: 1800,  // 30 minutes
-  userQueries: 600,    // 10 minutes
-} as const;
+// Create memoized versions of frequently used APIs for optimal performance
+const memoizedGetDatabaseList = createMetabaseAPIFetch(API_DATABASE_LIST);
+const memoizedGetDatabaseInfo = createMetabaseAPIFetch(API_DATABASE_INFO);
+const memoizedGetDatabaseWithTables = createMetabaseAPIFetch(API_DATABASE_WITH_TABLES);
+const memoizedGetTableMetadata = createMetabaseAPIFetch(API_TABLE_METADATA);
+const memoizedGetFieldUniqueValues = createMetabaseAPIFetch(API_FIELD_UNIQUE_VALUES);
+const memoizedGetUserEdits = createMetabaseAPIFetch(API_SEARCH_USER_EDITS);
+const memoizedGetUserCreations = createMetabaseAPIFetch(API_SEARCH_USER_CREATIONS);
 
 // =============================================================================
-// MEMOIZED API FUNCTIONS (using web/cache)
+// PUBLIC API FUNCTIONS (Backward Compatible)
 // =============================================================================
 
 /**
  * 1. Get all available databases
  */
-export const getDatabases = memoize(
-  async (): Promise<DatabaseInfo[]> => {
-    const resp = await fetchData('/api/database', 'GET') as any;
-    return (resp.data || []).map((db: any) => extractDbInfo(db, getDefaultSchema(db)));
-  },
-  CACHE_TTL.databases
-);
+export async function getDatabases(): Promise<DatabaseInfo[]> {
+  const resp = await memoizedGetDatabaseList({});
+  return (resp.data || []).map((db: any) => extractDbInfo(db, getDefaultSchema(db)));
+}
 
 /**
  * 2. Get specific database, optionally with tables
  */
-export const getDatabase = memoize(
-  async (dbId: number, includeTables = false): Promise<DatabaseInfo | DatabaseInfoWithTables> => {
-    const endpoint = includeTables ? `/api/database/${dbId}?include=tables` : `/api/database/${dbId}`;
-    const jsonResponse = await fetchData(endpoint, 'GET');
+export async function getDatabase(dbId: number, includeTables = false): Promise<DatabaseInfo | DatabaseInfoWithTables> {
+  if (includeTables) {
+    const jsonResponse = await memoizedGetDatabaseWithTables({ db_id: dbId });
     const defaultSchema = getDefaultSchema(jsonResponse);
     const dbInfo = extractDbInfo(jsonResponse, defaultSchema);
-
-    if (includeTables) {
-      const tables = await Promise.all(
-        (get(jsonResponse, 'tables', []) as any[]).map(table => extractTableInfo(table, false))
-      );
-      return { ...dbInfo, tables: tables || [] } as DatabaseInfoWithTables;
-    }
-
-    return dbInfo;
-  },
-  CACHE_TTL.databases
-);
+    
+    const tables = await Promise.all(
+      (get(jsonResponse, 'tables', []) as any[]).map(table => extractTableInfo(table, false))
+    );
+    return { ...dbInfo, tables: tables || [] } as DatabaseInfoWithTables;
+  } else {
+    const jsonResponse = await memoizedGetDatabaseInfo({ db_id: dbId });
+    const defaultSchema = getDefaultSchema(jsonResponse);
+    return extractDbInfo(jsonResponse, defaultSchema);
+  }
+}
 
 /**
  * 3. Get table with configurable depth
  */
-export const getTable = memoize(
-  async (tableId: number, options: {
-    includeColumns?: boolean;
-    includeUniqueValues?: boolean;
-  } = {}): Promise<FormattedTable> => {
-    const { includeColumns = false, includeUniqueValues = false } = options;
-    
-    const resp = await fetchData(`/api/table/${tableId}/query_metadata`, 'GET');
-    if (!resp) {
-      throw new Error(`Failed to get table metadata for ${tableId}`);
-    }
-    
-    let table = extractTableInfo(resp, includeColumns);
+export async function getTable(tableId: number, options: {
+  includeColumns?: boolean;
+  includeUniqueValues?: boolean;
+} = {}): Promise<FormattedTable> {
+  const { includeColumns = false, includeUniqueValues = false } = options;
+  
+  const resp = await memoizedGetTableMetadata({ table_id: tableId });
+  if (!resp) {
+    throw new Error(`Failed to get table metadata for ${tableId}`);
+  }
+  
+  let table = extractTableInfo(resp, includeColumns);
 
-    // Add unique values if requested and we have columns
-    if (includeUniqueValues && includeColumns && table.columns) {
-      table = await enhanceTableWithUniqueValues(table);
-    }
+  // Add unique values if requested and we have columns
+  if (includeUniqueValues && includeColumns && table.columns) {
+    table = await enhanceTableWithUniqueValues(table);
+  }
 
-    return table;
-  },
-  CACHE_TTL.columns
-);
+  return table;
+}
 
 /**
  * 4. Get user context (queries + referenced tables)
  */
-export const getUserContext = memoize(
-  async (userId?: number): Promise<UserContext> => {
-    const user = userId ? { id: userId } : await getCurrentUserInfo();
-    if (!user) return { queries: [], referencedTables: [] };
+export async function getUserContext(userId?: number): Promise<UserContext> {
+  const user = userId ? { id: userId } : await getCurrentUserInfo();
+  if (!user) return { queries: [], referencedTables: [] };
 
-    const [edits, creations] = await Promise.all([
-      handlePromise(getMetabaseQueries(`/api/search?edited_by=${user.id}`), "Error getting user edits", []),
-      handlePromise(getMetabaseQueries(`/api/search?created_by=${user.id}`), "Error getting user creations", []),
-    ]);
+  const [edits, creations] = await Promise.all([
+    handlePromise(memoizedGetUserEdits({ user_id: user.id }), "Error getting user edits", { data: [] }),
+    handlePromise(memoizedGetUserCreations({ user_id: user.id }), "Error getting user creations", { data: [] }),
+  ]);
 
-    const allQueries = [...new Set([...edits, ...creations])];
-    const referencedTables = allQueries.map(getTablesFromSqlRegex).flat();
+  const editQueries = extractQueriesFromResponse(edits);
+  const creationQueries = extractQueriesFromResponse(creations);
+  const allQueries = [...new Set([...editQueries, ...creationQueries])];
+  const referencedTables = allQueries.map(getTablesFromSqlRegex).flat();
 
-    return { queries: allQueries, referencedTables };
-  },
-  CACHE_TTL.userQueries
-);
+  return { queries: allQueries, referencedTables };
+}
 
 /**
  * 5. Find relevant tables with unified search/relevance
  */
-export const findRelevantTables = memoize(
-  async (dbId: number, options: {
-    searchQuery?: string;     // Text search in table names/descriptions
-    sql?: string;             // SQL-based relevance
-    userId?: number;          // User context for relevance
-    includeColumns?: boolean; // Include column details
-    includeUniqueValues?: boolean; // Include unique values (requires includeColumns)
-    maxTables?: number;       // Limit results
-  } = {}): Promise<FormattedTable[]> => {
-    const {
-      searchQuery,
-      sql,
-      userId,
-      includeColumns = false,
-      includeUniqueValues = false,
-      maxTables
-    } = options;
+export async function findRelevantTables(dbId: number, options: {
+  searchQuery?: string;     // Text search in table names/descriptions
+  sql?: string;             // SQL-based relevance
+  userId?: number;          // User context for relevance
+  includeColumns?: boolean; // Include column details
+  includeUniqueValues?: boolean; // Include unique values (requires includeColumns)
+  maxTables?: number;       // Limit results
+} = {}): Promise<FormattedTable[]> {
+  const {
+    searchQuery,
+    sql,
+    userId,
+    includeColumns = false,
+    includeUniqueValues = false,
+    maxTables
+  } = options;
 
-    let tables: FormattedTable[];
+  let tables: FormattedTable[];
 
-    if (searchQuery) {
-      // Text-based search
-      tables = await searchTablesByText(dbId, searchQuery, userId);
-    } else {
-      // Get all relevant tables (user context + SQL context)
-      tables = await getAllRelevantTables(dbId, sql || '', userId);
-    }
+  if (searchQuery) {
+    // Text-based search
+    tables = await searchTablesByText(dbId, searchQuery, userId);
+  } else {
+    // Get all relevant tables (user context + SQL context)
+    tables = await getAllRelevantTables(dbId, sql || '', userId);
+  }
 
-    // Apply table limit early to avoid unnecessary work
-    if (maxTables) {
-      tables = tables.slice(0, maxTables);
-    }
+  // Apply table limit early to avoid unnecessary work
+  if (maxTables) {
+    tables = tables.slice(0, maxTables);
+  }
 
-    // Enhance with columns if requested
-    if (includeColumns) {
-      const enhancedTables = await Promise.all(
-        tables.map(table => getTable(table.id, { includeColumns: true, includeUniqueValues }))
-      );
-      tables = enhancedTables;
-    }
+  // Enhance with columns if requested
+  if (includeColumns) {
+    const enhancedTables = await Promise.all(
+      tables.map(table => getTable(table.id, { includeColumns: true, includeUniqueValues }))
+    );
+    tables = enhancedTables;
+  }
 
-    return tables;
-  },
-  CACHE_TTL.tables
-);
+  return tables;
+}
 
 // =============================================================================
 // HELPER FUNCTIONS (not memoized, used internally)
@@ -222,9 +230,8 @@ async function getCurrentUserInfo(): Promise<{ id: number } | undefined> {
   return isEmpty(userInfo) ? undefined : userInfo;
 }
 
-async function getMetabaseQueries(apiEndpoint: string): Promise<string[]> {
-  const jsonResponse = await fetchData(apiEndpoint, 'GET');
-  return get(jsonResponse, 'data', [])
+function extractQueriesFromResponse(response: any): string[] {
+  return get(response, 'data', [])
     .map((entity: any) => get(entity, "dataset_query.native.query"))
     .filter(query => !isEmpty(query));
 }
@@ -278,14 +285,6 @@ async function getAllRelevantTables(dbId: number, sql: string, userId?: number):
   });
 }
 
-// Memoized unique values fetching
-const getFieldUniqueValues = memoize(
-  async (fieldId: number): Promise<any> => {
-    return await fetchData(`/api/field/${fieldId}/values`, 'GET');
-  },
-  CACHE_TTL.uniqueValues
-);
-
 async function enhanceTableWithUniqueValues(table: FormattedTable): Promise<FormattedTable> {
   if (!table.columns) return table;
 
@@ -298,7 +297,7 @@ async function enhanceTableWithUniqueValues(table: FormattedTable): Promise<Form
 
   const uniqueValuesPromises = fieldIds.map(async fieldId => {
     try {
-      const data = await getFieldUniqueValues(fieldId);
+      const data = await memoizedGetFieldUniqueValues({ field_id: fieldId });
       return { fieldId, data };
     } catch (error) {
       console.warn(`Failed to fetch unique values for field ${fieldId}:`, error);
@@ -406,3 +405,24 @@ function truncateUniqueValue(value: any): any {
   }
   return value;
 }
+
+// =============================================================================
+// MONITORING AND DEBUGGING EXPORTS
+// =============================================================================
+
+export { 
+  getConcurrencyStats,
+  getAPIConfiguration,
+  fetchMetabaseAPI as fetchMetabaseAPIRaw,
+  createMetabaseAPIFetch
+} from './metabaseAPIClient';
+
+export {
+  API_DATABASE_LIST,
+  API_DATABASE_INFO,
+  API_DATABASE_WITH_TABLES,
+  API_TABLE_METADATA,
+  API_FIELD_UNIQUE_VALUES,
+  API_SEARCH_USER_EDITS,
+  API_SEARCH_USER_CREATIONS
+} from './metabaseAPITypes';
