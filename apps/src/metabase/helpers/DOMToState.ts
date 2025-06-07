@@ -108,7 +108,7 @@ export async function convertDOMtoStateSQLQuery() {
     })
   }
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode, appSettings.enableUnique);
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
   
   const queryExecuted = await hasQueryResults();
   const nativeEditorOpen = await isNativeEditorOpen()

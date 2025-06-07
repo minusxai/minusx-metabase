@@ -98,7 +98,6 @@ interface Settings {
   groupsEnabled: boolean
   modelsMode: boolean
   viewAllCatalogs: boolean
-  enableUnique: boolean
 }
 
 const initialState: Settings = {
@@ -127,8 +126,7 @@ const initialState: Settings = {
   groups: {},
   groupsEnabled: false,
   modelsMode: true,
-  viewAllCatalogs: false,
-  enableUnique: true
+  viewAllCatalogs: false
 }
 
 export const settingsSlice = createSlice({
@@ -305,9 +303,6 @@ export const settingsSlice = createSlice({
                 state.selectedCatalog = DEFAULT_TABLES
             }
         }
-    },
-    setEnableUnique: (state, action: PayloadAction<boolean>) => {
-      state.enableUnique = action.payload
     }
   },
 })
@@ -319,7 +314,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableUnique,
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs,
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

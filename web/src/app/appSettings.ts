@@ -13,7 +13,6 @@ export const getAppSettings = () => {
     selectedCatalog: settings.selectedCatalog,
     availableCatalogs: settings.availableCatalogs,
     modelsMode: settings.modelsMode,
-    enableUnique: settings.enableUnique,
   }
 }
 
