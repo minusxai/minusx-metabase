@@ -2,7 +2,7 @@ import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { forEach, reduce, template, values } from 'lodash';
 import { MetabaseAppStateDashboard,  MetabaseAppStateType} from '../DOMToState';
 import { getTablesWithFields } from '../getDatabaseSchema';
-import { getDatabaseInfoForSelectedDb, getFieldResolvedName } from '../metabaseAPIHelpers';
+import { getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
@@ -226,7 +226,8 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   const url = new URL(await RPCs.queryURL()).origin;
   const appSettings = RPCs.getAppSettings();
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
-  const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb()
+  const dbId = await getSelectedDbId();
+  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
   const defaultSchema = selectedDatabaseInfo?.default_schema; 
       
   const dashboardMetabaseState: DashboardMetabaseState = await getDashboardState() as DashboardMetabaseState;

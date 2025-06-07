@@ -1,39 +1,14 @@
-import { memoize, RPCs } from 'web'
 import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId } from './metabaseStateAPI';
-import { getUserTables, searchUserQueries, getDatabaseTablesWithoutFields, getMetabaseVersion } from './metabaseAPIHelpers';
+import { getUserTables, searchUserQueries, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';
-import { extractTableInfo } from './parseTables';
 import { getTableData } from './metabaseAPIHelpers';
-
-const { fetchData } = RPCs;
-
-// this is a subset
-interface DatabaseResponse {
-  total: number;
-  data: {
-    name: string;
-    id: number;
-  }[]
-}
 
 // Types moved to metabaseAPITypes.ts
 export type { DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPITypes';
-
-
-
-
-export async function logMetabaseVersion() {
-  const apiVersion = await getMetabaseVersion();
-  if (!apiVersion) {
-    console.error("Failed to get metabase version");
-    return;
-  }
-  console.log("Metabase version", apiVersion);
-}
 
 function getTableKey<T extends TableAndSchema>(tableInfo: T): string {
   return `${tableInfo.schema?.toLowerCase()}.${tableInfo.name.toLowerCase()}`;

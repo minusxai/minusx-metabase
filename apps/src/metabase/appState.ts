@@ -72,7 +72,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
             }
           }))
           // Perf caching
-          relevantTables.forEach((table) => getTableData(table.id, true))
           getDatabaseInfo(dbId)
         })
       }

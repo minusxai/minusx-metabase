@@ -6,7 +6,6 @@
  */
 
 import { map, get, isEmpty, flatMap } from 'lodash';
-import { memoize } from 'web';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise, deterministicSample } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
@@ -25,7 +24,6 @@ import {
   fetchDatabaseWithTables,
   fetchFieldInfo,
   executeDatasetQuery,
-  fetchSessionProperties,
   fetchSearchByQuery,
   fetchFieldUniqueValues,
   fetchTableMetadata
@@ -145,10 +143,6 @@ export async function getFieldResolvedName(fieldId: number) {
   return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`;
 }
 
-export async function getDatabaseInfoForSelectedDb(): Promise<DatabaseInfo | undefined> {
-  const dbId = await getSelectedDbId();
-  return dbId ? await getDatabaseInfo(dbId) : undefined;
-}
 
 // =============================================================================
 // MAIN EXPORTED FUNCTIONS
@@ -206,14 +200,6 @@ export async function executeQuery(sql: string, databaseId: number, templateTags
       'template-tags': templateTags
     }
   });
-}
-
-/**
- * Get Metabase version from session properties
- */
-export async function getMetabaseVersion() {
-  const response = await fetchSessionProperties({}) as any;
-  return response?.version;
 }
 
 /**
@@ -324,15 +310,12 @@ async function getTableUniqueValues(tableInfo: FormattedTable, fieldsWithDistinc
   return fieldIdUniqueValMapping;
 }
 
-// Memoized versions for performance
-const memoizedGetTableMetadata = memoize(getTableMetadata);
-const memoizedGetTableUniqueValues = memoize(getTableUniqueValues);
 
 /**
  * Fetch complete table data with optional unique values
  */
 export async function getTableData(tableId: number, uniqueValues = false): Promise<FormattedTable | "missing"> {
-  const metadataResult = await memoizedGetTableMetadata(tableId);
+  const metadataResult = await getTableMetadata(tableId);
   if (metadataResult === "missing") {
     return "missing";
   }
@@ -345,7 +328,7 @@ export async function getTableData(tableId: number, uniqueValues = false): Promi
     return tableInfo;
   }
   
-  const fieldIdUniqueValMapping = await memoizedGetTableUniqueValues(tableInfo, fieldsWithDistinctCount);
+  const fieldIdUniqueValMapping = await getTableUniqueValues(tableInfo, fieldsWithDistinctCount);
   
   // Apply unique values to table info
   Object.values(tableInfo.columns || {}).forEach((field) => {

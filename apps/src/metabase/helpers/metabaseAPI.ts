@@ -86,8 +86,3 @@ export const executeDatasetQuery = createAPI<{
   '/api/dataset',
   'POST'
 );
-
-// System Operations
-export const fetchSessionProperties = createAPI<{}>(
-  '/api/session/properties'
-);
