@@ -1,5 +1,5 @@
 import { MetabaseAppStateDashboard } from '../DOMToState';
-import { memoizedGetFieldResolvedName } from '../metabaseAPIHelpers';
+import { getFieldResolvedName } from '../metabaseAPIHelpers';
 
 // if url has /dashboard/ in it, then it's a dashboard
 export const isDashboardPageUrl = (url: string) => {
@@ -7,7 +7,7 @@ export const isDashboardPageUrl = (url: string) => {
 }
 
 // Re-export for backward compatibility
-export { memoizedGetFieldResolvedName };
+export { getFieldResolvedName };
 
 export function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard | null) {
   if (!appState) {

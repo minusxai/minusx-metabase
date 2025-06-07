@@ -5,8 +5,7 @@
  * from metabaseAPI.ts and state functions from metabaseStateAPI.ts.
  */
 
-import { get, isEmpty, memoize } from 'lodash';
-import _ from 'lodash';
+import { map, get, isEmpty } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
@@ -41,6 +40,7 @@ export interface DatabaseInfo {
 export interface DatabaseInfoWithTables extends DatabaseInfo {
   tables: any[];
 }
+
 import {
   fetchUserEdits,
   fetchUserCreations,
@@ -70,52 +70,68 @@ function getDefaultSchema(databaseInfo: any): string {
   return schemaFromResponse || get(databaseInfo, "details.schema", "") || "public";
 }
 
-export const extractDbInfo = (db: any, default_schema: string): DatabaseInfo => ({
-  name: db.name,
-  description: db.description || "",
-  id: db.id,
-  dialect: get(db, "dbms_version.flavor") || get(db, "engine") || "unknown",
-  default_schema,
-  dbms_version: {
-    flavor: get(db, "dbms_version.flavor") || get(db, "engine") || "unknown",
-    version: get(db, "dbms_version.version") || "unknown",
-    semantic_version: get(db, "dbms_version.semantic_version") || [0, 0, 0]
-  }
-});
+function extractDbInfo(db: any, default_schema: string): DatabaseInfo {
+  const dialect = get(db, "dbms_version.flavor") || get(db, "engine") || "unknown";
+  return {
+    name: db.name,
+    description: db.description || "",
+    id: db.id,
+    dialect,
+    default_schema,
+    dbms_version: {
+      flavor: dialect,
+      version: get(db, "dbms_version.version") || "unknown",
+      semantic_version: get(db, "dbms_version.semantic_version") || [0, 0, 0]
+    }
+  };
+}
 
 
 // =============================================================================
-// SEARCH HELPER FUNCTIONS
+// UNIFIED SEARCH AND USER QUERY FUNCTIONS
 // =============================================================================
 
-async function searchUserEdits(userId: number): Promise<string[]> {
-  const response = await fetchUserEdits({ user_id: userId });
-  return extractQueriesFromResponse(response);
+/**
+ * Generic function to fetch queries from user edits and creations
+ * Consolidates the repeated pattern across multiple functions
+ */
+async function getUserQueries(userId: number, dbId?: number, searchQuery?: string): Promise<string[]> {
+  const [edits, creations] = await Promise.all([
+    handlePromise(
+      searchQuery && dbId 
+        ? fetchSearchUserEditsByQuery({ db_id: dbId, query: searchQuery, user_id: userId })
+        : fetchUserEdits({ user_id: userId }),
+      "[minusx] Error getting user edits", 
+      { data: [] }
+    ),
+    handlePromise(
+      searchQuery && dbId
+        ? fetchSearchUserCreationsByQuery({ db_id: dbId, query: searchQuery, user_id: userId })
+        : fetchUserCreations({ user_id: userId }),
+      "[minusx] Error getting user creations", 
+      { data: [] }
+    ),
+  ]);
+  
+  const editQueries = extractQueriesFromResponse(edits);
+  const creationQueries = extractQueriesFromResponse(creations);
+  return Array.from(new Set([...editQueries, ...creationQueries]));
 }
 
-async function searchUserCreations(userId: number): Promise<string[]> {
-  const response = await fetchUserCreations({ user_id: userId });
-  return extractQueriesFromResponse(response);
+/**
+ * Get tables from queries - unified logic for table extraction
+ */
+function extractTablesFromQueries(queries: string[]): TableAndSchema[] {
+  return queries.map(getTablesFromSqlRegex).flat();
 }
 
-async function searchByDatabase(dbId: number): Promise<string[]> {
-  const response = await fetchSearchByDatabase({ db_id: dbId });
-  return extractQueriesFromResponse(response);
-}
-
-async function searchUserEditsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
-  const response = await fetchSearchUserEditsByQuery({ db_id: dbId, query, user_id: userId });
-  return extractQueriesFromResponse(response);
-}
-
-async function searchUserCreationsByQuery(userId: number, dbId: number, query: string): Promise<string[]> {
-  const response = await fetchSearchUserCreationsByQuery({ db_id: dbId, query, user_id: userId });
-  return extractQueriesFromResponse(response);
-}
-
-async function searchCards(dbId: number, query: string): Promise<string[]> {
-  const response = await fetchSearchCards({ db_id: dbId, query });
-  return extractQueriesFromResponse(response);
+/**
+ * Generic fallback search function - consolidates duplicate logic
+ */
+async function performFallbackSearch(apiFn: () => Promise<any>, errorMsg: string): Promise<TableAndSchema[]> {
+  const response = await handlePromise(apiFn(), errorMsg, { data: [] });
+  const queries = extractQueriesFromResponse(response);
+  return extractTablesFromQueries(queries);
 }
 
 
@@ -123,18 +139,17 @@ async function searchCards(dbId: number, query: string): Promise<string[]> {
 // DATABASE HELPER FUNCTIONS
 // =============================================================================
 
-async function getDatabases() {
-  const resp = await fetchDatabases({}) as DatabaseResponse
-  return resp;
+// Note: No memoization needed - fetchDatabases already has caching in metabaseAPI.ts
+export async function getDatabases() {
+  return await fetchDatabases({}) as DatabaseResponse;
 }
 
-export const memoizedGetDatabases = memoize(getDatabases);
-
-async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
+// Note: No memoization needed - fetchDatabaseWithTables already has caching in metabaseAPI.ts
+export async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
-      _.map(_.get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
+      map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
   );
 
   return {
@@ -143,9 +158,8 @@ async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInf
   };
 }
 
-export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields);
-
-async function getDatabaseInfo(dbId: number) {
+// Note: No memoization needed - fetchDatabaseInfo already has caching in metabaseAPI.ts
+export async function getDatabaseInfo(dbId: number) {
   const jsonResponse = await fetchDatabaseInfo({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
   return {
@@ -153,19 +167,16 @@ async function getDatabaseInfo(dbId: number) {
   }
 }
 
-export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo);
-
-async function getFieldResolvedName(fieldId: number) {
+// Note: No memoization needed - fetchFieldInfo already has caching in metabaseAPI.ts
+export async function getFieldResolvedName(fieldId: number) {
   const fieldInfo = await fetchFieldInfo({ field_id: fieldId }) as any;
   return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`;
 }
 
-export const memoizedGetFieldResolvedName = memoize(getFieldResolvedName, 60 * 60 * 1000); // 1 hour TTL
-
 
 export const getDatabaseInfoForSelectedDb = async (): Promise<DatabaseInfo | undefined> => {
   const dbId = await getSelectedDbId();
-  return dbId ? await memoizedGetDatabaseInfo(dbId) : undefined;
+  return dbId ? await getDatabaseInfo(dbId) : undefined;
 }
 
 // =============================================================================
@@ -180,47 +191,36 @@ export async function getUserTables(): Promise<TableAndSchema[]> {
   const userInfo = await getCurrentUserInfo();
   if (!userInfo) return [];
 
-  const { id } = userInfo;
-  const [edits, creations] = await Promise.all([
-    handlePromise(searchUserEdits(id), "[minusx] Error getting user edits", []),
-    handlePromise(searchUserCreations(id), "[minusx] Error getting user creations", []),
-  ]);
-  
-  const queries = Array.from(new Set([...edits, ...creations]));
+  const queries = await getUserQueries(userInfo.id);
   if (queries.length > 0) {
-    return queries.map(getTablesFromSqlRegex).flat();
+    return extractTablesFromQueries(queries);
   }
   
   // Fallback: if user has no queries, get ALL database queries
   const dbId = await getSelectedDbId();
   if (!dbId) return [];
   
-  const allQueries = await handlePromise(searchByDatabase(dbId), "[minusx] Error getting all queries", []);
-  const uniqQueries = Array.from(new Set(allQueries));
-  return uniqQueries.map(getTablesFromSqlRegex).flat();
+  return performFallbackSearch(
+    () => fetchSearchByDatabase({ db_id: dbId }),
+    "[minusx] Error getting all queries"
+  );
 }
 
-/**
- * Get user table map (currently returns empty - used by getDatabaseSchema)
- */
-export async function getUserTableMap(): Promise<Record<string, any>> {
-  return {};
-}
 
 /**
  * Search user queries with fallback to general search
  */
 export async function searchUserQueries(id: number, dbId: number, query: string): Promise<TableAndSchema[]> {
-  const [edits, creations] = await Promise.all([
-    handlePromise(searchUserEditsByQuery(id, dbId, query), "[minusx] Error searching for user edits", []),
-    handlePromise(searchUserCreationsByQuery(id, dbId, query), "[minusx] Error searching for user creations", []),
-  ]);
-  const queries = Array.from(new Set([...edits, ...creations]));
+  const queries = await getUserQueries(id, dbId, query);
   if (queries.length > 0) {
-    return queries.map(getTablesFromSqlRegex).flat();
+    return extractTablesFromQueries(queries);
   }
-  const allQueries = await handlePromise(searchCards(dbId, query), "[minusx] Error searching for all queries", []);
-  return allQueries.map(getTablesFromSqlRegex).flat();
+  
+  // Fallback: search all cards
+  return performFallbackSearch(
+    () => fetchSearchCards({ db_id: dbId, query }),
+    "[minusx] Error searching for all queries"
+  );
 }
 
 /**

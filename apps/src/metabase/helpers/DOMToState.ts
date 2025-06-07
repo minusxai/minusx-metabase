@@ -1,6 +1,6 @@
 import { RPCs } from 'web'
 import { getRelevantTablesForSelectedDb, getTablesWithFields } from './getDatabaseSchema';
-import { getDatabaseInfoForSelectedDb, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo } from './metabaseAPIHelpers';
+import { getDatabaseInfoForSelectedDb, getDatabases, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -90,7 +90,7 @@ export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const url = new URL(await RPCs.queryURL()).origin;
-  const availableDatabases = (await memoizedGetDatabases())?.data?.map(({ name }) => name);
+  const availableDatabases = (await getDatabases())?.data?.map(({ name }) => name);
   const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   const sqlQuery = await getCurrentQuery()

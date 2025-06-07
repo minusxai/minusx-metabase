@@ -3,7 +3,7 @@ import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId } from './metabaseStateAPI';
-import { getUserTableMap, getUserTables, searchUserQueries, memoizedGetDatabaseTablesWithoutFields, extractDbInfo } from './metabaseAPIHelpers';
+import { getUserTables, searchUserQueries, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { 
   fetchDatabases, 
@@ -99,14 +99,15 @@ const addTableJoins = (tables: FormattedTable[], tableMap: Record<number, number
 
 const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => {
   const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
-  const [userTables, {tables: allDBTables, default_schema}, tableMap] = await Promise.all([
+  const [userTables, {tables: allDBTables, default_schema}] = await Promise.all([
     getUserTables(),
-    handlePromise(memoizedGetDatabaseTablesWithoutFields(dbId), "Failed to get database tables", {
-      ...extractDbInfo({}, ''),
+    handlePromise(getDatabaseTablesWithoutFields(dbId), "Failed to get database tables", {
+      name: '', description: '', id: 0, dialect: '', default_schema: '',
+      dbms_version: { flavor: '', version: '', semantic_version: [] },
       tables: []
-    }),
-    getUserTableMap()
+    })
   ]);
+  const tableMap = {}; // Empty table map - was getUserTableMap() placeholder
   const allUserTables = dedupeAndCountTables([...tablesFromSql, ...userTables]);
   const validTables = validateTablesInDB(allUserTables, allDBTables, default_schema);
   const dedupedTables = dedupeAndCountTables([...validTables, ...allDBTables]);
@@ -121,7 +122,7 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
 export const searchTables = async (userId: number, dbId: number, query: string): Promise<FormattedTable[]> => {
   const [userTables, {tables: allDBTables, default_schema}] = await Promise.all([
     searchUserQueries(userId, dbId, query),
-    memoizedGetDatabaseTablesWithoutFields(dbId),
+    getDatabaseTablesWithoutFields(dbId),
   ]).catch(err => {
     console.warn("[minusx] Error getting search tables", err);
     throw err;

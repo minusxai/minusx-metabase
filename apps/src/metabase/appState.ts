@@ -8,7 +8,7 @@ import { cloneDeep, get, isEmpty, memoize } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
-import { getCardsCountSplitByType, memoizedGetDatabaseTablesWithoutFields, memoizedGetDatabaseInfo } from "./helpers/metabaseAPIHelpers";
+import { getCardsCountSplitByType, getDatabaseTablesWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
@@ -60,7 +60,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           const isCancelled = () => taskStatus.status === 'cancelled';
           const [relevantTables, dbInfo] = await Promise.all([
             handlePromise(abortable(getRelevantTablesForSelectedDb(''), isCancelled), "Failed to get relevant tables", []),
-            handlePromise(abortable(memoizedGetDatabaseTablesWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
+            handlePromise(abortable(getDatabaseTablesWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
           ])
           state.update((oldState) => ({
             ...oldState,
@@ -73,7 +73,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           }))
           // Perf caching
           relevantTables.forEach((table) => fetchTableData(table.id, true))
-          memoizedGetDatabaseInfo(dbId)
+          getDatabaseInfo(dbId)
         })
       }
     })

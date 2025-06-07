@@ -6,7 +6,7 @@ import { getDatabaseInfoForSelectedDb } from '../metabaseAPIHelpers';
 import { getDashboardState } from '../metabaseStateAPI';
 import { RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
-import { memoizedGetFieldResolvedName } from './util';
+import { getFieldResolvedName } from './util';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
 import { getTableContextYAML } from '../catalog';
@@ -210,7 +210,7 @@ async function substituteParameters(
       if (dashcardParameter.type != 'string/=') {
         throw new Error(`Parameter type ${dashcardParameter.type} is not supported in field filters. template tag: ${templateTag.name}`);
       }
-      const fieldName = await memoizedGetFieldResolvedName(templateTag.dimension[1])
+      const fieldName = await getFieldResolvedName(templateTag.dimension[1])
       sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `${fieldName} in ${stringifyParams(parameterValue)}`);
     } else if (templateTag.type == 'text') {
       sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `'${parameterValue}'`);
