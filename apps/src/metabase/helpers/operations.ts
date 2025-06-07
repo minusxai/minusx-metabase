@@ -1,8 +1,8 @@
 import { RPCs, utils } from "web";
+import { getQueryError, isQueryRunning, getQueryResults } from './metabaseStateAPI';
 
-const { getMetabaseState } = RPCs;
 export const getSqlErrorMessage = async () => {
-  let errorMessage: any = await getMetabaseState('qb.queryResults[0].error')
+  let errorMessage: any = await getQueryError();
   // check if errorMessage is a string, if so, return it
   if (typeof errorMessage === 'string') {
     return errorMessage;
@@ -62,7 +62,7 @@ export function metabaseToCSV(table: MetabaseStateTable, truncateLength: number 
 
 
 export async function getAndFormatOutputTable(_type: string = ''): Promise<string> {
-  const outputTable: MetabaseStateTable | null = await getMetabaseState('qb.queryResults[0].data');
+  const outputTable: MetabaseStateTable | null = await getQueryResults();
   if (!outputTable) {
     return '';
   }
@@ -81,8 +81,8 @@ export async function getAndFormatOutputTable(_type: string = ''): Promise<strin
 
 export const waitForQueryExecution = async () => {
   while (true) {
-    const isRunning = (await getMetabaseState('qb.uiControls.isRunning')) as boolean;
-    if (!isRunning) {
+    const running = await isQueryRunning();
+    if (!running) {
       return;
     }
     await utils.sleep(100);

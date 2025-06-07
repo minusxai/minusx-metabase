@@ -102,3 +102,114 @@ export async function isDashboardPage(): Promise<boolean> {
   const url = await RPCs.queryURL();
   return isDashboardPageUrl(url);
 }
+
+// =============================================================================
+// QUERY EXECUTION STATE FUNCTIONS  
+// =============================================================================
+
+/**
+ * Check if query is currently running
+ */
+export async function isQueryRunning(): Promise<boolean> {
+  return await getMetabaseState('qb.uiControls.isRunning') as boolean;
+}
+
+/**
+ * Check if query has been executed (has results)
+ */
+export async function hasQueryResults(): Promise<boolean> {
+  return await getMetabaseState('qb.queryResults') !== null;
+}
+
+/**
+ * Get query results data
+ */
+export async function getQueryResults(): Promise<any> {
+  return await getMetabaseState('qb.queryResults[0].data');
+}
+
+/**
+ * Get query error message
+ */
+export async function getQueryError(): Promise<any> {
+  return await getMetabaseState('qb.queryResults[0].error');
+}
+
+// =============================================================================
+// UI STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Check if native editor is open
+ */
+export async function isNativeEditorOpen(): Promise<boolean> {
+  return await getMetabaseState('qb.uiControls.isNativeEditorOpen') as boolean;
+}
+
+/**
+ * Check if showing raw table view
+ */
+export async function isShowingRawTable(): Promise<boolean> {
+  return await getMetabaseState('qb.uiControls.isShowingRawTable') as boolean;
+}
+
+/**
+ * Check if chart type sidebar is showing
+ */
+export async function isShowingChartTypeSidebar(): Promise<boolean> {
+  return await getMetabaseState('qb.uiControls.isShowingChartTypeSidebar') as boolean;
+}
+
+/**
+ * Get current visualization type
+ */
+export async function getVisualizationType(): Promise<string> {
+  return await getMetabaseState('qb.card.display') as string;
+}
+
+/**
+ * Get visualization settings
+ */
+export async function getVisualizationSettings(): Promise<any> {
+  return await getMetabaseState('qb.card.visualization_settings');
+}
+
+// =============================================================================
+// CARD STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Get current card (query) from Metabase state
+ */
+export async function getCurrentCard(): Promise<any> {
+  return await getMetabaseState('qb.card');
+}
+
+/**
+ * Get current parameter values
+ */
+export async function getParameterValues(): Promise<any> {
+  return await getMetabaseState('qb.parameterValues');
+}
+
+// =============================================================================
+// SNIPPETS STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Get all snippets from Metabase state
+ */
+export async function getSnippets(): Promise<any> {
+  return await getMetabaseState('entities.snippets');
+}
+
+// =============================================================================
+// DASHBOARD STATE FUNCTIONS
+// =============================================================================
+
+/**
+ * Get complete dashboard state from Metabase
+ */
+export async function getDashboardState(): Promise<any> {
+  return await getMetabaseState('dashboard');
+}

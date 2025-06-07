@@ -42,8 +42,7 @@ import {
   getAllTemplateTagsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getSelectedDbId } from "./helpers/metabaseStateAPI";
-import { getCurrentUserInfo as getUserInfo } from "./helpers/metabaseStateAPI";
+import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
 import { searchNativeQuery } from "./helpers/metabaseAPIHelpers";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { v4 as uuidv4 } from 'uuid';
@@ -78,7 +77,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
-    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
+    const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
@@ -88,7 +87,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (state.sqlEditorState == "closed") {
       await this.toggleSQLEditor("open");
     }
-    const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+    const currentCard = await getCurrentCard() as Card;
     const varsAndUuids = getVariablesAndUuidsInQuery(sql);
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'];
     const existingParameters = currentCard.parameters;
@@ -133,7 +132,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
-    const allSnippetsDict = await RPCs.getMetabaseState("entities.snippets") as MetabaseStateSnippetsDict;
+    const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
     const dbID = state?.selectedDatabaseInfo?.id as number
@@ -205,7 +204,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = content;
       console.warn(content);
     }
-    const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+    const currentCard = await getCurrentCard() as Card;
     if (currentCard) {
       let parameters = _.get(currentCard, 'dataset_query.native.template-tags', {} as any);
       if (parameters[variable] == undefined) {
@@ -279,7 +278,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     visualization_type = toCapitalCase(visualization_type);    
     if (primaryVisualizationTypes.includes(visualization_type) && (dimensions && metrics)) {
-      const currentCard = await RPCs.getMetabaseState("qb.card") as Card;
+      const currentCard = await getCurrentCard() as Card;
       if (currentCard) {
         currentCard.display = toLowerVisualizationType(visualization_type);
         const visualization_settings = {
@@ -399,7 +398,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   async getDashcardDetailsById({ ids }: { ids: number[] }) {
     let actionContent: BlankMessageContent = { type: "BLANK" };
     const dashboardMetabaseState: DashboardMetabaseState =
-      await RPCs.getMetabaseState("dashboard") as DashboardMetabaseState;
+      await getDashboardState() as DashboardMetabaseState;
 
     if (
       !dashboardMetabaseState ||
