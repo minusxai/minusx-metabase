@@ -316,11 +316,59 @@ async function getTableSampleValues(tableInfo: FormattedTable) {
 
 
 /**
- * Fetch complete table data with optional sample values
+ * Fetch sample values with timeout and background caching
  */
-const ENABLE_UNIQUE_VALUES = false; // Set to false to disable sample values for now
+async function getSampleValuesWithTimeout(tableInfo: FormattedTable, timeout: number = 5000) {
+  const eligibleFields = Object.values(tableInfo.columns || {}).filter((field) => 
+    !isNumericType(field.type) && (field.distinct_count || 0) > 0 && (field.distinct_count || 0) < 100
+  );
+  
+  const fieldPromises = eligibleFields.map(async (field) => {
+    try {
+      const sampleVals = await getFieldUniqueValues(field.id);
+      return { fieldId: field.id, sampleVals, success: true };
+    } catch (error) {
+      console.warn(`Background fetch failed for field ${field.id}:`, error);
+      return { fieldId: field.id, sampleVals: null, success: false };
+    }
+  });
+  
+  // Race between completion and timeout
+  const timeoutPromise = new Promise<any[]>((resolve) => 
+    setTimeout(() => resolve([]), timeout)
+  );
+  
+  const completedResults = await Promise.race([
+    Promise.allSettled(fieldPromises),
+    timeoutPromise
+  ]);
+  
+  // Continue background fetching - don't await this!
+  // The API caching will ensure subsequent calls benefit from completed fetches
+  Promise.allSettled(fieldPromises).catch(() => {
+    // Silently handle background errors - we already returned
+  });
+  
+  // Process whatever results we got (could be partial)
+  const fieldIdSampleValMapping: Record<number, any> = {};
+  if (Array.isArray(completedResults)) {
+    completedResults.forEach((result: any) => {
+      if (result.status === 'fulfilled' && result.value.success && result.value.sampleVals) {
+        fieldIdSampleValMapping[result.value.fieldId] = result.value.sampleVals;
+      }
+    });
+  }
+  
+  return fieldIdSampleValMapping;
+}
 
-export async function getTableData(tableId: number): Promise<FormattedTable | "missing"> {
+/**
+ * Fetch complete table data with progressive sample value loading
+ */
+const ENABLE_UNIQUE_VALUES = true; // Set to false to disable sample values for now
+const DEFAULT_SAMPLE_VALUES_TIMEOUT = 100; // 100ms timeout for sample values
+
+export async function getTableData(tableId: number, sampleValuesTimeout?: number): Promise<FormattedTable | "missing"> {
   const metadataResult = await getTableMetadata(tableId);
   if (metadataResult === "missing") {
     return "missing";
@@ -328,27 +376,36 @@ export async function getTableData(tableId: number): Promise<FormattedTable | "m
   
   const { tableInfo } = metadataResult;
   
-  //#HACK to disable sample values for now
   if (!ENABLE_UNIQUE_VALUES) {
     return tableInfo;
   }
   
-  const fieldIdSampleValMapping = await getTableSampleValues(tableInfo);
-  
-  // Apply sample values to table info
-  Object.values(tableInfo.columns || {}).forEach((field) => {
-    const fieldSample = fieldIdSampleValMapping[field.id]
-    if (fieldSample) {
-      const rawValues = flatMap(get(fieldSample, 'values', [])).map(truncateUniqueValue)
-      
-      // Limit to 20 values with deterministic sampling at storage time
-      if (rawValues.length > 20) {
-        field.sample_values = deterministicSample(rawValues, 20, `${tableInfo.name}.${field.name}`)
-      } else {
-        field.sample_values = rawValues
+  try {
+    // Get sample values with timeout - this will return immediately after timeout
+    // but continue fetching in background to warm the cache for next time
+    const fieldIdSampleValMapping = await getSampleValuesWithTimeout(
+      tableInfo, 
+      sampleValuesTimeout ?? DEFAULT_SAMPLE_VALUES_TIMEOUT
+    );
+    
+    // Apply whatever sample values we managed to get
+    Object.values(tableInfo.columns || {}).forEach((field) => {
+      const fieldSample = fieldIdSampleValMapping[field.id];
+      if (fieldSample) {
+        const rawValues = flatMap(get(fieldSample, 'values', [])).map(truncateUniqueValue);
+        
+        // Limit to 20 values with deterministic sampling at storage time
+        if (rawValues.length > 20) {
+          field.sample_values = deterministicSample(rawValues, 20, `${tableInfo.name}.${field.name}`);
+        } else {
+          field.sample_values = rawValues;
+        }
       }
-    }
-  })
+    });
+  } catch (error) {
+    // If sample value fetching fails entirely, just return table without sample values
+    console.warn("Sample value fetching failed:", error);
+  }
   
   return tableInfo;
 }
