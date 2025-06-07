@@ -138,7 +138,7 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   // Fetch all table data in parallel for better performance
   const tableDataPromises = relevantTables.slice(0, 30).map(async (table) => {
     try {
-      const tableWithFields = await getTableData(table.id, false);
+      const tableWithFields = await getTableData(table.id);
       if (tableWithFields !== "missing") {
         const columnCount = Object.keys(tableWithFields.columns || {}).length;
         return { table, columnCount, valid: columnCount <= 100 };

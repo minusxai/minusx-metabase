@@ -314,7 +314,9 @@ async function getTableUniqueValues(tableInfo: FormattedTable, fieldsWithDistinc
 /**
  * Fetch complete table data with optional unique values
  */
-export async function getTableData(tableId: number, uniqueValues = false): Promise<FormattedTable | "missing"> {
+const ENABLE_UNIQUE_VALUES = false; // Set to false to disable unique values for now
+
+export async function getTableData(tableId: number): Promise<FormattedTable | "missing"> {
   const metadataResult = await getTableMetadata(tableId);
   if (metadataResult === "missing") {
     return "missing";
@@ -323,8 +325,7 @@ export async function getTableData(tableId: number, uniqueValues = false): Promi
   const { tableInfo, fieldsWithDistinctCount } = metadataResult;
   
   //#HACK to disable unique values for now
-  return tableInfo
-  if (!uniqueValues) {
+  if (!ENABLE_UNIQUE_VALUES) {
     return tableInfo;
   }
   
