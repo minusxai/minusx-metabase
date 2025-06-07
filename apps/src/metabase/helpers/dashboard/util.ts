@@ -1,29 +1,13 @@
-import { memoize, RPCs } from 'web'
 import { MetabaseAppStateDashboard } from '../DOMToState';
-import { fetchFieldInfo } from '../metabaseAPI';
-
-const DEFAULT_TTL_FOR_FIELDS = 60 * 60 * 1000; // 1 hour
+import { memoizedGetFieldResolvedName } from '../metabaseAPIHelpers';
 
 // if url has /dashboard/ in it, then it's a dashboard
 export const isDashboardPageUrl = (url: string) => {
   return url.includes('/dashboard/');
 }
 
-// subset
-type FieldApiResponse = {
-  table: {
-    schema: string,
-    name: string
-  },
-  name: string
-}
-
-async function getFieldResolvedName(fieldId: number) {
-  const fieldInfo = await fetchFieldInfo({ field_id: fieldId }) as FieldApiResponse
-  return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`
-}
-
-export const memoizedGetFieldResolvedName = memoize(getFieldResolvedName, DEFAULT_TTL_FOR_FIELDS)
+// Re-export for backward compatibility
+export { memoizedGetFieldResolvedName };
 
 export function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard | null) {
   if (!appState) {

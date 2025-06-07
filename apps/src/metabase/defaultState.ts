@@ -4,7 +4,7 @@ import {
   ACTION_DESCRIPTIONS_PLANNER,
   ACTION_DESCRIPTIONS_SEMANTIC_QUERY
 } from "./actionDescriptions";
-import { DatabaseInfoWithTables } from "./helpers/getDatabaseSchema";
+import { DatabaseInfoWithTables } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { FormattedTable } from "./helpers/types";
 

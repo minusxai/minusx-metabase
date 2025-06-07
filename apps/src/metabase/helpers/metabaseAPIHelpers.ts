@@ -5,13 +5,41 @@
  * from metabaseAPI.ts and state functions from metabaseStateAPI.ts.
  */
 
-import { get, isEmpty } from 'lodash';
+import { get, isEmpty, memoize } from 'lodash';
+import _ from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
-// Simple type for Metabase cards
+import { extractTableInfo } from './parseTables';
+
+// Types
 interface MetabaseCard {
   query_type: "query" | "native" | string;
+}
+
+interface DatabaseResponse {
+  total: number;
+  data: {
+    name: string;
+    id: number;
+  }[]
+}
+
+export interface DatabaseInfo {
+  name: string;
+  description: string;
+  id: number;
+  dialect: string;
+  default_schema?: string;
+  dbms_version: {
+    flavor: string;
+    version: string;
+    semantic_version: number[];
+  }
+}
+
+export interface DatabaseInfoWithTables extends DatabaseInfo {
+  tables: any[];
 }
 import {
   fetchUserEdits,
@@ -20,7 +48,11 @@ import {
   fetchSearchUserEditsByQuery,
   fetchSearchUserCreationsByQuery,
   fetchSearchCards,
-  fetchUserCards
+  fetchUserCards,
+  fetchDatabases,
+  fetchDatabaseInfo,
+  fetchDatabaseWithTables,
+  fetchFieldInfo
 } from './metabaseAPI';
 
 // =============================================================================
@@ -32,6 +64,24 @@ function extractQueriesFromResponse(response: any): string[] {
     .map((entity: any) => get(entity, "dataset_query.native.query"))
     .filter((query: any) => !isEmpty(query));
 }
+
+function getDefaultSchema(databaseInfo: any): string {
+  const schemaFromResponse = get(databaseInfo, "settings.schema-filters.default", "");
+  return schemaFromResponse || get(databaseInfo, "details.schema", "") || "public";
+}
+
+export const extractDbInfo = (db: any, default_schema: string): DatabaseInfo => ({
+  name: db.name,
+  description: db.description || "",
+  id: db.id,
+  dialect: get(db, "dbms_version.flavor") || get(db, "engine") || "unknown",
+  default_schema,
+  dbms_version: {
+    flavor: get(db, "dbms_version.flavor") || get(db, "engine") || "unknown",
+    version: get(db, "dbms_version.version") || "unknown",
+    semantic_version: get(db, "dbms_version.semantic_version") || [0, 0, 0]
+  }
+});
 
 
 // =============================================================================
@@ -68,6 +118,55 @@ async function searchCards(dbId: number, query: string): Promise<string[]> {
   return extractQueriesFromResponse(response);
 }
 
+
+// =============================================================================
+// DATABASE HELPER FUNCTIONS
+// =============================================================================
+
+async function getDatabases() {
+  const resp = await fetchDatabases({}) as DatabaseResponse
+  return resp;
+}
+
+export const memoizedGetDatabases = memoize(getDatabases);
+
+async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
+  const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
+  const defaultSchema = getDefaultSchema(jsonResponse);
+  const tables = await Promise.all(
+      _.map(_.get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
+  );
+
+  return {
+      ...extractDbInfo(jsonResponse, defaultSchema),
+      tables: tables || []
+  };
+}
+
+export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields);
+
+async function getDatabaseInfo(dbId: number) {
+  const jsonResponse = await fetchDatabaseInfo({ db_id: dbId });
+  const defaultSchema = getDefaultSchema(jsonResponse);
+  return {
+    ...extractDbInfo(jsonResponse, defaultSchema),
+  }
+}
+
+export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo);
+
+async function getFieldResolvedName(fieldId: number) {
+  const fieldInfo = await fetchFieldInfo({ field_id: fieldId }) as any;
+  return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`;
+}
+
+export const memoizedGetFieldResolvedName = memoize(getFieldResolvedName, 60 * 60 * 1000); // 1 hour TTL
+
+
+export const getDatabaseInfoForSelectedDb = async (): Promise<DatabaseInfo | undefined> => {
+  const dbId = await getSelectedDbId();
+  return dbId ? await memoizedGetDatabaseInfo(dbId) : undefined;
+}
 
 // =============================================================================
 // MAIN EXPORTED FUNCTIONS

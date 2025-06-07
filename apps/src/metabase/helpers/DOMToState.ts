@@ -1,5 +1,6 @@
 import { RPCs } from 'web'
-import { getRelevantTablesForSelectedDb, getDatabaseInfoForSelectedDb, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo, getTablesWithFields } from './getDatabaseSchema';
+import { getRelevantTablesForSelectedDb, getTablesWithFields } from './getDatabaseSchema';
+import { getDatabaseInfoForSelectedDb, memoizedGetDatabases, memoizedGetDatabaseTablesWithoutFields, extractDbInfo } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';

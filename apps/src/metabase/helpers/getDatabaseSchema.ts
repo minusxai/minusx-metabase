@@ -3,7 +3,7 @@ import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId } from './metabaseStateAPI';
-import { getUserTableMap, getUserTables, searchUserQueries } from './metabaseAPIHelpers';
+import { getUserTableMap, getUserTables, searchUserQueries, memoizedGetDatabaseTablesWithoutFields, extractDbInfo } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { 
   fetchDatabases, 
@@ -24,137 +24,12 @@ interface DatabaseResponse {
     id: number;
   }[]
 }
-async function getDatabases() {
-  const resp = await fetchDatabases({}) as DatabaseResponse
-  return resp;
-}
-export const memoizedGetDatabases = memoize(getDatabases);
 
-export async function getDatabaseIds(): Promise<number[]> {
-  const resp = await memoizedGetDatabases();
-  if (!resp || !resp.data) {
-    console.error('Failed to get database ids', resp);
-    return [];
-  }
-  return _.map(resp.data, (db: any) => db.id);
-}
+// Types moved to metabaseAPIHelpers.ts
+export type { DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPIHelpers';
 
-export interface DatabaseInfo {
-  name: string;
-  description: string;
-  id: number;
-  dialect: string;
-  default_schema?: string;
-  dbms_version: {
-    flavor: string;
-    version: string;
-    semantic_version: number[];
-  }
-}
 
-export interface DatabaseInfoWithTables extends DatabaseInfo {
-  tables: FormattedTable[];
-}
 
-export const extractDbInfo = (db: any, default_schema: string): DatabaseInfo => ({
-  name: _.get(db, 'name', ''),
-  description: _.get(db, 'description', ''),
-  id: _.get(db, 'id', 0),
-  dialect: _.get(db, 'engine', ''),
-  default_schema,
-  dbms_version: {
-    flavor: _.get(db, 'dbms_version.flavor', ''),
-    version: _.get(db, 'dbms_version.version', ''),
-    semantic_version: _.get(db, 'dbms_version.semantic-version', [])
-  },
-});
-
-function getDefaultSchema(databaseInfo) {
-  const engine = databaseInfo?.engine;
-  const details = databaseInfo?.details || {};
-  
-  // If schema is explicitly set, always respect it
-  if (details.schema) {
-    return details.schema;
-  }
-
-  // Mapping of default schemas
-  const DEFAULT_SCHEMAS = {
-    postgres: "public",
-    redshift: "public",
-    sqlserver: "dbo",
-    duckdb: "main",
-    sqlite: "main",
-    h2: "PUBLIC"
-  };
-
-  if (engine in DEFAULT_SCHEMAS) {
-    return DEFAULT_SCHEMAS[engine];
-  }
-
-  // Engines where schema = database name
-  if (["mysql", "mariadb", "clickhouse"].includes(engine)) {
-    return details.dbname || null;
-  }
-
-  // BigQuery case: dataset_id behaves like schema
-  if (engine === "bigquery") {
-    return details.dataset_id || null;
-  }
-
-  // Snowflake: no reliable way unless explicitly set
-  if (engine === "snowflake") {
-    return null;
-  }
-
-  // MongoDB: no schema concept
-  if (engine === "mongo") {
-    return null;
-  }
-
-  // Presto/Trino: no real default schema, needs explicit context
-  if (["presto", "trino", "starburst"].includes(engine)) {
-    return null;
-  }
-
-  // Default fallback
-  return null;
-}
-
-/**
- * Get the database tables without their fields
- * @param dbId id of the database
- * @returns tables without their fields
- */
-async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
-  const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  const defaultSchema = getDefaultSchema(jsonResponse);
-  const tables = await Promise.all(
-      _.map(_.get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
-  );
-
-  return {
-      ...extractDbInfo(jsonResponse, defaultSchema),
-      tables: tables || []
-  };
-}
-export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesWithoutFields);
-
-// only database info, no table info at all
-const getDatabaseInfo = async (dbId: number) => {
-  const jsonResponse = await fetchDatabaseInfo({ db_id: dbId });
-  const defaultSchema = getDefaultSchema(jsonResponse);
-  return {
-    ...extractDbInfo(jsonResponse, defaultSchema),
-  }
-};
-
-export const memoizedGetDatabaseInfo = memoize(getDatabaseInfo);
-
-export const getDatabaseInfoForSelectedDb = async () => {
-  const dbId = await getSelectedDbId();
-  return dbId? await memoizedGetDatabaseInfo(dbId) : undefined;
-}
 
 export async function logMetabaseVersion() {
   const response: any = await fetchSessionProperties({}); 
