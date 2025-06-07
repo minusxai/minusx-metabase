@@ -8,7 +8,7 @@ import { cloneDeep, get, isEmpty, memoize } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
-import { getCardsCountSplitByType, getDatabaseTablesWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
+import { getDatabaseTablesWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
@@ -78,10 +78,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       }
     })
     
-    getCardsCountSplitByType().then(cardsCount => {
-        captureEvent(GLOBAL_EVENTS.metabase_card_count, { cardsCount })
-    });
-
     // Listen to clicks on Error Message
     const errorMessageSelector = querySelectorMap['error_message_head']
     const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {

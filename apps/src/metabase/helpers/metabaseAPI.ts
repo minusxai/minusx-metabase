@@ -69,11 +69,6 @@ export const fetchSearchCards = createAPI<{ db_id: number; query: string }>(
   '/api/search?models=card&table_db_id={{db_id}}&q={{query}}'
 );
 
-// Card Operations
-export const fetchUserCards = createAPI<{}>(
-  '/api/card?f=mine'
-);
-
 // Field Info Operations
 export const fetchFieldInfo = createAPI<{ field_id: number }>(
   '/api/field/{{field_id}}'

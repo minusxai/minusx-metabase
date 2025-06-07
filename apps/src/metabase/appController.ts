@@ -28,17 +28,12 @@ import {
   primaryVisualizationTypes,
   Card,
   toLowerVisualizationType,
-  ParameterValues,
-  SearchApiResponse
  } from "./helpers/types";
 import {
   getTemplateTags as getTemplateTagsForVars,
   getParameters,
   getVariablesAndUuidsInQuery,
-  SnippetTemplateTag,
   MetabaseStateSnippetsDict,
-  getSnippetsInQuery,
-  getModelsInQuery,
   getAllTemplateTagsInQuery
 } from "./helpers/sqlQuery";
 import axios from 'axios'
@@ -49,15 +44,6 @@ import { processSQLWithCtesOrModels } from "web";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
-
-
-type AllSnippetsResponse = {
-  name: string;
-  content: string;
-  id: number;
-}
-
-
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------

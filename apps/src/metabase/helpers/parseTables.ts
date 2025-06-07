@@ -1,45 +1,8 @@
 import _, { flatMap, get } from 'lodash';
-import { memoize, RPCs, configs } from 'web'
+import { memoize } from 'web'
 import { FormattedTable } from './types';
 import { deterministicSample } from '../../common/utils';
 import { fetchFieldUniqueValues, fetchTableMetadata as fetchTableMetadataAPI } from './metabaseAPI';
-
-// Wrapper around RPCs.fetchData with concurrency control
-const fetchDataQueue: (() => Promise<any>)[] = [];
-let activeFetches = 0;
-const MAX_CONCURRENT_FETCHES = 20;
-
-async function fetchDataWithConcurrency(url: string, method: string = 'GET'): Promise<any> {
-  return new Promise((resolve, reject) => {
-    const fetchTask = async () => {
-      try {
-        activeFetches++;
-        const result = await RPCs.fetchData(url, method);
-        resolve(result);
-      } catch (error) {
-        reject(error);
-      } finally {
-        activeFetches--;
-        processQueue();
-      }
-    };
-
-    if (activeFetches < MAX_CONCURRENT_FETCHES) {
-      fetchTask();
-    } else {
-      fetchDataQueue.push(fetchTask);
-    }
-  });
-}
-
-function processQueue() {
-  while (fetchDataQueue.length > 0 && activeFetches < MAX_CONCURRENT_FETCHES) {
-    const nextTask = fetchDataQueue.shift();
-    if (nextTask) {
-      nextTask();
-    }
-  }
-}
 
 export const extractTableInfo = (table: any, includeFields: boolean = false, schemaKey: string = 'schema'): FormattedTable => ({
   name: _.get(table, 'name', ''),

@@ -1,13 +1,9 @@
 import { MetabaseAppStateDashboard } from '../DOMToState';
-import { getFieldResolvedName } from '../metabaseAPIHelpers';
 
 // if url has /dashboard/ in it, then it's a dashboard
 export const isDashboardPageUrl = (url: string) => {
   return url.includes('/dashboard/');
 }
-
-// Re-export for backward compatibility
-export { getFieldResolvedName };
 
 export function getDashboardPrimaryDbId(appState: MetabaseAppStateDashboard | null) {
   if (!appState) {

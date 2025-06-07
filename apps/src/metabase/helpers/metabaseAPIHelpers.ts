@@ -12,10 +12,6 @@ import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
 import { extractTableInfo } from './parseTables';
 
 // Types
-interface MetabaseCard {
-  query_type: "query" | "native" | string;
-}
-
 interface DatabaseResponse {
   total: number;
   data: {
@@ -48,7 +44,6 @@ import {
   fetchSearchUserEditsByQuery,
   fetchSearchUserCreationsByQuery,
   fetchSearchCards,
-  fetchUserCards,
   fetchDatabases,
   fetchDatabaseInfo,
   fetchDatabaseWithTables,
@@ -173,12 +168,6 @@ export async function getFieldResolvedName(fieldId: number) {
   return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`;
 }
 
-
-export const getDatabaseInfoForSelectedDb = async (): Promise<DatabaseInfo | undefined> => {
-  const dbId = await getSelectedDbId();
-  return dbId ? await getDatabaseInfo(dbId) : undefined;
-}
-
 // =============================================================================
 // MAIN EXPORTED FUNCTIONS
 // =============================================================================
@@ -221,20 +210,4 @@ export async function searchUserQueries(id: number, dbId: number, query: string)
     () => fetchSearchCards({ db_id: dbId, query }),
     "[minusx] Error searching for all queries"
   );
-}
-
-/**
- * Get count of user's cards split by query type
- */
-export async function getCardsCountSplitByType(): Promise<{
-  query: number;
-  native: number;
-}> {
-  const allCards = await fetchUserCards({}) as MetabaseCard[];
-  const queryCards = allCards.filter(card => card.query_type === "query");
-  const nativeCards = allCards.filter(card => card.query_type === "native");
-  return {
-    query: queryCards.length,
-    native: nativeCards.length
-  };
 }
