@@ -69,10 +69,6 @@ export const fetchSearchCards = createAPI<{ db_id: number; query: string }>(
   '/api/search?models=card&table_db_id={{db_id}}&q={{query}}'
 );
 
-export const fetchSearchNativeQuery = createAPI<{ db_id: number; query: string }>(
-  '/api/search?table_db_id={{db_id}}&search_native_query=true&models=card&models=dataset&q={{query}}'
-);
-
 // Card Operations
 export const fetchUserCards = createAPI<{}>(
   '/api/card?f=mine'

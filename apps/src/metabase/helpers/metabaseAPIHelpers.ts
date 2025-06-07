@@ -20,7 +20,6 @@ import {
   fetchSearchUserEditsByQuery,
   fetchSearchUserCreationsByQuery,
   fetchSearchCards,
-  fetchSearchNativeQuery,
   fetchUserCards
 } from './metabaseAPI';
 
@@ -123,13 +122,6 @@ export async function searchUserQueries(id: number, dbId: number, query: string)
   }
   const allQueries = await handlePromise(searchCards(dbId, query), "[minusx] Error searching for all queries", []);
   return allQueries.map(getTablesFromSqlRegex).flat();
-}
-
-/**
- * Search native queries (returns full response for detailed analysis)
- */
-export async function searchNativeQuery(dbId: number, query: string): Promise<any> {
-  return await fetchSearchNativeQuery({ db_id: dbId, query });
 }
 
 /**

@@ -43,9 +43,7 @@ import {
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
-import { searchNativeQuery } from "./helpers/metabaseAPIHelpers";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
-import { v4 as uuidv4 } from 'uuid';
 import { fetchTableData } from "./helpers/parseTables";
 import { processSQLWithCtesOrModels } from "web";
 
