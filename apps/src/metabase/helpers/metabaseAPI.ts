@@ -33,10 +33,10 @@ export const fetchTableMetadata = createAPI<{ table_id: number }>(
 export const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
   '/api/field/{{field_id}}/values',
   'GET',
-  { 
+  {
     cache_rewarm_ttl: 2 * 24 * 60 * 60, // 2 days rewarm as requested
-    max_concurrency: 3,                  // Very conservative
-    concurrency_delay: 500               // Half-second delay between requests
+    max_concurrency: 1,                  // Very conservative
+    concurrency_delay: 1000               // 1 second delay between requests
   }
 );
 
