@@ -9,7 +9,10 @@ import { get, isEmpty } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
-// Types removed - using direct imports from parseSql for TableAndSchema
+// Simple type for Metabase cards
+interface MetabaseCard {
+  query_type: "query" | "native" | string;
+}
 import {
   fetchUserEdits,
   fetchUserCreations,
@@ -17,7 +20,8 @@ import {
   fetchSearchUserEditsByQuery,
   fetchSearchUserCreationsByQuery,
   fetchSearchCards,
-  fetchSearchNativeQuery
+  fetchSearchNativeQuery,
+  fetchUserCards
 } from './metabaseAPI';
 
 // =============================================================================
@@ -126,4 +130,20 @@ export async function searchUserQueries(id: number, dbId: number, query: string)
  */
 export async function searchNativeQuery(dbId: number, query: string): Promise<any> {
   return await fetchSearchNativeQuery({ db_id: dbId, query });
+}
+
+/**
+ * Get count of user's cards split by query type
+ */
+export async function getCardsCountSplitByType(): Promise<{
+  query: number;
+  native: number;
+}> {
+  const allCards = await fetchUserCards({}) as MetabaseCard[];
+  const queryCards = allCards.filter(card => card.query_type === "query");
+  const nativeCards = allCards.filter(card => card.query_type === "native");
+  return {
+    query: queryCards.length,
+    native: nativeCards.length
+  };
 }

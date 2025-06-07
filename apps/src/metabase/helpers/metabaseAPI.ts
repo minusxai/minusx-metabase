@@ -73,6 +73,29 @@ export const fetchSearchNativeQuery = createAPI<{ db_id: number; query: string }
   '/api/search?table_db_id={{db_id}}&search_native_query=true&models=card&models=dataset&q={{query}}'
 );
 
+// Card Operations
+export const fetchUserCards = createAPI<{}>(
+  '/api/card?f=mine'
+);
+
+// Field Info Operations
+export const fetchFieldInfo = createAPI<{ field_id: number }>(
+  '/api/field/{{field_id}}'
+);
+
+// Dataset Operations - For running SQL queries
+export const executeDatasetQuery = createAPI<{
+  database: number;
+  type: string;
+  native: {
+    query: string;
+    'template-tags': Record<string, any>;
+  };
+}>(
+  '/api/dataset',
+  'POST'
+);
+
 // System Operations
 export const fetchSessionProperties = createAPI<{}>(
   '/api/session/properties'

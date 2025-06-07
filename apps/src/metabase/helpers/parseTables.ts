@@ -2,6 +2,7 @@ import _, { flatMap, get } from 'lodash';
 import { memoize, RPCs, configs } from 'web'
 import { FormattedTable } from './types';
 import { deterministicSample } from '../../common/utils';
+import { fetchFieldUniqueValues, fetchTableMetadata as fetchTableMetadataAPI } from './metabaseAPI';
 
 // Wrapper around RPCs.fetchData with concurrency control
 const fetchDataQueue: (() => Promise<any>)[] = [];
@@ -67,7 +68,7 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
 })
 
 async function getUniqueValsFromField(fieldId: number) {
-  const resp: any = await fetchDataWithConcurrency(`/api/field/${fieldId}/values`, 'GET');
+  const resp: any = await fetchFieldUniqueValues({ field_id: fieldId });
   return resp
 }
 
@@ -91,10 +92,7 @@ function truncateUniqueValue(value: any): any {
 
 
 const fetchTableMetadata = async (tableId: number) => {
-  const resp: any = await fetchDataWithConcurrency(
-    `/api/table/${tableId}/query_metadata`,
-    "GET"
-  );
+  const resp: any = await fetchTableMetadataAPI({ table_id: tableId });
   if (!resp) {
     console.warn("Failed to get table schema", tableId, resp);
     return "missing";

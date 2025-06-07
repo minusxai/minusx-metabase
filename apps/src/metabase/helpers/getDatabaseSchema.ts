@@ -5,6 +5,12 @@ import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId } from './metabaseStateAPI';
 import { getUserTableMap, getUserTables, searchUserQueries } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
+import { 
+  fetchDatabases, 
+  fetchDatabaseInfo, 
+  fetchDatabaseWithTables, 
+  fetchSessionProperties
+} from './metabaseAPI';
 import { TableDiff } from 'web/types';
 import { extractTableInfo, fetchTableData } from './parseTables';
 
@@ -19,7 +25,7 @@ interface DatabaseResponse {
   }[]
 }
 async function getDatabases() {
-  const resp = await fetchData('/api/database', 'GET') as DatabaseResponse
+  const resp = await fetchDatabases({}) as DatabaseResponse
   return resp;
 }
 export const memoizedGetDatabases = memoize(getDatabases);
@@ -121,7 +127,7 @@ function getDefaultSchema(databaseInfo) {
  * @returns tables without their fields
  */
 async function getDatabaseTablesWithoutFields(dbId: number): Promise<DatabaseInfoWithTables> {
-  const jsonResponse = await fetchData(`/api/database/${dbId}?include=tables`, 'GET');
+  const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       _.map(_.get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
@@ -136,7 +142,7 @@ export const memoizedGetDatabaseTablesWithoutFields = memoize(getDatabaseTablesW
 
 // only database info, no table info at all
 const getDatabaseInfo = async (dbId: number) => {
-  const jsonResponse = await fetchData(`/api/database/${dbId}`, 'GET');
+  const jsonResponse = await fetchDatabaseInfo({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
   return {
     ...extractDbInfo(jsonResponse, defaultSchema),
@@ -151,7 +157,7 @@ export const getDatabaseInfoForSelectedDb = async () => {
 }
 
 export async function logMetabaseVersion() {
-  const response: any = await fetchData("/api/session/properties", "GET"); 
+  const response: any = await fetchSessionProperties({}); 
   const apiVersion = response?.version;
   if (!apiVersion) {
     console.error("Failed to parse metabase version", response);
@@ -313,17 +319,4 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
 // Empty Placeholder
 export const getTopSchemasForSelectedDb = async () => {
   return []
-}
-// this is a subset
-interface MetabaseCard {
-  query_type: "query" | "native" | string;
-}
-export const getCardsCountSplitByType = async () => {
-  const allCards = await fetchData(`/api/card?f=mine`, 'GET') as MetabaseCard[];
-  const queryCards = allCards.filter(card => card.query_type === "query");
-  const nativeCards = allCards.filter(card => card.query_type === "native");
-  return {
-    query: queryCards.length,
-    native: nativeCards.length
-  }
 }

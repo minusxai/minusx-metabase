@@ -1,5 +1,6 @@
 import { memoize, RPCs } from 'web'
 import { MetabaseAppStateDashboard } from '../DOMToState';
+import { fetchFieldInfo } from '../metabaseAPI';
 
 const DEFAULT_TTL_FOR_FIELDS = 60 * 60 * 1000; // 1 hour
 
@@ -18,7 +19,7 @@ type FieldApiResponse = {
 }
 
 async function getFieldResolvedName(fieldId: number) {
-  const fieldInfo = await RPCs.fetchData(`/api/field/${fieldId}`, 'GET') as FieldApiResponse
+  const fieldInfo = await fetchFieldInfo({ field_id: fieldId }) as FieldApiResponse
   return `${fieldInfo.table.schema}.${fieldInfo.table.name}.${fieldInfo.name}`
 }
 
