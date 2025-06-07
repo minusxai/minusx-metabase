@@ -39,9 +39,56 @@ function extractQueriesFromResponse(response: any): string[] {
     .filter((query: any) => !isEmpty(query));
 }
 
-function getDefaultSchema(databaseInfo: any): string {
-  const schemaFromResponse = get(databaseInfo, "settings.schema-filters.default", "");
-  return schemaFromResponse || get(databaseInfo, "details.schema", "") || "public";
+function getDefaultSchema(databaseInfo: any) {
+  const engine = databaseInfo?.engine;
+  const details = databaseInfo?.details || {};
+  
+  // If schema is explicitly set, always respect it
+  if (details.schema) {
+    return details.schema;
+  }
+
+  // Mapping of default schemas
+  const DEFAULT_SCHEMAS = {
+    postgres: "public",
+    redshift: "public",
+    sqlserver: "dbo",
+    duckdb: "main",
+    sqlite: "main",
+    h2: "PUBLIC"
+  };
+
+  if (engine in DEFAULT_SCHEMAS) {
+    return DEFAULT_SCHEMAS[engine];
+  }
+
+  // Engines where schema = database name
+  if (["mysql", "mariadb", "clickhouse"].includes(engine)) {
+    return details.dbname || null;
+  }
+
+  // BigQuery case: dataset_id behaves like schema
+  if (engine === "bigquery") {
+    return details.dataset_id || null;
+  }
+
+  // Snowflake: no reliable way unless explicitly set
+  if (engine === "snowflake") {
+    return null;
+  }
+
+  // MongoDB: no schema concept
+  if (engine === "mongo") {
+    return null;
+  }
+
+  // Presto/Trino: no real default schema, needs explicit context
+  if (["presto", "trino", "starburst"].includes(engine)) {
+    return null;
+  }
+
+  // Default fallback
+  return null;
 }
 
 function extractDbInfo(db: any, default_schema: string): DatabaseInfo {
@@ -157,18 +204,20 @@ export async function getUserTables(): Promise<TableAndSchema[]> {
   if (!userInfo) return [];
 
   const queries = await getUserQueries(userInfo.id);
-  if (queries.length > 0) {
-    return extractTablesFromQueries(queries);
-  }
+  const queriesTablesFromQueries = extractTablesFromQueries(queries).map(table => {
+    table.count = (table.count || 0) + 10
+    return table
+  });
   
   // Fallback: if user has no queries, get ALL database queries
   const dbId = await getSelectedDbId();
-  if (!dbId) return [];
+  if (!dbId) return queriesTablesFromQueries;
   
-  return performFallbackSearch(
+  const remainingTables = await performFallbackSearch(
     () => fetchSearchByDatabase({ db_id: dbId }),
     "[minusx] Error getting all queries"
   );
+  return [...queriesTablesFromQueries, ...remainingTables];
 }
 
 

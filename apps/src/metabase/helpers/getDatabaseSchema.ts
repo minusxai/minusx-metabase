@@ -51,7 +51,7 @@ const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTabl
     tableInfo => getTableKey(tableInfo) in allTablesAsMap
   ).map(tableInfo => ({
     ...tableInfo,
-    ...allTablesAsMap[getTableKey(tableInfo)]
+    ...allTablesAsMap[getTableKey(tableInfo)],
   }))
 }
 
