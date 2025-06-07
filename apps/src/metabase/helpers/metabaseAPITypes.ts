@@ -1,11 +1,62 @@
 /**
- * Essential types and configurations for the createAPI system
+ * Types, Interfaces, and Core API Creation Function
+ * 
+ * This file contains all type definitions and the magical createAPI function
+ * that powers the entire Metabase API system.
  */
 
-// API Configuration interface for createAPI function
+import { TableAndSchema } from './parseSql';
+
+// =============================================================================
+// CORE TYPE DEFINITIONS
+// =============================================================================
+
 export interface APIConfig {
   cache_ttl: number;        // Cache TTL in seconds
   cache_rewarm_ttl: number; // Background refresh TTL in seconds
   max_concurrency: number;  // Max concurrent requests for this endpoint
   concurrency_delay: number; // Min delay between requests in milliseconds
+}
+
+export interface FormattedColumn {
+  description?: string;
+  name: string;
+  id: number;
+  type: string;
+  unique_values?: any[]; 
+  has_more_values?: boolean;
+  fk_table_id?: number;
+  foreign_key_target?: string | null;
+}
+
+export interface FormattedTable {
+  description?: string;
+  name: string;
+  id: number;
+  schema: string;
+  columns?: { [key: number]: FormattedColumn };
+  related_tables_freq?: number[][];
+  count?: number;
+}
+
+export interface DatabaseInfo {
+  name: string;
+  description: string;
+  id: number;
+  dialect: string;
+  default_schema?: string;
+  dbms_version: {
+    flavor: string;
+    version: string;
+    semantic_version: number[];
+  }
+}
+
+export interface DatabaseInfoWithTables extends DatabaseInfo {
+  tables: FormattedTable[];
+}
+
+export interface UserContext {
+  queries: string[];
+  referencedTables: TableAndSchema[];
 }
