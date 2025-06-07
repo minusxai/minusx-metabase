@@ -77,31 +77,6 @@ export async function getCurrentQuery(): Promise<string | undefined> {
   return await getMetabaseState('qb.card.dataset_query.native.query') as string;
 }
 
-/**
- * Get current SQL from Metabase state
- */
-export async function getCurrentSQL(): Promise<string | undefined> {
-  return await getCurrentQuery();
-}
-
-// =============================================================================
-// DASHBOARD STATE FUNCTIONS
-// =============================================================================
-
-/**
- * Get dashboard cards from Metabase state
- */
-export async function getDashboardCards(): Promise<any> {
-  return await getMetabaseState('dashboard.dashcards');
-}
-
-/**
- * Check if current page is a dashboard
- */
-export async function isDashboardPage(): Promise<boolean> {
-  const url = await RPCs.queryURL();
-  return isDashboardPageUrl(url);
-}
 
 // =============================================================================
 // QUERY EXECUTION STATE FUNCTIONS  

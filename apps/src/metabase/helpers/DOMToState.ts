@@ -169,13 +169,9 @@ export async function semanticQueryState() {
   return metabaseSemanticQueryAppState;
 }
 
-export async function isDashboardPage() {
-  const url = await queryURL();
-  return isDashboardPageUrl(url);
-}
-
 export async function convertDOMtoState() {
-  if (await isDashboardPage()) {
+  const url = await queryURL();
+  if (isDashboardPageUrl(url)) {
     return await convertDOMtoStateDashboard();
   }
   const appSettings = RPCs.getAppSettings()

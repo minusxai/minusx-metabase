@@ -2,8 +2,8 @@ import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInf
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
-import { convertDOMtoState, isDashboardPage, MetabaseAppState } from "./helpers/DOMToState";
-import { getDashboardPrimaryDbId, isDashboardPageUrl } from "./helpers/dashboard/util";
+import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
+import { isDashboardPageUrl } from "./helpers/dashboard/util";
 import { cloneDeep, get, isEmpty, memoize } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
@@ -11,7 +11,6 @@ import { getRelevantTablesForSelectedDb, memoizedGetDatabaseTablesWithoutFields,
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
-import { getDashboardAppState } from "./helpers/dashboard/appState";
 import { fetchTableData } from "../package";
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
