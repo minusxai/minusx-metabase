@@ -1,6 +1,6 @@
 import { RPCs } from 'web'
 import { getRelevantTablesForSelectedDb, getTablesWithFields } from './getDatabaseSchema';
-import { getDatabaseInfo, getDatabases, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
+import { getDatabaseInfoForSelectedDb, getDatabases, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -91,8 +91,7 @@ export async function convertDOMtoStateSQLQuery() {
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const url = new URL(await RPCs.queryURL()).origin;
   const availableDatabases = (await getDatabases())?.data?.map(({ name }) => name);
-  const dbId = await getSelectedDbId();
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
+  const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   const sqlQuery = await getCurrentQuery()
   const appSettings = RPCs.getAppSettings()
@@ -156,8 +155,7 @@ export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDash
 export async function semanticQueryState() {
   const { semanticLayer, semanticQuery, currentSemanticLayer } = RPCs.getSemanticInfo()
   const { availableMeasures, availableDimensions } = semanticLayer
-  const dbId = await getSelectedDbId();
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
+  const selectedDatabaseInfo = await getDatabaseInfoForSelectedDb();
   const outputTableMarkdown = await getAndFormatOutputTable();
   
   const metabaseSemanticQueryAppState: MetabaseSemanticQueryAppState = {

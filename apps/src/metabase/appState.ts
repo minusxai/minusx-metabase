@@ -12,7 +12,7 @@ import { getDatabaseTablesWithoutFields, getDatabaseInfo } from "./helpers/metab
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
-import { fetchTableData } from "../package";
+import { getTableData } from "../package";
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
 
@@ -72,7 +72,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
             }
           }))
           // Perf caching
-          relevantTables.forEach((table) => fetchTableData(table.id, true))
+          relevantTables.forEach((table) => getTableData(table.id, true))
           getDatabaseInfo(dbId)
         })
       }

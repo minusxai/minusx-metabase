@@ -3,16 +3,11 @@ import { FormattedTable, SearchApiResponse } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _, { get, isEmpty } from 'lodash';
 import { getSelectedDbId } from './metabaseStateAPI';
-import { getUserTables, searchUserQueries, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
+import { getUserTables, searchUserQueries, getDatabaseTablesWithoutFields, getMetabaseVersion } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
-import { 
-  fetchDatabases, 
-  fetchDatabaseInfo, 
-  fetchDatabaseWithTables, 
-  fetchSessionProperties
-} from './metabaseAPI';
 import { TableDiff } from 'web/types';
-import { extractTableInfo, fetchTableData } from './parseTables';
+import { extractTableInfo } from './parseTables';
+import { getTableData } from './metabaseAPIHelpers';
 
 const { fetchData } = RPCs;
 
@@ -32,10 +27,9 @@ export type { DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPITypes';
 
 
 export async function logMetabaseVersion() {
-  const response: any = await fetchSessionProperties({}); 
-  const apiVersion = response?.version;
+  const apiVersion = await getMetabaseVersion();
   if (!apiVersion) {
-    console.error("Failed to parse metabase version", response);
+    console.error("Failed to get metabase version");
     return;
   }
   console.log("Metabase version", apiVersion);
@@ -153,7 +147,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
     return tables;
   }
   const tableIds = tables.map((table) => table.id);
-  let tableInfos = await Promise.all(tableIds.map(id => fetchTableData(id)));
+  let tableInfos = await Promise.all(tableIds.map(id => getTableData(id)));
   return tableInfos.filter(tableInfo => tableInfo != "missing")
 }
 
@@ -169,7 +163,7 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   // Fetch all table data in parallel for better performance
   const tableDataPromises = relevantTables.slice(0, 30).map(async (table) => {
     try {
-      const tableWithFields = await fetchTableData(table.id, false);
+      const tableWithFields = await getTableData(table.id, false);
       if (tableWithFields !== "missing") {
         const columnCount = Object.keys(tableWithFields.columns || {}).length;
         return { table, columnCount, valid: columnCount <= 100 };

@@ -6,7 +6,7 @@ import { FormattedTable, MetabaseContext } from 'apps/types';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { load, dump } from 'js-yaml';
-import { fetchTableData, filterTablesByCatalog, getTableContextYAML } from 'apps';
+import { getTableData, filterTablesByCatalog, getTableContextYAML } from 'apps';
 import { createSchemaFromDataModel } from '../../helpers/catalog';
 import { isEmpty } from 'lodash';
 
@@ -32,7 +32,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables }) => 
   const [loadedTables, setLoadedTables] = useState<FormattedTable[]>([])
 
   useEffect(() => {
-    Promise.all(relevantTables.map(table => fetchTableData(table.id, enableUnique))).then((tableInfos) => {
+    Promise.all(relevantTables.map(table => getTableData(table.id, enableUnique))).then((tableInfos) => {
       setIsLoading(false)
       const loadedTableInfos = tableInfos.filter(tableInfo => tableInfo != "missing")
       setLoadedTables(loadedTableInfos)

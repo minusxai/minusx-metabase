@@ -1,16 +1,7 @@
 import { DashboardInfo, DatasetResponse } from "./types";
-import { executeDatasetQuery } from '../metabaseAPI';
-
-
+import { executeQuery } from '../metabaseAPIHelpers';
 
 export const runSQLQueryFromDashboard = async (sql: string, databaseId: number, templateTags = {}) => {
-  const response = await executeDatasetQuery({
-      database: databaseId,
-      type: "native",
-      native: {
-        query: sql,
-        'template-tags': templateTags
-      }
-    }) as DatasetResponse;
+  const response = await executeQuery(sql, databaseId, templateTags) as DatasetResponse;
   return response
 }

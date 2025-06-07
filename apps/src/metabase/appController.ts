@@ -39,7 +39,7 @@ import {
 import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
-import { fetchTableData } from "./helpers/parseTables";
+import { getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels } from "web";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
@@ -323,7 +323,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   async getTableSchemasById({ ids }: { ids: number[] }) {
     const actionContent: BlankMessageContent = { type: "BLANK" };
     // need to fetch schemas
-    const tablesPromises = ids.map(id => fetchTableData(id));
+    const tablesPromises = ids.map(id => getTableData(id));
     const tables = await Promise.all(tablesPromises);
     const tableSchemasContent = JSON.stringify(tables);
     actionContent.content = tableSchemasContent;
@@ -360,7 +360,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const searchResults = await searchTables(userInfo.id, selectedDbId, query);
     const tableIds = map(searchResults, (table) => table.id);
-    const tablesPromises = tableIds.slice(0, 20).map(id => fetchTableData(id));
+    const tablesPromises = tableIds.slice(0, 20).map(id => getTableData(id));
     const tableSchemas = await Promise.all(tablesPromises);
     tableSchemas.forEach((tableInfo, index) => {
       if (tableInfo != "missing") {

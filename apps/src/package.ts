@@ -1,5 +1,5 @@
 export { getAppStateConfigs } from "./appStateConfigs";
 export { applyTableDiffs } from "./common/utils";
 export { getTableContextYAML, filterTablesByCatalog } from "./metabase/helpers/catalog";
-export { fetchTableData } from "./metabase/helpers/parseTables";
+export { getTableData } from "./metabase/helpers/metabaseAPIHelpers";
 export { getAllTemplateTagsInQuery } from "./metabase/helpers/sqlQuery";
