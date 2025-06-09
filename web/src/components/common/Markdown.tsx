@@ -11,6 +11,8 @@ import { getOrigin } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
 import { getAllTemplateTagsInQuery } from 'apps'
+import { Badge } from "@chakra-ui/react";
+
 
 function LinkRenderer(props: any) {
   return (
@@ -22,7 +24,7 @@ function LinkRenderer(props: any) {
 
 function ModifiedParagraph(props: any) {
   return (
-    <p style={{margin: '5px'}}>{props.children}</p>
+    <p style={{margin: '3px'}}>{props.children}</p>
   )
 }
 
@@ -43,6 +45,26 @@ function ModifiedPre(props: any) {
         <pre style={{backgroundColor: '#333', padding: '10px', borderRadius: '5px', color: "#fff", fontWeight: '800', fontSize: '0.9em', whiteSpace: 'break-spaces' }} className="code">
             {props.children}
         </pre>
+    )
+}
+
+function ModifiedCode(props: any) {
+    if (!props.className) { // inline code
+        const text = props.children?.toString() || '';
+        
+        if (text.startsWith('[badge]')) {
+        return <Badge color={"minusxGreen.600"}>{text.replace('[badge]', '')}</Badge>;
+        }
+    }
+    
+    return <code className={props.className} {...props}>{props.children}</code>;
+};
+
+function ModifiedBlockquote(props: any) {
+    return (
+        <blockquote style={{borderLeft: '4px solid #14a085', paddingLeft: '0px', fontStyle: 'italic', margin: '10px'}}>
+            {props.children}
+        </blockquote>
     )
 }
 
@@ -163,6 +185,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre}}>{processedContent}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode}}>{processedContent}</MarkdownComponent>
   )
 }

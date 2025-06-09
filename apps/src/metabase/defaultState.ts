@@ -118,12 +118,11 @@ export const metabaseInternalState: MetabaseInternalState = {
     dbInfo: DB_INFO_DEFAULT,
     loading: true,
   },
-  helperMessage: `
-\`NEW: MinusX Data Agents \`
-1. auto-magic **data models** and QA directly on dashboards
-2. support data requests in **Slack** 
-3. perform factual **deep research**
-4. last-mile modelling for **100% accuracy** on ad-hoc queries
-  
-[Schedule a Demo](https://minusx.ai/demo) to enable data agents in your Metabase!`,
+  helperMessage: `Checkout the new MinusX in Metabase [docs](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase).
+To get started, select a database and simply ask: 
+> what tables can you see?
+
+\`[badge]New: \` [Q&A directly on Dashboards](https://minusx.ai/blog/dashboard-qa)!
+
+`,
 };
