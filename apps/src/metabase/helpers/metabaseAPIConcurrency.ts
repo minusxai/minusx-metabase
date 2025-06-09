@@ -8,6 +8,7 @@
 import { memoize, RPCs } from 'web';
 import {
   type APIConfig,
+  type MetadataItem,
   DEFAULT_CACHE_TTL,
   DEFAULT_CACHE_REWARM,
   DEFAULT_MAX_CONCURRENCY,
@@ -101,6 +102,10 @@ class EnhancedConcurrencyManager {
   }
 }
 
+async function processMetadata(metadataItems: MetadataItem[], apiTemplate: string): Promise<void> {
+  console.log(`[Placeholder] Would process ${metadataItems.length} metadata items for ${apiTemplate}`);
+}
+
 // =============================================================================
 // GLOBAL MANAGER POOL
 // =============================================================================
@@ -127,7 +132,8 @@ export function createAPI<T extends Record<string, any>>(
     cache_ttl: config.cache_ttl ?? DEFAULT_CACHE_TTL,
     cache_rewarm_ttl: config.cache_rewarm_ttl ?? DEFAULT_CACHE_REWARM,
     max_concurrency: config.max_concurrency ?? DEFAULT_MAX_CONCURRENCY,
-    concurrency_delay: config.concurrency_delay ?? DEFAULT_CONCURRENCY_DELAY
+    concurrency_delay: config.concurrency_delay ?? DEFAULT_CONCURRENCY_DELAY,
+    metadataProcessor: config.metadataProcessor
   };
   // Template substitution
   function substituteTemplate(params: T): string {
@@ -164,7 +170,20 @@ export function createAPI<T extends Record<string, any>>(
     },
     finalConfig.cache_ttl,
     finalConfig.cache_rewarm_ttl,
-    template  // Use template as cache key base to avoid anonymous function collisions
+    template,  // Use template as cache key base to avoid anonymous function collisions
+    finalConfig.metadataProcessor ? (response: any) => {
+      // Process metadata for fresh (non-cached) responses
+      try {
+        const metadataItems = finalConfig.metadataProcessor!(response);
+        if (metadataItems && metadataItems.length > 0) {
+          processMetadata(metadataItems, template).catch(error => {
+            console.warn(`Metadata processing failed for ${template}:`, error);
+          });
+        }
+      } catch (error) {
+        console.warn(`Metadata processor failed for ${template}:`, error);
+      }
+    } : undefined
   );
 
   // Return the callable function

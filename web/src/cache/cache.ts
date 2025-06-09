@@ -14,13 +14,15 @@ type AsyncFunction = (...args: any[]) => Promise<any>;
  * @param ttl - The time to live in seconds. Negative values will never expire
  * @param rewarmTtl - The rewarm time in seconds. If set, returns stale data while refreshing in background
  * @param cacheKeyBase - Optional base for cache key. If not provided, uses fn.name
+ * @param onFreshData - Optional callback called whenever fresh data is fetched (not from cache)
  * @returns The memoized function with coalescing and optional background refresh
  */
 export function memoize<T extends AsyncFunction>(
   fn: T, 
   ttl: number = DEFAULT_TTL,
   rewarmTtl: number = DEFAULT_REWARM_TTL,
-  cacheKeyBase?: string
+  cacheKeyBase?: string,
+  onFreshData?: (response: Awaited<ReturnType<T>>) => void
 ) {
   const inProgressPromises: Record<string, Promise<Awaited<ReturnType<T>>> | null> = {};
 
@@ -44,6 +46,14 @@ export function memoize<T extends AsyncFunction>(
           const backgroundPromise = fn(...args)
             .then(async (result) => {
               await setCache(cacheKey, result);
+              // Call callback for fresh data from background refresh
+              if (onFreshData) {
+                try {
+                  onFreshData(result);
+                } catch (error) {
+                  console.warn('onFreshData callback failed during background refresh:', error);
+                }
+              }
               return result;
             })
             .finally(() => {
@@ -67,6 +77,14 @@ export function memoize<T extends AsyncFunction>(
       .then(async (result) => {
         // Cache the result
         await setCache(cacheKey, result);
+        // Call callback for fresh data from main fetch
+        if (onFreshData) {
+          try {
+            onFreshData(result);
+          } catch (error) {
+            console.warn('onFreshData callback failed during main fetch:', error);
+          }
+        }
         return result;
       })
       .finally(() => {
