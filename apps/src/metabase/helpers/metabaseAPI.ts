@@ -45,7 +45,7 @@ export const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
   {
     cache_rewarm_ttl: 2 * 24 * 60 * 60, // 2 days rewarm as requested
     max_concurrency: 1,                  // Very conservative
-    concurrency_delay: 30000               // 1 second delay between requests
+    concurrency_delay: 30000               // 30 second delay between requests
   }
 );
 
