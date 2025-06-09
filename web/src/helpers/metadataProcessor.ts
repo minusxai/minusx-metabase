@@ -7,6 +7,7 @@
 
 import axios from 'axios';
 import { configs } from '../constants';
+import { getOrigin } from './origin';
 
 export interface MetadataItem {
   metadata_type: string;
@@ -30,7 +31,7 @@ export async function processMetadata(metadataItems: MetadataItem[], apiTemplate
 
   try {
     const metadataRequest: MetadataRequest = {
-      origin: window.location.origin,
+      origin: getOrigin(),
       metadata_items: metadataItems
     };
 
