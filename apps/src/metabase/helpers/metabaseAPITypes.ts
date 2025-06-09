@@ -6,6 +6,7 @@
  */
 
 import { TableAndSchema } from './parseSql';
+import type { MetadataItem } from 'web/types';
 
 // =============================================================================
 // CACHE CONFIGURATION CONSTANTS
@@ -25,6 +26,7 @@ export interface APIConfig {
   cache_rewarm_ttl?: number; // Background refresh TTL in seconds (defaults to DEFAULT_CACHE_REWARM)
   max_concurrency?: number;  // Max concurrent requests for this endpoint (defaults to DEFAULT_MAX_CONCURRENCY)
   concurrency_delay?: number; // Min delay between requests in milliseconds (defaults to DEFAULT_CONCURRENCY_DELAY)
+  metadataProcessor?: (response: any) => MetadataItem[]; // Function to extract metadata from fresh API responses
 }
 
 export interface FormattedColumn {

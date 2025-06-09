@@ -9,6 +9,7 @@ interface ENV {
     SEMANTIC_PATH: string
     ASSETS_PATH: string
     GROUPS_PATH: string
+    DEEPRESEARCH_PATH: string
     WEB_URL: string
     POSTHOG_API_KEY: string
     POSTHOG_CONFIGS: string
@@ -28,6 +29,7 @@ const conf: ENV = {
     SEMANTIC_PATH: process.env.SEMANTIC_PATH || defaults.SEMANTIC_PATH,
     ASSETS_PATH: process.env.ASSETS_PATH || defaults.ASSETS_PATH,
     GROUPS_PATH: process.env.GROUPS_PATH || defaults.GROUPS_PATH,
+    DEEPRESEARCH_PATH: process.env.DEEPRESEARCH_PATH || defaults.DEEPRESEARCH_PATH,
     WEB_URL: process.env.WEB_URL || defaults.WEB_URL,
     POSTHOG_API_KEY: process.env.POSTHOG_API_KEY || defaults.POSTHOG_API_KEY,
     POSTHOG_CONFIGS: process.env.POSTHOG_CONFIGS || defaults.POSTHOG_CONFIGS,
@@ -44,6 +46,7 @@ interface Configs extends ENV {
     SEMANTIC_BASE_URL: string
     ASSETS_BASE_URL: string
     GROUPS_BASE_URL: string
+    DEEPRESEARCH_BASE_URL: string
 }
 
 const SERVER_BASE_URL = conf.BASE_SERVER_URL + conf.SERVER_PATH
@@ -57,4 +60,5 @@ export const configs: Configs = {
     SEMANTIC_BASE_URL: SERVER_BASE_URL + conf.SEMANTIC_PATH,
     ASSETS_BASE_URL: SERVER_BASE_URL + conf.ASSETS_PATH,
     GROUPS_BASE_URL: SERVER_BASE_URL + conf.GROUPS_PATH,
+    DEEPRESEARCH_BASE_URL: SERVER_BASE_URL + conf.DEEPRESEARCH_PATH,
 }
