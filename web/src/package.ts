@@ -10,3 +10,4 @@ export { contains } from './helpers/utils';
 export { addCtesToQuery, processSQLWithCtesOrModels } from './helpers/catalogAsModels';
 export { GLOBAL_EVENTS, captureEvent } from './tracking'
 export { getParsedIframeInfo } from './helpers/origin';
+export { processMetadata } from './helpers/metadataProcessor';

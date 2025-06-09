@@ -6,6 +6,7 @@
  */
 
 import { TableAndSchema } from './parseSql';
+import type { MetadataItem } from 'web/types';
 
 // =============================================================================
 // CACHE CONFIGURATION CONSTANTS
@@ -19,11 +20,6 @@ export const DEFAULT_CONCURRENCY_DELAY = 0;         // Default delay in millisec
 // =============================================================================
 // CORE TYPE DEFINITIONS
 // =============================================================================
-
-export interface MetadataItem {
-  metadata_type: string;
-  metadata_value: any;
-}
 
 export interface APIConfig {
   cache_ttl?: number;        // Cache TTL in seconds (defaults to DEFAULT_CACHE_TTL)

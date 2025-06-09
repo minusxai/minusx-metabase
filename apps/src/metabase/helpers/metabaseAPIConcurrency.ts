@@ -5,10 +5,10 @@
  * to prevent overwhelming the Metabase instance with too many simultaneous requests.
  */
 
-import { memoize, RPCs } from 'web';
+import { memoize, RPCs, processMetadata } from 'web';
+import type { MetadataItem } from 'web/types';
 import {
   type APIConfig,
-  type MetadataItem,
   DEFAULT_CACHE_TTL,
   DEFAULT_CACHE_REWARM,
   DEFAULT_MAX_CONCURRENCY,
@@ -102,9 +102,6 @@ class EnhancedConcurrencyManager {
   }
 }
 
-async function processMetadata(metadataItems: MetadataItem[], apiTemplate: string): Promise<void> {
-  console.log(`[Placeholder] Would process ${metadataItems.length} metadata items for ${apiTemplate}`);
-}
 
 // =============================================================================
 // GLOBAL MANAGER POOL
