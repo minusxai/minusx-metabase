@@ -125,12 +125,12 @@ export function createAPI<T extends Record<string, any>>(
   config: APIConfig = {}
 ) {
   // Apply defaults
-  const finalConfig = {
+  const finalConfig: Required<APIConfig> = {
     cache_ttl: config.cache_ttl ?? DEFAULT_CACHE_TTL,
     cache_rewarm_ttl: config.cache_rewarm_ttl ?? DEFAULT_CACHE_REWARM,
     max_concurrency: config.max_concurrency ?? DEFAULT_MAX_CONCURRENCY,
     concurrency_delay: config.concurrency_delay ?? DEFAULT_CONCURRENCY_DELAY,
-    metadataProcessor: config.metadataProcessor
+    metadataProcessor: config.metadataProcessor ?? (response => [])
   };
   // Template substitution
   function substituteTemplate(params: T): string {

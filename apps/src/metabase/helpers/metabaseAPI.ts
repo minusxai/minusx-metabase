@@ -21,7 +21,16 @@ export const fetchDatabaseInfo = createAPI<{ db_id: number }>(
 );
 
 export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
-  '/api/database/{{db_id}}?include=tables'
+  '/api/database/{{db_id}}?include=tables',
+  'GET',
+  {
+    metadataProcessor: (response) => {
+      return response.tables.map((table: any) => ({
+        metadata_type: 'db_table',
+        metadata_value: table
+      }))
+    }
+  }
 );
 
 // Table Operations
