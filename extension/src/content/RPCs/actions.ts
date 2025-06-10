@@ -23,8 +23,6 @@ const highlightElement = (newElement: HTMLElement, newStyle: Style) => {
       newElement.style[styleKey] = newStyle[styleKey]
     }
   }
-  console.log('Old element style saved', oldStyle)
-  console.log('New element style set', newStyle)
   if (OLD_ELEMENTS.element) {
     // Restore old element
     const {style: oldStyle, element: oldElement } = OLD_ELEMENTS
@@ -157,4 +155,29 @@ export const uHighlight = async (selector: QuerySelector, index: number = 0, new
     }
     highlightElement(element as HTMLElement, newStyles)
   }
+}
+
+export const setStyle = async (selector: QuerySelector, index: number = 0, newStyle: Partial<HTMLEmbedElement["style"]>): Promise<Partial<HTMLEmbedElement["style"]> | null> => {
+  const element = getElementFromQuerySelector(selector, index);
+  
+  if (!element) {
+    console.warn('setStyle: Element not found', { selector, index });
+    return null;
+  }
+  
+  const htmlElement = element as HTMLElement;
+  const oldStyle: Partial<HTMLEmbedElement["style"]> = {};
+  
+  // Save current style values and apply new ones
+  for (const styleKey in newStyle) {
+    if (newStyle[styleKey] !== undefined) {
+      // Save the current value
+      oldStyle[styleKey] = htmlElement.style[styleKey];
+      // Apply the new value
+      htmlElement.style[styleKey] = newStyle[styleKey];
+    }
+  }
+  
+  console.log('setStyle applied:', { selector, index, newStyle, oldStyle });
+  return oldStyle;
 }

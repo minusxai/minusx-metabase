@@ -171,6 +171,13 @@ export const addNativeElements = (
 export const startRecording = () => sendMessage('startRecording', [])
 export const stopRecording = () => sendMessage('stopRecording', [])
 
+export const setStyle = async (
+  selector: QuerySelector,
+  index: number = 0,
+  style: Partial<HTMLEmbedElement['style']>
+) => await sendMessage('setStyle', [selector, index, style], { log_rpc: true })
+
+
 interface Cell {
   value: string | number | boolean | Date
   type: 'string' | 'number' | 'boolean' | 'date'
