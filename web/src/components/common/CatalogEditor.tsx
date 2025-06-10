@@ -57,6 +57,28 @@ export const CatalogEditor: React.FC<CatalogEditorProps> = ({ onCancel, defaultT
     if (typeof defaultContent !== 'string') {
         defaultContent = dump(defaultContent)
     }
+
+    if (defaultContent === '') {
+        defaultContent = `entities:
+  - name: <EntityName>
+    description: <EntityDescription>
+    sql_table: <Schema.TableName> # optional; one of sql_table or sql must be defined
+    sql: <SQL CTE> # optional; one of sql_table or sql must be defined
+    dimensions:
+      - name: <DimensionName>
+        type: <DimensionType>
+        description: <DimensionDescription>
+        sql: <SQL>
+        unique: <true/false>
+    metrics:
+      - name: <MetricName>
+        description: <MetricDescription>
+        sql: <SQL>
+    examples: # optional; examples of queries using this entity
+      - name: <ExampleName>
+        description: <ExampleDescription>
+        sql: <SQL. This SQL should refer the entity name and not the base table name>`
+    }
     
     const [isSaving, setIsSaving] = useState(false);
     const [title, setTitle] = useState(defaultTitle);
