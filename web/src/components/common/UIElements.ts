@@ -1,27 +1,5 @@
 import _ from 'lodash'
-// import { UI_SELECTORS as COLAB_UI_SELECTORS } from '../colab/querySelectorMap'
-// import { UI_SELECTORS as JUPYTER_UI_SELECTORS } from '../jupyter/querySelectorMap'
 import { Coordinates } from '../../helpers/Selection'
-
-// const UI_SELECTORS = {
-//   [TOOLS.COLAB]: COLAB_UI_SELECTORS,
-//   [TOOLS.JUPYTER]: JUPYTER_UI_SELECTORS,
-// }
-
-// export const getUIElements = () => {
-//   const tool = identifyToolNative()
-//   const uiSelectors = UI_SELECTORS[tool]
-//   type Result = Record<string, Element[]>
-//   const result: Result = _.transform(
-//     uiSelectors,
-//     (result, value, key) => {
-//       result[key] = resolveSelector(value)
-//     },
-//     {} as Result
-//   )
-//   console.log('Result of transforming is', result)
-//   return result
-// }
 
 export class UIElementSelection {
   oldBorders: Record<string, string>

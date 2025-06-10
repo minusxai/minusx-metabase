@@ -2,11 +2,7 @@ import React from 'react';
 import { HStack, VStack, Text } from '@chakra-ui/react'
 import { DockSwitcher, MonitorDef } from './DockSwitcher';
 import { LLMContext } from './LLMContext'
-// import { LLMContextHistory } from './LLMContextHistory'
-import { PlannerConfigs } from './PlannerConfigs'
 import { Testing } from './Testing'
-import { CustomInstructions } from './CustomInstructions'
-import { DataCatalog } from './DataCatalog'
 import { ActionsView } from './ActionDebug';
 import Settings from './Settings'
 import { configs } from '../../constants';
@@ -23,33 +19,14 @@ const Monitors: MonitorDef[] = [
     component: Context,
     tags: ['production']
   },
-//   {
-//     title: "Custom Instructions",
-//     component: CustomInstructions,
-//     tags: ['production']
-//   },
-//   {
-//     title: "Data Catalog",
-//     component: DataCatalog,
-//   },
-//   {
-//     title: "Planner Configs",
-//     component: PlannerConfigs,
-//     // tags: ['production']
-//   },
   {
     title: "Dev Context",
     component: LLMContext,
-    // tags: ['production']
   },
   {
     title: "Action History",
     component: ActionsView,
   },
-  // {
-  //   title: "Context History",
-  //   component: LLMContextHistory
-  // },
   {
     title: "Testing Tools",
     component: Testing

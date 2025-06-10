@@ -10,7 +10,6 @@ import { fetchData } from "./fetchData"
 import { initWindowListener, RPCPayload } from './initListeners'
 import { addNativeElements, attachEventsListener, attachMutationListener, detachMutationListener, initMutationObserver } from "./mutationObserver"
 import { respondToOtherTab, forwardToTab, getPendingMessage } from "./crossInstanceComms"
-import { configs } from "../../constants"
 import { startRecording, stopRecording } from "./microphone"
 export const rpc = {
     log,
