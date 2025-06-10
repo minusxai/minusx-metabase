@@ -107,7 +107,14 @@ export async function convertDOMtoStateSQLQuery() {
       }
     })
   }
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
+  // add defaultSchema back to relevantTablesWithFields. kind of hacky but whatever
+  relevantTablesWithFields = relevantTablesWithFields.map(table => {
+    if (table.schema === undefined || table.schema === '') {
+      table.schema = defaultSchema || 'unknown'
+    }
+    return table
+  })
   const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
   
   const queryExecuted = await hasQueryResults();
