@@ -4,7 +4,7 @@ import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPageUrl } from "./helpers/dashboard/util";
-import { cloneDeep, get, isEmpty, memoize } from "lodash";
+import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
@@ -177,6 +177,31 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         children: ['Username: player01@minusx.ai', '\n', 'Password: player01']
       })
     }
+
+    const childNotifs = times(10, i => ({
+      tag: 'span',
+      attributes: {
+        style: `color: white; top: -10; position: absolute;background-color: red; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer;z-index: ${1000+i};display: none;`,
+        class: `minusx-notification-${i + 1}`,
+      },
+      children: [`${i + 1}`]
+    }))
+    await RPCs.addNativeElements({
+      type: "CSS",
+      selector: "#minusx-toggle"
+    }, {
+      tag: 'div',
+      attributes: {
+        style: 'position: absolute;'
+      },
+      children: [{
+        'tag': 'span',
+        'attributes': {
+          class: `minusx-notification-parent`
+        },
+        'children': childNotifs
+      }]
+    })
     // const entityMenuSelector = querySelectorMap['dashboard_header']
     // const entityMenuId = await RPCs.addNativeElements(entityMenuSelector, {
     //   tag: 'button',
