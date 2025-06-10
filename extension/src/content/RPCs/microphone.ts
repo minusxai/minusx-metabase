@@ -1,4 +1,4 @@
-import { sendIFrameMessage } from "./domEvents";
+import { sendIFrameMessage } from "./initListeners";
 
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = 'en-US';

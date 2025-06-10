@@ -1,2 +1,2 @@
 export { resolveSelector } from './helpers/pageParse/resolveSelectors'
-export { initWindowListener } from './content/RPCs/initListeners'
+export { initWindowListener, sendIFrameMessage } from './content/RPCs/initListeners'

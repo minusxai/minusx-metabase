@@ -1,8 +1,8 @@
 import { debounce, isEqual, memoize, set, uniq } from "lodash";
 import { DOMQuery, DOMQueryMap, DOMQueryMapResponse, DOMQueryResponse, queryDOMMap, queryDOMSingle } from "./getElements";
-import { sendIFrameMessage } from "./domEvents";
 import { QuerySelector } from "../../helpers/pageParse/querySelectorTypes";
 import { getElementsFromQuerySelector } from "../../helpers/pageParse/getElements";
+import { sendIFrameMessage } from "./initListeners";
 
 const OBSERVER_INTERVAL = 100
 
