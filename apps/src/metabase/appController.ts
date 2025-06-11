@@ -1,5 +1,5 @@
 import { BlankMessageContent, SemanticFilter, DefaultMessageContent, TimeDimension, Order } from "web/types";
-import { RPCs, configs } from "web";
+import { RPCs, configs,  } from "web";
 import { AppController, Action, App } from "../base/appController";
 import {
   MetabaseAppState,
@@ -40,7 +40,7 @@ import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getTableData } from "./helpers/metabaseAPIHelpers";
-import { processSQLWithCtesOrModels } from "web";
+import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
@@ -134,6 +134,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+  async showDataModelEditor({explanation}: {explanation: string}) {
+    dispatch(updateIsDevToolsOpen(true))
+    dispatch(updateDevToolsTabName('Context'))
+    await RPCs.setMinusxMode('open-sidepanel-devtools')
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    actionContent.content = "Successfully opened table editor"
+    return actionContent;
+  }
   @Action({
     labelRunning: "Executing SQL Query",
     labelDone: "Executed SQL query",
