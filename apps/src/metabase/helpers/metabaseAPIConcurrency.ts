@@ -133,13 +133,16 @@ export function createAPI<T extends Record<string, any>>(
     metadataProcessor: config.metadataProcessor ?? (response => [])
   };
   // Template substitution
-  function substituteTemplate(params: T): string {
-    return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+  function substituteTemplate(params: T): { url: string; usedKeys: Set<string> } {
+    const usedKeys = new Set<string>();
+    const url = template.replace(/\{\{(\w+)\}\}/g, (_, key) => {
       if (!(key in params)) {
         throw new Error(`Missing required parameter: ${key} for template: ${template}`);
       }
+      usedKeys.add(key);
       return encodeURIComponent(String(params[key]));
     });
+    return { url, usedKeys };
   }
 
   // Validate required parameters
@@ -161,8 +164,25 @@ export function createAPI<T extends Record<string, any>>(
       const manager = getConcurrencyManager(template, finalConfig);
       
       return manager.execute(async () => {
-        const actualUrl = substituteTemplate(params);
-        return await RPCs.fetchData(actualUrl, method);
+        const { url: actualUrl, usedKeys } = substituteTemplate(params);
+        
+        // Separate body params from URL params
+        const bodyParams: Record<string, any> = {};
+        for (const [key, value] of Object.entries(params)) {
+          if (!usedKeys.has(key)) {
+            bodyParams[key] = value;
+          }
+        }
+        
+        // Only include body if there are unused params and it's a method that supports body
+        const hasBodyParams = Object.keys(bodyParams).length > 0;
+        const supportsBody = ['POST', 'PUT', 'PATCH'].includes(method);
+        
+        return await RPCs.fetchData(
+          actualUrl, 
+          method, 
+          hasBodyParams && supportsBody ? bodyParams : undefined
+        );
       });
     },
     finalConfig.cache_ttl,
