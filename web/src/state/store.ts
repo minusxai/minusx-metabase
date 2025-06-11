@@ -13,6 +13,7 @@ import billing from './billing/reducer'
 import semanticLayer from './semantic-layer/reducer'
 import { catalogsListener } from './settings/availableCatalogsListener'
 import cache from './cache/reducer'
+import notifications from './notifications/reducer'
 import { get } from 'lodash'
 
 const combinedReducer = combineReducers({
@@ -22,7 +23,8 @@ const combinedReducer = combineReducers({
   thumbnails,
   billing,
   semanticLayer,
-  cache
+  cache,
+  notifications
 });
 
 const rootReducer = (state: any, action: any) => {
@@ -382,12 +384,21 @@ const migrations = {
     })
     newState.settings.availableCatalogs = newCatalogs
     return newState
+  },
+  33: (state: RootState) => {
+    let newState = {...state}
+    newState.notifications = {
+      notifications: [],
+      isPolling: false,
+      lastFetchTime: null,
+    }
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 32,
+  version: 33,
   storage,
   blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),

@@ -4,3 +4,4 @@ export type { SemanticFilter, TimeDimension, Order, SemanticQuery } from './stat
 export type { Measure, Dimension } from './state/semantic-layer/reducer';
 export type { TableDiff, TableInfo } from './state/settings/reducer';
 export type { MetadataItem, MetadataRequest } from './helpers/metadataProcessor';
+export type { Notification, NotificationContent, NotificationsResponse, NotificationActionResponse } from './types/notifications';
