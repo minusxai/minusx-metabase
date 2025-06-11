@@ -5,7 +5,9 @@
  * Higher-level business logic is in metabaseAPIHelpers.ts.
  */
 
+import { get } from 'lodash';
 import { createAPI } from './metabaseAPIConcurrency';
+import { metadata } from 'reflect-metadata/no-conflict';
 
 // =============================================================================
 // EXPORTED API FUNCTIONS - Available for use by helper modules
@@ -25,17 +27,88 @@ export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
   'GET',
   {
     metadataProcessor: (response) => {
-      return response.tables.map((table: any) => ({
-        metadata_type: 'db_table',
-        metadata_value: table
-      }))
+      // return response.tables.map((table: any) => ({
+      //   metadata_type: 'db_table',
+      //   metadata_value: table
+      // }))
+      const dbMetadata = {
+        metadata_type: 'db',
+        metadata_value: {
+          version: 'v1',
+          id: get(response, 'id'),
+          engine: get(response, 'engine'),
+          name: get(response, 'name'),
+          description: get(response, 'description'),
+          dbms_version: get(response, 'dbms_version'),
+          caveats: get(response, 'caveats'),
+          points_of_interest: get(response, 'points_of_interest'),
+          details: get(response, 'details'),
+          features: get(response, 'features'),
+        }
+      }
+      const metadata = response.tables.map((table: any) => {
+        return {
+          metadata_type: 'db_table',
+          metadata_value: {
+            version: 'v1',
+            id: get(table, 'id'),
+            name: get(table, 'name'),
+            display_name: get(table, 'display_name'),
+            description: get(table, 'description'),
+            db_id: get(table, 'db_id'),
+            schema: get(table, 'schema'),
+            estimated_row_count: get(table, 'estimated_row_count'),
+            entity_type: get(table, 'entity_type'),
+            caveats: get(table, 'caveats'),
+            points_of_interest: get(table, 'points_of_interest'),
+          }
+        }
+      })
+      return [dbMetadata, ...metadata];
     }
   }
 );
 
 // Table Operations
 export const fetchTableMetadata = createAPI<{ table_id: number }>(
-  '/api/table/{{table_id}}/query_metadata'
+  '/api/table/{{table_id}}/query_metadata',
+  'GET',
+  {
+    metadataProcessor: (response) => {
+      const metadata = {
+        metadata_type: 'table',
+        metadata_value: {
+          version: 'v1',
+          id: get(response, 'id'),
+          name: get(response, 'name'),
+          display_name: get(response, 'display_name'),
+          description: get(response, 'description'),
+          schema: get(response, 'schema'),
+        }
+      }
+      const fieldMetadata = response.fields.map((field: any) => {
+        return {
+          metadata_type: 'table_field',
+          metadata_value: {
+            version: 'v1',
+            id: get(field, 'id'),
+            name: get(field, 'name'),
+            database_type: get(field, 'database_type'),
+            semantic_type: get(field, 'semantic_type'),
+            effective_type: get(field, 'effective_type'),
+            base_type: get(field, 'base_type'),
+            display_name: get(field, 'display_name'),
+            description: get(field, 'description'),
+            table_id: get(field, 'table_id'),
+            caveats: get(field, 'caveats'),
+            points_of_interest: get(field, 'points_of_interest'),
+            fingerprint: get(field, 'fingerprint'),
+          }
+        }
+      })
+      return [metadata, ...fieldMetadata];
+    }
+  }
 );
 
 // Field Operations - EXPENSIVE, very conservative limits

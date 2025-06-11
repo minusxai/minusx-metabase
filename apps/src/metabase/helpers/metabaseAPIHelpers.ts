@@ -330,41 +330,6 @@ export async function getTableMetadata(tableId: number) {
 }
 
 /**
- * Fetch sample values for table fields
- */
-async function getTableSampleValues(tableInfo: FormattedTable) {
-  // Only fetch sample values for non-numeric columns with distinct-count < 100
-  const nonNumericFields = Object.values(tableInfo.columns || {}).filter((field) => 
-    !isNumericType(field.type) && (field.distinct_count || 0) > 0 && (field.distinct_count || 0) < 100
-  );
-  
-  const fieldIds = nonNumericFields.map((field) => field.id);
-  const fieldIdSampleValMapping: Record<number, any> = {}
-  
-  const sampleValsResults = await Promise.all(
-    fieldIds.map(async (fieldId) => {
-      try {
-        const sampleVals = await getFieldUniqueValues(fieldId);
-        return { fieldId, sampleVals };
-      } catch (error) {
-        console.warn(`Failed to fetch sample values for field ${fieldId}:`, error);
-        return { fieldId, sampleVals: null };
-      }
-    })
-  );
-  
-  // Map results back to fieldIdSampleValMapping
-  sampleValsResults.forEach(({ fieldId, sampleVals }) => {
-    if (sampleVals !== null) {
-      fieldIdSampleValMapping[fieldId] = sampleVals;
-    }
-  });
-  
-  return fieldIdSampleValMapping;
-}
-
-
-/**
  * Fetch sample values with timeout and background caching
  */
 async function getSampleValuesWithTimeout(tableInfo: FormattedTable, timeout: number = 5000) {
