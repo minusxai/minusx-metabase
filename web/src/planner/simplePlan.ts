@@ -25,7 +25,7 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
   }
   const currentAppState = await app.getState() as AppState
   const actionDescriptions = plannerConfig.actionDescriptions
-  const messages = getLLMContextFromState(prompts, currentAppState, currentAppState, messageHistory)
+  const { context: messages, meta } = getLLMContextFromState(prompts, currentAppState, currentAppState, messageHistory)
   const llmResponse = await planActions({
     messages,
     actions: actionDescriptions,
@@ -33,7 +33,8 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
     signal,
     deepResearch,
     tasks,
-    conversationID
+    conversationID,
+    meta
   });
   const endTime = Date.now()
   let debugContent = {latency: endTime - startTime}

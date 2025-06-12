@@ -2,6 +2,14 @@ import { ChatCompletion, ChatCompletionMessageParam } from "openai/resources";
 import { Tasks, ToolCalls } from "../../state/chat/reducer";
 
 export type LLMContext = Array<ChatCompletionMessageParam>
+
+export type LLMContextWithMeta = {
+  context: LLMContext;
+  meta: {
+    timeDelta: number; // Time difference in milliseconds between current and last message
+    threadTimeDelta?: number; // Time difference from last user message in previous thread (when timeDelta is 0)
+  };
+}
 export type LLMResponse = {
   tool_calls: ToolCalls,
   content: string,

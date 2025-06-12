@@ -147,7 +147,8 @@ export const LLMContext: React.FC<null> = () => {
     const actionDescriptions = simplePlannerConfig.actionDescriptions
     // append the last user message to the message history
     let extendedMessageHistory = [...messageHistory, lastMessage]
-    const messages = appState ? getLLMContextFromState(prompts, appState as AppState, appState as AppState, extendedMessageHistory) : []
+    const contextWithMeta = appState ? getLLMContextFromState(prompts, appState as AppState, appState as AppState, extendedMessageHistory) : null
+    const messages = contextWithMeta?.context || []
     const systemMessage = messages.length ? messages[0] : {}
     const nonSystemMessages = messages.length ? messages.slice(1, messages.length - 1) : []
     
@@ -177,7 +178,8 @@ export const LLMContext: React.FC<null> = () => {
         user: currentSimplePlannerConfig.userPrompt,
       }
       const currentActionDescriptions = currentSimplePlannerConfig.actionDescriptions
-      const currentMessages = getLLMContextFromState(currentPrompts, appState as AppState, appState as AppState, extendedMessageHistory)
+      const currentContextWithMeta = getLLMContextFromState(currentPrompts, appState as AppState, appState as AppState, extendedMessageHistory)
+      const currentMessages = currentContextWithMeta.context
       const currentSystemMessage = currentMessages.length ? currentMessages[0] : {}
       const currentNonSystemMessages = currentMessages.length ? currentMessages.slice(1, currentMessages.length - 1) : []
       

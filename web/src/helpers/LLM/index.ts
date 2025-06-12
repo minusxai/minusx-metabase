@@ -14,6 +14,10 @@ export type PlanActionsParams = {
   deepResearch: researchMode,
   tasks: Tasks,
   conversationID: string,
+  meta?: {
+    timeDelta: number;
+    threadTimeDelta?: number;
+  },
 }
 export async function planActions(params: PlanActionsParams ) : Promise<LLMResponse> { 
   const { isLocal } = getState().settings
