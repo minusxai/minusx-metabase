@@ -36,6 +36,8 @@ import { configs } from '../../constants'
 import { startNewThread } from '../../state/chat/reducer'
 import { toast } from '../../app/toast'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
+import NotificationHandler from './NotificationHandler'
+import notificationService from '../../services/notificationService'
 
 
 const useAppStore = getApp().useStore()
@@ -119,6 +121,15 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         stripeCustomerId: billingInfo.stripe_customer_id
       }))
     })
+    
+    // Initialize notification service and start polling
+    notificationService.initialize(dispatch);
+    notificationService.startPolling();
+    
+    // Cleanup on unmount
+    return () => {
+      notificationService.cleanup();
+    };
   }, [])
   useEffect(() => {
     const attemptRefresh = () => {
@@ -179,6 +190,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       borderWidth={1.5}
       borderLeftColor={"minusxBW.500"}
     >
+      <NotificationHandler />
       <VStack justifyContent="start" alignItems="stretch" width="100%">
         <HStack
           borderBottomColor={'minusxBW.500'}
