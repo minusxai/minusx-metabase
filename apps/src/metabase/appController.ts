@@ -17,7 +17,7 @@ import {
 import {
   searchTables,
 } from "./helpers/getDatabaseSchema";
-import { get, isEmpty, map, set, truncate } from "lodash";
+import { isEmpty, map, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -41,6 +41,7 @@ import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCur
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
+import { fetchTableMetadata } from "./helpers/metabaseAPI";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
@@ -278,6 +279,26 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             }
         }
     };
+    const sampleTables = await fetchTableMetadata({ table_id: 65 });
+    const schema = `${sampleTables.id}:${sampleTables.schema}`;
+    const entityMetadata = {
+      result: sampleTables.id,
+      entities: {
+        databases: sampleTables.db,
+        fields: Object.entries(sampleTables.fields.map(f => [f.id, f])),
+        schemas: {
+          [schema]: {
+            id: schema,
+            name: sampleTables.schema,
+            database: sampleTables.db_id
+          }
+        },
+        tables: {
+          [sampleTables.id]: sampleTables
+        }
+      }
+    }
+    await RPCs.dispatchMetabaseAction('metabase/entities/FETCH_METADATA', entityMetadata);
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: dummyCard});
     // await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
     // await this._executeQLQueryInternal("MBQL");
