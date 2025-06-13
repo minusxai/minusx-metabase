@@ -249,6 +249,48 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
+    labelRunning: "Constructs the MBQL query",
+    labelDone: "MBQL built",
+    description: "Constructs the MBQL query in the GUI editor",
+    // renderBody: ({ mbql }: { mbql: any }) => {
+    //   return {text: null, code: JSON.stringify(mbql), oldCode: null, language: "json"}
+    // }
+    renderBody: () => {
+        return {}
+    }
+  })
+//   async ExecuteMBQLClient({ mbql, _client_type }: { mbql: any, _client_type?: string }) {
+  async ExecuteMBQLClient() {
+    const dummyCard = {
+        type: "question",
+        visualization_settings: {},
+        display: "scalar",
+        dataset_query: {
+            database: 2,
+            type: "query",
+            query: {
+                "source-table": 65,
+                aggregation: [
+                    [
+                        "count"
+                    ]
+                ]
+            }
+        }
+    };
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: dummyCard});
+    // await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+    // await this._executeQLQueryInternal("MBQL");
+
+    const actionContent: BlankMessageContent = {
+        type: "BLANK",
+    };
+    actionContent.content = "OK";
+    return actionContent;
+
+  }
+
+  @Action({
     labelRunning: "Plotting data",
     labelDone: "Plotted data",
     description: "Plots the data in the SQL editor using the given visualization type.",

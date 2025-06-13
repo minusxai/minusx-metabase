@@ -29,6 +29,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     subscribe(whitelistQuery, async ({elements, url}) => {
       const getState = this.useStore().getState
       const toolEnabledNew = shouldEnable(elements, url);
+      // #HACK
+      toolEnabledNew.value = true
       const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
       getState().update((oldState) => ({
         ...oldState,
