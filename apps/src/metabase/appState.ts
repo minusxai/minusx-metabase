@@ -2,7 +2,7 @@ import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInf
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
-import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
+import { convertDOMtoState, MetabaseAppState, MetabasePageType } from "./helpers/DOMToState";
 import { isDashboardPageUrl } from "./helpers/dashboard/util";
 import { isMBQLPageUrl } from "./helpers/mbql/utils";
 import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
@@ -30,7 +30,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     subscribe(whitelistQuery, async ({elements, url}) => {
       const getState = this.useStore().getState
       const toolEnabledNew = shouldEnable(elements, url);
-      const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
+      const pageType: MetabasePageType = determineMetabasePageType(elements, url);
       getState().update((oldState) => ({
         ...oldState,
         isEnabled: toolEnabledNew,
@@ -229,6 +229,23 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   }
 }
 
+
+function determineMetabasePageType(elements: DOMQueryMapResponse, url: string): MetabasePageType {
+    if (isDashboardPageUrl(url)) {
+        return 'dashboard';
+    }
+    if (isMBQLPageUrl(url)) {
+        return 'mbql-editor';
+    }
+    if (elements.editor && !isEmpty(elements.editor)) {
+        return 'sql';
+    }
+    if (elements.mbql && !isEmpty(elements.mbql)) {
+        return 'mbql-visualization';
+    }
+    return 'unknown';
+}
+
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
   const hash = btoa(JSON.stringify({
         "dataset_query": {
@@ -246,26 +263,15 @@ function shouldEnable(elements: DOMQueryMapResponse, url: string) {
     }))
   const SQLQueryURL = new URL(url).origin + '/question#' + hash;
   const reason = `To enable MinusX on Metabase, head over to the SQL query [page](${SQLQueryURL})!`
-  if (isDashboardPageUrl(url)) {
+  const metabasePageType = determineMetabasePageType(elements, url);
+  if (metabasePageType === 'unknown') {
     return {
-      value: true,
-      reason: "",
-    };
-  }
-  if (isMBQLPageUrl(url)) {
-    return {
-      value: true,
-      reason: "",
-    };
-  }
-  if (isEmpty(elements.editor) && isEmpty(elements.mbql)) {
-    return {
-      value: false,
-      reason: reason
+        value: false,
+        reason: reason
     };
   }
   return {
     value: true,
     reason: "",
-  };
+  }
 }

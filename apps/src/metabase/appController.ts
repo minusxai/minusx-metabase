@@ -290,15 +290,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Constructs the MBQL query",
     labelDone: "MBQL built",
     description: "Constructs the MBQL query in the GUI editor",
-    // renderBody: ({ mbql }: { mbql: any }) => {
-    //   return {text: null, code: JSON.stringify(mbql), oldCode: null, language: "json"}
-    // }
-    renderBody: () => {
-        return {}
+    renderBody: ({ mbql }: { mbql: any }) => {
+      return {text: null, code: JSON.stringify(mbql), oldCode: null, language: "json"}
     }
   })
-//   async ExecuteMBQLClient({ mbql, _client_type }: { mbql: any, _client_type?: string }) {
-  async ExecuteMBQLClient() {
+  async ExecuteMBQLClient({ mbql }: { mbql: any }) {
     const dummyCard = {
         type: "question",
         visualization_settings: {},
@@ -328,9 +324,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         }
     };
     await updateMBEntities([65, 68])
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const pageType = metabaseState.useStore().getState().toolContext?.pageType;
+    if (pageType === 'mbql-visualization') {
+        await this.uClick({ query: "show_mbql_editor" });
+    }
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: dummyCard});
-    // await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
-    // await this._executeQLQueryInternal("MBQL");
+    await this.uClick({ query: "mbql_run" });
 
     const actionContent: BlankMessageContent = {
         type: "BLANK",

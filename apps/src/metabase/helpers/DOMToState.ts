@@ -94,6 +94,8 @@ export interface MetabaseSemanticQueryAppState {
   currentSemanticLayer?: string;
 }
 
+export type MetabasePageType = 'sql' | 'dashboard' | 'mbql-editor' | 'mbql-visualization' | 'unknown';
+
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
 
 export async function convertDOMtoStateSQLQuery() {
