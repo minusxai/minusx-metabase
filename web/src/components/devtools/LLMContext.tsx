@@ -117,7 +117,8 @@ export const LLMContext: React.FC<null> = () => {
       const toolMessageTokens = await enc.encode(JSON.stringify(toolMessages)).length
       const actionDescriptionsTokens = await enc.encode(JSON.stringify(actionDescriptions)).length
       
-      const { inputTokens, outputTokens, restTokens } = await getTokensForAppState(appState, enc)
+    //   const { inputTokens, outputTokens, restTokens } = await getTokensForAppState(appState, enc)
+      const inputTokens = 0, outputTokens = 0, restTokens = 0
       
       setTokenCounts({
         systemMessageTokens,
