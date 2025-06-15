@@ -84,7 +84,7 @@ export function abortable<T>(promise: Promise<T>, isAborted: () => boolean): Pro
   });
 }
 
-export const applyTableDiffs = (allTables: FormattedTable[], tableDiff: TableDiff, dbId: number, sqlTables: TableAndSchema[] = []) => {
+export const applyTableDiffs = (allTables: FormattedTable[], tableDiff: TableDiff, dbId: number, sqlTables: TableAndSchema[] = [], mbqlTableIds: number[] = []) => {
   const updatedRelevantTables = allTables.filter(
     table => contains(tableDiff.add, {
       name: table.name,
@@ -98,7 +98,7 @@ export const applyTableDiffs = (allTables: FormattedTable[], tableDiff: TableDif
         name: table.name,
         schema: table.schema,
       })
-    )
+    ) || mbqlTableIds.includes(table.id)
   );
 
   return updatedRelevantTables;

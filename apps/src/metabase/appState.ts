@@ -4,6 +4,7 @@ import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { isDashboardPageUrl } from "./helpers/dashboard/util";
+import { isMBQLPageUrl } from "./helpers/mbql/utils";
 import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
@@ -29,8 +30,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     subscribe(whitelistQuery, async ({elements, url}) => {
       const getState = this.useStore().getState
       const toolEnabledNew = shouldEnable(elements, url);
-      // #HACK
-      toolEnabledNew.value = true
       const pageType = isDashboardPageUrl(url) ? 'dashboard' : 'sql';
       getState().update((oldState) => ({
         ...oldState,
@@ -248,6 +247,12 @@ function shouldEnable(elements: DOMQueryMapResponse, url: string) {
   const SQLQueryURL = new URL(url).origin + '/question#' + hash;
   const reason = `To enable MinusX on Metabase, head over to the SQL query [page](${SQLQueryURL})!`
   if (isDashboardPageUrl(url)) {
+    return {
+      value: true,
+      reason: "",
+    };
+  }
+  if (isMBQLPageUrl(url)) {
     return {
       value: true,
       reason: "",

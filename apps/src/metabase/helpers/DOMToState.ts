@@ -15,6 +15,8 @@ import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
 import { catalogAsModels } from 'web';
 import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
+import { getMBQLAppState } from './mbql/appState';
+import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -40,7 +42,8 @@ interface ExtractedTable {
 export enum MetabaseAppStateType {
     SQLEditor = 'metabaseSQLEditor',
     Dashboard = 'metabaseDashboard',
-    SemanticQuery = 'metabaseSemanticQuery'
+    SemanticQuery = 'metabaseSemanticQuery',
+    MBQLEditor = 'metabaseMBQLEditor'
 }
 export interface MetabaseAppStateSQLEditor {
   type: MetabaseAppStateType.SQLEditor;
@@ -74,6 +77,13 @@ export interface MetabaseAppStateDashboard extends DashboardInfo {
   metabaseOrigin?: string;
 }
 
+export interface MetabaseAppStateMBQLEditor extends MBQLInfo {
+  type: MetabaseAppStateType.MBQLEditor;
+  tableContextYAML?: Record<string, any>;
+  selectedDatabaseInfo?: ExtractedDataBase;
+  metabaseOrigin?: string;
+}
+
 export interface MetabaseSemanticQueryAppState {
   type: MetabaseAppStateType.SemanticQuery;
   availableMeasures: Measure[];
@@ -84,7 +94,7 @@ export interface MetabaseSemanticQueryAppState {
   currentSemanticLayer?: string;
 }
 
-export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState;
+export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
 
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
@@ -107,7 +117,7 @@ export async function convertDOMtoStateSQLQuery() {
       }
     })
   }
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables)
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, [])
   // add defaultSchema back to relevantTablesWithFields. kind of hacky but whatever
   relevantTablesWithFields = relevantTablesWithFields.map(table => {
     if (table.schema === undefined || table.schema === '') {
@@ -154,6 +164,10 @@ export async function convertDOMtoStateSQLQuery() {
   return metabaseAppStateSQLEditor;
 }
 
+export async function convertDOMtoStateMBQLQuery() {
+    return await getMBQLAppState() as MetabaseAppStateMBQLEditor;
+}
+
 // check if on dashboard page
 export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDashboard> {
     const dashboardInfo = await getDashboardAppState();
@@ -184,10 +198,13 @@ export async function convertDOMtoState() {
   if (isDashboardPageUrl(url)) {
     return await convertDOMtoStateDashboard();
   }
-  const appSettings = RPCs.getAppSettings()
-  if(appSettings.semanticPlanner) {
-    return await semanticQueryState();
+  if (isMBQLPageUrl(url)) {
+    return await convertDOMtoStateMBQLQuery();
   }
+//   const appSettings = RPCs.getAppSettings()
+//   if(appSettings.semanticPlanner) {
+//     return await semanticQueryState();
+//   }
   return await convertDOMtoStateSQLQuery();
 }
 async function getSqlVariables() {
