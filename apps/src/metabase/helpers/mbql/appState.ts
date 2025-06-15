@@ -17,7 +17,7 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
   const mbqlState = await getMBQLState();
   const mbqlInfo: MBQLInfo = {
-    mbqlQuery: mbqlState.query
+    mbqlQuery: mbqlState.dataset_query.query
   }
   
   const sourceTableIds = getSourceTableIds(mbqlState?.dataset_query?.query);

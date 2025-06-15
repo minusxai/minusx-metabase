@@ -193,3 +193,8 @@ export async function getDashboardState(): Promise<any> {
 export async function getMBQLState(): Promise<any> {
   return await getMetabaseState('qb.card')
 }
+
+export async function getQLType(): Promise<string> {
+  const queryType = await getMetabaseState('qb.card.dataset_query.type') as string;
+  return queryType
+}

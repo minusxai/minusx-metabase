@@ -110,6 +110,10 @@ export const metabaseInternalState: MetabaseInternalState = {
     dashcard: {
       selector: querySelectorMap["dashcard"],
       attrs: ["class"],
+    },
+    mbql: {
+        selector: querySelectorMap["show_mbql_editor"],
+        attrs: ["class"],
     }
   },
   toolContext: {

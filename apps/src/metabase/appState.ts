@@ -258,7 +258,7 @@ function shouldEnable(elements: DOMQueryMapResponse, url: string) {
       reason: "",
     };
   }
-  if (isEmpty(elements.editor)) {
+  if (isEmpty(elements.editor) && isEmpty(elements.mbql)) {
     return {
       value: false,
       reason: reason

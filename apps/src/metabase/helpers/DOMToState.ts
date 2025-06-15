@@ -9,7 +9,7 @@ import { visualizationSettings, Card, ParameterValues, FormattedTable } from './
 const { queryURL } = RPCs;
 import { Measure, Dimension, SemanticQuery, TableInfo } from "web/types";
 import { applyTableDiffs, handlePromise } from '../../common/utils';
-import { getSelectedDbId, getCurrentQuery, hasQueryResults, isNativeEditorOpen, isShowingRawTable, isShowingChartTypeSidebar, getVisualizationType, getVisualizationSettings, getCurrentCard, getParameterValues } from './metabaseStateAPI';
+import { getSelectedDbId, getCurrentQuery, hasQueryResults, isNativeEditorOpen, isShowingRawTable, isShowingChartTypeSidebar, getVisualizationType, getVisualizationSettings, getCurrentCard, getParameterValues, getQLType } from './metabaseStateAPI';
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
@@ -195,10 +195,11 @@ export async function semanticQueryState() {
 
 export async function convertDOMtoState() {
   const url = await queryURL();
+  const qlType = await getQLType();
   if (isDashboardPageUrl(url)) {
     return await convertDOMtoStateDashboard();
   }
-  if (isMBQLPageUrl(url)) {
+  if (isMBQLPageUrl(url) || (qlType === 'query')) {
     return await convertDOMtoStateMBQLQuery();
   }
 //   const appSettings = RPCs.getAppSettings()
