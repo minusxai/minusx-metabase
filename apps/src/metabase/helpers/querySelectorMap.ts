@@ -110,5 +110,9 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'CSS',
     selector: 'button[aria-label="Format query"]'
   },
+  mbql_run: {
+    type: 'XPATH',
+    selector: '//button[.//span[text()="Visualize"]]',
+  },
   ...visualizationSelectors
 };
