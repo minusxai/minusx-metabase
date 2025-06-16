@@ -58,6 +58,10 @@ export async function getSelectedDbId(): Promise<number | undefined> {
   } else {
     // this works for both MBQL and SQL pages
     dbId = await getMetabaseState('qb.card.dataset_query.database');
+    if (!dbId) {
+        const entity_dbs = await getMetabaseState('entities.databases') as object;
+        dbId = _.find(entity_dbs, (db: any) => !db.is_sample)?.id || Object.keys(entity_dbs)[0];
+    }
   }
   
   if (!dbId || !Number(dbId)) {

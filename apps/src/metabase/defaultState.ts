@@ -114,6 +114,9 @@ export const metabaseInternalState: MetabaseInternalState = {
     mbql: {
         selector: querySelectorMap["show_mbql_editor"],
         attrs: ["class"],
+    },
+    mbql_parent: {
+        selector: querySelectorMap["mbql_run_parent"],
     }
   },
   toolContext: {
