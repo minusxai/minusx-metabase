@@ -16,9 +16,58 @@ import { getTableData } from "../package";
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
 
+const metabaseStyles = `
+  .minusx_style_error_button {
+    background-color: #519ee4;
+    color: white;
+    font-size: 15px;
+    padding: 5px 10px;
+    margin-left: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .minusx_style_explain_sql_button {
+    background-color: #519ee4;
+    color: white;
+    padding: 5px 10px;
+    margin-left: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+  }
+  .minusx_style_login_box {
+    background-color: white;
+    color: black;
+    font-size: 15px;
+    border-radius: 5px;
+  }
+  .minusx_style_notification_badge {
+    color: white;
+    top: -10px;
+    position: absolute;
+    background-color: red;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+  }
+  .minusx_style_absolute_container {
+    position: absolute;
+  }
+`;
+
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
+
+  private async createStyles() {
+    
+  }
 
   public async setup() {
     const state = this.useStore().getState();
@@ -78,12 +127,30 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     })
     
     // Listen to clicks on Error Message
+    const nonceElement = await RPCs.queryDOMSingle({
+      selector: {
+        type: 'CSS',
+        selector: '#_metabaseNonce'
+      },
+      attrs: ['text'],
+    })
+    const nonceValue = get(nonceElement, '0.attrs.text', '').trim().slice(1, -1)
+    await RPCs.addNativeElements({
+      type: 'CSS',
+      selector: 'head',
+    }, {
+      tag: 'style',
+      attributes: {
+        class: 'minusx-metabase-styles',
+        nonce: nonceValue,
+      },
+      children: [metabaseStyles]
+    });
     const errorMessageSelector = querySelectorMap['error_message_head']
     const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
       tag: 'button',
       attributes: {
-        class: 'Button Button--primary',
-        style: 'background-color: #519ee4; color: white; font-size: 15px; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer;',
+        class: 'Button Button--primary minusx_style_error_button',
       },
       children: ['✨ Fix with MinusX']
     })
@@ -145,8 +212,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       const uniqueIDSQL = await RPCs.addNativeElements(sqlSelector, {
         tag: 'button',
         attributes: {
-          class: `Button Button--primary ${explainSQLBtnCls}`,
-          style: 'background-color: #519ee4; color: white; padding: 5px 10px; margin-left: 5px; border-radius: 5px; cursor: pointer; display: inline-block;',
+          class: `Button Button--primary ${explainSQLBtnCls} minusx_style_explain_sql_button`,
         },
         children: ['🔍 Explain SQL with MinusX']
       })
@@ -171,8 +237,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       await RPCs.addNativeElements(loginBoxSelector, {
         tag: 'pre',
         attributes: {
-          class: 'Button Button--primary',
-          style: 'background-color: white; color: black; font-size: 15px; border-radius: 5px;',
+          class: 'Button Button--primary minusx_style_login_box',
         },
         children: ['Username: player01@minusx.ai', '\n', 'Password: player01']
       })
@@ -181,8 +246,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const childNotifs = times(10, i => ({
       tag: 'span',
       attributes: {
-        style: `color: white; top: -10; position: absolute;background-color: red; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; cursor: pointer;z-index: ${1000+i};display: none;`,
-        class: `minusx-notification-${i + 1}`,
+        style: `z-index: ${1000+i};`,
+        class: `minusx-notification-${i + 1} minusx_style_notification_badge`,
       },
       children: [`${i + 1}`]
     }))
@@ -192,7 +257,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     }, {
       tag: 'div',
       attributes: {
-        style: 'position: absolute;'
+        class: 'minusx_style_absolute_container'
       },
       children: [{
         'tag': 'span',

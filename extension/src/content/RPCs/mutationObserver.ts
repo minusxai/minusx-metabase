@@ -156,5 +156,9 @@ function jsonToHtml(json: HTMLJSONNode | string): string {
 function parseHtmlString(htmlString: string): Element | null {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlString, 'text/html');
-    return doc.body.firstElementChild; // Returns the first element
+    const firstBodyChild = doc.body.firstElementChild; // Returns the first element
+    if (!firstBodyChild) {
+        return doc.head.firstElementChild
+    }
+    return firstBodyChild;
 }
