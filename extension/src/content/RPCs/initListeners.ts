@@ -1,3 +1,4 @@
+import '../polyfill'
 import { configs } from "../../constants"
 
 export type RPCPayload = {

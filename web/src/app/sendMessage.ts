@@ -68,7 +68,8 @@ export const sendMessage = async <key extends RPCKey>(
     }
     // window.parent.postMessage({fn, args, id, timeout}, origin);
     const msg = {fn, args, id, timeout}
-    let parent = options.direct ? window.parent : window.parent.parent.parent.parent.parent.parent.parent.parent;
+    // let parent = options.direct ? window.parent : window.parent.parent.parent.parent.parent.parent.parent.parent;
+    let parent = window.parent
     // let parent = window.parent.parent.parent.parent.parent.parent.parent.parent;
     parent.postMessage(msg, '*');
   })

@@ -31,7 +31,7 @@ import { onNativeEvent } from '../helpers/nativeEvents';
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
 if (configs.IS_DEV) {
-    console.log = log   
+    // console.log = log   
     ;(window as any).forwardToTab = forwardToTab
 } else {
     console.log = () => {}
@@ -42,7 +42,6 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
     window.addEventListener('message', (event) => {
         const rpcEvent = event.data
         if (!rpcEvent.id && rpcEvent.type == 'STATE_SYNC') {
-            console.log('RPC sync is', rpcEvent.payload)
             if (rpcEvent.payload.key == 'class-closed') {
                 if (rpcEvent.payload.value == false) {
                     ref.current?.focus()
