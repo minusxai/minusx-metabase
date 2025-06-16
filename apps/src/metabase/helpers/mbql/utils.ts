@@ -66,6 +66,8 @@ interface MBQLQuery {
   "source-query"?: SourceQuery;
   "source-table"?: number;
   filter?: Filter;
+  "order-by"?: Array<[FieldReference, "asc" | "desc"]>;
+  "limit"?: number;
 }
 
 
