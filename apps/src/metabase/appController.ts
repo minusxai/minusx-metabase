@@ -292,8 +292,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Constructs the MBQL query",
     labelDone: "MBQL built",
     description: "Constructs the MBQL query in the GUI editor",
-    renderBody: ({ mbql }: { mbql: any }) => {
-      return {text: null, code: JSON.stringify(mbql), oldCode: null, language: "json"}
+    renderBody: ({ mbql, explanation }: { mbql: any, explanation: string }) => {
+      return {text: explanation, code: JSON.stringify(mbql), language: "json"}
     }
   })
   async ExecuteMBQLClient({ mbql }: { mbql: any }) {
@@ -329,11 +329,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         await this.uClick({ query: "show_mbql_editor" });
     }
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: finCard});
-    await this.uClick({ query: "mbql_run" });
-
-    actionContent.content = "OK";
-    return actionContent;
-
+    return await this._executeMBQLQueryInternal()
   }
 
   @Action({
@@ -602,6 +598,23 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     await this.uClick({ query: "run_query" });
+    await waitForQueryExecution();
+    const sqlErrorMessage = await getSqlErrorMessage();
+    if (sqlErrorMessage) {
+      actionContent.content = `<ERROR>${sqlErrorMessage}</ERROR>`;
+    } else {
+      // table output
+      let tableOutput = ""
+      tableOutput = await getAndFormatOutputTable(_type);
+      actionContent.content = tableOutput;
+    }
+    return actionContent;
+  }
+  async _executeMBQLQueryInternal(_type = "markdown") {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    await this.uClick({ query: "mbql_run" });
     await waitForQueryExecution();
     const sqlErrorMessage = await getSqlErrorMessage();
     if (sqlErrorMessage) {
