@@ -1,6 +1,6 @@
 import { getParsedIframeInfo, RPCs } from 'web'
-import { getRelevantTablesForSelectedDb, getTablesWithFields } from './getDatabaseSchema';
-import { getDatabaseInfo, getDatabases, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
+import { getTablesWithFields } from './getDatabaseSchema';
+import { getDatabaseInfo, getDatabases } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';

@@ -26,6 +26,11 @@ export const fetchDatabaseUsage = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}/usage_info'
 );
 
+export const fetchModels = createAPI<{db_id: number}>(
+  '/api/search?models=dataset&filter_items_in_personal_collection=exclude&model_ancestors=false&table_db_id={{db_id}}',
+  'GET',
+);
+
 export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}?include=tables',
   'GET',

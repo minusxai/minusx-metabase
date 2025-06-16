@@ -3,7 +3,7 @@ import { FilteredTable } from './FilterableTable';
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
 import { Text, Link, HStack, Button, Tabs, TabList, TabPanels, TabPanel, Tab, VStack, Spinner, Box} from "@chakra-ui/react";
-import { applyTableDiff, TableInfo, resetDefaultTablesDB } from "../../state/settings/reducer";
+import { applyTableDiff, TableInfo, resetDefaultTablesDB, setSelectedModels } from "../../state/settings/reducer";
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -11,6 +11,7 @@ import { applyTableDiffs } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
 import { ModelView } from "./ModelView";
+import { MetabaseModel } from "apps/types";
 
 const useAppStore = getApp().useStore()
 
@@ -48,6 +49,9 @@ export const TablesCatalog: React.FC<null> = () => {
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo
   const allTables = dbInfo.tables || []
+  const allModels = dbInfo.models || []
+  const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
+  // const selectedModels: MetabaseModel[] = []
 
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
 
@@ -116,7 +120,18 @@ export const TablesCatalog: React.FC<null> = () => {
         </TabList>
         <TabPanels>
             <TabPanel pt={0}>
-                <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={validAddedTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
+                <FilteredTable 
+                  dbId={dbInfo.id} 
+                  tableData={allTables} 
+                  modelData={allModels} 
+                  selectedTableData={validAddedTables} 
+                  selectedModelData={selectedModels} 
+                  addFn={updateAddTables} 
+                  removeFn={updateRemoveTables} 
+                  updateSelectedModels={(models) => {
+                    dispatch(setSelectedModels(models))
+                  }}
+                />
             </TabPanel>
             <TabPanel pt={0}>
                 <ModelView tables={validAddedTables} />

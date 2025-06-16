@@ -119,7 +119,7 @@ export function getConcurrencyManager(template: string, config: Required<APIConf
   return concurrencyManagers.get(template)!;
 }
 
-export function createAPI<T extends Record<string, any>>(
+export function createAPI<T extends Record<string, any>, >(
   template: string,
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
   config: APIConfig = {}

@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { MetabaseModel } from 'apps/types';
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 import { ContextCatalog, MxModel } from '../../helpers/utils'
@@ -90,6 +91,7 @@ interface Settings {
   isRecording: boolean
   aiRules: string
   tableDiff: TableDiff
+  selectedModels: MetabaseModel[]
   drMode: boolean,
   selectedCatalog: string,
   availableCatalogs: ContextCatalog[],
@@ -119,6 +121,7 @@ const initialState: Settings = {
     add: [],
     remove: []
   },
+  selectedModels: [],
   drMode: true,
   selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
@@ -183,6 +186,9 @@ export const settingsSlice = createSlice({
     },
     resetDefaultTablesDB(state, action: PayloadAction<{dbId: Number}>) {
       state.tableDiff.add = state.tableDiff.add.filter((t) => t.dbId != action.payload.dbId)
+    },
+    setSelectedModels: (state, action: PayloadAction<MetabaseModel[]>) => {
+      state.selectedModels = action.payload
     },
     applyTableDiff(state, action: PayloadAction<{actionType: keyof TableDiff, tables: TableInfo[]}>) {
       const {actionType, tables} = action.payload
@@ -313,7 +319,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
-  applyTableDiff, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
+  applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs,
 } = settingsSlice.actions
 

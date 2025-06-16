@@ -9,7 +9,7 @@ import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
-import { getDatabaseTablesWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
+import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
@@ -110,7 +110,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           const isCancelled = () => taskStatus.status === 'cancelled';
           const [relevantTables, dbInfo] = await Promise.all([
             handlePromise(abortable(getRelevantTablesForSelectedDb(''), isCancelled), "Failed to get relevant tables", []),
-            handlePromise(abortable(getDatabaseTablesWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
+            handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
           ])
           state.update((oldState) => ({
             ...oldState,

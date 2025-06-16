@@ -393,12 +393,17 @@ const migrations = {
       lastFetchTime: null,
     }
     return newState
+  },
+  34: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.selectedModels = []
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 33,
+  version: 34,
   storage,
   blacklist: ['billing', 'cache'],
   migrate: createMigrate(migrations, { debug: true }),

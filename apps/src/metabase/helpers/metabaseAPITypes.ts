@@ -51,6 +51,14 @@ export interface FormattedTable {
   sample_values_completion_percentage?: number;
 }
 
+export interface MetabaseModel {
+  name: string;
+  collectionName: string | null;
+  modelId: number;
+  collectionId: number | null;
+  description?: string;
+}
+
 export interface DatabaseInfo {
   name: string;
   description: string;
@@ -64,8 +72,9 @@ export interface DatabaseInfo {
   }
 }
 
-export interface DatabaseInfoWithTables extends DatabaseInfo {
+export interface DatabaseInfoWithTablesAndModels extends DatabaseInfo {
   tables: FormattedTable[];
+  models: MetabaseModel[];
 }
 
 export interface DatabaseResponse {

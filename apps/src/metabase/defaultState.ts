@@ -4,7 +4,7 @@ import {
   ACTION_DESCRIPTIONS_PLANNER,
   ACTION_DESCRIPTIONS_SEMANTIC_QUERY
 } from "./actionDescriptions";
-import { DatabaseInfoWithTables } from "./helpers/metabaseAPITypes";
+import { DatabaseInfoWithTablesAndModels } from "./helpers/metabaseAPITypes";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { FormattedTable } from "./helpers/types";
 
@@ -19,7 +19,7 @@ import {
   SEMANTIC_QUERY_USER_PROMPT
 } from "./prompts";
 
-export const DB_INFO_DEFAULT: DatabaseInfoWithTables = {
+export const DB_INFO_DEFAULT: DatabaseInfoWithTablesAndModels = {
   name: '',
   description: '',
   id: 0,
@@ -29,7 +29,8 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTables = {
     version: '',
     semantic_version: []
   },
-  tables: []
+  tables: [],
+  models: []
 }
 
 export type MetabasePageType = 'sql' | 'dashboard' | 'mbql-editor' | 'mbql-visualization' | 'unknown';
@@ -38,7 +39,7 @@ export interface MetabaseContext {
   pageType: MetabasePageType
   dbId?: number;
   relevantTables: FormattedTable[]
-  dbInfo: DatabaseInfoWithTables
+  dbInfo: DatabaseInfoWithTablesAndModels
   loading: boolean
 }
 

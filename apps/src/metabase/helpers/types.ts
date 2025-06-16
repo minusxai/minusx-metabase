@@ -67,12 +67,17 @@ export interface ParameterValues {
 export interface SearchApiResponse {
   total: number
   data: {
+    id: number
     description: string | null
     name: string
     dataset_query: {
       native: {
         query: string
       }
+    }
+    collection: {
+      id: number | null
+      name: string | null
     }
   }[]
 }
