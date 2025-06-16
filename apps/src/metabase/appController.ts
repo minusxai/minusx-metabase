@@ -296,7 +296,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: explanation, code: JSON.stringify(mbql), language: "json"}
     }
   })
-  async ExecuteMBQLClient({ mbql }: { mbql: any }) {
+  async ExecuteMBQLClient({ mbql, explanation }: { mbql: any, explanation: string }) {
     const actionContent: BlankMessageContent = {
         type: "BLANK",
     };
@@ -305,6 +305,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (!dbID) {
       actionContent.content = "No database selected";
       return actionContent;
+    }
+    if (isEmpty(mbql)) {
+        actionContent.content = "This MBQL query has errors: " + explanation;
+        return actionContent;
     }
 
     if (mbql) {

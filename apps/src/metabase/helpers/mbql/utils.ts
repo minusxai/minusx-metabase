@@ -32,7 +32,11 @@ type Condition = [
   FieldReference?
 ];
 
-// Join configuration
+type ConditionGroup = [
+    "and" | "or",
+    ...Condition[]
+];
+
 interface Join {
   strategy: JoinStrategy;
   alias: string;
@@ -48,7 +52,7 @@ type Aggregation = [AggregationType, FieldReference?];
 type Breakout = FieldReference;
 
 // Filter types
-type Filter = Condition;
+type Filter = Condition | ConditionGroup
 
 // Source query (nested query)
 interface SourceQuery {
