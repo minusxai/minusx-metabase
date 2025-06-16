@@ -300,26 +300,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
         type: "BLANK",
     };
-    
-    mbql = {
-        "source-table": 65,
-        "joins": [{
-            "fields": "all",
-            "strategy": "left-join",
-            "alias": "Address - BusinessEntityID",
-            "condition": [
-            "=",
-            ["field", 451, {"base_type": "type/BigInteger"}],
-            ["field", 473, {"base_type": "type/BigInteger", "join-alias": "Address - BusinessEntityID"}],
-            ],
-            "source-table": 68,
-        }],
-        aggregation: [
-            [
-                "count"
-            ]
-        ]
-    }
     const state = (await this.app.getState()) as MetabaseAppStateMBQLEditor;
     const dbID = state?.selectedDatabaseInfo?.id as number
     if (!dbID) {
