@@ -32,8 +32,10 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTables = {
   tables: []
 }
 
+export type MetabasePageType = 'sql' | 'dashboard' | 'mbql-editor' | 'mbql-visualization' | 'unknown';
+
 export interface MetabaseContext {
-  pageType: 'dashboard' | 'sql'
+  pageType: MetabasePageType
   dbId?: number;
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTables
