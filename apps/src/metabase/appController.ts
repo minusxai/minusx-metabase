@@ -293,6 +293,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelDone: "MBQL built",
     description: "Constructs the MBQL query in the GUI editor",
     renderBody: ({ mbql, explanation }: { mbql: any, explanation: string }) => {
+        if (isEmpty(mbql)) {
+            return {text: "This MBQL query has errors", code: null, language: "markdown"}
+        }
       return {text: explanation, code: JSON.stringify(mbql), language: "json"}
     }
   })
