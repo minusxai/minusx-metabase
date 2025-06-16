@@ -1,31 +1,36 @@
 import { get, isEmpty, keyBy, map } from "lodash";
 import { FormattedTable } from "./types";
 
-const createCatalogFromTables = (tables: FormattedTable[]) => {
+const createCatalogFromTables = (tables: FormattedTable[], includeIDs: boolean = false) => {
   return {
     entities: tables.map(table => {
       const { name, columns, schema } = table;
-      return {
+      const entity: any = {
         name,
         sql_table: schema + '.' + name,
         description: table.description,
         dimensions: map(columns, (column) => {
-          const newDim = {
+          const newDim: any = {
             name: column.name,
             type: column.type,
             description: column.description,
           }
+          if (includeIDs && column.id !== undefined) {
+            newDim.id = column.id
+          }
           if (!isEmpty(column.sample_values)) {
-            //@ts-ignore
             newDim.sample_values = column.sample_values
           }
           if (column.distinct_count !== undefined) {
-            //@ts-ignore
             newDim.distinct_count = column.distinct_count
           }
           return newDim
         })
       }
+      if (includeIDs && table.id !== undefined) {
+        entity.id = table.id
+      }
+      return entity
     })
   }
 }
@@ -87,7 +92,7 @@ export function filterTablesByCatalog(tables: FormattedTable[], catalog: object)
   return tables.filter(table => catalogTableNames.has(table.name));
 }
 
-export function getTableContextYAML(relevantTablesWithFields: FormattedTable[], selectedCatalog?: object, drMode = false): Record<string, any> | undefined {
+export function getTableContextYAML(relevantTablesWithFields: FormattedTable[], selectedCatalog?: object, drMode: boolean = false, includeIDs: boolean = false): Record<string, any> | undefined {
   let tableContextYAML = undefined
   if (drMode) {
       if (selectedCatalog) {
@@ -97,7 +102,7 @@ export function getTableContextYAML(relevantTablesWithFields: FormattedTable[], 
           }
       } else {
           tableContextYAML = {
-              ...createCatalogFromTables(relevantTablesWithFields)
+              ...createCatalogFromTables(relevantTablesWithFields, includeIDs)
           }
       } 
   }

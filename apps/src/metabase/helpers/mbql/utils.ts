@@ -59,7 +59,7 @@ interface SourceQuery {
   filter?: Filter;
 }
 
-interface DatabaseQuery {
+interface MBQLQuery {
   joins?: Join[];
   aggregation?: Aggregation[];
   breakout?: Breakout[];
@@ -70,11 +70,11 @@ interface DatabaseQuery {
 
 
 export interface MBQLInfo {
-    mbqlQuery: DatabaseQuery;
+    mbqlQuery: MBQLQuery;
 }
 
 
-export function getSourceTableIds(query: DatabaseQuery): number[] {
+export function getSourceTableIds(query: MBQLQuery): number[] {
     if (!query || typeof query !== 'object') {
         return [];
     }

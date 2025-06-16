@@ -6,6 +6,7 @@ import {
   MetabaseAppStateDashboard,
   MetabaseAppStateSQLEditor,
   MetabaseSemanticQueryAppState,
+  MetabaseAppStateMBQLEditor,
   MetabaseAppStateType,
 } from "./helpers/DOMToState";
 import {
@@ -42,6 +43,7 @@ import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDas
 import { getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
 import { fetchTableMetadata } from "./helpers/metabaseAPI";
+import { getSourceTableIds } from "./helpers/mbql/utils";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
@@ -295,46 +297,60 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async ExecuteMBQLClient({ mbql }: { mbql: any }) {
-    const dummyCard = {
+    const actionContent: BlankMessageContent = {
+        type: "BLANK",
+    };
+    
+    mbql = {
+        "source-table": 65,
+        "joins": [{
+            "fields": "all",
+            "strategy": "left-join",
+            "alias": "Address - BusinessEntityID",
+            "condition": [
+            "=",
+            ["field", 451, {"base_type": "type/BigInteger"}],
+            ["field", 473, {"base_type": "type/BigInteger", "join-alias": "Address - BusinessEntityID"}],
+            ],
+            "source-table": 68,
+        }],
+        aggregation: [
+            [
+                "count"
+            ]
+        ]
+    }
+    const state = (await this.app.getState()) as MetabaseAppStateMBQLEditor;
+    const dbID = state?.selectedDatabaseInfo?.id as number
+    if (!dbID) {
+      actionContent.content = "No database selected";
+      return actionContent;
+    }
+
+    if (mbql) {
+        const table_ids = getSourceTableIds(mbql);
+        await updateMBEntities(table_ids)
+    }
+
+    const finCard = {
         type: "question",
         visualization_settings: {},
-        display: "scalar",
+        display: "table",
         dataset_query: {
             database: 2,
             type: "query",
-            query: {
-                "source-table": 65,
-                "joins": [{
-                  "fields": "all",
-                  "strategy": "left-join",
-                  "alias": "Address - BusinessEntityID",
-                  "condition": [
-                    "=",
-                    ["field", 451, {"base_type": "type/BigInteger"}],
-                    ["field", 473, {"base_type": "type/BigInteger", "join-alias": "Address - BusinessEntityID"}],
-                  ],
-                  "source-table": 68,
-                }],
-                aggregation: [
-                    [
-                        "count"
-                    ]
-                ]
-            }
+            query: mbql
         }
     };
-    await updateMBEntities([65, 68])
+
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     if (pageType === 'mbql-visualization') {
         await this.uClick({ query: "show_mbql_editor" });
     }
-    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: dummyCard});
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: finCard});
     await this.uClick({ query: "mbql_run" });
 
-    const actionContent: BlankMessageContent = {
-        type: "BLANK",
-    };
     actionContent.content = "OK";
     return actionContent;
 

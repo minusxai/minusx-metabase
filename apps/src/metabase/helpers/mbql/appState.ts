@@ -23,7 +23,7 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
   const sourceTableIds = getSourceTableIds(mbqlState?.dataset_query?.query);
 
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableIds)
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
+  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode, true);
 
   return { 
     ...mbqlInfo,
