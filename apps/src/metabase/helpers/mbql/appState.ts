@@ -1,5 +1,5 @@
 import { MetabaseAppStateMBQLEditor,  MetabaseAppStateType} from '../DOMToState';
-import { RPCs } from 'web';
+import { getParsedIframeInfo, RPCs } from 'web';
 import { MBQLInfo, getSourceTableIds } from './utils';
 import { getMBQLState, getSelectedDbId } from '../metabaseStateAPI';
 import { getDatabaseInfo } from '../metabaseAPIHelpers';
@@ -31,5 +31,6 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
     tableContextYAML,
     selectedDatabaseInfo,
     metabaseOrigin: url,
-};
+    isEmbedded: getParsedIframeInfo().isEmbedded
+  };
 }

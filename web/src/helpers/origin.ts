@@ -19,7 +19,8 @@ export const defaultIframeInfoWeb: IframeInfoWeb = {
     gitCommitId: '',
     npmPackageVersion: '',
     webGitCommitId: '',
-    webNpmVersion: ''
+    webNpmVersion: '',
+    isEmbedded: false
 }
 
 const parsedIframeInfo: IframeInfo = (queryString.parse(location.search) as unknown as IframeInfo || defaultIframeInfoWeb)
@@ -27,7 +28,8 @@ const parsedWebIframeInfo: IframeInfoWeb = {
     ...defaultIframeInfoWeb,
     ...parsedIframeInfo,
     webGitCommitId: configs.GIT_COMMIT_ID,
-    webNpmVersion: configs.NPM_PACKAGE_VERSION
+    webNpmVersion: configs.NPM_PACKAGE_VERSION,
+    isEmbedded: parsedIframeInfo.isEmbedded || false,
 }
 
 export const getParsedIframeInfo = (): IframeInfoWeb => {

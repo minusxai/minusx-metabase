@@ -3,7 +3,7 @@ import { initRPC } from "./RPCs";
 import { identifyToolNative } from "./RPCs/domEvents";
 import { setupStyles } from "../helpers/setupStyles";
 import { TOOLS } from "../constants";
-import { get } from "lodash"
+import { get, isEmpty } from "lodash"
 import { enableButtonDragAndToggle } from "./dragAndToggle";
 import { initPosthog, posthogRPCs } from "../posthog";
 import { initWindowListener } from "./RPCs/initListeners";
@@ -49,6 +49,7 @@ async function _init(localConfigs: Promise<object>) {
   const width = '350'
   const variant = 'default'
 
+  const isEmbedded = chrome.isPolyfill? true : false
   const iframeInfo: IframeInfo = {
     tool,
     toolVersion,
@@ -60,6 +61,7 @@ async function _init(localConfigs: Promise<object>) {
     width,
     gitCommitId: configs.GIT_COMMIT_ID,
     npmPackageVersion: configs.NPM_PACKAGE_VERSION,
+    isEmbedded
   }
 
   // Google Docs is not supported yet

@@ -4,7 +4,7 @@ import { MetabaseAppStateDashboard,  MetabaseAppStateType} from '../DOMToState';
 import { getTablesWithFields } from '../getDatabaseSchema';
 import { getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
-import { RPCs } from 'web';
+import { getParsedIframeInfo, RPCs } from 'web';
 import { metabaseToMarkdownTable } from '../operations';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
@@ -280,6 +280,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     tableContextYAML,
     selectedDatabaseInfo,
     metabaseOrigin: url,
+    isEmbedded: getParsedIframeInfo().isEmbedded,
 };
 }
 

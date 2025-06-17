@@ -1,4 +1,4 @@
-import { RPCs } from 'web'
+import { getParsedIframeInfo, RPCs } from 'web'
 import { getRelevantTablesForSelectedDb, getTablesWithFields } from './getDatabaseSchema';
 import { getDatabaseInfo, getDatabases, getDatabaseTablesWithoutFields } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
@@ -67,6 +67,7 @@ export interface MetabaseAppStateSQLEditor {
   outputTableMarkdown: string
   visualizationSettings: visualizationSettings,
   metabaseOrigin?: string;
+  isEmbedded: boolean;
 }
 
 // make this DashboardInfo
@@ -75,6 +76,7 @@ export interface MetabaseAppStateDashboard extends DashboardInfo {
   tableContextYAML?: Record<string, any>;
   selectedDatabaseInfo?: ExtractedDataBase;
   metabaseOrigin?: string;
+  isEmbedded: boolean;
 }
 
 export interface MetabaseAppStateMBQLEditor extends MBQLInfo {
@@ -82,6 +84,7 @@ export interface MetabaseAppStateMBQLEditor extends MBQLInfo {
   tableContextYAML?: Record<string, any>;
   selectedDatabaseInfo?: ExtractedDataBase;
   metabaseOrigin?: string;
+  isEmbedded: boolean;
 }
 
 export interface MetabaseSemanticQueryAppState {
@@ -92,6 +95,7 @@ export interface MetabaseSemanticQueryAppState {
   dialect?: string;
   outputTableMarkdown?: string;
   currentSemanticLayer?: string;
+  isEmbedded: boolean;
 }
 
 export { type MetabasePageType } from '../defaultState'
@@ -151,7 +155,8 @@ export async function convertDOMtoStateSQLQuery() {
     outputTableMarkdown,
     visualizationSettings,
     sqlVariables,
-    metabaseOrigin: url
+    metabaseOrigin: url,
+    isEmbedded: getParsedIframeInfo().isEmbedded,
   };
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
@@ -190,7 +195,8 @@ export async function semanticQueryState() {
     currentSemanticQuery: semanticQuery,
     dialect: selectedDatabaseInfo?.dialect,
     outputTableMarkdown,
-    currentSemanticLayer
+    currentSemanticLayer,
+    isEmbedded: getParsedIframeInfo().isEmbedded
   }
   return metabaseSemanticQueryAppState;
 }
