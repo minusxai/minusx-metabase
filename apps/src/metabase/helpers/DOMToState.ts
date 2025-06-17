@@ -17,6 +17,7 @@ import { catalogAsModels } from 'web';
 import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 import { getMBQLAppState } from './mbql/appState';
 import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
+import { getModelsWithFields, modifySqlForMetabaseModels } from './metabaseModels';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -110,7 +111,7 @@ export async function convertDOMtoStateSQLQuery() {
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const defaultSchema = selectedDatabaseInfo?.default_schema;
-  const sqlQuery = await getCurrentQuery()
+  let sqlQuery = await getCurrentQuery()
   const appSettings = RPCs.getAppSettings()
   const cache = RPCs.getCache()
   const sqlTables = getTablesFromSqlRegex(sqlQuery)
@@ -131,8 +132,10 @@ export async function convertDOMtoStateSQLQuery() {
     }
     return table
   })
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
-  
+  const relevantModelsWithFields = await getModelsWithFields(appSettings.selectedModels)
+  const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFields]
+  const tableContextYAML = getTableContextYAML(allFormattedTables, selectedCatalog, appSettings.drMode);
+  sqlQuery = modifySqlForMetabaseModels(sqlQuery || "", appSettings.selectedModels)
   const queryExecuted = await hasQueryResults();
   const nativeEditorOpen = await isNativeEditorOpen()
   const sqlErrorMessage = await getSqlErrorMessage();

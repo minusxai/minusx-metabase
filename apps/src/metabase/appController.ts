@@ -44,6 +44,7 @@ import { getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
 import { fetchTableMetadata } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
+import { replaceLLMFriendlyIdentifiersInSqlWithModels } from "./helpers/metabaseModels";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
@@ -101,6 +102,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
+    const appSettings = RPCs.getAppSettings()
+    console.log('<><><><> appSettings.selectedModels', appSettings.selectedModels)
+    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, appSettings.selectedModels)
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
@@ -156,6 +160,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
+    const appSettings = RPCs.getAppSettings()
+    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, appSettings.selectedModels)
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;

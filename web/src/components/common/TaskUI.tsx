@@ -83,6 +83,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+  const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
 
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
@@ -202,7 +203,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "You can switch to Default Tables catalog in settings"
         preventRunTask = true
     }
-    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables)) {
+    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(selectedModels)) {
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
         preventRunTask = true

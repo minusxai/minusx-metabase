@@ -185,7 +185,9 @@ const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<Metabase
 
 export async function getDatabaseTablesAndModelsWithoutFields(dbId: number): Promise<DatabaseInfoWithTablesAndModels> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  const models = await getAllRelevantModelsForSelectedDb(dbId);
+  // remove internal collection models from selection menu since right now we're handling them separately
+  // eventually should just be one way to handle all kinds of metabase models
+  const models = (await getAllRelevantModelsForSelectedDb(dbId))?.filter((model: MetabaseModel) => model.collectionName !== 'mx_internal') ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))

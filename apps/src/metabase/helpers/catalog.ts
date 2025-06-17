@@ -7,7 +7,7 @@ const createCatalogFromTables = (tables: FormattedTable[], includeIDs: boolean =
       const { name, columns, schema } = table;
       const entity: any = {
         name,
-        sql_table: schema + '.' + name,
+        sql_table: `"${schema}"."${name}"`,
         description: table.description,
         dimensions: map(columns, (column) => {
           const newDim: any = {

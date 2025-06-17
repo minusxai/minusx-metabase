@@ -5828,6 +5828,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     react: "npm:^18.3.1"
     reflect-metadata: "npm:^0.2.2"
+    slugg: "npm:^1.2.1"
     ts-jest: "npm:^29.2.5"
     uuid: "npm:^10.0.0"
     zustand: "npm:^4.5.5"

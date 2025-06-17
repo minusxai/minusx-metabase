@@ -406,6 +406,7 @@ const persistConfig = {
   version: 34,
   storage,
   blacklist: ['billing', 'cache'],
+  // @ts-ignore
   migrate: createMigrate(migrations, { debug: true }),
 };
 
@@ -434,13 +435,17 @@ export const getState = () => {
   return store.getState() as RootState
 }
 
+// @ts-ignore
 window.__GET_STATE__ = () => {
+  // @ts-ignore
   if (window.IS_PLAYWRIGHT) {
     return getState()
   }
 }
 
+// @ts-ignore
 window.__DISPATCH__ = (action: Action) => {
+  // @ts-ignore
   if (window.IS_PLAYWRIGHT) {
     return store.dispatch(action)
   }

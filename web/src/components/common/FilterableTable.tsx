@@ -473,12 +473,6 @@ export const FilteredTable = ({
     
   }, [updateSelectedModels, dbId, selectedModelSet, groupedModelData]);
 
-  // const totalFilteredTables = Object.values(filteredGroupedTableData).flat().length;
-  // const totalSelectedFilteredTables = Object.values(filteredGroupedTableData).flat().filter(table =>
-  //   selectedTableSet.has(`${table.schema}/${table.name}`)
-  // ).length;
-  // const isOverallChecked = totalSelectedFilteredTables === totalFilteredTables && totalFilteredTables > 0;
-  // const isOverallIndeterminate = totalSelectedFilteredTables > 0 && totalSelectedFilteredTables < totalFilteredTables;
 
   // Calculate sync status from actively fetched table data
   const syncStats = useMemo(() => {

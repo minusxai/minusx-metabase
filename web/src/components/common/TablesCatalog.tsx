@@ -49,7 +49,7 @@ export const TablesCatalog: React.FC<null> = () => {
   const relevantTables = toolContext.relevantTables || []
   const dbInfo = toolContext.dbInfo
   const allTables = dbInfo.tables || []
-  const allModels = dbInfo.models || []
+  const allModels = dbInfo.models|| []
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
   // const selectedModels: MetabaseModel[] = []
 
@@ -134,7 +134,7 @@ export const TablesCatalog: React.FC<null> = () => {
                 />
             </TabPanel>
             <TabPanel pt={0}>
-                <ModelView tables={validAddedTables} />
+                <ModelView tables={validAddedTables} metabaseModels={selectedModels} />
             </TabPanel>
         </TabPanels>
     </Tabs>
