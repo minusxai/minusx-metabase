@@ -305,7 +305,7 @@ function determineMetabasePageType(elements: DOMQueryMapResponse, url: string): 
     if (elements.editor && !isEmpty(elements.editor)) {
         return 'sql';
     }
-    if (elements.mbql && !isEmpty(elements.mbql)) {
+    if (elements.mbql && (!isEmpty(elements.mbql) || !isEmpty(elements.mbql_embedded))) {
         return 'mbql-visualization';
     }
     return 'unknown';

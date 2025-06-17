@@ -122,5 +122,9 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//button[.//span[text()="Show Editor"]]',
   },
+  show_mbql_editor_embedded: {
+    type: 'XPATH',
+    selector: '//button[.//span[text()="Editor"]]',
+  },
   ...visualizationSelectors
 };
