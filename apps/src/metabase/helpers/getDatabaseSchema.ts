@@ -8,7 +8,7 @@ import { TableDiff } from 'web/types';
 import { getTableData } from './metabaseAPIHelpers';
 
 // Types moved to metabaseAPITypes.ts
-export type { DatabaseInfo, DatabaseInfoWithTables } from './metabaseAPITypes';
+export type { DatabaseInfo, DatabaseInfoWithTablesAndModels } from './metabaseAPITypes';
 
 function getTableKey<T extends TableAndSchema>(tableInfo: T): string {
   return `${tableInfo.schema?.toLowerCase()}.${tableInfo.name.toLowerCase()}`;
@@ -127,6 +127,8 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   let tableInfos = await Promise.all(tableIds.map(id => getTableData(id)));
   return tableInfos.filter(tableInfo => tableInfo != "missing")
 }
+
+
 
 export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();

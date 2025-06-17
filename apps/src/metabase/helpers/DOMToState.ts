@@ -147,7 +147,7 @@ export async function convertDOMtoStateSQLQuery() {
     availableDatabases,
     selectedDatabaseInfo,
     relevantTables: relevantTablesWithFields,
-    sqlQuery,
+    sqlQuery: sqlQuery || '',
     queryExecuted,
     sqlEditorState: nativeEditorOpen ? 'open' : 'closed',
     visualizationType: showingRawTable ? 'table' : vizType,
@@ -195,6 +195,7 @@ export async function semanticQueryState() {
     currentSemanticQuery: semanticQuery,
     dialect: selectedDatabaseInfo?.dialect,
     outputTableMarkdown,
+    // @ts-ignore
     currentSemanticLayer,
     isEmbedded: getParsedIframeInfo().isEmbedded
   }

@@ -344,7 +344,7 @@ export const FilteredTable = ({
   }, [selectedTableData]);
 
   const selectedModelSet = useMemo(() => {
-    return new Set(selectedModelData.map(item => `${item.collectionName || 'empty'}/${item.name}`));
+    return new Set(selectedModelData.map(item => `${item.modelId}`));
   }, [selectedModelData]);
 
   // Extract table IDs from selectedData by matching with data
@@ -457,16 +457,20 @@ export const FilteredTable = ({
   }, [updateSelectedModels, dbId, selectedModelData, modelData]);
 
   const handleModelCollectionCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, collectionName: string | null) => {
-    console.log("<><><> group", groupedModelData)
-    const modelsInCollection = groupedModelData[collectionName || 'none'];
-    console.log("<><><> modelsInCollection", modelsInCollection)
+    const modelsInCollection = groupedModelData[collectionName || 'empty'];
+    const thisCollectionSet = new Set(modelsInCollection.map(model => `${model.modelId}`));
+    let newSelectedModelsSet: Set<string>;
     if (e.target.checked) {
       // avoid duplicates
-      const newModels = modelsInCollection.filter(model => !selectedModelSet.has(`${model.collectionName || 'empty'}/${model.name}`));
-      updateSelectedModels([...selectedModelData, ...newModels]);
+      newSelectedModelsSet = new Set([...selectedModelSet, ...thisCollectionSet]);
     } else {
-      updateSelectedModels(selectedModelData.filter(model => model.collectionName !== collectionName));
+      newSelectedModelsSet = selectedModelSet.difference(thisCollectionSet);
     }
+    const newSelectedModels = Array.from(newSelectedModelsSet)
+        .map(modelId => modelData.find(model => model.modelId === parseInt(modelId)))
+        .filter((model): model is MetabaseModel => model !== undefined);
+    updateSelectedModels(newSelectedModels);
+    
   }, [updateSelectedModels, dbId, selectedModelSet, groupedModelData]);
 
   // const totalFilteredTables = Object.values(filteredGroupedTableData).flat().length;
@@ -542,7 +546,7 @@ export const FilteredTable = ({
         id: 'allModelsNode',
         numTables: Object.values(filteredGroupedModelData).flat().length,
         numTablesSelected: Object.values(filteredGroupedModelData).flat().filter(model =>
-          selectedModelSet.has(`${model.collectionName}/${model.name}`)
+          selectedModelSet.has(`${model.modelId}`)
         ).length,
         handleAllTablesOrModelsCheckboxChange: handleAllModelsCheckboxChange,
         children: Object.entries(filteredGroupedModelData).map(([collection, models]) => ({
@@ -552,16 +556,16 @@ export const FilteredTable = ({
           models,
           numModels: models.length,
           numModelsSelected: models.filter(model =>
-            selectedModelSet.has(`${collection}/${model.name}`)
+            selectedModelSet.has(`${model.modelId}`)
           ).length,
           handleModelCollectionCheckboxChange,
           children: models.map((model) => ({
             type: 'model',
-            id: `modelNode-${collection}-${model.name}`,
+            id: `modelNode-${collection}-${model.modelId}`,
             modelId: model.modelId,
             modelName: model.name,
             collectionName: collection,
-            isChecked: selectedModelSet.has(`${collection}/${model.name}`),
+            isChecked: selectedModelSet.has(`${model.modelId}`),
             handleModelCheckboxChange,
             children: []
           })),

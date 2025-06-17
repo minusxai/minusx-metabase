@@ -31,6 +31,11 @@ export const fetchModels = createAPI<{db_id: number}>(
   'GET',
 );
 
+export const fetchModelInfo = createAPI<{model_id: number}>(
+  '/api/card/{{model_id}}/query_metadata',
+  'GET'
+);
+
 export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}?include=tables',
   'GET',
