@@ -102,7 +102,7 @@ export const searchTables = async (userId: number, dbId: number, query: string):
   return dedupedTables
 }
 
-export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, isCatalogSelected: boolean = false, sqlTables: TableAndSchema[] = []) => {
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, isCatalogSelected: boolean = false, sqlTables: TableAndSchema[] = [], mbqlTableIds: number[] = []) => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     console.warn("[minusx] No database selected when getting tables with fields");
@@ -111,7 +111,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
   let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
   if (tableDiff && !(isCatalogSelected && drMode)) {
-    tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables);
+    tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables, mbqlTableIds);
   }
   if (!drMode) {
     return tables;

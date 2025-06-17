@@ -56,7 +56,12 @@ export async function getSelectedDbId(): Promise<number | undefined> {
       dbId = parseInt(dbId);
     } catch (e) {}
   } else {
+    // this works for both MBQL and SQL pages
     dbId = await getMetabaseState('qb.card.dataset_query.database');
+    if (!dbId) {
+        const entity_dbs = await getMetabaseState('entities.databases') as object;
+        dbId = _.find(entity_dbs, (db: any) => !db.is_sample)?.id || Object.keys(entity_dbs)[0];
+    }
   }
   
   if (!dbId || !Number(dbId)) {
@@ -187,4 +192,13 @@ export async function getSnippets(): Promise<any> {
  */
 export async function getDashboardState(): Promise<any> {
   return await getMetabaseState('dashboard');
+}
+
+export async function getMBQLState(): Promise<any> {
+  return await getMetabaseState('qb.card')
+}
+
+export async function getQLType(): Promise<string> {
+  const queryType = await getMetabaseState('qb.card.dataset_query.type') as string;
+  return queryType
 }

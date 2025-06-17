@@ -41,6 +41,18 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     required: ["sql"],
   },
   {
+    name: 'ExecuteMBQLClient',
+    args: {
+      mbql: {
+        type: 'string',
+        description: "The MBQL of the query"
+      },
+    },
+    description: `Updates the MBQL query and runs it.
+    `,
+    required: ["mbql"],
+  },
+  {
     name: 'executeSQLQuery',
     args: {
     },

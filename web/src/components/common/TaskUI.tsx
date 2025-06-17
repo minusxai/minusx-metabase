@@ -192,6 +192,16 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "You can enable agent mode in settings"
         preventRunTask = true
     }
+    else if ((toolContext.pageType === 'mbql-editor' || toolContext.pageType === 'mbql-visualization') && !drMode) {
+        toastTitle = 'MBQL Editor is supported only in agent mode'
+        toastDescription = "You can enable agent mode in settings"
+        preventRunTask = true
+    }
+    else if ((toolContext.pageType === 'mbql-editor' || toolContext.pageType === 'mbql-visualization') && selectedCatalog != DEFAULT_TABLES) {
+        toastTitle = 'MBQL Editor is supported only in Default Tables catalog'
+        toastDescription = "You can switch to Default Tables catalog in settings"
+        preventRunTask = true
+    }
     else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables)) {
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"

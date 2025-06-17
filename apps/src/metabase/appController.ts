@@ -6,6 +6,7 @@ import {
   MetabaseAppStateDashboard,
   MetabaseAppStateSQLEditor,
   MetabaseSemanticQueryAppState,
+  MetabaseAppStateMBQLEditor,
   MetabaseAppStateType,
 } from "./helpers/DOMToState";
 import {
@@ -17,7 +18,7 @@ import {
 import {
   searchTables,
 } from "./helpers/getDatabaseSchema";
-import { get, isEmpty, map, set, truncate } from "lodash";
+import { isEmpty, map, sample, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -41,9 +42,48 @@ import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCur
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
+import { fetchTableMetadata } from "./helpers/metabaseAPI";
+import { getSourceTableIds } from "./helpers/mbql/utils";
 
 const SEMANTIC_QUERY_API = `${configs.SEMANTIC_BASE_URL}/query`
 type CTE = [string, string]
+
+async function updateMBEntities(table_ids: Array<number>) {
+  const sampleTables = await Promise.all(table_ids.map((table_id) => fetchTableMetadata({ table_id })))
+  const databases = Object.fromEntries(sampleTables.map(table => [table.db_id, table.db]));
+  const schemas = Object.fromEntries(sampleTables.map(table => [`${table.db_id}:${table.schema}`, {
+    id: `${table.db_id}:${table.schema}`,
+    name: table.schema,
+    database: table.db_id
+  }]));
+  const fields = Object.fromEntries(sampleTables.flatMap(table => table.fields.map(f => [f.id, {
+    ...f,
+    uniqueId: f.id
+  }])));
+  const tables = Object.fromEntries(sampleTables.map(table => [
+    table.id, {
+      ...table,
+      fields: table.fields.map(f => f.id),
+      original_fields: table.fields,
+      schema_name: table.schema,
+      schema: `${table.db_id}:${table.schema}`,
+    }
+  ]));
+  const entityMetadata = {
+    result: {
+        "databases": Object.keys(databases),
+        "tables": Object.keys(tables),
+        "fields": Object.keys(fields),
+    },
+    entities: {
+      databases: databases,
+      schemas: schemas,
+      fields: fields,
+      tables: tables,
+    }
+  }
+  await RPCs.dispatchMetabaseAction('metabase/entities/questions/FETCH_METADATA', entityMetadata);
+}
 
 export class MetabaseController extends AppController<MetabaseAppState> {
   // 0. Exposed actions --------------------------------------------
@@ -246,6 +286,57 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
     return actionContent;
+  }
+
+  @Action({
+    labelRunning: "Constructs the MBQL query",
+    labelDone: "MBQL built",
+    description: "Constructs the MBQL query in the GUI editor",
+    renderBody: ({ mbql, explanation }: { mbql: any, explanation: string }) => {
+        if (isEmpty(mbql)) {
+            return {text: "This MBQL query has errors", code: null, language: "markdown"}
+        }
+      return {text: explanation, code: JSON.stringify(mbql), language: "json"}
+    }
+  })
+  async ExecuteMBQLClient({ mbql, explanation }: { mbql: any, explanation: string }) {
+    const actionContent: BlankMessageContent = {
+        type: "BLANK",
+    };
+    const state = (await this.app.getState()) as MetabaseAppStateMBQLEditor;
+    const dbID = state?.selectedDatabaseInfo?.id as number
+    if (!dbID) {
+      actionContent.content = "No database selected";
+      return actionContent;
+    }
+    if (isEmpty(mbql)) {
+        actionContent.content = "This MBQL query has errors: " + explanation;
+        return actionContent;
+    }
+
+    if (mbql) {
+        const table_ids = getSourceTableIds(mbql);
+        await updateMBEntities(table_ids)
+    }
+
+    const finCard = {
+        type: "question",
+        visualization_settings: {},
+        display: "table",
+        dataset_query: {
+            database: 2,
+            type: "query",
+            query: mbql
+        }
+    };
+
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const pageType = metabaseState.useStore().getState().toolContext?.pageType;
+    if (pageType === 'mbql-visualization') {
+        await this.uClick({ query: "show_mbql_editor" });
+    }
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: finCard});
+    return await this._executeMBQLQueryInternal()
   }
 
   @Action({
@@ -514,6 +605,23 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     await this.uClick({ query: "run_query" });
+    await waitForQueryExecution();
+    const sqlErrorMessage = await getSqlErrorMessage();
+    if (sqlErrorMessage) {
+      actionContent.content = `<ERROR>${sqlErrorMessage}</ERROR>`;
+    } else {
+      // table output
+      let tableOutput = ""
+      tableOutput = await getAndFormatOutputTable(_type);
+      actionContent.content = tableOutput;
+    }
+    return actionContent;
+  }
+  async _executeMBQLQueryInternal(_type = "markdown") {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    await this.uClick({ query: "mbql_run" });
     await waitForQueryExecution();
     const sqlErrorMessage = await getSqlErrorMessage();
     if (sqlErrorMessage) {

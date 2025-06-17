@@ -32,8 +32,10 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTables = {
   tables: []
 }
 
+export type MetabasePageType = 'sql' | 'dashboard' | 'mbql-editor' | 'mbql-visualization' | 'unknown';
+
 export interface MetabaseContext {
-  pageType: 'dashboard' | 'sql'
+  pageType: MetabasePageType
   dbId?: number;
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTables
@@ -110,6 +112,13 @@ export const metabaseInternalState: MetabaseInternalState = {
     dashcard: {
       selector: querySelectorMap["dashcard"],
       attrs: ["class"],
+    },
+    mbql: {
+        selector: querySelectorMap["show_mbql_editor"],
+        attrs: ["class"],
+    },
+    mbql_parent: {
+        selector: querySelectorMap["mbql_run_parent"],
     }
   },
   toolContext: {

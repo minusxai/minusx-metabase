@@ -22,6 +22,10 @@ export const fetchDatabaseInfo = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}'
 );
 
+export const fetchDatabaseUsage = createAPI<{ db_id: number }>(
+  '/api/database/{{db_id}}/usage_info'
+);
+
 export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
   '/api/database/{{db_id}}?include=tables',
   'GET',

@@ -45,6 +45,7 @@ export const executeAction = async (action: ExecutableAction): Promise<ActionRet
     console.log('Successfully completed action', fn, 'with args', args)
     return { index, returnValue, status: 'SUCCESS' }
   } catch (err) {
+    console.error(err)
     toast({
       title: 'Action Incomplete',
       description: `${err}`,
