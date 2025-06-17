@@ -10,7 +10,8 @@ import { renderString } from '../../helpers/templatize'
 import { getOrigin } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
-import { getAllTemplateTagsInQuery } from 'apps'
+import { getAllTemplateTagsInQuery, replaceLLMFriendlyIdentifiersInSqlWithModels } from 'apps'
+import type { MetabaseModel } from 'apps/types'
 import { Badge } from "@chakra-ui/react";
 
 
@@ -159,9 +160,13 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
     if (content.includes('{{MX_LAST_SQL_URL}}')) {
       try {
         // Extract last SQL from messages before the current message
-        const lastSQL = messageIndex !== undefined 
+        let lastSQL = messageIndex !== undefined 
           ? extractLastSQLFromMessages(currentThread?.messages || [], messageIndex)
           : null;
+        if (lastSQL) {
+          const allModels: MetabaseModel[] = toolContext?.dbInfo?.models || []
+          lastSQL = replaceLLMFriendlyIdentifiersInSqlWithModels(lastSQL, allModels)
+        }
         
         if (lastSQL) {
           // Get Metabase origin from iframe info

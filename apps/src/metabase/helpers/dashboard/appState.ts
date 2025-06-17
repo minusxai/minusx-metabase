@@ -2,7 +2,7 @@ import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { forEach, reduce, template, values } from 'lodash';
 import { MetabaseAppStateDashboard,  MetabaseAppStateType} from '../DOMToState';
 import { getTablesWithFields } from '../getDatabaseSchema';
-import { getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
 import { getParsedIframeInfo, RPCs } from 'web';
 import { getSQLFromMBQL } from '../metabaseAPI';
@@ -10,6 +10,8 @@ import { metabaseToMarkdownTable } from '../operations';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
 import { getTableContextYAML } from '../catalog';
+import { MetabaseModel } from '../metabaseAPITypes';
+import { getModelsFromSql, getModelsWithFields, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from '../metabaseModels';
 
 // Removed: const { getMetabaseState } = RPCs - using centralized state functions instead
 
@@ -194,7 +196,8 @@ async function substituteParameters(
   sql: string, 
   dashcard: DashboardMetabaseState['dashcards'][0],
   dashboardParamFields: DashboardMetabaseState['dashboards'][0]['param_fields'],
-  parameterValues: DashboardMetabaseState['parameterValues']) {
+  parameterValues: DashboardMetabaseState['parameterValues']
+  ) {
   // Algo:
   // transitivity is: template-tags -> dashcard parameters -> dashcard parameter mappings -> dashboard parameters -> parameter values
   //                                        |-> parameter values
@@ -268,9 +271,9 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   }
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
 //   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
-  const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
-
-  const filteredCards = _.compact(cards);
+  const allModels = dbId ?  await getAllRelevantModelsForSelectedDb(dbId) : []
+  const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId, allModels)))
+  let filteredCards = _.compact(cards);
   let sqlTables: TableAndSchema[] = []
   forEach(filteredCards, (card) => {
     if (card) {
@@ -284,9 +287,26 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
       })
     }
   })
+
+
   sqlTables = _.uniqBy(sqlTables, (table) => `${table.schema}::${table.name}`)
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, [])
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode);
+  // find a list of models from each native card using getModelsFromSql, and then merge them to get relevantModels
+  const modelsFromAllCards = (await Promise.all(filteredCards.map(async card => {
+    if (card.sql) {
+      return await getModelsFromSql(card.sql, allModels)
+    }
+    return []
+  }))).flat()
+  const dedupedCardAndSelectedModels = _.uniqBy([...modelsFromAllCards, ...appSettings.selectedModels], 'modelId')
+  const relevantModelsWithFields = await getModelsWithFields(dedupedCardAndSelectedModels)
+  const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFields]
+  const tableContextYAML = getTableContextYAML(allFormattedTables, selectedCatalog, appSettings.drMode);
+  filteredCards = filteredCards.map(card => {
+    // replace model identifiers with model ids
+    card.sql = modifySqlForMetabaseModels(card.sql, allModels)
+    return card
+  })
   dashboardInfo.cards = filteredCards
   // filter out dashcards with null names or ids
   .filter(dashcard => dashcard.name !== null && dashcard.id !== null);

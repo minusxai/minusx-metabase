@@ -104,7 +104,7 @@ export const getModelsWithFields = async (models: MetabaseModel[]) => {
 
 // get any models in the sql that look like {{#1234-some-model-name}} 
 // verify that the model with that id exists in all models
-const getModelsFromSql = async (sql: string, allModels: MetabaseModel[]) => {
+export const getModelsFromSql = async (sql: string, allModels: MetabaseModel[]) => {
     const regex = /{{#(\d+)-.*?}}/g;
     const matches = [...sql.matchAll(regex)];
     const modelIds = matches.map(match => match[1])
