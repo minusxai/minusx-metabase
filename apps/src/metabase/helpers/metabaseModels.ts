@@ -1,6 +1,7 @@
+import { RPCs } from "web";
 import { fetchModelInfo } from "./metabaseAPI";
 import { FormattedTable, MetabaseModel } from "./metabaseAPITypes";
-import { groupBy } from "lodash";
+import { groupBy, uniqBy } from "lodash";
 import slugg from "slugg";
 
 type ModelsQueryResponse = {
@@ -51,12 +52,12 @@ const replaceLLMFriendlyIdentifierWithModelIdentifier = (sql: string, model: Met
     const {schema, table} = metabaseModelToLLMFriendlyIdentifier(model);
     // it will always be referred to by mm_${collection_name}.${model} or "mm_${collection_name}"."${model}"
     // should replace wither of these patterns with the full model identifier
-    const pattern = new RegExp(`(?<!\\w)(${schema}\\.${table})|("${schema}"\\."${table}")|(\`${schema}\\.${table}\`)(?!\\w)`, 'g');
+    const pattern = new RegExp(`(?<!\\w)(${schema}\\.${table})|("${schema}"\\."${table}")|(\`${schema}\\.${table}\`)|(\`${schema}\'\\.\'${table}\`)(?!\\w)`, 'g');
     return sql.replace(pattern, "{{" + getModelIdentifier(model) + "}}")
 }
 
-export const replaceLLMFriendlyIdentifiersInSqlWithModels = (sql: string, selectedModels: MetabaseModel[]) => {
-    for (const model of selectedModels) {
+export const replaceLLMFriendlyIdentifiersInSqlWithModels = (sql: string, relevantModels: MetabaseModel[]) => {
+    for (const model of relevantModels) {
         sql = replaceLLMFriendlyIdentifierWithModelIdentifier(sql, model)
     }
     return sql
@@ -99,4 +100,21 @@ export const getModelsWithFields = async (models: MetabaseModel[]) => {
     const promises = models.map(model => getModelData(model));
     const modelInfos = await Promise.all(promises);
     return modelInfos;
+}
+
+// get any models in the sql that look like {{#1234-some-model-name}} 
+// verify that the model with that id exists in all models
+const getModelsFromSql = async (sql: string, allModels: MetabaseModel[]) => {
+    const regex = /{{#(\d+)-.*?}}/g;
+    const matches = [...sql.matchAll(regex)];
+    const modelIds = matches.map(match => match[1])
+    const models = allModels.filter(model => modelIds.includes(model.modelId.toString()))
+    return models
+}
+
+export const getSelectedAndRelevantModels = async (sqlQuery: string, selectedModels: MetabaseModel[], allModels: MetabaseModel[]): Promise<MetabaseModel[]> => {
+    const relevantModels = await getModelsFromSql(sqlQuery, allModels)
+    // merge the two, avoiding duplicates
+    const mergedModels = uniqBy([...selectedModels, ...relevantModels], 'modelId')
+    return mergedModels
 }

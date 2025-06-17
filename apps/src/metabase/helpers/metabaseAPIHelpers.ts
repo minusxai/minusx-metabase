@@ -167,7 +167,7 @@ export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
 }
 
-const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<MetabaseModel[]> => {
+export const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<MetabaseModel[]> => {
   const models = await fetchModels({db_id: dbId}) as SearchApiResponse;
   const data = get(models, 'data', []);
   const modelsAsTables = data.map(model => {
@@ -179,15 +179,16 @@ const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<Metabase
       description: model.description || undefined
     }
   })
-  return modelsAsTables;
+  // remove internal collection models from selection menu since right now we're handling them separately
+  // eventually should just be one way to handle all kinds of metabase models
+  return modelsAsTables.filter((model: MetabaseModel) => model.collectionName !== 'mx_internal');
 }
 
 
 export async function getDatabaseTablesAndModelsWithoutFields(dbId: number): Promise<DatabaseInfoWithTablesAndModels> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  // remove internal collection models from selection menu since right now we're handling them separately
-  // eventually should just be one way to handle all kinds of metabase models
-  const models = (await getAllRelevantModelsForSelectedDb(dbId))?.filter((model: MetabaseModel) => model.collectionName !== 'mx_internal') ;
+  
+  const models = await getAllRelevantModelsForSelectedDb(dbId) ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))

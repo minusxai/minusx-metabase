@@ -40,7 +40,7 @@ import {
 import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
-import { getTableData } from "./helpers/metabaseAPIHelpers";
+import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
 import { fetchTableMetadata } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
@@ -103,7 +103,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
     const appSettings = RPCs.getAppSettings()
-    console.log('<><><><> appSettings.selectedModels', appSettings.selectedModels)
     sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, appSettings.selectedModels)
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)

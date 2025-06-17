@@ -1,6 +1,6 @@
 import { getParsedIframeInfo, RPCs } from 'web'
 import { getTablesWithFields } from './getDatabaseSchema';
-import { getDatabaseInfo, getDatabases } from './metabaseAPIHelpers';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -17,7 +17,7 @@ import { catalogAsModels } from 'web';
 import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 import { getMBQLAppState } from './mbql/appState';
 import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
-import { getModelsWithFields, modifySqlForMetabaseModels } from './metabaseModels';
+import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -132,10 +132,12 @@ export async function convertDOMtoStateSQLQuery() {
     }
     return table
   })
-  const relevantModelsWithFields = await getModelsWithFields(appSettings.selectedModels)
+  const allModels = dbId ? await getAllRelevantModelsForSelectedDb(dbId) : []
+  const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "", appSettings.selectedModels, allModels)
+  const relevantModelsWithFields = await getModelsWithFields(relevantModels)
   const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFields]
   const tableContextYAML = getTableContextYAML(allFormattedTables, selectedCatalog, appSettings.drMode);
-  sqlQuery = modifySqlForMetabaseModels(sqlQuery || "", appSettings.selectedModels)
+  sqlQuery = modifySqlForMetabaseModels(sqlQuery || "", relevantModels)
   const queryExecuted = await hasQueryResults();
   const nativeEditorOpen = await isNativeEditorOpen()
   const sqlErrorMessage = await getSqlErrorMessage();
