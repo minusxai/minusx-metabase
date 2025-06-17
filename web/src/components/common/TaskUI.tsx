@@ -221,16 +221,17 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     }
     // parse the sql query and check if it has any models in it
     // add it to selectedModels if so
-    if (toolContext.pageType === 'sql') {
-      const sqlQuery = await getCurrentQuery()
-      const allModels = toolContext.dbInfo.models
-      const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "",  selectedModels, allModels)
-      // check if relevantModels is different from selectedModels
-      if (!isEqual(relevantModels, selectedModels)) {
-        // dispatch the relevant models to be the new selectedModels
-        dispatch(setSelectedModels(relevantModels))
-      }
-    }
+    // actually not doing this right now, maybe later
+    // if (toolContext.pageType === 'sql') {
+    //   const sqlQuery = await getCurrentQuery()
+    //   const allModels = toolContext.dbInfo.models
+    //   const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "",  selectedModels, allModels)
+    //   // check if relevantModels is different from selectedModels
+    //   if (!isEqual(relevantModels, selectedModels)) {
+    //     // dispatch the relevant models to be the new selectedModels
+    //     dispatch(setSelectedModels(relevantModels))
+    //   }
+    // }
 
     if (instructions) {
       const text = instructions

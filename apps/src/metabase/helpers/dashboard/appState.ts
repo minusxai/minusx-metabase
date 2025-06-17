@@ -197,8 +197,12 @@ async function substituteParameters(
       // TODO(@arpit): handle snippets
       continue
     }
+    if (templateTag.type == 'card') {
+      // TODO(@arpit): handle model template tags
+      continue
+    }
     if (!dashcardParameter) {
-      throw new Error(`Parameter ${templateTag.name} not found in card ${dashcard.id}`)
+      throw new Error(`Parameter ${templateTag.name} not found in card ${dashcard.id}. template tag type: ${templateTag.type}`)
     }
     const parameterMapping = dashcard.parameter_mappings.find(mapping => mapping.target[1][1] === templateTag.name)
     const parameterValue = parameterValues?.[parameterMapping?.parameter_id || ''] || dashcardParameter?.default || ''

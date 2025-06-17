@@ -102,8 +102,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
-    const appSettings = RPCs.getAppSettings()
-    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, appSettings.selectedModels)
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const allModels = metabaseState.useStore().getState().toolContext?.dbInfo?.models || [];
+    // use allModels for this replacement
+    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, allModels)
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
@@ -159,8 +161,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       type: "BLANK",
     };
     sql = processSQLWithCtesOrModels(sql, ctes);
-    const appSettings = RPCs.getAppSettings()
-    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, appSettings.selectedModels)
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const allModels = metabaseState.useStore().getState().toolContext?.dbInfo?.models || [];
+    // use all models in this replacement
+    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, allModels)
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateDashboard;
