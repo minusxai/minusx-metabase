@@ -28,11 +28,11 @@ type MetabaseModelField = {
     base_type: string;
 };
 
-export type FieldRef = [type: string, name: string, meta: { 'base-type': string }];
+export type FieldRef = [type: string, name: string, meta: { 'base-type': string } | null];
 
 
 const fieldRefToId = (modelId: number, fieldRef: FieldRef): string => {
-    return `${modelId}-${fieldRef[1]}-${fieldRef[2]['base-type']}`;
+    return `${modelId}-${fieldRef[1]}-${fieldRef[2]?.['base-type'] || ''}`;
 }
 
 const metabaseModelToLLMFriendlyIdentifier = (model: MetabaseModel): {schema: string, table: string} => {
@@ -52,8 +52,6 @@ const replaceLLMFriendlyIdentifierWithModelIdentifier = (sql: string, model: Met
     // it will always be referred to by mm_${collection_name}.${model} or "mm_${collection_name}"."${model}"
     // should replace wither of these patterns with the full model identifier
     const pattern = new RegExp(`(?<!\\w)(${schema}\\.${table})|("${schema}"\\."${table}")|(\`${schema}\\.${table}\`)(?!\\w)`, 'g');
-    console.log("<><><>< pattern", pattern)
-    console.log("<><><>< replacing with ", getModelIdentifier(model))
     return sql.replace(pattern, "{{" + getModelIdentifier(model) + "}}")
 }
 
