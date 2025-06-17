@@ -9,4 +9,5 @@ export interface IframeInfo {
   width: string,
   gitCommitId: string,
   npmPackageVersion: string,
+  isEmbedded: boolean
 }

@@ -5,7 +5,9 @@
 
   // ========== chrome.runtime ==========
   chrome.runtime = chrome.runtime || {};
-  chrome.runtime.id = chrome.runtime.id || undefined;
+  if (!chrome.runtime.id) {
+    chrome.isPolyfill = true
+  }
 
   chrome.runtime.sendMessage = chrome.runtime.sendMessage || function (...args) {
     console.warn('chrome.runtime.sendMessage is not available', args);
