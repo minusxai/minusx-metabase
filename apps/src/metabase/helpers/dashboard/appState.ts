@@ -5,6 +5,7 @@ import { getTablesWithFields } from '../getDatabaseSchema';
 import { getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
 import { getParsedIframeInfo, RPCs } from 'web';
+import { getSQLFromMBQL } from '../metabaseAPI';
 import { metabaseToMarkdownTable } from '../operations';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
@@ -111,14 +112,29 @@ async function getDashcardInfoWithSQLAndOutputTableMd(
   const databaseId = _.get(dashcard, 'card.database_id', 0);
   const id = _.get(dashcard, 'id');
   const query_type = _.get(dashcard, 'card.query_type', 'unknown');
-  let sql = _.get(dashcard, 'card.dataset_query.native.query', '');
   const name = _.get(dashcard, 'card.name', '');
   const description = _.get(dashcard, 'card.description', '');
   const visualizationType = _.get(dashcard, 'card.display', '');
   if (!name)
     return null;
-  // TODO(@arpit): only supporting native cards for now
-  if (!sql || query_type != 'native')
+  let sql = ''
+  if (query_type == 'native'){
+    sql = _.get(dashcard, 'card.dataset_query.native.query', '');
+  }
+  else if (query_type == 'query'){
+    // mbql query
+    const mbqlQuery = _.get(dashcard, 'card.dataset_query.query', {});
+    if (mbqlQuery) {
+      const sql_from_mbql = await getSQLFromMBQL({
+        database: databaseId,
+        type: 'query',
+        query: mbqlQuery
+      });
+      sql = sql_from_mbql.query || '';
+    }
+  }
+  
+  if (!sql || sql == '')
     return null;
 
   // replace parameters
@@ -232,8 +248,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
-  const defaultSchema = selectedDatabaseInfo?.default_schema; 
-      
+  const defaultSchema = selectedDatabaseInfo?.default_schema;
   const dashboardMetabaseState: DashboardMetabaseState = await getDashboardState() as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
     console.warn('Could not get dashboard info');
@@ -254,6 +269,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
 //   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
   const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
+
   const filteredCards = _.compact(cards);
   let sqlTables: TableAndSchema[] = []
   forEach(filteredCards, (card) => {

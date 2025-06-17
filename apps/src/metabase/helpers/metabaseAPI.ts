@@ -182,3 +182,14 @@ export const executeDatasetQuery = createAPI<{
   '/api/dataset',
   'POST'
 );
+
+
+export const getSQLFromMBQL = createAPI<{
+  database: number;
+  type: string;
+  query?: Record<string, any>;
+  native?: Record<string, any>;
+}>(
+  '/api/dataset/native',
+  'POST'
+);
