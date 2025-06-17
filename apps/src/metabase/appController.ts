@@ -333,7 +333,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         visualization_settings: {},
         display: "table",
         dataset_query: {
-            database: 2,
+            database: dbID,
             type: "query",
             query: mbql
         }
