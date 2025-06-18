@@ -47,6 +47,14 @@ RUN yarn set version 4.3.1
 
 RUN yarn install
 
+# Build extension
+WORKDIR /app/extension
+RUN yarn install
+RUN yarn build
+
+# Copy extension build to web public directory
+RUN cp -r /app/extension/build /app/web/public/extension-build
+
 WORKDIR /app/web
 
 RUN yarn install
