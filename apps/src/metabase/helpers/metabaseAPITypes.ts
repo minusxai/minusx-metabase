@@ -43,7 +43,7 @@ export interface FormattedColumn {
 export interface FormattedTable {
   description?: string;
   name: string;
-  id: number;
+  id: number | string;
   schema: string;
   columns?: { [key: number | string]: FormattedColumn };
   related_tables_freq?: number[][];

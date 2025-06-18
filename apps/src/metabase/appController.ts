@@ -329,6 +329,32 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         await updateMBEntities(table_ids)
     }
 
+    // In mbql, we check each final string and if it starts with mxfield- then we replace it with the fieldRef by json parsing
+    // @ts-ignore
+    const replaceMBQL = (mbql: any) => {
+        if (typeof mbql === 'string') {
+            if (mbql.startsWith('mxfield-')) {
+                try {
+                    const fieldRef = JSON.parse(mbql.slice(8));
+                    return fieldRef;
+                } catch (error) {
+                    console.error("Failed to parse fieldRef from MBQL string:", mbql, error);
+                    return mbql; // return original string if parsing fails
+                }
+            }
+            return mbql; // return original string if it doesn't start with mxfield-
+        } else if (Array.isArray(mbql)) {
+            return mbql.map(replaceMBQL); // recursively replace in arrays
+        } else if (typeof mbql === 'object' && mbql !== null) {
+            const newObj: any = {};
+            for (const key in mbql) {
+                newObj[key] = replaceMBQL(mbql[key]); // recursively replace in objects
+            }
+            return newObj;
+        }
+        return mbql; // return as is for other types
+    }
+    mbql = replaceMBQL(mbql);
     const finCard = {
         type: "question",
         visualization_settings: {},
