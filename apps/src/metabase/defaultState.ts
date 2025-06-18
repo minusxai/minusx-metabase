@@ -33,7 +33,7 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTablesAndModels = {
   models: []
 }
 
-export type MetabasePageType = 'sql' | 'dashboard' | 'mbql-editor' | 'mbql-visualization' | 'unknown';
+export type MetabasePageType = 'sql' | 'dashboard' | 'mbql' | 'unknown';
 
 export interface MetabaseContext {
   pageType: MetabasePageType

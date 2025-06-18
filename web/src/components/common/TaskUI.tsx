@@ -194,12 +194,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "You can enable agent mode in settings"
         preventRunTask = true
     }
-    else if ((toolContext.pageType === 'mbql-editor' || toolContext.pageType === 'mbql-visualization') && !drMode) {
+    else if (toolContext.pageType === 'mbql' && !drMode) {
         toastTitle = 'MBQL Editor is supported only in agent mode'
         toastDescription = "You can enable agent mode in settings"
         preventRunTask = true
     }
-    else if ((toolContext.pageType === 'mbql-editor' || toolContext.pageType === 'mbql-visualization') && selectedCatalog != DEFAULT_TABLES) {
+    else if (toolContext.pageType === 'mbql' && selectedCatalog != DEFAULT_TABLES) {
         toastTitle = 'MBQL Editor is supported only in Default Tables catalog'
         toastDescription = "You can switch to Default Tables catalog in settings"
         preventRunTask = true
@@ -445,7 +445,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         } */}
         {
-            ((toolContext.pageType === 'mbql-editor') || (toolContext.pageType === 'mbql-visualization')) && 
+            (toolContext.pageType === 'mbql' ) && 
             <Notify>
                 <Text fontSize="xs" lineHeight={"1rem"}>Question Builder feature is new and still in progress. Some things might not work just yet.</Text>
             </Notify>

@@ -8,6 +8,7 @@ import {
   MetabaseSemanticQueryAppState,
   MetabaseAppStateMBQLEditor,
   MetabaseAppStateType,
+  MetabasePageType,
 } from "./helpers/DOMToState";
 import {
   getAndFormatOutputTable,
@@ -340,8 +341,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
 
     const metabaseState = this.app as App<MetabaseAppState>;
-    const pageType = metabaseState.useStore().getState().toolContext?.pageType;
-    if (pageType === 'mbql-visualization') {
+    const pageType = metabaseState.useStore().getState().toolContext?.pageType as MetabasePageType;
+    if (pageType === 'mbql') {
+      // # Ensure you're in mbql editor mode
         await this.uClick({ query: "show_mbql_editor" });
         await this.uClick({ query: "show_mbql_editor_embedded" });
     }
