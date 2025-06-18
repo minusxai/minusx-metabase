@@ -20,6 +20,8 @@ const useAppStore = getApp().useStore()
 
 export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables, metabaseModels }) => {
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+  const pageType = toolContext.pageType;
+  const includeTableIDs = pageType == 'mbql'
   const drMode = useSelector((state: RootState) => state.settings.drMode);
   let yamlContentJSON
   try {
@@ -60,7 +62,7 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables, metab
 
   const allFormattedTables = [...loadedTables, ...loadedModels]
 
-  const entityJSON = getTableContextYAML(allFormattedTables, !tables ? yamlContentJSON : undefined, drMode) || {};
+  const entityJSON = getTableContextYAML(allFormattedTables, !tables ? yamlContentJSON : undefined, drMode, includeTableIDs) || {};
   const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
   return (
     <Box w="100%">

@@ -8,6 +8,7 @@ interface EntityJoin {
 
 interface Dimension {
   name: string;
+  id?: number | string;
   type: string;
   description?: string;
   sql?: string;
@@ -23,6 +24,7 @@ interface Metric {
 
 interface Entity {
   name: string;
+  id?: number | string;
   description?: string;
   sql?: string;
   sql_table?: string;
@@ -123,6 +125,7 @@ export function createSchemaFromDataModel(dataModel: DataModel): Schema {
   const tables: Table[] = entities.map((entity) => {
     const columns: Column[] = (entity.dimensions || []).map((dim) => ({
       name: dim.name,
+      id: dim.id,
       type: dim.type,
       description: dim.description,
       sample_values: dim.sample_values,
@@ -133,6 +136,7 @@ export function createSchemaFromDataModel(dataModel: DataModel): Schema {
 
     return {
       name: entity.name,
+      id: entity.id,
       description: entity.description,
       columns,
       metrics,
