@@ -33,7 +33,8 @@ export type FieldRef = [type: string, name: string, meta: { 'base-type': string 
 
 
 const fieldRefToId = (modelId: number, fieldRef: FieldRef): string => {
-    return `${modelId}-${fieldRef[1]}-${fieldRef[2]?.['base-type'] || ''}`;
+    // return `${modelId}-${fieldRef[1]}-${fieldRef[2]?.['base-type'] || ''}`;
+    return `mxfield-${JSON.stringify(fieldRef)}`;
 }
 
 const metabaseModelToLLMFriendlyIdentifier = (model: MetabaseModel): {schema: string, table: string} => {

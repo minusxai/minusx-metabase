@@ -2,10 +2,11 @@ import { MetabaseAppStateMBQLEditor,  MetabaseAppStateType} from '../DOMToState'
 import { getParsedIframeInfo, RPCs } from 'web';
 import { MBQLInfo, getSourceTableIds } from './utils';
 import { getMBQLState, getSelectedDbId } from '../metabaseStateAPI';
-import { getDatabaseInfo } from '../metabaseAPIHelpers';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo } from '../metabaseAPIHelpers';
 import { get, find } from 'lodash';
 import { getTableContextYAML } from '../catalog';
 import { getTablesWithFields } from '../getDatabaseSchema';
+import { getModelsWithFields, getSelectedAndRelevantModels } from '../metabaseModels';
 
 
 export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | null> {
@@ -20,10 +21,20 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
     mbqlQuery: mbqlState.dataset_query.query
   }
   
+  const allModels = dbId ?  await getAllRelevantModelsForSelectedDb(dbId) : []
+  const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels)
+  const relevantModelsWithFields = await getModelsWithFields(relevantModels)
   const sourceTableIds = getSourceTableIds(mbqlState?.dataset_query?.query);
 
   const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableIds)
-  const tableContextYAML = getTableContextYAML(relevantTablesWithFields, selectedCatalog, appSettings.drMode, true);
+  const relevantModelsWithFieldsMod = relevantModelsWithFields.map(model => {
+    return {
+      ...model,
+      id: 'card__' + model.id, // prefix with 'card__' to avoid conflicts with table IDs
+    }
+  })
+  const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFieldsMod]
+  const tableContextYAML = getTableContextYAML(allFormattedTables, selectedCatalog, appSettings.drMode, true);
 
   return { 
     ...mbqlInfo,

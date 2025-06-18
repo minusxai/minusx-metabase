@@ -66,10 +66,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
-  private async createStyles() {
-    
-  }
-
   public async setup() {
     const state = this.useStore().getState();
     const whitelistQuery = state.whitelistQuery
@@ -296,17 +292,24 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
 
 function determineMetabasePageType(elements: DOMQueryMapResponse, url: string): MetabasePageType {
+    try {
+      const hash = new URL(url).hash.slice(1);
+      const parsedHash = JSON.parse(atob(hash));
+      if (get(parsedHash, 'dataset_query.type') == 'query') {
+        return 'mbql'
+      }
+    } catch (e) {}
     if (isDashboardPageUrl(url)) {
         return 'dashboard';
     }
     if (isMBQLPageUrl(url)) {
-        return 'mbql-editor';
+        return 'mbql';
     }
     if (elements.editor && !isEmpty(elements.editor)) {
         return 'sql';
     }
     if (elements.mbql && (!isEmpty(elements.mbql) || !isEmpty(elements.mbql_embedded))) {
-        return 'mbql-visualization';
+        return 'mbql';
     }
     return 'unknown';
 }
