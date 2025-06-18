@@ -344,8 +344,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const pageType = metabaseState.useStore().getState().toolContext?.pageType as MetabasePageType;
     if (pageType === 'mbql') {
       // # Ensure you're in mbql editor mode
-        await this.uClick({ query: "show_mbql_editor" });
-        await this.uClick({ query: "show_mbql_editor_embedded" });
+      await RPCs.dispatchMetabaseAction('metabase/qb/SET_UI_CONTROLS', {
+        queryBuilderMode: "notebook",
+      });
     }
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: finCard});
     return await this._executeMBQLQueryInternal()
