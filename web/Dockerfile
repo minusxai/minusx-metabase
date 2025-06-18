@@ -47,6 +47,11 @@ RUN yarn set version 4.3.1
 
 RUN yarn install
 
+# Build extension
+WORKDIR /app/extension
+RUN yarn install
+RUN yarn build
+
 WORKDIR /app/web
 
 RUN yarn install
