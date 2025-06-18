@@ -66,10 +66,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
-  private async createStyles() {
-    
-  }
-
   public async setup() {
     const state = this.useStore().getState();
     const whitelistQuery = state.whitelistQuery
