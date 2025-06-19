@@ -38,6 +38,7 @@ import { toast } from '../../app/toast'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 import NotificationHandler from './NotificationHandler'
 import notificationService from '../../services/notificationService'
+import { useSocketIO } from '../../hooks/useSocketIO'
 
 
 const useAppStore = getApp().useStore()
@@ -113,6 +114,81 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
 //   const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
+  
+  // Get JWT token for Socket.io authentication
+  const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
+
+  // Simple Socket.io integration
+  useSocketIO({
+    sessionToken: sessionJwt,
+    onMessage: (message) => {
+      console.log('Socket.io message received:', message);
+      
+      // Simple message handling - extract title and description
+      let title = message.type || 'Message';
+      let description = 'New message received';
+      let status: 'info' | 'success' | 'warning' | 'error' = 'info';
+      
+      // Handle common message types
+      if (message.type === 'notification') status = 'info';
+      else if (message.type === 'alert') status = 'warning';
+      else if (message.type === 'error') status = 'error';
+      else if (message.type === 'success') status = 'success';
+      
+      // Extract description from message
+      if (typeof message.data === 'string') {
+        description = message.data;
+      } else if (message.data?.message) {
+        description = message.data.message;
+      }
+      
+      // Show toast notification
+      toast({
+        title,
+        description,
+        status,
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      });
+    },
+    onConnect: () => {
+      console.log('Socket.io connected');
+      toast({
+        title: 'Connected',
+        description: 'Real-time messaging connected',
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+        position: 'bottom-right',
+      });
+    },
+    onDisconnect: (reason) => {
+      console.log('Socket.io disconnected:', reason);
+      if (reason !== 'io client disconnect') {
+        toast({
+          title: 'Disconnected',
+          description: 'Real-time messaging disconnected',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+          position: 'bottom-right',
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('Socket.io error:', error);
+      toast({
+        title: 'Connection Error',
+        description: 'Failed to connect to real-time messaging',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      });
+    }
+  });
+
   useEffect(() => {
     getBillingInfo().then(billingInfo => {
       dispatch(setBillingInfo({
