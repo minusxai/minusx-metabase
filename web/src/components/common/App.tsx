@@ -330,7 +330,6 @@ const AppBody = forwardRef((_props, ref) => {
   useEffect(() => {
     if (_.isUndefined(auth.session_jwt)) {
       authModule.register().then((data) => {
-        console.log('registered', data)
         const { session_jwt } = data
         dispatch(register(session_jwt))
       }).catch(err => {
