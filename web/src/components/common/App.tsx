@@ -123,34 +123,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     sessionToken: sessionJwt,
     onMessage: (message) => {
       console.log('Socket.io message received:', message);
-      
-      // Simple message handling - extract title and description
-      let title = message.type || 'Message';
-      let description = 'New message received';
-      let status: 'info' | 'success' | 'warning' | 'error' = 'info';
-      
-      // Handle common message types
-      if (message.type === 'notification') status = 'info';
-      else if (message.type === 'alert') status = 'warning';
-      else if (message.type === 'error') status = 'error';
-      else if (message.type === 'success') status = 'success';
-      
-      // Extract description from message
-      if (typeof message.data === 'string') {
-        description = message.data;
-      } else if (message.data?.message) {
-        description = message.data.message;
-      }
-      
-      // Show toast notification
-      toast({
-        title,
-        description,
-        status,
-        duration: 5000,
-        isClosable: true,
-        position: 'bottom-right',
-      });
     },
     onConnect: () => {
       console.log('Socket.io connected successfully');
@@ -159,6 +131,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       console.log('Socket.io disconnected:', reason);
     },
     onError: (error) => {
+      console.log(error.message)
       console.error('Socket.io connection error:', error);
     }
   });
@@ -355,7 +328,6 @@ const AppBody = forwardRef((_props, ref) => {
     }
   }, []) 
   useEffect(() => {
-    console.log('Session token is', auth.session_jwt)
     if (_.isUndefined(auth.session_jwt)) {
       authModule.register().then((data) => {
         console.log('registered', data)

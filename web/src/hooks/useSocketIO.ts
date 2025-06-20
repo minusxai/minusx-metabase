@@ -24,7 +24,6 @@ export function useSocketIO({
     if (!sessionToken) {
       // Disconnect if we're connected but no longer have a token
       if (socketRef.current?.connected) {
-        console.log('Session token cleared, disconnecting socket');
         socketRef.current.disconnect();
       }
       return;
@@ -35,29 +34,26 @@ export function useSocketIO({
       return;
     }
 
-    console.log('Connecting to Socket.io server...');
-
-    // Create socket connection with built-in reconnection
-    const socket = io(configs.SOCKET_BASE_URL, {
+    const socket = io(configs.BASE_SERVER_URL, {
       auth: {
         token: sessionToken
       },
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
-      transports: ['websocket', 'polling']
+      transports: ['polling'],
+      timeout: 20000,
+      path: configs.SOCKET_ENDPOINT
     });
 
     socketRef.current = socket;
 
     // Connection events
     socket.on('connect', () => {
-      console.log('Socket.io connected');
       onConnect?.();
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('Socket.io disconnected:', reason);
       onDisconnect?.(reason);
     });
 
@@ -67,17 +63,16 @@ export function useSocketIO({
     });
 
     // Message events
-    socket.on('message', onMessage);
-    socket.on('notification', onMessage);
-    socket.on('alert', onMessage);
-    socket.on('error_message', onMessage);
+    if (onMessage) {
+      socket.on('message', onMessage);
+    }
 
     // Cleanup on unmount
     return () => {
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [sessionToken, onMessage, onConnect, onDisconnect, onError]);
+  }, [sessionToken]);
 
   return {
     isConnected: socketRef.current?.connected || false,
