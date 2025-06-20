@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { configs } from '../constants';
 
 interface UseSocketIOOptions {
   sessionToken?: string;
@@ -37,7 +38,7 @@ export function useSocketIO({
     console.log('Connecting to Socket.io server...');
 
     // Create socket connection with built-in reconnection
-    const socket = io(process.env.REACT_APP_SOCKET_URL || 'ws://localhost:8000', {
+    const socket = io(configs.SOCKET_BASE_URL, {
       auth: {
         token: sessionToken
       },

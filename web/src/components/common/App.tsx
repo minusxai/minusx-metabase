@@ -153,39 +153,13 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       });
     },
     onConnect: () => {
-      console.log('Socket.io connected');
-      toast({
-        title: 'Connected',
-        description: 'Real-time messaging connected',
-        status: 'success',
-        duration: 2000,
-        isClosable: true,
-        position: 'bottom-right',
-      });
+      console.log('Socket.io connected successfully');
     },
     onDisconnect: (reason) => {
       console.log('Socket.io disconnected:', reason);
-      if (reason !== 'io client disconnect') {
-        toast({
-          title: 'Disconnected',
-          description: 'Real-time messaging disconnected',
-          status: 'warning',
-          duration: 3000,
-          isClosable: true,
-          position: 'bottom-right',
-        });
-      }
     },
     onError: (error) => {
-      console.error('Socket.io error:', error);
-      toast({
-        title: 'Connection Error',
-        description: 'Failed to connect to real-time messaging',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-        position: 'bottom-right',
-      });
+      console.error('Socket.io connection error:', error);
     }
   });
 
