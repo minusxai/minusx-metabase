@@ -1,5 +1,5 @@
 export const isMBQLPageUrl = (url: string) => {
-  return url.includes('/question/notebook');
+  return url.includes('/question/notebook') || url.includes('/notebook');
 }
 
 // Base types

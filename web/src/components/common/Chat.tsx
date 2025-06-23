@@ -12,6 +12,8 @@ import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
 import { Tasks } from './Tasks'
+import { getParsedIframeInfo } from '../../helpers/origin'
+import { DemoHelperMessage, DemoSuggestions, getDemoIDX } from './DemoComponents';
 
 
 // adds tool information like execution status and rendering info
@@ -184,21 +186,13 @@ const HelperMessage = () => {
 
 }
 
-const DemoHelperMessage = () => {
-  const message = `Hey there! Welcome to the **MinusX SQL Demo**. Click on any of the suggested questions below to get started!
-  
-  ---
-  \`[badge]Protip: \` Click the **[Context](https://docs.minusx.ai/en/articles/11166007-default-tables)** quick action to control the tables MinusX can see!`
-  return <SettingsBlock title={"SQL Demo"}><Markdown content={message}/></SettingsBlock>
-
-}
-
 export const ChatSection = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const messages = activeThread.messages
   const tasks = activeThread.tasks
+  const href = getParsedIframeInfo().href
 
   useEffect(() => {
     setTimeout(() => {
@@ -220,10 +214,11 @@ export const ChatSection = () => {
     }
   })
   const Chats = isEmpty(messagesWithStatus) ?
-    (false ? <HelperMessage /> : <DemoHelperMessage />) :
+    (getDemoIDX(href) == -1 ? <HelperMessage /> : <DemoHelperMessage url={href}/>) :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
+  <VStack justifyContent="space-between" alignItems="stretch" height={"100%"} width={"100%"}>
   <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
     { tasks.length && <Tasks /> }
     {Chats}
@@ -231,5 +226,7 @@ export const ChatSection = () => {
     <div style={{ height: '10px', width: '100%' }} />
     <div ref={messagesEndRef} />
   </HStack>
+  <DemoSuggestions url={href}/>
+  </VStack>
   )
 }
