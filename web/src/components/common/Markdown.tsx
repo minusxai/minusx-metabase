@@ -41,6 +41,12 @@ function ModifiedOL(props: any) {
   )
 }
 
+function HorizontalLine() {
+    return (
+        <hr style={{borderTop: '1px solid #c6c1be', marginTop: '20px'}} />
+    )
+}
+
 function ModifiedPre(props: any) {
     return (
         <pre style={{backgroundColor: '#333', padding: '10px', borderRadius: '5px', color: "#fff", fontWeight: '800', fontSize: '0.9em', whiteSpace: 'break-spaces' }} className="code">
@@ -190,6 +196,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode}}>{processedContent}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode, hr: HorizontalLine}}>{processedContent}</MarkdownComponent>
   )
 }

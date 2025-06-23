@@ -12,6 +12,8 @@ import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
 import { Tasks } from './Tasks'
+import { getParsedIframeInfo } from '../../helpers/origin'
+import { DemoHelperMessage, DemoSuggestions, getDemoIDX } from './DemoComponents';
 
 
 // adds tool information like execution status and rendering info
@@ -181,7 +183,7 @@ const HelperMessage = () => {
   }
   // return <Chat role='user' index={-1} content={{type: 'DEFAULT', text: helperMessage, images: []}} />
   return <SettingsBlock title={"Welcome"}><Markdown content={helperMessage}/></SettingsBlock>
-  return 
+
 }
 
 export const ChatSection = () => {
@@ -190,6 +192,7 @@ export const ChatSection = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const messages = activeThread.messages
   const tasks = activeThread.tasks
+  const href = getParsedIframeInfo().href
 
   useEffect(() => {
     setTimeout(() => {
@@ -211,10 +214,11 @@ export const ChatSection = () => {
     }
   })
   const Chats = isEmpty(messagesWithStatus) ?
-    <HelperMessage /> :
+    (getDemoIDX(href) == -1 ? <HelperMessage /> : <DemoHelperMessage url={href}/>) :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
+  <VStack justifyContent="space-between" alignItems="stretch" height={"100%"} width={"100%"}>
   <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
     { tasks.length && <Tasks /> }
     {Chats}
@@ -222,5 +226,7 @@ export const ChatSection = () => {
     <div style={{ height: '10px', width: '100%' }} />
     <div ref={messagesEndRef} />
   </HStack>
+  <DemoSuggestions url={href}/>
+  </VStack>
   )
 }
