@@ -181,7 +181,16 @@ const HelperMessage = () => {
   }
   // return <Chat role='user' index={-1} content={{type: 'DEFAULT', text: helperMessage, images: []}} />
   return <SettingsBlock title={"Welcome"}><Markdown content={helperMessage}/></SettingsBlock>
-  return 
+
+}
+
+const DemoHelperMessage = () => {
+  const message = `Hey there! Welcome to the **MinusX SQL Demo**. Click on any of the suggested questions below to get started!
+  
+  ---
+  \`[badge]Protip: \` Click the **[Context](https://docs.minusx.ai/en/articles/11166007-default-tables)** quick action to control the tables MinusX can see!`
+  return <SettingsBlock title={"SQL Demo"}><Markdown content={message}/></SettingsBlock>
+
 }
 
 export const ChatSection = () => {
@@ -211,7 +220,7 @@ export const ChatSection = () => {
     }
   })
   const Chats = isEmpty(messagesWithStatus) ?
-    <HelperMessage /> :
+    (false ? <HelperMessage /> : <DemoHelperMessage />) :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
