@@ -39,7 +39,7 @@ export function useSocketIO({
         token: sessionToken
       },
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 2,
       reconnectionDelay: 10000,
       transports: ['polling'],
       timeout: 20000,
