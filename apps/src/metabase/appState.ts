@@ -72,6 +72,29 @@ const metabaseStyles = `
   .cm-selectionLayer span:nth-child(1) {
     display: block;
   }
+  .ace_marker-layer {
+    z-index: 2 !important;
+  }
+  div.ace_marker-layer > div.ace_selection {
+    background: rgba(203, 226, 247, 0.5) !important;
+  }
+  .ace_marker-layer span {
+    display: none;
+  }
+  .ace_marker-layer span:nth-child(1) {
+    display: block;
+  }
+
+  #explain-snippet {
+    background-color: #519ee4;
+    color: white;
+    cursor: pointer;
+  }
+  #modify-snippet {
+    background-color: #519ee4;
+    color: white;
+    cursor: pointer;
+  }
 `;
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
@@ -137,33 +160,67 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     })
 
 
-    await RPCs.addNativeElements({
-      type: 'CSS',
-      selector: '.cm-selectionBackground',
-      range: {
-        from: 0,
-        to: 1
-      }
-    }, {
+    const explainButtonJSON = {
       tag: 'div',
       attributes: {
-        style: 'position: absolute; top: -40; z-index: 5;'
+        style: 'position: absolute; bottom: -10px; z-index: 5;'
       },
       children: [{
         tag: 'button',
         attributes: {
-          style: 'position: absolute; opacity: 1; background-color: white; width: 100px; font-weight: bold; padding: 5px; border-radius: 5px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; height: 40px;',
+          style: 'position: absolute; opacity: 1; font-weight: bold; padding: 5px 10px; border-radius: 5px; cursor: pointer; border-radius: 5px; width: 100px;',
           id: 'explain-snippet'
         },
-        children: ['Explain']
+        children: ['🔎 Explain']
       }]
-    });
+    }
+
+    const modifyButtonJSON = {
+      tag: 'div',
+      attributes: {
+        style: 'position: absolute; bottom: -10px; z-index: 5;'
+      },
+      children: [{
+        tag: 'button',
+        attributes: {
+          style: 'position: absolute; opacity: 1; font-weight: bold; padding: 5px 10px; border-radius: 5px; cursor: pointer; border-radius: 5px; width: 100px; left: 105px;',
+          id: 'modify-snippet'
+        },
+        children: ['🪄 Modify']
+      }]
+    }
+
+    await RPCs.addNativeElements({
+      type: 'CSS',
+      selector: '.cm-selectionBackground:last-of-type',
+    }, explainButtonJSON);
+    await RPCs.addNativeElements({
+      type: 'CSS',
+      selector: '.ace_selection:last-of-type',
+    }, explainButtonJSON);
+
+    await RPCs.addNativeElements({
+      type: 'CSS',
+      selector: '.cm-selectionBackground:last-of-type',
+    }, modifyButtonJSON);
+    await RPCs.addNativeElements({
+      type: 'CSS',
+      selector: '.ace_selection:last-of-type',
+    }, modifyButtonJSON);
+
 
     addNativeEventListener({
       type: "CSS",
       selector: 'button#explain-snippet'
     }, (event) => {
       console.log('Clicked on the button with id explain-snippet', event);
+    })
+    
+    addNativeEventListener({
+      type: "CSS",
+      selector: 'button#modify-snippet'
+    }, (event) => {
+      console.log('Clicked on the button with id modify-snippet', event);
     })
     
     // Listen to clicks on Error Message
