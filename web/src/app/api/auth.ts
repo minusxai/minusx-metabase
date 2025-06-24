@@ -22,9 +22,13 @@ export default {
     }
   },
 
-  async login(auth_jwt: string, otp: string, session_jwt: string ) {
+  async login(auth_jwt: string, otp: string, session_jwt: string, discoverySource?: string ) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, { auth_jwt, otp, session_jwt });
+      const requestBody: any = { auth_jwt, otp, session_jwt };
+      if (discoverySource) {
+        requestBody.discoverySource = discoverySource;
+      }
+      const response = await axios.post(`${API_BASE_URL}/login`, requestBody);
       return response.data;
     } catch (error) {
       toast({

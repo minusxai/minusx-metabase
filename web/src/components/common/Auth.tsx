@@ -199,7 +199,7 @@ const Auth = () => {
     }
     console.log('Login params are', authJWT, otp, session_jwt)
     captureEvent(GLOBAL_EVENTS.otp_attempted, { email, otp, authJWT })
-    authModule.login(authJWT, otp, session_jwt).then(({ session_jwt, profile_id, email, is_new_user }) => {
+    authModule.login(authJWT, otp, session_jwt, isFirstTimeUser ? discoverySource : undefined).then(({ session_jwt, profile_id, email, is_new_user }) => {
       dispatch(login({
           session_jwt,
           profile_id,
