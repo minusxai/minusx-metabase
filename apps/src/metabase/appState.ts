@@ -60,6 +60,18 @@ const metabaseStyles = `
   .minusx_style_absolute_container {
     position: absolute;
   }
+  .cm-selectionLayer {
+    z-index: 2 !important;
+  }
+  div.cm-selectionLayer > div.cm-selectionBackground {
+    background: rgba(203, 226, 247, 0.5) !important;
+  }
+  .cm-selectionLayer span {
+    display: none;
+  }
+  .cm-selectionLayer span:nth-child(1) {
+    display: block;
+  }
 `;
 
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
@@ -122,6 +134,36 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           getDatabaseInfo(dbId)
         })
       }
+    })
+
+
+    await RPCs.addNativeElements({
+      type: 'CSS',
+      selector: '.cm-selectionBackground',
+      range: {
+        from: 0,
+        to: 1
+      }
+    }, {
+      tag: 'div',
+      attributes: {
+        style: 'position: absolute; top: -40; z-index: 5;'
+      },
+      children: [{
+        tag: 'button',
+        attributes: {
+          style: 'position: absolute; opacity: 1; background-color: white; width: 100px; font-weight: bold; padding: 5px; border-radius: 5px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; height: 40px;',
+          id: 'explain-snippet'
+        },
+        children: ['Explain']
+      }]
+    });
+
+    addNativeEventListener({
+      type: "CSS",
+      selector: 'button#explain-snippet'
+    }, (event) => {
+      console.log('Clicked on the button with id explain-snippet', event);
     })
     
     // Listen to clicks on Error Message
