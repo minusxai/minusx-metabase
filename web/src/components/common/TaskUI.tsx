@@ -11,7 +11,8 @@ import {
   Switch,
   Spinner,
   Button,
-  Checkbox
+  Checkbox,
+  Link
 } from '@chakra-ui/react'
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -456,6 +457,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             (toolContext.pageType === 'mbql' ) && 
             <Notify>
                 <Text fontSize="xs" lineHeight={"1rem"}>Question Builder feature is new and still in progress. Some things might not work just yet.</Text>
+            </Notify>
+        }
+        {
+            !drMode && 
+            <Notify title="Hi There!">
+                <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo">Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
             </Notify>
         }
         
