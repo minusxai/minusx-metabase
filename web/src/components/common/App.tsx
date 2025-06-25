@@ -8,7 +8,9 @@ import {
   Tooltip,
   Spacer,
   Button,
-  Link
+  Link,
+  Box,
+  Flex
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
@@ -39,7 +41,7 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 import NotificationHandler from './NotificationHandler'
 import notificationService from '../../services/notificationService'
 import { useSocketIO } from '../../hooks/useSocketIO'
-
+import { DisabledOverlay } from './DisabledOverlay'
 
 const useAppStore = getApp().useStore()
 
@@ -50,6 +52,8 @@ const AppInstructions = () => {
   const addonsActivate = `${configs.WEB_URL}/screenshots/addons-activate.png`
   const addonsUnavailable = `${configs.WEB_URL}/screenshots/addons-unavailable.png`
   const addOnStatus = useAppStore((state) => state.addOnStatus)
+  const width = getParsedIframeInfo().width
+
   useEffect(() => {
     if (addOnStatus == 'activated') {
       toggleMinusXRoot('closed', true)
@@ -285,35 +289,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   )
 })
 
-const width = getParsedIframeInfo().width
-function DisabledOverlayComponent({ toolEnabledReason }: { toolEnabledReason: string }) {
-  const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  return <div style={{
-      position: 'absolute',
-      top: 0,
-      right: 0,
-      width: isDevToolsOpen ? '850px' : `${width}px`, // Hack to fix Disabled Overlay
-      height: '100%',
-      backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      zIndex: 1000,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-  }}>
-      <span style={{
-          fontSize: '1rem',
-          fontWeight: 'bold',
-          color: '#fff',
-          padding: '10px 30px',
-          margin: '10px',
-          backgroundColor: '#16a085',
-          borderRadius: '5px',
-          textAlign: 'center'
-      }}>
-          <Markdown content={toolEnabledReason}/>
-      </span>
-  </div>
-}
 
 const AppBody = forwardRef((_props, ref) => {
   const auth = useSelector((state: RootState) => state.auth)
@@ -365,7 +340,7 @@ const AppBody = forwardRef((_props, ref) => {
     return (
       <>
         {isDevToolsOpen && <DevToolsBox />}
-        {!toolEnabled.value && <DisabledOverlayComponent toolEnabledReason={toolEnabled.reason} />}
+        {!toolEnabled.value && <DisabledOverlay toolEnabledReason={toolEnabled.reason} />}
         <AppLoggedIn ref={ref}/>
       </>
     )

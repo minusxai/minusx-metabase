@@ -57,6 +57,7 @@ import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 import { setupCollectionsAndModels } from '../../state/settings/availableCatalogsListener'
 import { Notify } from './Notify'
+import { DisabledOverlay } from './DisabledOverlay'
 
 
 
@@ -323,7 +324,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     });
   }
 
+  const shouldBeEnabled = drMode || toolContext.pageType === 'sql'
+
   return (
+    <>
+    {
+        !shouldBeEnabled && <DisabledOverlay toolEnabledReason={"You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!"}/>
+    }
     <VStack
       justifyContent="space-between"
       alignItems="stretch"
@@ -516,6 +523,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         </Stack>
       </VStack>
     </VStack>
+    </>
   )
 })
 

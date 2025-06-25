@@ -192,7 +192,7 @@ export const ChatSection = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const messages = activeThread.messages
   const tasks = activeThread.tasks
-  const href = getParsedIframeInfo().href
+  const url = useAppStore((state) => state.toolContext)?.url || ''
 
   useEffect(() => {
     setTimeout(() => {
@@ -214,7 +214,7 @@ export const ChatSection = () => {
     }
   })
   const Chats = isEmpty(messagesWithStatus) ?
-    (getDemoIDX(href) == -1 ? <HelperMessage /> : <DemoHelperMessage url={href}/>) :
+    (getDemoIDX(url) == -1 ? <HelperMessage /> : <DemoHelperMessage url={url}/>) :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
 
   return (
@@ -226,7 +226,7 @@ export const ChatSection = () => {
     <div style={{ height: '10px', width: '100%' }} />
     <div ref={messagesEndRef} />
   </HStack>
-  <DemoSuggestions url={href}/>
+  <DemoSuggestions url={url}/>
   </VStack>
   )
 }

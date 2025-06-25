@@ -81,7 +81,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         isEnabled: toolEnabledNew,
         toolContext: {
           ...oldState.toolContext,
-          pageType
+          pageType,
+          url
         }
       }));
       const dbId = await getSelectedDbId();
@@ -331,7 +332,7 @@ function shouldEnable(elements: DOMQueryMapResponse, url: string) {
     }))
   const SQLQueryURL = new URL(url).origin + '/question#' + hash;
   const MBQLURL = new URL(url).origin + '/question/notebook';
-  const reason = `To enable MinusX on Metabase, head over to the SQL query [page](${SQLQueryURL}) or the Question Builder [page](${MBQLURL})!`
+  const reason = `To use MinusX on Metabase, head over to the [SQL query](${SQLQueryURL}), [Question Builder](${MBQLURL}) or any of your Dashboard pages!`
   const metabasePageType = determineMetabasePageType(elements, url);
   if (metabasePageType === 'unknown') {
     return {
