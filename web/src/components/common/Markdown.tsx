@@ -51,7 +51,7 @@ function HorizontalLine() {
 
 function ModifiedPre(props: any) {
     return (
-        <pre style={{backgroundColor: '#333', padding: '10px', borderRadius: '5px', color: "#fff", fontWeight: '800', fontSize: '0.9em', whiteSpace: 'break-spaces' }} className="code">
+        <pre style={{fontSize: '0.9em', whiteSpace: 'break-spaces', margin: '0px'}} className="code">
             {props.children}
         </pre>
     )
