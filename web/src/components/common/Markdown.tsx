@@ -74,9 +74,10 @@ function ModifiedCode(props: any) {
             <Button
                 onClick={() => setIsOpen(!isOpen)}
                 size="xs"
-                variant="ghost"
-                mb={2}
-                colorScheme="minusXGreen"
+                variant="solid"
+                my={1}
+                colorScheme="minusxGreen"
+                border={"1px solid #eee"}
                 rightIcon={<span>{isOpen ? <BiChevronDown/> : <BiChevronRight/>}</span>}
             >
                 {isOpen ? 'Hide' : 'Show'} SQL Code
