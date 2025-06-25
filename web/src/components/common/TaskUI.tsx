@@ -85,6 +85,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+  const isAppEnabled: boolean = useAppStore((state) => state.isEnabled)?.value || false
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
 
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
@@ -329,7 +330,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   return (
     <>
     {
-        !shouldBeEnabled && <DisabledOverlay toolEnabledReason={"You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!"}/>
+        isAppEnabled && !shouldBeEnabled && <DisabledOverlay toolEnabledReason={"You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!"}/>
     }
     <VStack
       justifyContent="space-between"
