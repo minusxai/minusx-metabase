@@ -110,6 +110,8 @@ export const getMetabaseState = (path: Parameters<typeof get>[1]) =>
   sendMessage('getMetabaseState', [path], { log_rpc: true })
 export const dispatchMetabaseAction = (type: string, payload?: any) =>
   sendMessage('dispatchMetabaseAction', [type, payload], { log_rpc: true, timeout: 1000 })
+export const getSelectedTextOnEditor = () =>
+  sendMessage('getSelectedTextOnEditor', [], { log_rpc: true })
 export const getJupyterState = (mode?: string) =>
   sendMessage('getJupyterState', [mode], { log_rpc: true, timeout: 3000 })
 export const getJupyterCodeOutput = (

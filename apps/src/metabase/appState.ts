@@ -13,7 +13,7 @@ import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo } from "./help
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
-import { getTableData } from "../package";
+
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
 
@@ -212,8 +212,22 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     addNativeEventListener({
       type: "CSS",
       selector: 'button#explain-snippet'
-    }, (event) => {
+    }, async (event) => {
       console.log('Clicked on the button with id explain-snippet', event);
+      const selectedText = await RPCs.getSelectedTextOnEditor();
+      RPCs.toggleMinusXRoot('closed', false)
+      RPCs.addUserMessage({
+        content: {
+          type: "DEFAULT",
+          text: `explain the highlighted SQL snippet: 
+                \`\`\`
+                ${selectedText}
+                \`\`\`
+                `,
+          images: []
+        },
+      });
+
     })
     
     addNativeEventListener({
