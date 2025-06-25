@@ -7,7 +7,7 @@ import { isDashboardPageUrl } from "./helpers/dashboard/util";
 import { isMBQLPageUrl } from "./helpers/mbql/utils";
 import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
-import { subscribe, GLOBAL_EVENTS, captureEvent } from "web";
+import { subscribe, setInstructions, dispatch } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
@@ -233,8 +233,18 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     addNativeEventListener({
       type: "CSS",
       selector: 'button#modify-snippet'
-    }, (event) => {
+    }, async (event) => {
       console.log('Clicked on the button with id modify-snippet', event);
+        const selectedText = await RPCs.getSelectedTextOnEditor();
+        RPCs.toggleMinusXRoot('closed', false)
+        dispatch(setInstructions(`Modify only this snippet of the SQL query: 
+\`\`\`
+${selectedText}
+\`\`\`
+---
+Here's what I need modified:
+
+`));
     })
     
     // Listen to clicks on Error Message

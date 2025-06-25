@@ -140,6 +140,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     return () => debouncedSetInstruction.cancel();
   }, [instructions, debouncedSetInstruction]);
 
+  useEffect(() => {
+    setInstructions(initialInstructions);
+  }, [initialInstructions]);
+
   const clearMessages = () => {
     dispatch(startNewThread())
   }

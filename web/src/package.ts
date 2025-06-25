@@ -13,3 +13,4 @@ export { getParsedIframeInfo } from './helpers/origin';
 export { processMetadata } from './helpers/metadataProcessor';
 export { dispatch } from './state/dispatch';
 export { updateIsDevToolsOpen, updateDevToolsTabName } from './state/settings/reducer'
+export { setInstructions } from './state/thumbnails/reducer';
