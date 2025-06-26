@@ -504,7 +504,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           gap={0}
           alignItems={"center"}
         >
-            <Tooltip borderRadius={5} label="Entities can be Base Tables, Metabase Models or MinusX Catalog Entities"><Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text></Tooltip>
+            <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Entities can be Base Tables, Metabase Models or MinusX Catalog Entities"><Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text></Tooltip>
           <Button 
             size="xs" 
             colorScheme="minusxGreen" 
