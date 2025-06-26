@@ -64,22 +64,50 @@ export const AdditionalContext = () => {
         
         {isEditMode ? (
           <>
-            <Textarea
-              marginTop={2}
-              value={customInstructions}
-              onChange={(e) => setCustomInstructions(e.target.value)}
-              placeholder={placeholder}
-              size="sm"
-              _focus={{
-                border: '1.5px solid #16a085',
-                boxShadow: 'none',
-                bg: "#fefefe"
-              }}
-              border='1px solid #aaa'
-              borderRadius='lg'
-              minHeight={550}
-              bg={"#eee"}
-            />
+            <Box position="relative" width="100%">
+              <Textarea
+                marginTop={2}
+                value={customInstructions}
+                onChange={(e) => setCustomInstructions(e.target.value)}
+                placeholder={placeholder}
+                size="sm"
+                _focus={{
+                  border: '1.5px solid #16a085',
+                  boxShadow: 'none',
+                  bg: "#fefefe"
+                }}
+                border='1px solid #aaa'
+                borderRadius='lg'
+                minHeight={500}
+                bg={"#eee"}
+              />
+              <Box
+                position="absolute"
+                bottom={3}
+                right={3}
+                bg="rgba(255, 255, 255, 0.9)"
+                px={2}
+                py={1}
+                borderRadius="md"
+                fontSize="xs"
+                color="gray.600"
+                border="1px solid"
+                borderColor="gray.300"
+                fontWeight="medium"
+                zIndex={10}
+                pointerEvents="none"
+              >
+                {customInstructions.trim().split(/\s+/).filter(word => word.length > 0).length} words
+                {aiRules === customInstructions && (
+                  <Text as="span" color="green.600" ml={2}>• Saved</Text>
+                )}
+              </Box>
+            </Box>
+            {customInstructions.trim().split(/\s+/).filter(word => word.length > 0).length > 500 && (
+              <Text color={"red.500"} fontSize="xs" fontWeight={"bold"} pt={2} textAlign="center">
+                ⚠️ Long minusx.md may degrade performance. Consider making it shorter.
+              </Text>
+            )}
             <HStack justify={"space-between"} width={"100%"} alignItems={"center"} pt={2}>
               <HStack spacing={2}>
                 <Button size="sm" colorScheme="minusxGreen" onClick={handleSave} isDisabled={aiRules === customInstructions} leftIcon={<BsCheck />}>
@@ -95,22 +123,41 @@ export const AdditionalContext = () => {
             </HStack>
           </>
         ) : (
-          <Box
-            marginTop={2}
-            border='1px solid #aaa'
-            borderRadius='lg'
-            minHeight={550}
-            maxHeight={550}
-            bg={"#fefefe"}
-            p={4}
-            width={"100%"}
-            overflow={"auto"}
-          >
-            {customInstructions ? (
-              <Markdown content={customInstructions} />
-            ) : (
-              <Text color={"gray.500"} fontSize="sm">No additional context provided</Text>
-            )}
+          <Box position="relative" width="100%">
+            <Box
+              marginTop={2}
+              border='1px solid #aaa'
+              borderRadius='lg'
+              minHeight={500}
+              maxHeight={500}
+              bg={"#fefefe"}
+              p={4}
+              width={"100%"}
+              overflow={"auto"}
+            >
+              {customInstructions ? (
+                <Markdown content={customInstructions} />
+              ) : (
+                <Text color={"gray.500"} fontSize="sm">No additional context provided</Text>
+              )}
+            </Box>
+            <Box
+              position="absolute"
+              bottom={3}
+              right={3}
+              bg="rgba(255, 255, 255, 0.9)"
+              px={2}
+              py={1}
+              borderRadius="md"
+              fontSize="xs"
+              color="gray.600"
+              border="1px solid"
+              borderColor="gray.300"
+              fontWeight="medium"
+            >
+              {customInstructions.trim().split(/\s+/).filter(word => word.length > 0).length} words
+              <Text as="span" color="green.600" ml={2}>• Saved</Text>
+            </Box>
           </Box>
         )}
       </VStack>
