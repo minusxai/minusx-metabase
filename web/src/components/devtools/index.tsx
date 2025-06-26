@@ -7,6 +7,7 @@ import { ActionsView } from './ActionDebug';
 import Settings from './Settings'
 import { configs } from '../../constants';
 import { Context } from './Context';
+import { MinusXMD } from './Minusxmd';
 
 const Monitors: MonitorDef[] = [
   {
@@ -18,6 +19,10 @@ const Monitors: MonitorDef[] = [
     title: "Context",
     component: Context,
     tags: ['production']
+  },
+  {
+    title: "minusx.md",
+    component: MinusXMD,
   },
   {
     title: "Dev Context",

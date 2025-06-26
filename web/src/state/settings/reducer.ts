@@ -6,9 +6,20 @@ import { ContextCatalog, MxModel } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
-export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context'
+export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'minusx.md'
 
 export const DEFAULT_TABLES = 'Default Tables'
+
+export const DEFAULT_MINUSXMD = `
+# minusx.md
+
+This serves as a comprehensive reference guide for MinusX. It covers essential data sources, common conventions, key business concepts, and important metrics. It also includes notable memories that are automatically updated by the agent.
+
+### General Notes
+
+---
+### Notable Memories
+`
 
 const safeJSON = (text: string) => {
   try {
@@ -101,6 +112,7 @@ interface Settings {
   modelsMode: boolean
   viewAllCatalogs: boolean
   enable_highlight_helpers: boolean
+  useMemory: boolean
 }
 
 const initialState: Settings = {
@@ -117,7 +129,7 @@ const initialState: Settings = {
   demoMode: false,
   intercomBooted: false,
   isRecording: false,
-  aiRules: '',
+  aiRules: DEFAULT_MINUSXMD,
   tableDiff: {
     add: [],
     remove: []
@@ -131,7 +143,8 @@ const initialState: Settings = {
   groupsEnabled: false,
   modelsMode: true,
   viewAllCatalogs: false,
-  enable_highlight_helpers: false
+  enable_highlight_helpers: false,
+  useMemory: true,
 }
 
 export const settingsSlice = createSlice({
