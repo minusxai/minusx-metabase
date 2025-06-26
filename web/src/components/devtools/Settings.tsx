@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -69,6 +69,7 @@ const SettingsPage = () => {
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  const useMemory = useSelector((state: RootState) => state.settings.useMemory)
 
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
@@ -119,6 +120,9 @@ const SettingsPage = () => {
   const setDevToolsPage = (value: DevToolsTabName) => {
     dispatch(updateIsDevToolsOpen(true))
     dispatch(updateDevToolsTabName(value))
+  }
+  const updateUseMemory = (value: boolean) => {
+    dispatch(setUseMemory(value))
   }
   
   // const CURRENT_ACTION_TESTS = ACTION_TESTS[tool];
@@ -184,10 +188,10 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">View Groups</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={groupsEnabled} onChange={(e) => updateGroupsEnabled(e.target.checked)} />
           </HStack>}
-          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+          {/* {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Enable Catalog-as-Models</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={modelsMode} onChange={(e) => updateModelsMode(e.target.checked)} />
-          </HStack>}
+          </HStack>} */}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">View all catalogs</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={viewAllCatalogs} onChange={(e) => updateViewAllCatalogs(e.target.checked)} />
@@ -200,6 +204,10 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">Highlight Helpers</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableHighlightHelpers} onChange={(e) => updateEnableHighlightHelpers(e.target.checked)} />
           </HStack>}
+          <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Use Memory</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={useMemory} onChange={(e) => updateUseMemory(e.target.checked)} />
+          </HStack>
         </VStack>
       </SettingsBlock>
       <SettingsBlock title="Privacy">

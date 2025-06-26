@@ -237,6 +237,9 @@ export const settingsSlice = createSlice({
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
     },
+    setUseMemory: (state, action: PayloadAction<boolean>) => {
+      state.useMemory = action.payload
+    },
     setSelectedCatalog: (state, action: PayloadAction<string>) => {
       const newSelectedCatalog = action.payload
       if (newSelectedCatalog == DEFAULT_TABLES || state.availableCatalogs.some(catalog => catalog.name == newSelectedCatalog)) {
@@ -338,7 +341,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers,
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
