@@ -59,6 +59,8 @@ import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 import { setupCollectionsAndModels } from '../../state/settings/availableCatalogsListener'
 import { Notify } from './Notify'
 import { DisabledOverlay } from './DisabledOverlay'
+import { ContextCatalog } from '../../helpers/utils';
+import { dump } from 'js-yaml';
 
 
 
@@ -85,6 +87,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
   
   const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
+  const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs);
+  const currentCatalogEntities = availableCatalogs.find(catalog => catalog.name === selectedCatalog)?.content.entities || [] ;
+    
+    
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const isAppEnabled: boolean = useAppStore((state) => state.isEnabled)?.value || false
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
@@ -97,6 +103,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const allTables = dbInfo.tables || []
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
+
+  // ToDo: Vivek - this is ugly, but it works for now
+  // This needs to be consolidated and done in one place
+  const entitiesInContext = currentCatalogEntities.length > 0 ? currentCatalogEntities.length : validAddedTables.length + selectedModels.length
+  
   const [isChangedByDb, setIsChangedByDb] = React.useState<Record<number, boolean>>({}) 
 
   useEffect(() => {
@@ -327,6 +338,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   }
 
   const shouldBeEnabled = drMode || toolContext.pageType === 'sql'
+  
 
   return (
     <>
@@ -467,16 +479,47 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
         
         <SettingsBlock title='Quick Actions'>
-        <HStack flexWrap={"wrap"} gap={1}>
+        <HStack justifyContent={"center"} flexWrap={"wrap"} gap={1}>
           { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
           { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Context</Button> }
-          { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> }
+          {/* { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> } */}
           {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
           {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
           <SupportButton email={email} />
 
         </HStack>
         </SettingsBlock>
+
+        <VStack width={"100%"} alignItems={"stretch"} gap={0}>
+        { currentTool == 'metabase'  && 
+        <HStack 
+          mb={-2} 
+          p={2} 
+          pb={4} 
+          borderRadius={"8px 8px 0px 0px"} 
+          justifyContent={"space-between"} 
+          bg={"rgba(20, 160, 133, 0.05)"}
+          border={"1px solid"}
+          borderColor={"minusxGreen.600"}
+          gap={0}
+          alignItems={"center"}
+        >
+            <Tooltip borderRadius={5} label="Entities can be Base Tables, Metabase Models or MinusX Catalog Entities"><Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text></Tooltip>
+          <Button 
+            size="xs" 
+            colorScheme="minusxGreen" 
+            variant="outline" 
+            fontSize="xs"
+            fontWeight="medium"
+            py={0}
+            px={3}
+            onClick={()=>openDevtoolTab("Context")}
+          >
+            {selectedCatalog.slice(0, 15)}{selectedCatalog.length > 12 ? '...' : ''}
+          </Button>
+        </HStack>
+        }
+
         <Stack position={"relative"}>
           <AutosizeTextarea
             ref={ref}
@@ -494,7 +537,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
                 {/* <QuickActionButton tooltip="Select & Ask" onclickFn={handleSnapClick} icon={BiScreenshot} isDisabled={isSheets || taskInProgress}/> */}
                 {/* <QuickActionButton tooltip="Clear Chat" onclickFn={clearMessages} icon={BiRefresh} isDisabled={messages.length === 0 || taskInProgress}/> */}
-                { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>"{selectedCatalog.slice(0, 20)}" in context</Button> }
+                
+                {/* { currentTool == 'metabase'  && <Button size="xs" colorScheme="minusxGreen" borderWidth={1} borderColor="minusxGreen.600" variant="ghost" onClick={()=>openDevtoolTab("Context")}>"{selectedCatalog.slice(0, 20)}" in context</Button> } */}
+
                 {configs.IS_DEV &&false&& <Checkbox sx={{
                   '& input:not(:checked) + span': {
                     borderColor: 'minusxBW.500',
@@ -529,6 +574,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             </HStack>
           </HStack>
         </Stack>
+        </VStack>
       </VStack>
     </VStack>
     </>
