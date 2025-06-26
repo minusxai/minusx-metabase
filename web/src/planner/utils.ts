@@ -54,7 +54,7 @@ export function getLLMContextFromState(
 
   const promptContext = {
     state: JSON.stringify(userAppState),
-    aiRules: getState().settings.aiRules || "no special instructions.",
+    aiRules: (getState().settings.useMemory ? getState().settings.aiRules : "no special instructions.") || "no special instructions.",
     instructions: lastUserMessage.content.text
   }
   const systemMessage = renderString(prompts.system, promptContext);

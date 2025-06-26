@@ -39,13 +39,6 @@ Routine to follow:
 5. If you estimate that the task can be accomplished with the tool calls selected in the current call, include the markTaskDone tool call at the end. Do not wait for everything to be executed.
 6. If you are waiting for the user's clarification, also mark the task as done.
 
-<SpecialInstructions>
-# Semantic Layer
-
-This layer contains queries relevant to different projects. Use these base queries as CTEs to fulfill user requests regarding various projects. Keep in mind that you may also have to join some of these base query CTEs. Keep edits to the base query CTEs to the bare minimum and apply filters etc on top of them.
-{{ aiRules }}
-</SpecialInstructions>
-
 <SqlVariablesDocs>
 ${SqlVariablesDocs}
 </SqlVariablesDocs>
@@ -58,6 +51,10 @@ export const DEFAULT_PLANNER_USER_PROMPT = `
 <MetabaseAppState>
 {{ state }}
 </MetabaseAppState>
+
+<SpecialInstructions>
+{{ aiRules }}
+</SpecialInstructions>
 
 <UserInstructions>
 {{ instructions }}
