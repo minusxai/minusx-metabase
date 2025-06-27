@@ -15,10 +15,10 @@ export const DEFAULT_MINUSXMD = `
 
 This serves as a comprehensive reference guide for MinusX. It covers essential data sources, common conventions, key business concepts, and important metrics. It also includes notable memories that are automatically updated by the agent.
 
-### General Notes
+### General Notes [added by the user]
 
 ---
-### Notable Memories
+### Notable Memories [added by MinusX agent]
 `
 
 const safeJSON = (text: string) => {
