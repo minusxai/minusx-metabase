@@ -37,10 +37,14 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables, metab
 
   useEffect(() => {
     if (metabaseModels) {
-      setIsModelsLoading(false)
       getModelsWithFields(metabaseModels).then((models) => {
         setLoadedModels(models)
+        setIsModelsLoading(false)
+      }).catch(() => {
+        setIsModelsLoading(false)
       })
+    } else {
+      setIsModelsLoading(false)
     }
   }, [metabaseModels])
 
