@@ -5,7 +5,6 @@ import {
   Icon,
   IconButton,
   Text,
-  Divider,
 } from '@chakra-ui/react'
 import React from 'react-redux'
 import { BsX, BsCheck } from "react-icons/bs";
@@ -32,37 +31,55 @@ export const UserConfirmation = () => {
   
   if (!userConfirmation.show) return null
   return (
-    <VStack alignItems={"center"}>
-      <Divider borderColor={"minusxBW.500"}/>
-      <Text fontWeight={"bold"} fontSize={17}>{userConfirmation.contentTitle ?? "Accept below code?"}</Text>
-      <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5} color={"#fff"}>
+    <VStack 
+      borderRadius={10} 
+      bg="minusxBW.300" 
+      alignItems="stretch" 
+      padding={4}
+      spacing={3}
+    >
+      <Text 
+        fontSize="md" 
+        fontWeight="medium" 
+        color="minusxBW.900"
+        textAlign="center"
+      >
+        {userConfirmation.contentTitle ?? "Review and confirm changes"}
+      </Text>
+      
+      <Box 
+        width="100%" 
+        bg="gray.900" 
+        borderRadius="md" 
+        overflow="hidden"
+      >
         <CodeBlock code={userConfirmation.content} tool={currentTool} oldCode={userConfirmation.oldContent}/>
       </Box>
-      {/*two buttons with yes and no*/}
-      <HStack width={"80%"}>
+      
+      <HStack spacing={2} width="100%" justify="center">
         <IconButton
-          flex={1}
-          aria-label="No"
-          icon={<Icon as={BsX} boxSize={7}/>}
-          colorScheme='red'
-          // color={"red"}
-          variant={"solid"}
+          aria-label="Reject changes"
+          icon={<Icon as={BsX} boxSize={4}/>}
+          bg="red.500"
+          color="red.100"
+          size="sm"
+          borderRadius="md"
+          w={"50%"}
+          _hover={{ bg: "red.400" }}
           onClick={() => dispatch(setUserConfirmationInput('REJECT'))}
         />
         <IconButton
-          flex={1}
-          aria-label="Yes"
-          icon={<Icon as={BsCheck} boxSize={7}/>}
-          colorScheme='minusxGreen'
-          variant={"solid"}
+          aria-label="Approve changes"
+          icon={<Icon as={BsCheck} boxSize={4}/>}
+          bg="green.500"
+          color="green.100"
+          w={"50%"}
+          size="sm"
+          borderRadius="md"
+          _hover={{ bg: "green.400" }}
           onClick={() => dispatch(setUserConfirmationInput('APPROVE'))}
         />
       </HStack>
-      {/* <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
-        <Text color={"minusxBW.800"} fontSize={"xs"}>Toggle User Confirmation</Text>
-        <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size={"sm"} isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
-      </Stack> */}
-      <Divider borderColor={"minusxBW.500"}/>
     </VStack>
   )
 }
