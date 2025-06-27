@@ -474,7 +474,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         {
             !drMode && 
             <Notify title="Hi There!">
-                <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo">Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
+                <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
             </Notify>
         }
         
