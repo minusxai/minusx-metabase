@@ -40,7 +40,7 @@ const fieldRefToId = (modelId: number, fieldRef: FieldRef): string => {
 const metabaseModelToLLMFriendlyIdentifier = (model: MetabaseModel): {schema: string, table: string} => {
     return {
         schema: 'mm_' + slugg(model.collectionName || 'default_collection', {separator: '_'}),
-        table: slugg(model.modelId + '_' +model.name, {separator: '_'})
+        table: slugg(model.name + '_' + model.modelId, {separator: '_'})
     };
 }
 

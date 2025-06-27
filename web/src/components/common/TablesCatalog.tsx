@@ -11,7 +11,6 @@ import { applyTableDiffs } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
 import { ModelView } from "./ModelView";
-import { MetabaseModel } from "apps/types";
 
 const useAppStore = getApp().useStore()
 
