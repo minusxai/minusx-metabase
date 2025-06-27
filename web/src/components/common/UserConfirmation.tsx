@@ -53,7 +53,7 @@ export const UserConfirmation = () => {
         borderRadius="md" 
         overflow="hidden"
       >
-        <CodeBlock code={userConfirmation.content} tool={currentTool} oldCode={userConfirmation.oldContent}/>
+        <CodeBlock code={userConfirmation.content} tool={currentTool} oldCode={userConfirmation.oldContent} language='text'/>
       </Box>
       
       <HStack spacing={2} width="100%" justify="center">
