@@ -54,13 +54,13 @@ export const ModelView: React.FC<ModelViewProps> = ({ yamlContent, tables, metab
     });
   }, [tables])
 
-  if (isTablesLoading || isModelsLoading) {
+  if (isTablesLoading) {
     return (
       <Text>Loading...</Text>
     )
   }
 
-  const allFormattedTables = [...loadedTables, ...loadedModels]
+  const allFormattedTables = isModelsLoading ? [...loadedTables, ...loadedModels] : [...loadedTables];
 
   const entityJSON = getTableContextYAML(allFormattedTables, !tables ? yamlContentJSON : undefined, drMode, includeTableIDs) || {};
   const modelViewSchema = dump(createSchemaFromDataModel(entityJSON));
