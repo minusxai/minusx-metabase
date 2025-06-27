@@ -176,7 +176,8 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<M
       collectionName: model.collection?.name,
       modelId: model.id,
       collectionId: model.collection?.id,
-      description: model.description || undefined
+      description: model.description || undefined,
+      dbId: dbId
     }
   })
   // remove internal collection models from selection menu since right now we're handling them separately

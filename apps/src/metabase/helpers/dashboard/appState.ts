@@ -10,7 +10,6 @@ import { metabaseToMarkdownTable } from '../operations';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
 import { getTableContextYAML } from '../catalog';
-import { MetabaseModel } from '../metabaseAPITypes';
 import { getModelsFromSql, getModelsWithFields, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from '../metabaseModels';
 
 // Removed: const { getMetabaseState } = RPCs - using centralized state functions instead

@@ -398,12 +398,18 @@ const migrations = {
     let newState = {...state}
     newState.settings.selectedModels = []
     return newState
+  },
+  35: (state: RootState) => {
+    // if there's any selectedModels that don't have a dbId, just remove them
+    let newState = {...state}
+    newState.settings.selectedModels = newState.settings.selectedModels.filter((model) => model.dbId !== undefined)
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 34,
+  version: 35,
   storage,
   blacklist: ['billing', 'cache'],
   // @ts-ignore

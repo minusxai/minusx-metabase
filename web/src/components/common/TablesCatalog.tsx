@@ -51,9 +51,10 @@ export const TablesCatalog: React.FC<null> = () => {
   const allTables = dbInfo.tables || []
   const allModels = dbInfo.models|| []
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
-  // const selectedModels: MetabaseModel[] = []
 
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
+  // only take models for the current db id
+  const validSelectedModels = selectedModels.filter(model => model.dbId === dbInfo.id)
 
   const isAnyTablesAdded = () => {
     const addedTables = sortBy(tableDiff.add.filter((item: TableInfo) => item.dbId == dbInfo.id), ['name', 'schema'])
@@ -125,7 +126,7 @@ export const TablesCatalog: React.FC<null> = () => {
                   tableData={allTables} 
                   modelData={allModels} 
                   selectedTableData={validAddedTables} 
-                  selectedModelData={selectedModels} 
+                  selectedModelData={validSelectedModels} 
                   addFn={updateAddTables} 
                   removeFn={updateRemoveTables} 
                   updateSelectedModels={(models) => {
@@ -134,7 +135,7 @@ export const TablesCatalog: React.FC<null> = () => {
                 />
             </TabPanel>
             <TabPanel pt={0}>
-                <ModelView tables={validAddedTables} metabaseModels={selectedModels} />
+                <ModelView tables={validAddedTables} metabaseModels={validSelectedModels} />
             </TabPanel>
         </TabPanels>
     </Tabs>

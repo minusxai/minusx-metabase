@@ -57,6 +57,7 @@ export interface MetabaseModel {
   modelId: number;
   collectionId: number | null;
   description?: string;
+  dbId: number;
 }
 
 export interface DatabaseInfo {
