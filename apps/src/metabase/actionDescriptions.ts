@@ -46,7 +46,7 @@ const NEW_ACTION_DESCRIPTIONS: ActionDescription[] =  [
 ]
 
 export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
-    // ...NEW_ACTION_DESCRIPTIONS,
+    ...NEW_ACTION_DESCRIPTIONS,
     ...COMMON_ACTION_DESCRIPTIONS,
   {
     name: 'updateSQLQuery',

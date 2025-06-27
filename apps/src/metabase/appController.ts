@@ -215,7 +215,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const userApproved = await RPCs.getUserConfirmation({content: memory, contentTitle: "Shall I add this to memory?", oldContent: undefined});
+    const userApproved = await RPCs.getUserConfirmation({content: memory, contentTitle: "Shall I add this to memory?", oldContent: undefined, override: true});
     if (userApproved) {
         dispatch(addMemory(memory));
         dispatch(updateIsDevToolsOpen(true))
