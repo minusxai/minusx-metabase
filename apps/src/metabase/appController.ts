@@ -42,7 +42,7 @@ import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
-import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName } from "web";
+import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
 import { fetchTableMetadata } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
 import { replaceLLMFriendlyIdentifiersInSqlWithModels } from "./helpers/metabaseModels";
@@ -184,6 +184,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+   @Action({
+    labelRunning: "Showing Data Model Editor",
+    labelDone: "Opened Data Model Editor",
+    description: "Opens the Data Model Editor in the MinusX Dev Tools.",
+    renderBody: ({ explanation }: { explanation: string }, appState: MetabaseAppStateDashboard) => {
+      return {text: null, code: null}
+    }
+  })
   async showDataModelEditor({explanation}: {explanation: string}) {
     dispatch(updateIsDevToolsOpen(true))
     dispatch(updateDevToolsTabName('Context'))
@@ -194,6 +202,33 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     actionContent.content = "Successfully opened table editor"
     return actionContent;
   }
+
+   @Action({
+    labelRunning: "Adding memory",
+    labelDone: "Added memory",
+    description: "Remembers notable memories",
+    renderBody: ({ memory }: { memory: string }, appState: MetabaseAppStateDashboard) => {
+      return {text: null, code: null}
+    }
+  })
+  async AddMemory({memory}: {memory: string}) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const userApproved = await RPCs.getUserConfirmation({content: memory, contentTitle: "Shall I add this to memory?", oldContent: undefined});
+    if (userApproved) {
+        dispatch(addMemory(memory));
+        dispatch(updateIsDevToolsOpen(true))
+        dispatch(updateDevToolsTabName('minusx.md'))
+        await RPCs.setMinusxMode('open-sidepanel-devtools')
+        actionContent.content = "Memory added successfully";
+    }
+    else {
+        actionContent.content = "User cancelled adding memory";
+    }    
+    return actionContent;
+  }
+
   @Action({
     labelRunning: "Executing SQL Query",
     labelDone: "Executed SQL query",

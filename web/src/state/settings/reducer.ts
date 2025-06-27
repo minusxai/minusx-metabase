@@ -199,6 +199,11 @@ export const settingsSlice = createSlice({
     setAiRules: (state, action: PayloadAction<string>) => {
       state.aiRules = action.payload
     },
+    addMemory: (state, action: PayloadAction<string>) => {
+        const currentContent = state.aiRules || DEFAULT_MINUSXMD;
+        const newContent = currentContent + "\n- " + action.payload;
+        state.aiRules = newContent;
+    },
     resetDefaultTablesDB(state, action: PayloadAction<{dbId: Number}>) {
       state.tableDiff.add = state.tableDiff.add.filter((t) => t.dbId != action.payload.dbId)
     },
@@ -341,7 +346,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

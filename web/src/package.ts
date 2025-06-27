@@ -12,5 +12,5 @@ export { GLOBAL_EVENTS, captureEvent } from './tracking'
 export { getParsedIframeInfo } from './helpers/origin';
 export { processMetadata } from './helpers/metadataProcessor';
 export { dispatch } from './state/dispatch';
-export { updateIsDevToolsOpen, updateDevToolsTabName } from './state/settings/reducer'
+export { updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from './state/settings/reducer'
 export { setInstructions } from './state/thumbnails/reducer';

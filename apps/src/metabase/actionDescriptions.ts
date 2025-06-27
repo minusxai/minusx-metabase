@@ -19,8 +19,35 @@ export const COMMON_ACTION_DESCRIPTIONS: ActionDescription[] = [
   },
 ]
 
+const NEW_ACTION_DESCRIPTIONS: ActionDescription[] =  [
+    {
+    name: 'ExecuteMBQLClient',
+    args: {
+      mbql: {
+        type: 'string',
+        description: "The MBQL of the query"
+      },
+    },
+    description: `Updates the MBQL query and runs it.
+    `,
+    required: ["mbql"],
+  },
+  {
+    name: 'AddMemory',
+    args: {
+      memory: {
+        type: 'string',
+        description: "Memory to add"
+      },
+    },
+    description: `Memories to remember`,
+    required: ["memory"],
+  },
+]
+
 export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
-  ...COMMON_ACTION_DESCRIPTIONS,
+    // ...NEW_ACTION_DESCRIPTIONS,
+    ...COMMON_ACTION_DESCRIPTIONS,
   {
     name: 'updateSQLQuery',
     args: {
@@ -39,18 +66,6 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     such as setting a variable, set this parameter to false.
     `,
     required: ["sql"],
-  },
-  {
-    name: 'ExecuteMBQLClient',
-    args: {
-      mbql: {
-        type: 'string',
-        description: "The MBQL of the query"
-      },
-    },
-    description: `Updates the MBQL query and runs it.
-    `,
-    required: ["mbql"],
   },
   {
     name: 'executeSQLQuery',
