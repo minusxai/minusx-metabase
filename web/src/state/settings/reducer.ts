@@ -13,7 +13,7 @@ export const DEFAULT_TABLES = 'Default Tables'
 export const DEFAULT_MINUSXMD = `
 # minusx.md
 
-This serves as a user-specific reference guide for MinusX. It covers essential data sources, common conventions, key business concepts, and important metrics that are specified by the user. It also includes notable memories that are automatically updated by the agent.
+This is a user-specific reference guide for MinusX. It contains user preferences wrt. essential data sources, common conventions, key business concepts, important metrics and terminologies. The general notes are written by the user. It also includes notable memories that are automatically updated by the agent.
 
 ### General Notes [added by the user]
 
