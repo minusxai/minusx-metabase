@@ -1,5 +1,5 @@
 import { Button, VStack, Text, HStack, Box, Textarea } from '@chakra-ui/react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { dispatch } from '../../state/dispatch';
 import { setAiRules } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
@@ -29,6 +29,10 @@ export const AdditionalContext = () => {
     setCustomInstructions(aiRules)
     setIsEditMode(false)
   }
+
+    useEffect(() => {
+        setCustomInstructions(aiRules);
+    }, [aiRules]);
 
   const tool = getParsedIframeInfo().tool
   let placeholder = `Example:\n1. Only use tables from "public" schema\n2. Always use plotly for plotting`

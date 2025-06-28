@@ -201,7 +201,7 @@ export const settingsSlice = createSlice({
     },
     addMemory: (state, action: PayloadAction<string>) => {
         const currentContent = state.aiRules || DEFAULT_MINUSXMD;
-        const newContent = currentContent + "\n- " + action.payload;
+        const newContent = currentContent.trim() + "\n- " + action.payload;
         state.aiRules = newContent;
     },
     resetDefaultTablesDB(state, action: PayloadAction<{dbId: Number}>) {
