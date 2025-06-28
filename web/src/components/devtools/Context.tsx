@@ -147,14 +147,14 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
           <CatalogEditor onCancel={() => setIsCreatingCatalog(false)} />
         ) : (
           <>
-            <Select mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
+            <Select size={"sm"} mt={2} colorScheme="minusxGreen" value={selectedCatalog} onChange={(e) => {dispatch(setSelectedCatalog(e.target.value))}}>
                 {
                     [...visibleCatalogs, defaultTableCatalog].map((context: ContextCatalog) => {
                         return <option key={context.name} value={context.name}>{context.name}</option>
                     })
                 }
             </Select>
-            <Spacer height={5}/>
+            <Spacer height={2}/>
             {
                 selectedCatalog === DEFAULT_TABLES ? <TablesCatalog /> : <YAMLCatalog />
             }
@@ -185,9 +185,9 @@ export const Context: React.FC = () => {
             <Text fontSize="sm"><Text as="span">DB Name: <Badge color={"minusxGreen.600"}>{dbInfo.name}</Badge></Text></Text>
             <Text fontSize="sm"><Text as="span">SQL Dialect: </Text><Badge color={"minusxGreen.600"}>{dbInfo.dialect}</Badge></Text>    
             </HStack>
-            <Text fontSize="sm"><Text as="span">DB Description: {dbInfo.description || "-"}</Text></Text>
+            {/* <Text fontSize="sm"><Text as="span">DB Description: {dbInfo.description || "-"}</Text></Text> */}
         </Box>
-        <Spacer height={5}/>
+        <Spacer height={2}/>
         <CatalogDisplay isInModal={false} modalOpen={modalOpen}/>
         <Modal isOpen={isOpen} onClose={modalClose} size="3xl">
             <ModalOverlay />

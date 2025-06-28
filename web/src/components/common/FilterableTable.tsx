@@ -647,14 +647,14 @@ export const FilteredTable = ({
         />
       </Box>
 
-      <Box maxHeight={"330px"} overflowY={"scroll"} borderWidth="1px" borderRadius="md" mb={2}>
+      <Box maxHeight={"280px"} overflowY={"scroll"} borderWidth="1px" borderRadius="md" mb={2}>
         <VStack spacing={0} align="stretch">
           {
             // NOTE(@arpit): not sure why AutoSizer is not working here. hardcoding height for now
             <FixedSizeTree
               treeWalker={treeWalker}
               itemSize={32}
-              height={330}
+              height={280}
               width="100%"
             >
               {Node}
