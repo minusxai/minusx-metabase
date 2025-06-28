@@ -205,7 +205,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
 
    @Action({
     labelRunning: "Adding memory",
-    labelDone: "Added memory",
+    labelDone: "Memory Task Completed",
     description: "Remembers notable memories",
     renderBody: ({ memory }: { memory: string }, appState: MetabaseAppStateDashboard) => {
       return {text: null, code: null}
