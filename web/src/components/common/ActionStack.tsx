@@ -16,6 +16,7 @@ import 'reflect-metadata';
 import { parseArguments } from '../../planner/plannerActions';
 import { CodeBlock } from './CodeBlock';
 import { ActionRenderInfo } from '../../state/chat/types';
+import { Markdown } from './Markdown';
 
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
@@ -99,10 +100,13 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           p={0}
         >
           <VStack alignItems={"start"} flex={1} spacing={0}>
-            {preExpanderText !== '' && <Text marginBottom={2} borderBottomWidth={1} 
-            borderBottomColor={'minusxGreen.800'}
-            style={{ hyphens: 'auto' }}
-            p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
+            {preExpanderText !== '' && 
+            // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
+            <Box borderBottomWidth={1} borderBottomColor={'minusxGreen.800'}>
+            <Markdown content={`Thinking...
+                ${preExpanderText}`}></Markdown>
+                </Box>
+
             }
             <HStack
               paddingBottom={actions.length && isExpanded ? 1 : 0}
