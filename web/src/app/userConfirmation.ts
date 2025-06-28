@@ -18,10 +18,6 @@ export async function getUserConfirmation({content, contentTitle, oldContent, ov
       const userApproved = userConfirmation.userInput == 'APPROVE'
       console.log('User approved:', userApproved)
       dispatch(toggleUserConfirmation({show: false, content: '', contentTitle: '', oldContent: ''}))
-      if (!userApproved)
-      {
-        dispatch(abortPlan())
-      }
       return userApproved
     }
     await sleep(100)
