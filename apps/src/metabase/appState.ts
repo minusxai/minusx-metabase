@@ -85,6 +85,14 @@ const metabaseStyles = `
     display: block;
   }
 
+  .cm-selectionLayer > .cm-selectionBackground > .minusx_highlight_button {
+    display: none;
+  }
+
+  .cm-selectionLayer > .cm-selectionBackground:last-of-type > .minusx_highlight_button {
+    display: block;
+  }
+
   #explain-snippet {
     background-color: #519ee4;
     color: white;
@@ -163,7 +171,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const explainButtonJSON = {
       tag: 'div',
       attributes: {
-        style: 'position: absolute; bottom: -10px; z-index: 5;'
+        style: 'position: absolute; bottom: -10px; z-index: 5;',
+        class: 'minusx_highlight_button'
       },
       children: [{
         tag: 'button',
@@ -178,7 +187,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const modifyButtonJSON = {
       tag: 'div',
       attributes: {
-        style: 'position: absolute; bottom: -10px; z-index: 5;'
+        style: 'position: absolute; bottom: -10px; z-index: 5;',
+        class: 'minusx_highlight_button'
       },
       children: [{
         tag: 'button',
