@@ -62,6 +62,9 @@ function ModifiedCode(props: any) {
         if (text.startsWith('[badge]')) {
         return <Badge color={"minusxGreen.600"}>{text.replace('[badge]', '')}</Badge>;
         }
+        if (text.startsWith('[badge_mx]')) {
+        return <><br></br><Badge bg={"minusxGreen.600"} color={"white"}>{text.replace('[badge_mx]', '')}</Badge></>;
+        }
     }
     
     return <code className={props.className} {...props}>{props.children}</code>;
