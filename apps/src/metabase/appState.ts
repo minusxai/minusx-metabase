@@ -74,6 +74,10 @@ const metabaseStyles = `
   }
   .ace_marker-layer {
     z-index: 2 !important;
+    pointer-events: auto !important;
+  }
+  .ace_marker-layer:empty {
+    display: none !important;
   }
   div.ace_marker-layer > div.ace_selection {
     background: rgba(203, 226, 247, 0.5) !important;
@@ -238,7 +242,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         },
       });
 
-    })
+    }, ['mousedown'])
     
     addNativeEventListener({
       type: "CSS",
@@ -255,7 +259,7 @@ ${selectedText}
 Here's what I need modified:
 
 `));
-    })
+    }, ['mousedown'])
     
     // Listen to clicks on Error Message
     const nonceElement = await RPCs.queryDOMSingle({
