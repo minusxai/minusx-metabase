@@ -16,6 +16,7 @@ import { abortable, createRunner, handlePromise } from "../common/utils";
 
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
+const highlightTasks = createRunner()
 
 const metabaseStyles = `
   .minusx_style_error_button {
@@ -82,10 +83,12 @@ const metabaseStyles = `
   div.ace_marker-layer > div.ace_selection {
     background: rgba(203, 226, 247, 0.5) !important;
   }
-  .ace_marker-layer span {
+
+  .ace_layer > .ace_selection > .minusx_highlight_button {
     display: none;
   }
-  .ace_marker-layer span:nth-child(1) {
+
+  .ace_layer > .ace_selection:last-of-type > .minusx_highlight_button {
     display: block;
   }
 
@@ -222,13 +225,30 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       selector: '.ace_selection:last-of-type',
     }, modifyButtonJSON);
 
+    let _currentlySelectedText = '';
+    await subscribe({
+      editor: {
+      selector: {
+        type: "CSS",
+        selector: ".minusx_highlight_button"
+      },
+      attrs: ["text"],
+    },
+    }, ({elements, url}) => {
+      highlightTasks(async (taskStatus) => {
+        const selectedText = await RPCs.getSelectedTextOnEditor() as string;
+        if (selectedText && !isEmpty(selectedText)) {
+          _currentlySelectedText = selectedText;
+        }
+      })
+    })
+
 
     addNativeEventListener({
       type: "CSS",
       selector: 'button#explain-snippet'
     }, async (event) => {
-      console.log('Clicked on the button with id explain-snippet', event);
-      const selectedText = await RPCs.getSelectedTextOnEditor();
+      const selectedText = _currentlySelectedText;
       RPCs.toggleMinusXRoot('closed', false)
       RPCs.addUserMessage({
         content: {
@@ -248,8 +268,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       type: "CSS",
       selector: 'button#modify-snippet'
     }, async (event) => {
-      console.log('Clicked on the button with id modify-snippet', event);
-        const selectedText = await RPCs.getSelectedTextOnEditor();
+        const selectedText = _currentlySelectedText;
         RPCs.toggleMinusXRoot('closed', false)
         dispatch(setInstructions(`Modify only this snippet of the SQL query: 
 \`\`\`

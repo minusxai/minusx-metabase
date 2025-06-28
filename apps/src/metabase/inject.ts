@@ -15,9 +15,7 @@ const getMetabaseState = (path: Parameters<typeof get>[1]) => {
 const getSelectedTextOnEditor = () => {
     try {
         const editor = window.ace.edit('id_sql')
-        const selectedText = editor.getSelectedText();
-        console.log('Selected text from editor:', selectedText);
-        return selectedText || null;
+        return editor.getSelectedText();
     } catch (e) {
         console.error('Error getting selected text from editor:', e);
     }
