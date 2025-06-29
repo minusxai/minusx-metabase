@@ -12,9 +12,10 @@ import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
 import { Tasks } from './Tasks'
+import { TasksLite } from './TasksLite'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { DemoHelperMessage, DemoSuggestions, getDemoIDX } from './DemoComponents';
-
+import { configs } from '../../constants'
 
 // adds tool information like execution status and rendering info
 // this stuff is in the 'tool' messages, but we're ony rendering 'assistant' messages
@@ -220,8 +221,9 @@ export const ChatSection = () => {
   return (
   <VStack justifyContent="space-between" alignItems="stretch" height={"100%"} width={"100%"}>
   <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
-    { tasks.length && <Tasks /> }
     {Chats}
+    { configs.IS_DEV && tasks.length && <Tasks /> }
+    { !configs.IS_DEV &&  tasks.length && <TasksLite /> }
     <OngoingActionStack />
     <div style={{ height: '10px', width: '100%' }} />
     <div ref={messagesEndRef} />

@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _, { get, isEmpty, isEqual, isUndefined, sortBy } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -481,21 +481,22 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
             </Notify>
         }
-        
-        <SettingsBlock title='Quick Actions'>
-        <HStack justifyContent={"center"} flexWrap={"wrap"} gap={1}>
-          { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
-          { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Context</Button> }
-          {/* { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> } */}
-          {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
-          {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
-          <SupportButton email={email} />
+        {   !taskInProgress &&
+            <SettingsBlock title='Quick Actions'>
+                <HStack justifyContent={"center"} flexWrap={"wrap"} gap={1}>
+                { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
+                { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Context</Button> }
+                {/* { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> } */}
+                {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
+                {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
+                <SupportButton email={email} />
 
-        </HStack>
-        </SettingsBlock>
+                </HStack>
+            </SettingsBlock>
+        }
 
         <VStack width={"100%"} alignItems={"stretch"} gap={0}>
-        { currentTool == 'metabase'  && 
+        { currentTool == 'metabase'  && !taskInProgress &&
         <HStack 
           mb={-2} 
           p={2} 
@@ -524,17 +525,18 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         </HStack>
         }
 
-        <Stack position={"relative"}>
-          <AutosizeTextarea
-            ref={ref}
-            autoFocus
-            aria-label='Enter Instructions'
-            value={instructions}
-            isDisabled={taskInProgress || isRecording}
-            onChange={(e) => setInstructions(e.target.value)}
-            onKeyDown={onKeyDown}
-            style={{ width: '100%', height: "100%" }}
-          />
+        { !taskInProgress && 
+            <Stack position={"relative"}>
+                <AutosizeTextarea
+                ref={ref}
+                autoFocus
+                aria-label='Enter Instructions'
+                value={instructions}
+                isDisabled={taskInProgress || isRecording}
+                onChange={(e) => setInstructions(e.target.value)}
+                onKeyDown={onKeyDown}
+                style={{ width: '100%', height: "100%" }}
+            />
           <HStack position={"absolute"} bottom={0} width={"100%"} p={2}>
             <HStack justify={"space-between"}  width={"100%"}>
               <HStack gap={0}>
@@ -578,6 +580,20 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             </HStack>
           </HStack>
         </Stack>
+        }
+        {taskInProgress && (
+            <HStack justifyContent="center" width="100%" py={2}>
+                <Button
+                    colorScheme="minusxGreen"
+                    size="sm"
+                    leftIcon={<BiStopCircle />}
+                    onClick={() => dispatch(abortPlan())}
+                    w={"100%"}
+                >
+                    Stop Task
+                </Button>
+            </HStack>
+        )}
         </VStack>
       </VStack>
     </VStack>
