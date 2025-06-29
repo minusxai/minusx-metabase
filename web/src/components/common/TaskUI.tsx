@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _, { get, isEmpty, isEqual, isUndefined, sortBy } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -81,7 +81,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const messages = activeThread.messages
   const userConfirmation = activeThread.userConfirmation
   const dispatch = useDispatch()
-  const taskInProgress = !(activeThread.status == 'FINISHED') || true
+  const taskInProgress = !(activeThread.status == 'FINISHED')
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const email = useSelector((state: RootState) => state.auth.email)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
@@ -577,6 +577,19 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           </HStack>
         </Stack>
         }
+        {taskInProgress && (
+            <HStack justifyContent="center" width="100%" py={2}>
+                <Button
+                    colorScheme="minusxGreen"
+                    size="sm"
+                    leftIcon={<BiStopCircle />}
+                    onClick={() => dispatch(abortPlan())}
+                    w={"100%"}
+                >
+                    Stop Task
+                </Button>
+            </HStack>
+        )}
         </VStack>
       </VStack>
     </VStack>
