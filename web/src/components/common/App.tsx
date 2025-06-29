@@ -122,23 +122,23 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Get JWT token for Socket.io authentication
   const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
 
-  // Simple Socket.io integration
-  useSocketIO({
-    sessionToken: sessionJwt,
-    onMessage: (message) => {
-      console.log('Socket.io message received:', message);
-    },
-    onConnect: () => {
-      console.log('Socket.io connected successfully');
-    },
-    onDisconnect: (reason) => {
-      console.log('Socket.io disconnected:', reason);
-    },
-    onError: (error) => {
-      console.log(error.message)
-      console.error('Socket.io connection error:', error);
-    }
-  });
+  // Disabling sockets for now
+  // useSocketIO({
+  //   sessionToken: sessionJwt,
+  //   onMessage: (message) => {
+  //     console.log('Socket.io message received:', message);
+  //   },
+  //   onConnect: () => {
+  //     console.log('Socket.io connected successfully');
+  //   },
+  //   onDisconnect: (reason) => {
+  //     console.log('Socket.io disconnected:', reason);
+  //   },
+  //   onError: (error) => {
+  //     console.log(error.message)
+  //     console.error('Socket.io connection error:', error);
+  //   }
+  // });
 
   useEffect(() => {
     getBillingInfo().then(billingInfo => {
