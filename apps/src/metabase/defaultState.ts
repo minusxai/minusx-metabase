@@ -132,12 +132,14 @@ export const metabaseInternalState: MetabaseInternalState = {
     dbInfo: DB_INFO_DEFAULT,
     loading: true,
   },
-  helperMessage: `Checkout the new MinusX in Metabase [docs](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase).
+  helperMessage: `Checkout MinusX [docs](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) here.
 To get started, select a database and simply ask: 
 > what tables can you see?
 
-\`[badge]New: \` **[GUI Question Builder](https://minusx.ai/blog/mbql/)!**
-[![img](https://minusx.ai/app_assets/mbql_gif.gif)](https://minusx.ai/blog/mbql/)
+\`[badge]New: \`  **[MinusX Memory: minusx.md](https://minusx.ai/blog/memory/)**
+
+
+[![img](https://minusx.ai/app_assets/memory_gif.gif)](https://minusx.ai/blog/memory/)
 
 `,
 };
