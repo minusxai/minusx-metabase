@@ -18,7 +18,7 @@ const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
 const highlightTasks = createRunner()
 
-const metabaseStyles = `
+const getBaseStyles = () => `
   .minusx_style_error_button {
     background-color: #519ee4;
     color: white;
@@ -61,6 +61,10 @@ const metabaseStyles = `
   .minusx_style_absolute_container {
     position: absolute;
   }
+`;
+
+const getHighlightStyles = () => `
+  /* Highlight button styles */
   .cm-selectionLayer {
     z-index: 2 !important;
   }
@@ -174,8 +178,11 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       }
     })
 
+    const appSettings = await RPCs.getAppSettings()
+    const enableHighlightHelpers = appSettings.enable_highlight_helpers
 
-    const explainButtonJSON = {
+    if (enableHighlightHelpers) {
+      const explainButtonJSON = {
       tag: 'div',
       attributes: {
         style: 'position: absolute; bottom: -10px; z-index: 5;',
@@ -207,70 +214,70 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       }]
     }
 
-    await RPCs.addNativeElements({
-      type: 'CSS',
-      selector: '.cm-selectionBackground:last-of-type',
-    }, explainButtonJSON);
-    await RPCs.addNativeElements({
-      type: 'CSS',
-      selector: '.ace_selection:last-of-type',
-    }, explainButtonJSON);
+      await RPCs.addNativeElements({
+        type: 'CSS',
+        selector: '.cm-selectionBackground:last-of-type',
+      }, explainButtonJSON);
+      await RPCs.addNativeElements({
+        type: 'CSS',
+        selector: '.ace_selection:last-of-type',
+      }, explainButtonJSON);
 
-    await RPCs.addNativeElements({
-      type: 'CSS',
-      selector: '.cm-selectionBackground:last-of-type',
-    }, modifyButtonJSON);
-    await RPCs.addNativeElements({
-      type: 'CSS',
-      selector: '.ace_selection:last-of-type',
-    }, modifyButtonJSON);
+      await RPCs.addNativeElements({
+        type: 'CSS',
+        selector: '.cm-selectionBackground:last-of-type',
+      }, modifyButtonJSON);
+      await RPCs.addNativeElements({
+        type: 'CSS',
+        selector: '.ace_selection:last-of-type',
+      }, modifyButtonJSON);
 
-    let _currentlySelectedText = '';
-    await subscribe({
-      editor: {
-      selector: {
-        type: "CSS",
-        selector: ".minusx_highlight_button"
-      },
-      attrs: ["text"],
-    },
-    }, ({elements, url}) => {
-      highlightTasks(async (taskStatus) => {
-        const selectedText = await RPCs.getSelectedTextOnEditor() as string;
-        if (selectedText && !isEmpty(selectedText)) {
-          _currentlySelectedText = selectedText;
-        }
-      })
-    })
-
-
-    addNativeEventListener({
-      type: "CSS",
-      selector: 'button#explain-snippet'
-    }, async (event) => {
-      const selectedText = _currentlySelectedText;
-      RPCs.toggleMinusXRoot('closed', false)
-      RPCs.addUserMessage({
-        content: {
-          type: "DEFAULT",
-          text: `explain the highlighted SQL snippet: 
-                \`\`\`
-                ${selectedText}
-                \`\`\`
-                `,
-          images: []
+      let _currentlySelectedText = '';
+      await subscribe({
+        editor: {
+        selector: {
+          type: "CSS",
+          selector: ".minusx_highlight_button"
         },
-      });
+        attrs: ["text"],
+      },
+      }, ({elements, url}) => {
+        highlightTasks(async (taskStatus) => {
+          const selectedText = await RPCs.getSelectedTextOnEditor() as string;
+          if (selectedText && !isEmpty(selectedText)) {
+            _currentlySelectedText = selectedText;
+          }
+        })
+      })
 
-    }, ['mousedown'])
-    
-    addNativeEventListener({
-      type: "CSS",
-      selector: 'button#modify-snippet'
-    }, async (event) => {
+
+      addNativeEventListener({
+        type: "CSS",
+        selector: 'button#explain-snippet'
+      }, async (event) => {
         const selectedText = _currentlySelectedText;
         RPCs.toggleMinusXRoot('closed', false)
-        dispatch(setInstructions(`Modify only this snippet of the SQL query: 
+        RPCs.addUserMessage({
+          content: {
+            type: "DEFAULT",
+            text: `explain the highlighted SQL snippet: 
+                  \`\`\`
+                  ${selectedText}
+                  \`\`\`
+                  `,
+            images: []
+          },
+        });
+
+      }, ['mousedown'])
+      
+      addNativeEventListener({
+        type: "CSS",
+        selector: 'button#modify-snippet'
+      }, async (event) => {
+          const selectedText = _currentlySelectedText;
+          RPCs.toggleMinusXRoot('closed', false)
+          dispatch(setInstructions(`Modify only this snippet of the SQL query: 
 \`\`\`
 ${selectedText}
 \`\`\`
@@ -278,7 +285,8 @@ ${selectedText}
 Here's what I need modified:
 
 `));
-    }, ['mousedown'])
+      }, ['mousedown'])
+    }
     
     // Listen to clicks on Error Message
     const nonceElement = await RPCs.queryDOMSingle({
@@ -298,7 +306,7 @@ Here's what I need modified:
         class: 'minusx-metabase-styles',
         nonce: nonceValue,
       },
-      children: [metabaseStyles]
+      children: [getBaseStyles() + (enableHighlightHelpers ? getHighlightStyles() : '')]
     });
     const errorMessageSelector = querySelectorMap['error_message_head']
     const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {

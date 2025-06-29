@@ -100,6 +100,7 @@ interface Settings {
   groupsEnabled: boolean
   modelsMode: boolean
   viewAllCatalogs: boolean
+  enable_highlight_helpers: boolean
 }
 
 const initialState: Settings = {
@@ -129,7 +130,8 @@ const initialState: Settings = {
   groups: {},
   groupsEnabled: false,
   modelsMode: true,
-  viewAllCatalogs: false
+  viewAllCatalogs: false,
+  enable_highlight_helpers: false
 }
 
 export const settingsSlice = createSlice({
@@ -309,6 +311,9 @@ export const settingsSlice = createSlice({
                 state.selectedCatalog = DEFAULT_TABLES
             }
         }
+    },
+    setEnableHighlightHelpers: (state, action: PayloadAction<boolean>) => {
+      state.enable_highlight_helpers = action.payload
     }
   },
 })
@@ -320,7 +325,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs,
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers,
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

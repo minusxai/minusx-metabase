@@ -13,7 +13,8 @@ export const getAppSettings = () => {
     selectedCatalog: settings.selectedCatalog,
     availableCatalogs: settings.availableCatalogs,
     modelsMode: settings.modelsMode,
-    selectedModels: settings.selectedModels
+    selectedModels: settings.selectedModels,
+    enable_highlight_helpers: settings.enable_highlight_helpers
   }
 }
 
