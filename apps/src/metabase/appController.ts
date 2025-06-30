@@ -219,7 +219,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (userApproved) {
         dispatch(addMemory(memory));
         dispatch(updateIsDevToolsOpen(true))
-        dispatch(updateDevToolsTabName('minusx.md'))
+        dispatch(updateDevToolsTabName('Memory'))
         await RPCs.setMinusxMode('open-sidepanel-devtools')
         actionContent.content = "Memory added successfully";
     }
