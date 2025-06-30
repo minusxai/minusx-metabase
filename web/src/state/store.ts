@@ -415,7 +415,7 @@ const migrations = {
 
 const persistConfig = {
   key: 'root',
-  version: 35,
+  version: 36,
   storage,
   blacklist: ['billing', 'cache'],
   // @ts-ignore
