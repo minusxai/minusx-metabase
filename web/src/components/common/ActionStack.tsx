@@ -102,13 +102,14 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           <VStack alignItems={"start"} flex={1} spacing={0}>
             {preExpanderText !== '' && 
             // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
-            <Box borderBottomWidth={1} borderBottomColor={'minusxGreen.800'}>
+            <Box aria-label="thinking-content" borderBottomWidth={1} borderBottomColor={'minusxGreen.800'}>
             <Markdown content={`Thinking...
                 ${preExpanderText}`}></Markdown>
                 </Box>
 
             }
             <HStack
+              aria-label="thinking-header"
               paddingBottom={actions.length && isExpanded ? 1 : 0}
             marginBottom={actions.length && isExpanded ? 1 : 0}
           borderBottomWidth={ actions.length && isExpanded ? '1px' : '0px'}

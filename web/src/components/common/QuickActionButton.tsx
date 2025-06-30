@@ -13,7 +13,7 @@ export const QuickActionButton = ({tooltip, onclickFn, icon, isDisabled}:
     <IconButton
       variant={'ghost'}
       colorScheme="minusxGreen"
-      aria-label="Selection"
+      aria-label="quick-action-button"
       size={'sm'}
       onClick={onclickFn}
       icon={<Icon as={icon} boxSize={5} />}

@@ -527,18 +527,18 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         { !taskInProgress && 
-            <Stack position={"relative"}>
+            <Stack aria-label="chat-input-area" position={"relative"}>
                 <AutosizeTextarea
                 ref={ref}
                 autoFocus
-                aria-label='Enter Instructions'
+                aria-label='chat-input'
                 value={instructions}
                 isDisabled={taskInProgress || isRecording}
                 onChange={(e) => setInstructions(e.target.value)}
                 onKeyDown={onKeyDown}
                 style={{ width: '100%', height: "100%" }}
             />
-          <HStack position={"absolute"} bottom={0} width={"100%"} p={2}>
+          <HStack aria-label="chat-controls" position={"absolute"} bottom={0} width={"100%"} p={2}>
             <HStack justify={"space-between"}  width={"100%"}>
               <HStack gap={0}>
                 {/* <VoiceInputButton disabled={taskInProgress} onClick={voiceInputOnClick} isRecording={isRecording}/> */}
@@ -583,8 +583,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         </Stack>
         }
         {taskInProgress && (
-            <HStack justifyContent="center" width="100%" py={2}>
+            <HStack aria-label="stop-task-area" justifyContent="center" width="100%" py={2}>
                 <Button
+                    aria-label="stop-task-button"
                     colorScheme="minusxGreen"
                     size="sm"
                     leftIcon={<BiStopCircle />}

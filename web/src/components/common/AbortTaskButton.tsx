@@ -11,7 +11,7 @@ export default function AbortTaskButton({ abortTask, disabled }: { abortTask: ()
       onClick={abortTask}
       variant='solid'
       colorScheme='minusxGreen'
-      aria-label='Abort'
+      aria-label='abort-button'
       size={"sm"}
       icon={<Icon as={BsStopFill} boxSize={5} />}
       disabled={disabled}

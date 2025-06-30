@@ -25,7 +25,7 @@ interface ChatSuggestionsProps {
 
 export const ChatSuggestions: React.FC<ChatSuggestionsProps> = ({ suggestQueries, toggleSuggestions, suggestions, onSuggestionClick }) => {
   return (
-    <Flex wrap="wrap" gap={2}>
+    <Flex aria-label="chat-suggestions" wrap="wrap" gap={2}>
       <HStack justifyContent={"space-between"} width={"100%"}>
         <HStack color="minusxGreen.500">
           <HiMiniSparkles/>
@@ -43,6 +43,7 @@ export const ChatSuggestions: React.FC<ChatSuggestionsProps> = ({ suggestQueries
       {suggestQueries && suggestions.map((suggestion, index) => (
         <Button
           key={index}
+          aria-label="suggestion-button"
           onClick={() => onSuggestionClick(suggestion)}
           size="sm"
           colorScheme="blue"

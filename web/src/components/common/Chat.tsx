@@ -97,6 +97,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
   return (
     <HStack
       className={`chat ${role}`}
+      aria-label={role === 'user' ? 'user-message' : 'assistant-message'}
       justifyContent={role == 'user' ? 'end' : 'start'}
       width="100%"
       onMouseEnter={() => setIsHovered(true)}
@@ -110,6 +111,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
       >
         <Box
           className={'bubble'}
+          aria-label={role === 'user' ? 'user-message-bubble' : 'assistant-message-bubble'}
           bg={role == 'user' ? 'minusxBW.300' : 'minusxGreen.800'}
           // bg={role == 'user' ? 'minusxBW.300' : 'minusxBW.600'}
           px={3} py={2}
@@ -137,7 +139,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           />
         </Box>
         {(isHovered || (reaction !== "unrated")) && (role == 'tool') && (
-          <Box position="absolute" bottom={-1} right={0}>
+          <Box aria-label="message-reactions" position="absolute" bottom={-1} right={0}>
             <IconButton
               aria-label="Thumbs up"
               isRound={true}
@@ -158,7 +160,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           </Box>
         )}
         {(isHovered || (reaction !== "unrated")) && (role == 'user') && (
-          <Box position="absolute" bottom={-1} right={0}>
+          <Box aria-label="message-actions" position="absolute" bottom={-1} right={0}>
             <IconButton
               aria-label="Delete"
               isRound={true}

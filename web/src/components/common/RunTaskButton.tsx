@@ -11,7 +11,7 @@ export default function RunTaskButton({ runTask, disabled }: { runTask: () => vo
         onClick={runTask}
         variant='solid'
         colorScheme='minusxGreen'
-        aria-label='Done'
+        aria-label='run-button'
         size={"sm"}
         icon={<Icon as={BsPlayFill} boxSize={5} />}
         disabled={disabled}
