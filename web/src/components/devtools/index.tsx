@@ -21,7 +21,7 @@ const Monitors: MonitorDef[] = [
     tags: ['production']
   },
   {
-    title: "minusx.md",
+    title: "Memory",
     component: MinusXMD,
   },
   {

@@ -22,7 +22,7 @@ export const MinusXMD: React.FC = () => {
 
     return <>
         <HStack justify="space-between" align="center" mb={4}>
-            <Text fontSize="2xl" fontWeight="bold">minusx.md</Text>
+            <Text fontSize="2xl" fontWeight="bold">Memory</Text>
             <HStack spacing={3} align="center">
                 <HStack spacing={2} align="center">
                     <Text fontSize="xs" color="minusxGreen.600" fontWeight="bold">
