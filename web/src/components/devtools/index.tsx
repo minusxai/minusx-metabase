@@ -7,7 +7,7 @@ import { ActionsView } from './ActionDebug';
 import Settings from './Settings'
 import { configs } from '../../constants';
 import { Context } from './Context';
-import { MinusXMD } from './Minusxmd';
+import { MinusXMD } from './Memory';
 
 const Monitors: MonitorDef[] = [
   {
