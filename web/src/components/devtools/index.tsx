@@ -29,7 +29,6 @@ const Monitors: MonitorDef[] = [
   {
     title: "CSS Customization",
     component: CSSCustomization,
-    tags: ['production']
   },
   {
     title: "Dev Context",
