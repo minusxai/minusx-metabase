@@ -9,6 +9,8 @@ import { configs } from '../../constants';
 import { Context } from './Context';
 import { MinusXMD } from './Memory';
 import CSSCustomization from './CSSCustomization';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../state/store';
 
 const Monitors: MonitorDef[] = [
   {
@@ -29,6 +31,7 @@ const Monitors: MonitorDef[] = [
   {
     title: "CSS Customization",
     component: CSSCustomization,
+    tags: ['production']
   },
   {
     title: "Dev Context",
@@ -45,11 +48,18 @@ const Monitors: MonitorDef[] = [
 ]
 
 export const DevToolsBox: React.FC = () => {
+  const enableStyleCustomization = useSelector((state: RootState) => state.settings.enableStyleCustomization)
+  
   const monitors = Monitors.filter(Monitor => {
-    if (configs.IS_DEV) {
-      return true
+    // Check existing dev/production logic
+    const isAllowedByEnv = configs.IS_DEV || Monitor.tags?.includes('production')
+    
+    // Special filtering for CSS Customization tab
+    if (Monitor.title === 'CSS Customization') {
+      return isAllowedByEnv && enableStyleCustomization
     }
-    return Monitor.tags?.includes('production') || false
+    
+    return isAllowedByEnv
   })
   console.log("Load assets here")
   return (

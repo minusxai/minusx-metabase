@@ -415,12 +415,17 @@ const migrations = {
     let newState = {...state}
     newState.settings.customCSS = ''
     return newState
+  },
+  38: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.enableStyleCustomization = false
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 37,
+  version: 38,
   storage,
   blacklist: ['billing', 'cache'],
   // @ts-ignore

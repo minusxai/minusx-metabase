@@ -114,6 +114,7 @@ interface Settings {
   enable_highlight_helpers: boolean
   useMemory: boolean
   customCSS: string
+  enableStyleCustomization: boolean
 }
 
 const initialState: Settings = {
@@ -147,6 +148,7 @@ const initialState: Settings = {
   enable_highlight_helpers: false,
   useMemory: true,
   customCSS: '',
+  enableStyleCustomization: false,
 }
 
 export const settingsSlice = createSlice({
@@ -340,6 +342,9 @@ export const settingsSlice = createSlice({
     },
     setCustomCSS: (state, action: PayloadAction<string>) => {
       state.customCSS = action.payload
+    },
+    setEnableStyleCustomization: (state, action: PayloadAction<boolean>) => {
+      state.enableStyleCustomization = action.payload
     }
   },
 })
@@ -351,7 +356,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
