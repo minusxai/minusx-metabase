@@ -410,12 +410,17 @@ const migrations = {
     newState.settings.aiRules = DEFAULT_MINUSXMD
     newState.settings.useMemory = true
     return newState
+  },
+  37: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.customCSS = ''
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 36,
+  version: 37,
   storage,
   blacklist: ['billing', 'cache'],
   // @ts-ignore

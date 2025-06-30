@@ -6,7 +6,7 @@ import { ContextCatalog, MxModel } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
-export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory'
+export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization'
 
 export const DEFAULT_TABLES = 'Default Tables'
 
@@ -113,6 +113,7 @@ interface Settings {
   viewAllCatalogs: boolean
   enable_highlight_helpers: boolean
   useMemory: boolean
+  customCSS: string
 }
 
 const initialState: Settings = {
@@ -145,6 +146,7 @@ const initialState: Settings = {
   viewAllCatalogs: false,
   enable_highlight_helpers: false,
   useMemory: true,
+  customCSS: '',
 }
 
 export const settingsSlice = createSlice({
@@ -335,6 +337,9 @@ export const settingsSlice = createSlice({
     },
     setEnableHighlightHelpers: (state, action: PayloadAction<boolean>) => {
       state.enable_highlight_helpers = action.payload
+    },
+    setCustomCSS: (state, action: PayloadAction<string>) => {
+      state.customCSS = action.payload
     }
   },
 })
@@ -346,7 +351,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
