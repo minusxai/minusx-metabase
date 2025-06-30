@@ -84,7 +84,7 @@ export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
 );
 
 // Table Operations
-export const fetchTableMetadata = createAPI<{ table_id: number }>(
+export const fetchTableMetadata = createAPI<{ table_id: number | string }>(
   '/api/table/{{table_id}}/query_metadata',
   'GET',
   // {
@@ -126,7 +126,7 @@ export const fetchTableMetadata = createAPI<{ table_id: number }>(
 );
 
 // Field Operations - EXPENSIVE, very conservative limits
-export const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
+export const fetchFieldUniqueValues = createAPI<{ field_id: number | string }>(
   '/api/field/{{field_id}}/values',
   'GET',
   {

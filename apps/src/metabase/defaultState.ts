@@ -106,6 +106,9 @@ export const metabaseInternalState: MetabaseInternalState = {
   },
   querySelectorMap,
   whitelistQuery: {
+    selected_database: {
+      selector: querySelectorMap["selected_database"],
+    },
     editor: {
       selector: querySelectorMap["query_editor"],
       attrs: ["class"],

@@ -115,6 +115,8 @@ function extractDbInfo(db: any, default_schema: string): DatabaseInfo {
 // UNIFIED SEARCH AND USER QUERY FUNCTIONS
 // =============================================================================
 
+async function getDatasetQueriesFor
+
 /**
  * Generic function to fetch queries from user edits and creations
  * Consolidates the repeated pattern across multiple functions
@@ -136,7 +138,9 @@ async function getUserQueries(userId: number, dbId?: number, searchQuery?: strin
       { data: [] }
     ),
   ]);
-  
+  console.log("<><><> userId", userId)
+  console.log("<><><> edits", edits)
+  console.log("<><><> creations", creations)
   const editQueries = extractQueriesFromResponse(edits);
   const creationQueries = extractQueriesFromResponse(creations);
   return Array.from(new Set([...editQueries, ...creationQueries]));
@@ -188,7 +192,7 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
 
 export async function getDatabaseTablesAndModelsWithoutFields(dbId: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  
+  console.log("<><><> alltables jsonResponse", jsonResponse)
   const models = await getAllRelevantModelsForSelectedDb(dbId, forceRefreshModels) ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
@@ -224,18 +228,18 @@ export async function getFieldResolvedName(fieldId: number) {
 /**
  * Get tables referenced in user's queries (with fallback to all database tables)
  */
-export async function getUserTables(): Promise<TableAndSchema[]> {
+export async function getUserTables(dbId?: number): Promise<TableAndSchema[]> {
   const userInfo = await getCurrentUserInfo();
   if (!userInfo) return [];
 
   const queries = await getUserQueries(userInfo.id);
+  console.log("<><><> user queries", queries)
   const queriesTablesFromQueries = extractTablesFromQueries(queries).map(table => {
     table.count = (table.count || 0) + 10
     return table
   });
   
   // Fallback: if user has no queries, get ALL database queries
-  const dbId = await getSelectedDbId();
   if (!dbId) return queriesTablesFromQueries;
   
   const remainingTables = await performFallbackSearch(
@@ -293,7 +297,7 @@ export async function searchAllQueries(dbId: number, query: string): Promise<Tab
 /**
  * Get sample values for a field
  */
-export async function getFieldUniqueValues(fieldId: number) {
+export async function getFieldUniqueValues(fieldId: number | string) {
   return await fetchFieldUniqueValues({ field_id: fieldId });
 }
 
@@ -322,7 +326,7 @@ function truncateUniqueValue(value: any): any {
 /**
  * Fetch table metadata with enhanced table info
  */
-export async function getTableMetadata(tableId: number) {
+export async function getTableMetadata(tableId: number | string) {
   const resp = await fetchTableMetadata({ table_id: tableId }) as any;
   if (!resp) {
     console.warn("Failed to get table schema", tableId, resp);
@@ -420,7 +424,7 @@ async function getSampleValuesWithTimeout(tableInfo: FormattedTable, timeout: nu
 const ENABLE_UNIQUE_VALUES = true; // Set to false to disable sample values for now
 const DEFAULT_SAMPLE_VALUES_TIMEOUT = 100; // 100ms timeout for sample values
 
-export async function getTableData(tableId: number, sampleValuesTimeout?: number): Promise<FormattedTable | "missing"> {
+export async function getTableData(tableId: number | string, sampleValuesTimeout?: number): Promise<FormattedTable | "missing"> {
   const metadataResult = await getTableMetadata(tableId);
   if (metadataResult === "missing") {
     return "missing";

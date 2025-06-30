@@ -71,8 +71,8 @@ export const querySelectorMap: QuerySelectorMap = {
     selector: "[data-testid='dashcard-container']"
   },
   selected_database: {
-    type: 'XPATH',
-    selector: "//*[@data-testid='native-query-top-bar']/div[1]"
+    type: 'CSS',
+    selector: "[data-testid='selected-database']"
   },
   query_editor: {
     type: 'XPATH',
