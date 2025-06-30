@@ -71,8 +71,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   }
 
   return (
-    <HStack aria-label={title} className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
+    <HStack aria-label="thinking-block" className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
       <Box
+        aria-label="thinking-block-container"
         // bg={'minusxGreen.800'}
         bg={'minusxBW.200'}
         // p={2}

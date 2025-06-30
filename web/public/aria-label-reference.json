@@ -1,0 +1,90 @@
+[
+  {
+    "aria-label": "user-message",
+    "description": "Container for user messages in the chat interface"
+  },
+  {
+    "aria-label": "assistant-message", 
+    "description": "Container for assistant/AI messages in the chat interface"
+  },
+  {
+    "aria-label": "user-message-bubble",
+    "description": "The actual message bubble/balloon containing user text"
+  },
+  {
+    "aria-label": "assistant-message-bubble",
+    "description": "The actual message bubble/balloon containing assistant text"
+  },
+  {
+    "aria-label": "message-reactions",
+    "description": "Area containing thumbs up/down reaction buttons for messages"
+  },
+  {
+    "aria-label": "message-actions",
+    "description": "Area containing action buttons like delete for user messages"
+  },
+  {
+    "aria-label": "thinking-block",
+    "description": "Main container for AI thinking/reasoning display blocks"
+  },
+  {
+    "aria-label": "thinking-block-container",
+    "description": "Wrapper container around thinking block content"
+  },
+  {
+    "aria-label": "thinking-content",
+    "description": "The actual 'Thinking...' text and reasoning content"
+  },
+  {
+    "aria-label": "thinking-header",
+    "description": "Clickable header of thinking blocks that can be expanded/collapsed"
+  },
+  {
+    "aria-label": "chat-input-area",
+    "description": "Container for the chat input section including textarea and controls"
+  },
+  {
+    "aria-label": "chat-input",
+    "description": "The main textarea where users type their messages/instructions"
+  },
+  {
+    "aria-label": "chat-controls",
+    "description": "Area containing chat control buttons and options"
+  },
+  {
+    "aria-label": "run-button",
+    "description": "Circular run/play button to execute user instructions (also labeled as 'Done')"
+  },
+  {
+    "aria-label": "abort-button",
+    "description": "Circular stop button to abort currently running tasks"
+  },
+  {
+    "aria-label": "stop-task-button",
+    "description": "Full-width button to stop currently executing tasks"
+  },
+  {
+    "aria-label": "stop-task-area",
+    "description": "Container area for the stop task button when tasks are running"
+  },
+  {
+    "aria-label": "chat-suggestions",
+    "description": "Container for AI-generated query suggestions and the suggestions toggle"
+  },
+  {
+    "aria-label": "suggestion-button",
+    "description": "Individual clickable suggestion buttons with pre-written queries"
+  },
+  {
+    "aria-label": "quick-action-button",
+    "description": "Quick action buttons for common operations (like selection, refresh, etc.)"
+  },
+  {
+    "aria-label": "tasks-panel",
+    "description": "Container panel for task management and execution status"
+  },
+  {
+    "aria-label": "planning",
+    "description": "Container for AI planning phase display with rotating messages"
+  }
+]
