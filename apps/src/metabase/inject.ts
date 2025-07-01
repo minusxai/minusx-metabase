@@ -37,12 +37,7 @@ const dispatchMetabaseAction = (type: string, payload: any) => {
     }
 }
 
-interface EventListener {
-    event: string
-    path: Parameters<typeof get>[1]
-}
-
-const eventListeners: Array<EventListener> = []
+const listeningPaths: Array<string> = []
 
 async function onMetabaseLoad() {
     while (true) {
@@ -57,7 +52,7 @@ async function onMetabaseLoad() {
     let oldState = store.getState()
     store.subscribe(() => {
         const state = store.getState()
-        eventListeners.forEach(({ event, path }) => {
+        listeningPaths.forEach((path) => {
             const oldValue = get(oldState, path)
             const newValue = get(state, path)
             if (oldValue !== newValue) {
@@ -65,7 +60,7 @@ async function onMetabaseLoad() {
                 sendIFrameMessage({
                     key: 'metabaseStateChange',
                     value: {
-                        event,
+                        value: newValue,
                         path
                     }
                 })
@@ -74,14 +69,24 @@ async function onMetabaseLoad() {
     })
 }
 
-const subscribeMetabaseState = (events: Array<EventListener>) => {
-    eventListeners.push(...events)
+const subscribeMetabaseState = (path: string) => {
+    const index = listeningPaths.indexOf(path)
+    if (index !== -1) {
+        // Already subscribed to this path
+        return index
+    }
+    const newIndex = listeningPaths.length
+    listeningPaths.push(path)
+    return newIndex
 }
+
+onMetabaseLoad()
 
 export const rpc = {
     getMetabaseState,
     dispatchMetabaseAction,
-    getSelectedTextOnEditor
+    getSelectedTextOnEditor,
+    subscribeMetabaseState
 }
 
 initWindowListener(rpc)
