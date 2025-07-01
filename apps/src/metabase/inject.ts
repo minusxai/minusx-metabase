@@ -1,4 +1,4 @@
-import { get, isEmpty, set } from "lodash"
+import { debounce, get, isEmpty, set } from "lodash"
 import { initWindowListener, sendIFrameMessage } from 'extension'
 
 const getMetabaseState = (path: Parameters<typeof get>[1]) => {
@@ -50,7 +50,7 @@ async function onMetabaseLoad() {
     }
     const store = get(window, 'Metabase.store') as any
     const oldState = {}
-    const callback = () => {
+    const callback = debounce(() => {
         const state = store.getState()
         listeningPaths.forEach((path, id) => {
             const oldValue = get(oldState, path)
@@ -67,7 +67,7 @@ async function onMetabaseLoad() {
                 })
             }
         })
-    }
+    }, 200, { leading: true, trailing: true })
     callback()
     store.subscribe(callback)
 }
