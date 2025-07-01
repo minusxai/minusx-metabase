@@ -92,21 +92,23 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     
     
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+  const dbInfo = toolContext.dbInfo
   const isAppEnabled: boolean = useAppStore((state) => state.isEnabled)?.value || false
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
+  // only take models for the current db id
+  const validSelectedModels = selectedModels.filter(model => model.dbId === dbInfo.id)
 
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
 
   const relevantTables = toolContext.relevantTables || []
-  const dbInfo = toolContext.dbInfo
 
   const allTables = dbInfo.tables || []
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
 
   // ToDo: Vivek - this is ugly, but it works for now
   // This needs to be consolidated and done in one place
-  const entitiesInContext = currentCatalogEntities.length > 0 ? currentCatalogEntities.length : validAddedTables.length + selectedModels.length
+  const entitiesInContext = currentCatalogEntities.length > 0 ? currentCatalogEntities.length : validAddedTables.length + validSelectedModels.length
   
   const [isChangedByDb, setIsChangedByDb] = React.useState<Record<number, boolean>>({}) 
 
@@ -119,7 +121,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     if (!isEmpty(relevantTables) && currentDbId) {
       const isCurrentDbChanged = isChangedByDb[currentDbId] || false
       
-      if (isEmpty(validAddedTables) && !isCurrentDbChanged) {
+      if ((isEmpty(validAddedTables) && isEmpty(validSelectedModels)) && !isCurrentDbChanged) {
         resetRelevantTables(relevantTables.map(table => ({
           name: table.name,
           schema: table.schema,
@@ -222,7 +224,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "You can switch to Default Tables catalog in settings"
         preventRunTask = true
     }
-    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(selectedModels)) {
+    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(validSelectedModels)) {
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
         preventRunTask = true
