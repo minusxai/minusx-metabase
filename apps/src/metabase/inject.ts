@@ -49,10 +49,10 @@ async function onMetabaseLoad() {
         }
     }
     const store = get(window, 'Metabase.store') as any
-    let oldState = store.getState()
-    store.subscribe(() => {
+    const oldState = {}
+    const callback = () => {
         const state = store.getState()
-        listeningPaths.forEach((path) => {
+        listeningPaths.forEach((path, id) => {
             const oldValue = get(oldState, path)
             const newValue = get(state, path)
             if (oldValue !== newValue) {
@@ -61,12 +61,15 @@ async function onMetabaseLoad() {
                     key: 'metabaseStateChange',
                     value: {
                         value: newValue,
-                        path
+                        path,
+                        id
                     }
                 })
             }
         })
-    })
+    }
+    callback()
+    store.subscribe(callback)
 }
 
 const subscribeMetabaseState = (path: string) => {
@@ -77,6 +80,15 @@ const subscribeMetabaseState = (path: string) => {
     }
     const newIndex = listeningPaths.length
     listeningPaths.push(path)
+    const newValue = getMetabaseState(path) // Initialize the state for this path
+    sendIFrameMessage({
+        key: 'metabaseStateChange',
+        value: {
+            value: newValue,
+            path,
+            id: newIndex
+        }
+    })
     return newIndex
 }
 

@@ -13,6 +13,7 @@ import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo } from "./help
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
+import { subscribeMB } from "./helpers/stateSubscriptions";
 
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
@@ -126,6 +127,10 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     if (!whitelistQuery) {
       return
     }
+    // Example of subscribing to Metabase state
+    // subscribeMB('qb.card', async ({value}) => {
+    //   console.log('Current qb card value:', value);
+    // })
     subscribe(whitelistQuery, async ({elements, url}) => {
       const getState = this.useStore().getState
       const toolEnabledNew = shouldEnable(elements, url);

@@ -27,6 +27,7 @@ import { setInstructions } from '../state/thumbnails/reducer';
 import { IntercomProvider, useIntercom } from 'react-use-intercom';
 import { endTranscript, storeTranscripts } from '../helpers/recordings';
 import { onNativeEvent } from '../helpers/nativeEvents';
+import { onMBSubscription, subscribeMB } from 'apps';
 
 const toggleMinusX = (value?: boolean) => toggleMinusXRoot('closed', value)
 
@@ -77,6 +78,10 @@ const initRPCSync = (ref: React.RefObject<HTMLInputElement>) => {
             if (rpcEvent.payload.key == 'recordingTranscript') {
                 const transcript = rpcEvent.payload.value
                 storeTranscripts(transcript)
+            }
+            if (rpcEvent.payload.key == 'metabaseStateChange') {
+                const pathValue = rpcEvent.payload.value
+                onMBSubscription(pathValue)
             }
         } else if (rpcEvent && rpcEvent.type == 'CROSS_TAB_REQUEST') {
             const { uuid, message } = rpcEvent

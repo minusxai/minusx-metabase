@@ -113,7 +113,7 @@ export const dispatchMetabaseAction = (type: string, payload?: any) =>
 export const getSelectedTextOnEditor = () =>
   sendMessage('getSelectedTextOnEditor', [], { log_rpc: true })
 export const subscribeMetabaseState = (path: string) =>
-  sendMessage('subscribeMetabaseState', [path], { log_rpc: true })
+  sendMessage('subscribeMetabaseState', [path], { log_rpc: true }) as unknown as Promise<number>
 export const getJupyterState = (mode?: string) =>
   sendMessage('getJupyterState', [mode], { log_rpc: true, timeout: 3000 })
 export const getJupyterCodeOutput = (
