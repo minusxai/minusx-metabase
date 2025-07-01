@@ -1,7 +1,7 @@
 export * as RPCs from './app/rpc';
 export * as utils from './helpers/utils';
 export * as catalogAsModels from './helpers/catalogAsModels';
-export { memoize } from './cache/cache'
+export { memoize, deleteCache } from './cache/cache'
 export { subscribe, unsubscribe } from './helpers/documentSubscription';
 export { addNativeEventListener } from './helpers/nativeEvents';
 export { configs } from './constants';

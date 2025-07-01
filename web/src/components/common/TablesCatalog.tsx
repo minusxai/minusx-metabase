@@ -7,7 +7,7 @@ import { applyTableDiff, TableInfo, resetDefaultTablesDB, setSelectedModels } fr
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { applyTableDiffs } from "apps";
+import { applyTableDiffs, getDatabaseTablesAndModelsWithoutFields } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
 import { ModelView } from "./ModelView";
@@ -50,6 +50,29 @@ export const TablesCatalog: React.FC<null> = () => {
   const allTables = dbInfo.tables || []
   const allModels = dbInfo.models|| []
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
+
+  const syncModels = async () => {
+    const currentDbId = toolContext.dbId
+    if (!currentDbId) return
+
+    const appState = useAppStore.getState()
+
+    try {
+      const updatedDbInfo = await getDatabaseTablesAndModelsWithoutFields(currentDbId, true)
+      console.log('Updated DB Info:', updatedDbInfo)
+      
+      appState.update((oldState) => ({
+        ...oldState,
+        toolContext: {
+          ...oldState.toolContext,
+          dbInfo: updatedDbInfo,
+          loading: false
+        }
+      }))
+    } catch (error) {
+      console.error('Failed to refresh database info:', error)
+    }
+  }
 
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
   // only take models for the current db id
@@ -138,6 +161,9 @@ export const TablesCatalog: React.FC<null> = () => {
             </TabPanel>
         </TabPanels>
     </Tabs>
+    <HStack justifyContent={"flex-end"}>
+        <Button size={'xs'} colorScheme="minusxGreen" onClick={syncModels}>Hard Sync Models</Button>
+    </HStack>
     {/* {
       isModelView ? (
         <ModelView tables={validAddedTables} />

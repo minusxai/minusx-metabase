@@ -1,4 +1,4 @@
-import { getCache, setCache } from "./indexedDb"
+import { getCache, setCache, deleteCache } from "./indexedDb"
 
 // Default TTL set to 7 days (7 days * 24 hours * 60 minutes * 60 seconds)
 export const DEFAULT_TTL = 7 * 24 * 60 * 60;
@@ -97,3 +97,5 @@ export function memoize<T extends AsyncFunction>(
     return promise;
   };
 }
+
+export { deleteCache };

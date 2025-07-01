@@ -5,7 +5,7 @@
  * to prevent overwhelming the Metabase instance with too many simultaneous requests.
  */
 
-import { memoize, RPCs, processMetadata } from 'web';
+import { memoize, RPCs, processMetadata, deleteCache } from 'web';
 import type { MetadataItem } from 'web/types';
 import {
   type APIConfig,
@@ -155,6 +155,7 @@ export function createAPI<T extends Record<string, any>, >(
         throw new Error(`Missing required parameter: ${key} for API: ${template}`);
       }
     }
+    console.log(`fetch for ${template}`)
   }
 
   // Create memoized function with concurrency control
@@ -168,6 +169,7 @@ export function createAPI<T extends Record<string, any>, >(
         
         // Separate body params from URL params
         const bodyParams: Record<string, any> = {};
+        
         for (const [key, value] of Object.entries(params)) {
           if (!usedKeys.has(key)) {
             bodyParams[key] = value;
@@ -203,6 +205,15 @@ export function createAPI<T extends Record<string, any>, >(
     } : undefined
   );
 
-  // Return the callable function
-  return memoizedFetch;
+  return async (params: T): Promise<any> => {
+    const { forceRefresh, ...cleanParams } = params as T & { forceRefresh?: boolean };
+    
+    if (forceRefresh) {
+      const cacheKey = `${template}-${JSON.stringify({...cleanParams, forceRefresh: false})}`;
+      console.log('deleted cache for:', cacheKey);
+      await deleteCache(cacheKey);
+    }
+    
+    return memoizedFetch(cleanParams as T);
+  };
 }

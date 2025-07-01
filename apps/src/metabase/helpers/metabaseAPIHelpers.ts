@@ -167,8 +167,9 @@ export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
 }
 
-export const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<MetabaseModel[]> => {
-  const models = await fetchModels({db_id: dbId}) as SearchApiResponse;
+export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {
+  const models = await fetchModels({db_id: dbId, forceRefresh: forceRefreshModels}) as SearchApiResponse;
+  console.log("Fetched models for DB fetchModels fn | forceRefreshModels", dbId, models, forceRefreshModels);
   const data = get(models, 'data', []);
   const modelsAsTables = data.map(model => {
     return {
@@ -186,10 +187,11 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number): Promise<M
 }
 
 
-export async function getDatabaseTablesAndModelsWithoutFields(dbId: number): Promise<DatabaseInfoWithTablesAndModels> {
+export async function getDatabaseTablesAndModelsWithoutFields(dbId: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
   
-  const models = await getAllRelevantModelsForSelectedDb(dbId) ;
+  const models = await getAllRelevantModelsForSelectedDb(dbId, forceRefreshModels) ;
+  console.log(models, "Models fetched for DB", dbId);
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
