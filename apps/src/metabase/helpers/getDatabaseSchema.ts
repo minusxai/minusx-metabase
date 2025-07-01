@@ -153,7 +153,6 @@ export const getRelevantTablesForSelectedDb = async (): Promise<FormattedTable[]
   });
 
   const tableResults = await Promise.all(tableDataPromises);
-  console.log("<><><> tableResults", tableResults)
   // Filter and limit to 20 tables
   const filteredTables = tableResults
     .filter(result => result.valid)

@@ -30,7 +30,7 @@ import {
   fetchModels,
   fetchCard
 } from './metabaseAPI';
-import { SearchApiResponse } from './types';
+import { Card, SearchApiResponse } from './types';
 
 // =============================================================================
 // HELPER FUNCTIONS FOR DATA EXTRACTION
@@ -42,10 +42,21 @@ function extractQueriesFromResponse(response: any): string[] {
     .filter((query: any) => !isEmpty(query));
 }
 
-function fetchCardsIfMissingDatasetQuery(searchResponse: SearchApiResponse) {
+async function getOrFetchSqlQueryFromCards(searchResponse: SearchApiResponse): Promise<string[]> {
   const cards = get(searchResponse, 'data', []).filter((entity: any) => entity.model === 'card' || entity.model === 'dataset');
-  const cardIds = cards.map((card: any) => card.id);
-  const cardQueries = await fetchCard(cardIds);
+  // check if dataset_query is missing. happens in metabase version >= 54
+  const cardsWithMissingDatasetQuery = cards.filter((card: any) => !card.dataset_query);
+  if (cardsWithMissingDatasetQuery.length === 0) {
+    return cards
+      .map((entity: any) => get(entity, "dataset_query.native.query"))
+      .filter((query: any) => !isEmpty(query));
+  }
+  // only fetch the first 50 cards to avoid overwhelming the API
+  const cardIds = cardsWithMissingDatasetQuery.map((card: any) => card.id).slice(0, 50);
+  const cardQueries = await Promise.all(cardIds.map(async (cardId: number) => {
+    const card = await fetchCard({card_id: cardId}) as Card
+    return card.dataset_query.native.query;
+  }));
   return cardQueries;
 }
 
@@ -146,11 +157,8 @@ async function getUserQueries(userId: number, dbId: number, searchQuery?: string
       { data: [] }
     ),
   ]);
-  console.log("<><><> userId", userId)
-  console.log("<><><> edits", edits)
-  console.log("<><><> creations", creations)
-  const editQueries = extractQueriesFromResponse(edits);
-  const creationQueries = extractQueriesFromResponse(creations);
+  const editQueries = await getOrFetchSqlQueryFromCards(edits);
+  const creationQueries = await getOrFetchSqlQueryFromCards(creations);
   return Array.from(new Set([...editQueries, ...creationQueries]));
 }
 
@@ -200,7 +208,6 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
 
 export async function getDatabaseTablesAndModelsWithoutFields(dbId: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  console.log("<><><> alltables jsonResponse", jsonResponse)
   const models = await getAllRelevantModelsForSelectedDb(dbId, forceRefreshModels) ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
@@ -241,7 +248,6 @@ export async function getUserTables(dbId: number): Promise<TableAndSchema[]> {
   if (!userInfo) return [];
 
   const queries = await getUserQueries(userInfo.id, dbId);
-  console.log("<><><> user queries", queries)
   const queriesTablesFromQueries = extractTablesFromQueries(queries).map(table => {
     table.count = (table.count || 0) + 10
     return table
