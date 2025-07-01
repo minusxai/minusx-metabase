@@ -27,7 +27,8 @@ import {
   fetchSearchByQuery,
   fetchFieldUniqueValues,
   fetchTableMetadata,
-  fetchModels
+  fetchModels,
+  fetchCard
 } from './metabaseAPI';
 import { SearchApiResponse } from './types';
 
@@ -39,6 +40,13 @@ function extractQueriesFromResponse(response: any): string[] {
   return get(response, 'data', [])
     .map((entity: any) => get(entity, "dataset_query.native.query"))
     .filter((query: any) => !isEmpty(query));
+}
+
+function fetchCardsIfMissingDatasetQuery(searchResponse: SearchApiResponse) {
+  const cards = get(searchResponse, 'data', []).filter((entity: any) => entity.model === 'card' || entity.model === 'dataset');
+  const cardIds = cards.map((card: any) => card.id);
+  const cardQueries = await fetchCard(cardIds);
+  return cardQueries;
 }
 
 function getDefaultSchema(databaseInfo: any) {
@@ -115,25 +123,25 @@ function extractDbInfo(db: any, default_schema: string): DatabaseInfo {
 // UNIFIED SEARCH AND USER QUERY FUNCTIONS
 // =============================================================================
 
-async function getDatasetQueriesFor
+// async function getDatasetQueriesFor
 
 /**
  * Generic function to fetch queries from user edits and creations
  * Consolidates the repeated pattern across multiple functions
  */
-async function getUserQueries(userId: number, dbId?: number, searchQuery?: string): Promise<string[]> {
+async function getUserQueries(userId: number, dbId: number, searchQuery?: string): Promise<string[]> {
   const [edits, creations] = await Promise.all([
     handlePromise(
-      searchQuery && dbId 
+      searchQuery
         ? fetchSearchUserEditsByQuery({ db_id: dbId, query: searchQuery, user_id: userId })
-        : fetchUserEdits({ user_id: userId }),
+        : fetchUserEdits({ user_id: userId, db_id: dbId}),
       "[minusx] Error getting user edits", 
       { data: [] }
     ),
     handlePromise(
-      searchQuery && dbId
+      searchQuery
         ? fetchSearchUserCreationsByQuery({ db_id: dbId, query: searchQuery, user_id: userId })
-        : fetchUserCreations({ user_id: userId }),
+        : fetchUserCreations({ user_id: userId, db_id: dbId }),
       "[minusx] Error getting user creations", 
       { data: [] }
     ),
@@ -228,11 +236,11 @@ export async function getFieldResolvedName(fieldId: number) {
 /**
  * Get tables referenced in user's queries (with fallback to all database tables)
  */
-export async function getUserTables(dbId?: number): Promise<TableAndSchema[]> {
+export async function getUserTables(dbId: number): Promise<TableAndSchema[]> {
   const userInfo = await getCurrentUserInfo();
   if (!userInfo) return [];
 
-  const queries = await getUserQueries(userInfo.id);
+  const queries = await getUserQueries(userInfo.id, dbId);
   console.log("<><><> user queries", queries)
   const queriesTablesFromQueries = extractTablesFromQueries(queries).map(table => {
     table.count = (table.count || 0) + 10
@@ -450,6 +458,7 @@ export async function getTableData(tableId: number | string, sampleValuesTimeout
     
     // Apply whatever sample values we managed to get
     Object.values(tableInfo.columns || {}).forEach((field) => {
+      // @ts-ignore
       const fieldSample = fieldIdSampleValMapping[field.id];
       if (fieldSample) {
         const rawValues = flatMap(get(fieldSample, 'values', [])).map(truncateUniqueValue);
