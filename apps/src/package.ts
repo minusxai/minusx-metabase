@@ -5,3 +5,4 @@ export { getTableData } from "./metabase/helpers/metabaseAPIHelpers";
 export { getAllTemplateTagsInQuery } from "./metabase/helpers/sqlQuery";
 export { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from "./metabase/helpers/metabaseModels";
 export { getCurrentQuery } from "./metabase/helpers/metabaseStateAPI";
+export { subscribeMB, onMBSubscription } from "./metabase/helpers/stateSubscriptions";

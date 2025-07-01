@@ -1,5 +1,5 @@
-import { get, isEmpty } from "lodash"
-import { initWindowListener } from 'extension'
+import { debounce, get, isEmpty, set } from "lodash"
+import { initWindowListener, sendIFrameMessage } from 'extension'
 
 const getMetabaseState = (path: Parameters<typeof get>[1]) => {
     const store: any = get(window, 'Metabase.store')
@@ -37,10 +37,68 @@ const dispatchMetabaseAction = (type: string, payload: any) => {
     }
 }
 
+const listeningPaths: Array<string> = []
+
+async function onMetabaseLoad() {
+    while (true) {
+        const store = get(window, 'Metabase.store') as any
+        if (!store || !store.getState) {
+            await new Promise(resolve => setTimeout(resolve, 500))
+        } else {
+            break
+        }
+    }
+    const store = get(window, 'Metabase.store') as any
+    const oldState = {}
+    const callback = debounce(() => {
+        const state = store.getState()
+        listeningPaths.forEach((path, id) => {
+            const oldValue = get(oldState, path)
+            const newValue = get(state, path)
+            if (oldValue !== newValue) {
+                set(oldState, path, newValue)
+                sendIFrameMessage({
+                    key: 'metabaseStateChange',
+                    value: {
+                        value: newValue,
+                        path,
+                        id
+                    }
+                })
+            }
+        })
+    }, 200, { leading: true, trailing: true })
+    callback()
+    store.subscribe(callback)
+}
+
+const subscribeMetabaseState = (path: string) => {
+    const index = listeningPaths.indexOf(path)
+    if (index !== -1) {
+        // Already subscribed to this path
+        return index
+    }
+    const newIndex = listeningPaths.length
+    listeningPaths.push(path)
+    const newValue = getMetabaseState(path) // Initialize the state for this path
+    sendIFrameMessage({
+        key: 'metabaseStateChange',
+        value: {
+            value: newValue,
+            path,
+            id: newIndex
+        }
+    })
+    return newIndex
+}
+
+onMetabaseLoad()
+
 export const rpc = {
     getMetabaseState,
     dispatchMetabaseAction,
-    getSelectedTextOnEditor
+    getSelectedTextOnEditor,
+    subscribeMetabaseState
 }
 
 initWindowListener(rpc)
