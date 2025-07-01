@@ -1,6 +1,6 @@
 import { debounce, isEqual, memoize, set, uniq } from "lodash";
 import { DOMQuery, DOMQueryMap, DOMQueryMapResponse, DOMQueryResponse, queryDOMMap, queryDOMSingle } from "./getElements";
-import { sendIFrameMessage } from "./domEvents";
+import { sendIFrameMessage } from "./sendIFrameMessage";
 import { QuerySelector } from "../../helpers/pageParse/querySelectorTypes";
 import { getElementsFromQuerySelector } from "../../helpers/pageParse/getElements";
 

@@ -1,5 +1,5 @@
 import { get, isEmpty, set } from "lodash"
-import { initWindowListener } from 'extension'
+import { initWindowListener, sendIFrameMessage } from 'extension'
 
 const getMetabaseState = (path: Parameters<typeof get>[1]) => {
     const store: any = get(window, 'Metabase.store')

@@ -1,8 +1,9 @@
-import { configs, TOOLS } from "../../constants";
+import { TOOLS } from "../../constants";
 import {isEmpty, some} from 'lodash'
 import {get, every} from 'lodash'
 import { DOMQuery, queryDOMSingle } from "./getElements";
 import { appSetupConfigs } from "../apps";
+import { sendIFrameMessage } from "./sendIFrameMessage";
 
 export async function setMinusxMode(mode: string) {
   const root = document.getElementById('minusx-root') as HTMLIFrameElement;
@@ -140,21 +141,4 @@ export function identifyToolVersion(toolVersionMatcher: ToolMatcher) {
       return toolVersion
     }
   }
-}
-
-export type IFrameKV = {
-  key: string,
-  value: any,
-}
-
-export const sendIFrameMessage = (payload: IFrameKV) => {
-  const event = {
-    type: 'STATE_SYNC',
-    payload
-  }
-  const iframe = document.getElementById('minusx-iframe') as HTMLIFrameElement
-  if (!iframe) {
-    return
-  }
-  iframe?.contentWindow?.postMessage(event, configs.WEB_URL)
 }
