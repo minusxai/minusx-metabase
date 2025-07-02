@@ -177,7 +177,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           }))
           const isCancelled = () => taskStatus.status === 'cancelled';
           const [relevantTables, dbInfo] = await Promise.all([
-            handlePromise(abortable(getRelevantTablesForSelectedDb(''), isCancelled), "Failed to get relevant tables", []),
+            handlePromise(abortable(getRelevantTablesForSelectedDb(), isCancelled), "Failed to get relevant tables", []),
             handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
           ])
           state.update((oldState) => ({
@@ -362,6 +362,7 @@ Here's what I need modified:
       attrs: ["text"],
     },
     }, ({elements, url}) => {
+      // @ts-ignore
       const elementText = get(elements, 'editor.0.attrs.text', '').trim();
       const shouldDisplay = elementText.length > 100
       explainSQLTasks(async (taskStatus) => {

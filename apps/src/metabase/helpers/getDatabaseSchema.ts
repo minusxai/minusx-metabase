@@ -55,7 +55,7 @@ const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTabl
   }))
 }
 
-const addTableJoins = (tables: FormattedTable[], tableMap: Record<number, number[][]>) => {
+const addTableJoins = (tables: FormattedTable[], tableMap: Record<number | string, number[][]>) => {
   return tables.map(tableInfo => {
     return ({
       ...tableInfo,
@@ -66,10 +66,9 @@ const addTableJoins = (tables: FormattedTable[], tableMap: Record<number, number
   })
 }
 
-const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Promise<FormattedTable[]> => {
-  const tablesFromSql = lowerAndDefaultSchemaAndDedupe(getTablesFromSqlRegex(sql));
+const getAllRelevantTablesForSelectedDb = async (dbId: number): Promise<FormattedTable[]> => {
   const [userTables, {tables: allDBTables, default_schema}] = await Promise.all([
-    getUserTables(),
+    getUserTables(dbId),
     handlePromise(getDatabaseTablesAndModelsWithoutFields(dbId), "Failed to get database tables", {
       name: '', description: '', id: 0, dialect: '', default_schema: '',
       dbms_version: { flavor: '', version: '', semantic_version: [] },
@@ -78,8 +77,7 @@ const getAllRelevantTablesForSelectedDb = async (dbId: number, sql: string): Pro
     })
   ]);
   const tableMap = {}; // Empty table map - was getUserTableMap() placeholder
-  const allUserTables = dedupeAndCountTables([...tablesFromSql, ...userTables]);
-  const validTables = validateTablesInDB(allUserTables, allDBTables, default_schema);
+  const validTables = validateTablesInDB(userTables, allDBTables, default_schema);
   const dedupedTables = dedupeAndCountTables([...validTables, ...allDBTables]);
   dedupedTables.forEach(tableInfo => {
     tableInfo.count = tableInfo.count || 1;
@@ -110,7 +108,7 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
     console.warn("[minusx] No database selected when getting tables with fields");
     return [];
   }
-  let tables = await getAllRelevantTablesForSelectedDb(dbId, '');
+  let tables = await getAllRelevantTablesForSelectedDb(dbId);
   // Don't apply a table diff if a catalog is selected in dr mode. We need all tables.
   if (tableDiff && !(isCatalogSelected && drMode)) {
     tables = applyTableDiffs(tables, tableDiff, dbId, sqlTables, mbqlTableIds);
@@ -130,13 +128,13 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
 
 
 
-export const getRelevantTablesForSelectedDb = async (sql: string): Promise<FormattedTable[]> => {
+export const getRelevantTablesForSelectedDb = async (): Promise<FormattedTable[]> => {
   const dbId = await getSelectedDbId();
   if (!dbId) {
     console.warn("[minusx] No database selected when getting relevant tables");
     return [];
   }
-  const relevantTables = await getAllRelevantTablesForSelectedDb(dbId, sql);
+  const relevantTables = await getAllRelevantTablesForSelectedDb(dbId);
   
   // Filter out tables with > 100 columns to reduce context size
   // Fetch all table data in parallel for better performance
@@ -155,7 +153,6 @@ export const getRelevantTablesForSelectedDb = async (sql: string): Promise<Forma
   });
 
   const tableResults = await Promise.all(tableDataPromises);
-  
   // Filter and limit to 20 tables
   const filteredTables = tableResults
     .filter(result => result.valid)

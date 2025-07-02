@@ -31,6 +31,10 @@ export const fetchModels = createAPI<{db_id: number}>(
   'GET',
 );
 
+export const fetchCard = createAPI<{card_id: number}>(
+  '/api/card/{{card_id}}'
+);
+
 export const fetchModelInfo = createAPI<{model_id: number}>(
   '/api/card/{{model_id}}/query_metadata',
   'GET'
@@ -84,7 +88,7 @@ export const fetchDatabaseWithTables = createAPI<{ db_id: number }>(
 );
 
 // Table Operations
-export const fetchTableMetadata = createAPI<{ table_id: number }>(
+export const fetchTableMetadata = createAPI<{ table_id: number | string }>(
   '/api/table/{{table_id}}/query_metadata',
   'GET',
   // {
@@ -126,7 +130,7 @@ export const fetchTableMetadata = createAPI<{ table_id: number }>(
 );
 
 // Field Operations - EXPENSIVE, very conservative limits
-export const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
+export const fetchFieldUniqueValues = createAPI<{ field_id: number | string }>(
   '/api/field/{{field_id}}/values',
   'GET',
   {
@@ -137,12 +141,12 @@ export const fetchFieldUniqueValues = createAPI<{ field_id: number }>(
 );
 
 // Search Operations - Can be expensive
-export const fetchUserEdits = createAPI<{ user_id: number }>(
-  '/api/search?edited_by={{user_id}}'
+export const fetchUserEdits = createAPI<{ user_id: number, db_id: number }>(
+  '/api/search?edited_by={{user_id}}&table_db_id={{db_id}}'
 );
 
-export const fetchUserCreations = createAPI<{ user_id: number }>(
-  '/api/search?created_by={{user_id}}'
+export const fetchUserCreations = createAPI<{ user_id: number, db_id: number }>(
+  '/api/search?created_by={{user_id}}&table_db_id={{db_id}}'
 );
 
 export const fetchSearchByQuery = createAPI<{ db_id: number; query: string }>(

@@ -312,8 +312,9 @@ export const FilteredTable = ({
     const result: GroupedTables = {};
 
     for (const schema in groupedTableData) {
+      // also match schema
       const matchingTables = groupedTableData[schema].filter(table =>
-        table.name.toLowerCase().startsWith(lowerSearch)
+        table.name.toLowerCase().startsWith(lowerSearch) || table.schema.toLowerCase().startsWith(lowerSearch)
       );
       if (matchingTables.length > 0) {
         result[schema] = matchingTables;

@@ -70,7 +70,7 @@ export interface SearchApiResponse {
     id: number
     description: string | null
     name: string
-    dataset_query: {
+    dataset_query?: {
       native: {
         query: string
       }

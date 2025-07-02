@@ -27,9 +27,10 @@ import {
   fetchSearchByQuery,
   fetchFieldUniqueValues,
   fetchTableMetadata,
-  fetchModels
+  fetchModels,
+  fetchCard
 } from './metabaseAPI';
-import { SearchApiResponse } from './types';
+import { Card, SearchApiResponse } from './types';
 
 // =============================================================================
 // HELPER FUNCTIONS FOR DATA EXTRACTION
@@ -39,6 +40,24 @@ function extractQueriesFromResponse(response: any): string[] {
   return get(response, 'data', [])
     .map((entity: any) => get(entity, "dataset_query.native.query"))
     .filter((query: any) => !isEmpty(query));
+}
+
+async function getOrFetchSqlQueryFromCards(searchResponse: SearchApiResponse): Promise<string[]> {
+  const cards = get(searchResponse, 'data', []).filter((entity: any) => entity.model === 'card' || entity.model === 'dataset');
+  // check if dataset_query is missing. happens in metabase version >= 54
+  const cardsWithMissingDatasetQuery = cards.filter((card: any) => !card.dataset_query);
+  if (cardsWithMissingDatasetQuery.length === 0) {
+    return cards
+      .map((entity: any) => get(entity, "dataset_query.native.query"))
+      .filter((query: any) => !isEmpty(query));
+  }
+  // only fetch the first 50 cards to avoid overwhelming the API
+  const cardIds = cardsWithMissingDatasetQuery.map((card: any) => card.id).slice(0, 50);
+  const cardQueries = await Promise.all(cardIds.map(async (cardId: number) => {
+    const card = await fetchCard({card_id: cardId}) as Card
+    return card.dataset_query.native.query;
+  }));
+  return cardQueries;
 }
 
 function getDefaultSchema(databaseInfo: any) {
@@ -115,30 +134,31 @@ function extractDbInfo(db: any, default_schema: string): DatabaseInfo {
 // UNIFIED SEARCH AND USER QUERY FUNCTIONS
 // =============================================================================
 
+// async function getDatasetQueriesFor
+
 /**
  * Generic function to fetch queries from user edits and creations
  * Consolidates the repeated pattern across multiple functions
  */
-async function getUserQueries(userId: number, dbId?: number, searchQuery?: string): Promise<string[]> {
+async function getUserQueries(userId: number, dbId: number, searchQuery?: string): Promise<string[]> {
   const [edits, creations] = await Promise.all([
     handlePromise(
-      searchQuery && dbId 
+      searchQuery
         ? fetchSearchUserEditsByQuery({ db_id: dbId, query: searchQuery, user_id: userId })
-        : fetchUserEdits({ user_id: userId }),
+        : fetchUserEdits({ user_id: userId, db_id: dbId}),
       "[minusx] Error getting user edits", 
       { data: [] }
     ),
     handlePromise(
-      searchQuery && dbId
+      searchQuery
         ? fetchSearchUserCreationsByQuery({ db_id: dbId, query: searchQuery, user_id: userId })
-        : fetchUserCreations({ user_id: userId }),
+        : fetchUserCreations({ user_id: userId, db_id: dbId }),
       "[minusx] Error getting user creations", 
       { data: [] }
     ),
   ]);
-  
-  const editQueries = extractQueriesFromResponse(edits);
-  const creationQueries = extractQueriesFromResponse(creations);
+  const editQueries = await getOrFetchSqlQueryFromCards(edits);
+  const creationQueries = await getOrFetchSqlQueryFromCards(creations);
   return Array.from(new Set([...editQueries, ...creationQueries]));
 }
 
@@ -188,7 +208,6 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
 
 export async function getDatabaseTablesAndModelsWithoutFields(dbId: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  
   const models = await getAllRelevantModelsForSelectedDb(dbId, forceRefreshModels) ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
@@ -224,18 +243,17 @@ export async function getFieldResolvedName(fieldId: number) {
 /**
  * Get tables referenced in user's queries (with fallback to all database tables)
  */
-export async function getUserTables(): Promise<TableAndSchema[]> {
+export async function getUserTables(dbId: number): Promise<TableAndSchema[]> {
   const userInfo = await getCurrentUserInfo();
   if (!userInfo) return [];
 
-  const queries = await getUserQueries(userInfo.id);
+  const queries = await getUserQueries(userInfo.id, dbId);
   const queriesTablesFromQueries = extractTablesFromQueries(queries).map(table => {
     table.count = (table.count || 0) + 10
     return table
   });
   
   // Fallback: if user has no queries, get ALL database queries
-  const dbId = await getSelectedDbId();
   if (!dbId) return queriesTablesFromQueries;
   
   const remainingTables = await performFallbackSearch(
@@ -293,7 +311,7 @@ export async function searchAllQueries(dbId: number, query: string): Promise<Tab
 /**
  * Get sample values for a field
  */
-export async function getFieldUniqueValues(fieldId: number) {
+export async function getFieldUniqueValues(fieldId: number | string) {
   return await fetchFieldUniqueValues({ field_id: fieldId });
 }
 
@@ -322,7 +340,7 @@ function truncateUniqueValue(value: any): any {
 /**
  * Fetch table metadata with enhanced table info
  */
-export async function getTableMetadata(tableId: number) {
+export async function getTableMetadata(tableId: number | string) {
   const resp = await fetchTableMetadata({ table_id: tableId }) as any;
   if (!resp) {
     console.warn("Failed to get table schema", tableId, resp);
@@ -420,7 +438,7 @@ async function getSampleValuesWithTimeout(tableInfo: FormattedTable, timeout: nu
 const ENABLE_UNIQUE_VALUES = true; // Set to false to disable sample values for now
 const DEFAULT_SAMPLE_VALUES_TIMEOUT = 100; // 100ms timeout for sample values
 
-export async function getTableData(tableId: number, sampleValuesTimeout?: number): Promise<FormattedTable | "missing"> {
+export async function getTableData(tableId: number | string, sampleValuesTimeout?: number): Promise<FormattedTable | "missing"> {
   const metadataResult = await getTableMetadata(tableId);
   if (metadataResult === "missing") {
     return "missing";
@@ -446,6 +464,7 @@ export async function getTableData(tableId: number, sampleValuesTimeout?: number
     
     // Apply whatever sample values we managed to get
     Object.values(tableInfo.columns || {}).forEach((field) => {
+      // @ts-ignore
       const fieldSample = fieldIdSampleValMapping[field.id];
       if (fieldSample) {
         const rawValues = flatMap(get(fieldSample, 'values', [])).map(truncateUniqueValue);
