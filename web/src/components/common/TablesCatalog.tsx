@@ -59,7 +59,6 @@ export const TablesCatalog: React.FC<null> = () => {
 
     try {
       const updatedDbInfo = await getDatabaseTablesAndModelsWithoutFields(currentDbId, true)
-      console.log('Updated DB Info:', updatedDbInfo)
       
       appState.update((oldState) => ({
         ...oldState,
@@ -70,7 +69,6 @@ export const TablesCatalog: React.FC<null> = () => {
         }
       }))
     } catch (error) {
-      console.error('Failed to refresh database info:', error)
     }
   }
 

@@ -169,7 +169,6 @@ export async function getDatabases() {
 
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {
   const models = forceRefreshModels ? await fetchModels.refresh({db_id: dbId}) as SearchApiResponse : await fetchModels({db_id: dbId}) as SearchApiResponse;
-  console.log("Fetched models for DB fetchModels fn | forceRefreshModels", dbId, models, forceRefreshModels);
   const data = get(models, 'data', []);
   const modelsAsTables = data.map(model => {
     return {
@@ -191,7 +190,6 @@ export async function getDatabaseTablesAndModelsWithoutFields(dbId: number, forc
   const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
   
   const models = await getAllRelevantModelsForSelectedDb(dbId, forceRefreshModels) ;
-  console.log(models, "Models fetched for DB", dbId);
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))

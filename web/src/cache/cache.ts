@@ -95,5 +95,3 @@ export function memoize<T extends AsyncFunction>(
 
   return memoized as MemoizedFn<T>;
 }
-
-export { deleteCache };
