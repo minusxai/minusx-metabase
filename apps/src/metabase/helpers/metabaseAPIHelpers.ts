@@ -168,7 +168,7 @@ export async function getDatabases() {
 }
 
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {
-  const models = await fetchModels({db_id: dbId, forceRefresh: forceRefreshModels}) as SearchApiResponse;
+  const models = forceRefreshModels ? await fetchModels.refresh({db_id: dbId}) as SearchApiResponse : await fetchModels({db_id: dbId}) as SearchApiResponse;
   console.log("Fetched models for DB fetchModels fn | forceRefreshModels", dbId, models, forceRefreshModels);
   const data = get(models, 'data', []);
   const modelsAsTables = data.map(model => {

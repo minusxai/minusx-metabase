@@ -17,7 +17,7 @@
     "build": "vite build",
     "serve": "serve -s web-build -l 3005",
     "prettier": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
-    "test": "jest",
+    "test": "vitest",
     "batchtest": "./src/tools/jupyter/tests/run_tests.sh",
     "lint": "eslint src/ --ext .js,.jsx,.ts,.tsx"
   },
@@ -96,6 +96,7 @@
     "typescript": "5",
     "vite": "^5.3.2",
     "vite-plugin-plain-text": "^1.4.2",
+    "vitest": "^3.2.4",
     "whatwg-fetch": "^3.6.20"
   },
   "packageManager": "yarn@4.3.1"

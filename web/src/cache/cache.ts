@@ -6,6 +6,15 @@ export const DEFAULT_TTL = 7 * 24 * 60 * 60;
 export const DEFAULT_REWARM_TTL = 12 * 60 * 60;
 
 type AsyncFunction = (...args: any[]) => Promise<any>;
+/* NEW ─ helper type that augments the returned function */
+type MemoizedFn<T extends AsyncFunction> = ((
+  ...args: Parameters<T>
+) => Promise<Awaited<ReturnType<T>>>) & {
+  /** Always re-fetch, update the cache, return fresh result */
+  refresh: (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>>>;
+  /** (Nice to have) drop the cached value for these args */
+  invalidate: (...args: Parameters<T>) => Promise<void>;
+};
 /**
  * Memoizes a function with a TTL (time to live) and adds coalescing functionality
  * Supports stale-while-revalidate pattern with rewarm TTL
@@ -17,85 +26,74 @@ type AsyncFunction = (...args: any[]) => Promise<any>;
  * @param onFreshData - Optional callback called whenever fresh data is fetched (not from cache)
  * @returns The memoized function with coalescing and optional background refresh
  */
+
 export function memoize<T extends AsyncFunction>(
-  fn: T, 
+  fn: T,
   ttl: number = DEFAULT_TTL,
   rewarmTtl: number = DEFAULT_REWARM_TTL,
   cacheKeyBase?: string,
-  onFreshData?: (response: Awaited<ReturnType<T>>) => void
-) {
-  const inProgressPromises: Record<string, Promise<Awaited<ReturnType<T>>> | null> = {};
+  onFreshData?: (r: Awaited<ReturnType<T>>) => void
+): MemoizedFn<T> {            // ← change the return type
+  const inProgressPromises: Record<
+    string,
+    Promise<Awaited<ReturnType<T>>> | null
+  > = {};
 
-  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+  /* factored out so both normal path and refresh() reuse it */
+  const fetchAndCache = async (
+    args: Parameters<T>,
+    cacheKey: string
+  ): Promise<Awaited<ReturnType<T>>> => {
+    const promise = fn(...args)
+      .then(async (res) => {
+        await setCache(cacheKey, res);
+        onFreshData?.(res);
+        return res;
+      })
+      .finally(() => (inProgressPromises[cacheKey] = null));
+
+    inProgressPromises[cacheKey] = promise;
+    return promise;
+  };
+
+  const memoized = async (
+    ...args: Parameters<T>
+  ): Promise<Awaited<ReturnType<T>>> => {
     const cacheKey = `${cacheKeyBase || fn.name}-${JSON.stringify(args)}`;
     const now = Date.now();
+    const cached = await getCache(cacheKey);
 
-    // Check if we have cached data
-    const cachedResult = await getCache(cacheKey);
-    
-    if (cachedResult && cachedResult.data) {
-      const age = now - cachedResult.createdAt;
-      const isExpired = age > ttl * 1000;
-      const needsRewarming = age > rewarmTtl * 1000;
-      
-      // If not expired, return cached data
-      if (!isExpired || ttl < 0) {
-        // If needs rewarming and no refresh in progress, trigger background refresh
-        if (needsRewarming && !inProgressPromises[cacheKey]) {
-          // Background refresh (don't await)
-          const backgroundPromise = fn(...args)
-            .then(async (result) => {
-              await setCache(cacheKey, result);
-              // Call callback for fresh data from background refresh
-              if (onFreshData) {
-                try {
-                  onFreshData(result);
-                } catch (error) {
-                  console.warn('onFreshData callback failed during background refresh:', error);
-                }
-              }
-              return result;
-            })
-            .finally(() => {
-              inProgressPromises[cacheKey] = null;
-            });
-          
-          inProgressPromises[cacheKey] = backgroundPromise;
-        }
-        
-        return cachedResult.data;
+    if (cached?.data) {
+      const age = now - cached.createdAt;
+      const expired = age > ttl * 1000 && ttl >= 0;
+      const needsRewarm = age > rewarmTtl * 1000;
+
+      if (!expired) {
+        if (needsRewarm && !inProgressPromises[cacheKey])
+          fetchAndCache(args, cacheKey); // fire-and-forget
+        return cached.data;              // ← serve (possibly stale) data
       }
     }
 
-    // Check if there's an ongoing promise
-    if (inProgressPromises[cacheKey]) {
-      return inProgressPromises[cacheKey]!;
-    }
-
-    // If not cached or expired, call the original function and coalesce the call
-    const promise = fn(...args)
-      .then(async (result) => {
-        // Cache the result
-        await setCache(cacheKey, result);
-        // Call callback for fresh data from main fetch
-        if (onFreshData) {
-          try {
-            onFreshData(result);
-          } catch (error) {
-            console.warn('onFreshData callback failed during main fetch:', error);
-          }
-        }
-        return result;
-      })
-      .finally(() => {
-        // Clear the ongoing promise after completion
-        inProgressPromises[cacheKey] = null;
-      });
-
-    inProgressPromises[cacheKey] = promise;
-
-    return promise;
+    // coalesce concurrent misses
+    return (
+      inProgressPromises[cacheKey] ?? fetchAndCache(args, cacheKey)
+    );
   };
+
+  /* -------- extra helpers -------- */
+  memoized.refresh = (...args: Parameters<T>) => {
+    const cacheKey = `${cacheKeyBase || fn.name}-${JSON.stringify(args)}`;
+    return inProgressPromises[cacheKey] ?? fetchAndCache(args, cacheKey);
+  };
+
+  memoized.invalidate = async (...args: Parameters<T>) => {
+    const cacheKey = `${cacheKeyBase || fn.name}-${JSON.stringify(args)}`;
+    await deleteCache(cacheKey);
+    inProgressPromises[cacheKey] = null;
+  };
+
+  return memoized as MemoizedFn<T>;
 }
 
 export { deleteCache };
