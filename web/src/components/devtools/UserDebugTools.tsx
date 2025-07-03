@@ -2,13 +2,20 @@ import React from "react"
 import { Text, VStack, Button, HStack} from "@chakra-ui/react";
 import { SettingsBlock } from "../common/SettingsBlock";
 import { getApp } from "../../helpers/app";
-import { getDashboardAppState } from '../../../../apps/src/metabase/helpers/dashboard/appState';
+import { getDashboardState } from "apps";
+
 
 const useAppStore = getApp().useStore()
 
 
 const downloadState = async (pageType: string) => {
     const state = await getApp().getState();
+    if (pageType === 'dashboard') {
+        const dashboardState = await getDashboardState();
+        if (dashboardState) {
+            state.rawDashboardState = dashboardState;
+        }
+    }
     const content = JSON.stringify(state, null, 2)
     const blob = new Blob([content], { type: "application/json" })
     const url = URL.createObjectURL(blob)
