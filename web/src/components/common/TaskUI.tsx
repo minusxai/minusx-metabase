@@ -21,7 +21,7 @@ import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard } from 'react-icons/bi'
 import chat from '../../chat/chat'
-import _, { get, isEmpty, isEqual, isUndefined, sortBy } from 'lodash'
+import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, TableInfo, setSelectedModels } from '../../state/settings/reducer'
@@ -127,8 +127,19 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           schema: table.schema,
           dbId: currentDbId
         })), currentDbId)
-      }
-      
+      } else if (every(validAddedTables.map((table, index) => isEqual(
+        pick(allTables[index], ['name', 'schema']),
+        pick(table, ['name', 'schema'])  
+      )))) {
+        // #HACK to reset relevant tables for alphabetical relevancy bug
+        if (validAddedTables.length == NUM_RELEVANT_TABLES) {
+          resetRelevantTables(relevantTables.map(table => ({
+            name: table.name,
+            schema: table.schema,
+            dbId: currentDbId
+          })), currentDbId)
+        }
+      }      
       setIsChangedByDb(prev => ({ ...prev, [currentDbId]: true }))
     }
   }, [relevantTables, dbInfo.id])
