@@ -127,13 +127,14 @@ export abstract class AppController<T> {
   async runAction(fn: string, args: any) {
     let renderInfo: ActionRenderInfo = {}
     // @ts-ignore: Check if controller has function and execute!
+    let preExecutionState = await this.app.getState();
     let result = await this[fn](args);
     // get render info if it exists
     const metadata = Reflect.getMetadata('actionMetadata', this, fn);
     if (metadata) {
       let renderBody = metadata['renderBody']
       if (typeof renderBody === 'function') {
-        renderInfo = await renderBody(args, await this.app.getState(), result)
+        renderInfo = await renderBody(args, preExecutionState, result)
       }
     }
     return {

@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Box, HStack, Icon, Spinner, Text, keyframes, VStack } from '@chakra-ui/react'
+import React, { useState, useEffect, act } from 'react';
+import { Box, HStack, Icon, Spinner, Text, keyframes, VStack, Button } from '@chakra-ui/react'
 import { Action } from '../../state/chat/reducer'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { BsChevronRight, BsChevronDown } from 'react-icons/bs';
+import { BiUndo, BiRedo } from "react-icons/bi";
+import { executeAction } from '../../planner/plannerActions'
+
 import {
   MdOutlineIndeterminateCheckBox,
   MdOutlineCheckBox,
@@ -18,6 +21,11 @@ import { CodeBlock } from './CodeBlock';
 import { ActionRenderInfo } from '../../state/chat/types';
 import { Markdown } from './Markdown';
 
+// Todo: Vivek: Hardcoding here, need to fix this later
+// This is a list of actions that are undo/redoable
+const UNDO_REDO_ACTIONS = ['ExecuteSQLClient']
+
+
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
 }
@@ -31,6 +39,8 @@ export type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'> 
   renderInfo: ActionRenderInfo
 }
 
+const useAppStore = getApp().useStore()
+
 export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusView>, index:number, content: string, latency: number}> = ({
   actions,
   status,
@@ -41,6 +51,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const [isExpanded, setIsExpanded] = useState(false);
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const controller = getApp().actionController
+  const pageType = useAppStore((state) => state.toolContext.pageType) || '';
   const getActionLabels = (action: string, attr: string) => {
     if (controller) {
       const metadata = Reflect.getMetadata('actionMetadata', controller, action);
@@ -65,6 +76,45 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     const { text } = action.renderInfo || {}
     return text || ''
   }).filter(text => text !== '').join(', ')
+
+
+const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({fn, sql, type}) => {
+    const urHandler = (event: React.MouseEvent, fn: string, sql: string) => {
+        event.preventDefault();
+        event.stopPropagation();
+        executeAction({
+            index: -1,
+            function: fn,
+            args: {sql: sql},
+        });
+    };
+    
+    return <Button
+            size="xs"
+            leftIcon={ type === 'undo' ? <BiUndo /> : <BiRedo /> }
+            variant={'solid'}
+            colorScheme="minusxGreen"
+            onClick={(event) => urHandler(event, fn, sql)}>
+                {type === 'undo' ? 'Undo' : 'Redo'}
+            </Button>
+};
+
+const PreExpanderUndo: React.FC = () => {
+    return (
+        <>
+            {actions.map(action => {
+                const { code, oldCode } = action.renderInfo || {}
+                return UNDO_REDO_ACTIONS.includes(action.function.name) && (
+                    <HStack>
+                        {oldCode && <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'}/> }
+                        {code && <UndoRedo fn={action.function.name} sql={code} type={'redo'}/> }
+                    </HStack>
+                )
+            })}
+        </>
+    );
+};
+
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
@@ -103,7 +153,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           <VStack alignItems={"start"} flex={1} spacing={0}>
             {preExpanderText !== '' && 
             // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
-            <Box aria-label="thinking-content" borderBottomWidth={1} borderBottomColor={'minusxGreen.800'}>
+            <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'}>
             <Markdown content={`Thinking...
                 ${preExpanderText}`}></Markdown>
                 </Box>
@@ -127,7 +177,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 </Box>
                 { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
             </HStack>
-            { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
+            {/* { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null } */}
+            {pageType && pageType == 'sql' && <PreExpanderUndo />}
             </HStack>
           </VStack>
         </HStack>
@@ -145,7 +196,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 boxSize={5}
               />
               {/* <Text>{action.function.name}{text ? " | " : ""}{text}</Text> */}
-              <Text>{action.function.name}</Text>
+                <Text>{action.function.name}</Text>
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
