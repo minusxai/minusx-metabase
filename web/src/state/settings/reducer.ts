@@ -6,7 +6,7 @@ import { ContextCatalog, MxModel } from '../../helpers/utils'
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
-export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization'
+export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization' | 'Debug Tools'
 
 export const DEFAULT_TABLES = 'Default Tables'
 
@@ -114,7 +114,8 @@ interface Settings {
   enable_highlight_helpers: boolean
   useMemory: boolean
   customCSS: string
-  enableStyleCustomization: boolean
+  enableStyleCustomization: boolean,
+  enableUserDebugTools: boolean
 }
 
 const initialState: Settings = {
@@ -149,6 +150,7 @@ const initialState: Settings = {
   useMemory: true,
   customCSS: '',
   enableStyleCustomization: false,
+  enableUserDebugTools: false,
 }
 
 export const settingsSlice = createSlice({
@@ -345,6 +347,9 @@ export const settingsSlice = createSlice({
     },
     setEnableStyleCustomization: (state, action: PayloadAction<boolean>) => {
       state.enableStyleCustomization = action.payload
+    },
+    setEnableUserDebugTools: (state, action: PayloadAction<boolean>) => {
+        state.enableUserDebugTools = action.payload
     }
   },
 })
@@ -356,7 +361,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

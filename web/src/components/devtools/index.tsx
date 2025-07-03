@@ -11,6 +11,7 @@ import { MinusXMD } from './Memory';
 import CSSCustomization from './CSSCustomization';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
+import { UserDebugTools } from './UserDebugTools';
 
 const Monitors: MonitorDef[] = [
   {
@@ -26,6 +27,11 @@ const Monitors: MonitorDef[] = [
   {
     title: "Memory",
     component: MinusXMD,
+    tags: ['production']
+  },
+  {
+    title: "Debug Tools",
+    component: UserDebugTools,
     tags: ['production']
   },
   {
@@ -49,7 +55,8 @@ const Monitors: MonitorDef[] = [
 
 export const DevToolsBox: React.FC = () => {
   const enableStyleCustomization = useSelector((state: RootState) => state.settings.enableStyleCustomization)
-  
+  const enableUserDebugTools = useSelector((state: RootState) => state.settings.enableUserDebugTools)
+
   const monitors = Monitors.filter(Monitor => {
     // Check existing dev/production logic
     const isAllowedByEnv = configs.IS_DEV || Monitor.tags?.includes('production')
@@ -57,6 +64,10 @@ export const DevToolsBox: React.FC = () => {
     // Special filtering for CSS Customization tab
     if (Monitor.title === 'CSS Customization') {
       return isAllowedByEnv && enableStyleCustomization
+    }
+    // Special filtering for User Debug Tools tab
+    if (Monitor.title === 'Debug Tools') {
+        return isAllowedByEnv && enableUserDebugTools
     }
     
     return isAllowedByEnv

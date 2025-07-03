@@ -420,12 +420,17 @@ const migrations = {
     let newState = {...state}
     newState.settings.enableStyleCustomization = false
     return newState
+  },
+  39: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.enableUserDebugTools = false
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 38,
+  version: 39,
   storage,
   blacklist: ['billing', 'cache'],
   // @ts-ignore
