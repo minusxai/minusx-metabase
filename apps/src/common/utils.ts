@@ -26,6 +26,7 @@ export async function handlePromise<T> (promise: Promise<T>, errMessage: string,
     return await promise
   } catch (err) {
     console.error(errMessage);
+    console.error(err)
     return defaultReturn
   }
 }

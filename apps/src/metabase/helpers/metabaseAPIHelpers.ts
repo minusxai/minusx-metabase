@@ -55,9 +55,9 @@ async function getOrFetchSqlQueryFromCards(searchResponse: SearchApiResponse): P
   const cardIds = cardsWithMissingDatasetQuery.map((card: any) => card.id).slice(0, 50);
   const cardQueries = await Promise.all(cardIds.map(async (cardId: number) => {
     const card = await fetchCard({card_id: cardId}) as Card
-    return card.dataset_query.native.query;
+    return get(card, "dataset_query.native.query", "");
   }));
-  return cardQueries;
+  return cardQueries.filter((query: any) => !isEmpty(query));
 }
 
 function getDefaultSchema(databaseInfo: any) {
