@@ -31,6 +31,7 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
+import { useGetUserStateQuery } from '../../app/api/userStateApi'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
@@ -118,6 +119,8 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const tool = getParsedIframeInfo().tool
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
+  const { data: userState, isLoading } = useGetUserStateQuery()
+  console.log('userState is', isLoading, userState)
 //   const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
   
   // Get JWT token for Socket.io authentication

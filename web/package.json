@@ -48,6 +48,7 @@
     "monaco-yaml": "^5.4.0",
     "node-sql-parser": "^5.3.3",
     "openai": "^4.38.2",
+    "p-limit": "^6.2.0",
     "posthog-js": "^1.161.3",
     "prettier": "^2.8.4",
     "query-string": "^9.0.0",
