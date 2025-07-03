@@ -70,10 +70,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   }).filter(text => text !== '').join(', ')
 
 
-const UndoRedo: React.FC<{fn: string, code: string, oldCode: string}> = ({fn, code, oldCode}) => {
-    const [showUndo, setShowUndo] = useState(true);
-    
-    const urHandler = (event: React.MouseEvent, fn: string, sql: string, showUndo: boolean) => {
+const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({fn, sql, type}) => {
+    const urHandler = (event: React.MouseEvent, fn: string, sql: string) => {
         event.preventDefault();
         event.stopPropagation();
         executeAction({
@@ -81,20 +79,16 @@ const UndoRedo: React.FC<{fn: string, code: string, oldCode: string}> = ({fn, co
             function: fn,
             args: {sql: sql},
         });
-        setShowUndo(showUndo);
     };
     
-    return (
-        showUndo ? <Button
+    return <Button
             size="xs"
-            leftIcon={<BiUndo />}
+            leftIcon={ type === 'undo' ? <BiUndo /> : <BiRedo /> }
+            variant={'solid'}
             colorScheme="minusxGreen"
-            onClick={(event) => urHandler(event, fn, oldCode, false)}>Undo</Button> : <Button
-            size="xs"
-            leftIcon={<BiRedo />}
-            colorScheme="minusxGreen"
-            onClick={(event) => urHandler(event, fn, code, true)}>Redo</Button>
-    );
+            onClick={(event) => urHandler(event, fn, sql)}>
+                {type === 'undo' ? 'Undo' : 'Redo'}
+            </Button>
 };
 
 const PreExpanderUndo: React.FC = () => {
@@ -103,7 +97,12 @@ const PreExpanderUndo: React.FC = () => {
         <>
             {actions.map(action => {
                 const { code, oldCode } = action.renderInfo || {}
-                return oldCode && code ? <UndoRedo key={action.function.name} fn={action.function.name} code={code} oldCode={oldCode} /> : null;
+                return (
+                    <HStack>
+                        {oldCode && <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'}/> }
+                        {code && <UndoRedo fn={action.function.name} sql={code} type={'redo'}/> }
+                    </HStack>
+                )
             })}
         </>
     );
