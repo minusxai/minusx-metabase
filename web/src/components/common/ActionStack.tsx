@@ -21,6 +21,11 @@ import { CodeBlock } from './CodeBlock';
 import { ActionRenderInfo } from '../../state/chat/types';
 import { Markdown } from './Markdown';
 
+// Todo: Vivek: Hardcoding here, need to fix this later
+// This is a list of actions that are undo/redoable
+const UNDO_REDO_ACTIONS = ['ExecuteSQLClient']
+
+
 function removeThinkingTags(input: string): string {
   return input ? input.replace(/<thinking>[\s\S]*?<\/thinking>/g, '') : input;
 }
@@ -34,6 +39,8 @@ export type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'> 
   renderInfo: ActionRenderInfo
 }
 
+const useAppStore = getApp().useStore()
+
 export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusView>, index:number, content: string, latency: number}> = ({
   actions,
   status,
@@ -44,6 +51,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const [isExpanded, setIsExpanded] = useState(false);
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const controller = getApp().actionController
+  const pageType = useAppStore((state) => state.toolContext.pageType) || '';
   const getActionLabels = (action: string, attr: string) => {
     if (controller) {
       const metadata = Reflect.getMetadata('actionMetadata', controller, action);
@@ -92,12 +100,11 @@ const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({f
 };
 
 const PreExpanderUndo: React.FC = () => {
-    console.log("Actions fns are", actions.map(action => action.function.name));
     return (
         <>
             {actions.map(action => {
                 const { code, oldCode } = action.renderInfo || {}
-                return (
+                return UNDO_REDO_ACTIONS.includes(action.function.name) && (
                     <HStack>
                         {oldCode && <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'}/> }
                         {code && <UndoRedo fn={action.function.name} sql={code} type={'redo'}/> }
@@ -171,7 +178,7 @@ const PreExpanderUndo: React.FC = () => {
                 { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
             </HStack>
             {/* { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null } */}
-            <PreExpanderUndo />
+            {pageType && pageType == 'sql' && <PreExpanderUndo />}
             </HStack>
           </VStack>
         </HStack>
