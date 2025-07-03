@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Box, HStack, Icon, Spinner, Text, keyframes, VStack } from '@chakra-ui/react'
+import React, { useState, useEffect, act } from 'react';
+import { Box, HStack, Icon, Spinner, Text, keyframes, VStack, Button } from '@chakra-ui/react'
 import { Action } from '../../state/chat/reducer'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { BsChevronRight, BsChevronDown } from 'react-icons/bs';
+import { BiUndo, BiRedo } from "react-icons/bi";
+import { executeAction } from '../../planner/plannerActions'
+
 import {
   MdOutlineIndeterminateCheckBox,
   MdOutlineCheckBox,
@@ -66,6 +69,47 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     return text || ''
   }).filter(text => text !== '').join(', ')
 
+
+const UndoRedo: React.FC<{fn: string, code: string, oldCode: string}> = ({fn, code, oldCode}) => {
+    const [showUndo, setShowUndo] = useState(true);
+    
+    const urHandler = (event: React.MouseEvent, fn: string, sql: string, showUndo: boolean) => {
+        event.preventDefault();
+        event.stopPropagation();
+        executeAction({
+            index: -1,
+            function: fn,
+            args: {sql: sql},
+        });
+        setShowUndo(showUndo);
+    };
+    
+    return (
+        showUndo ? <Button
+            size="xs"
+            leftIcon={<BiUndo />}
+            colorScheme="minusxGreen"
+            onClick={(event) => urHandler(event, fn, oldCode, false)}>Undo</Button> : <Button
+            size="xs"
+            leftIcon={<BiRedo />}
+            colorScheme="minusxGreen"
+            onClick={(event) => urHandler(event, fn, code, true)}>Redo</Button>
+    );
+};
+
+const PreExpanderUndo: React.FC = () => {
+    console.log("Actions fns are", actions.map(action => action.function.name));
+    return (
+        <>
+            {actions.map(action => {
+                const { code, oldCode } = action.renderInfo || {}
+                return oldCode && code ? <UndoRedo key={action.function.name} fn={action.function.name} code={code} oldCode={oldCode} /> : null;
+            })}
+        </>
+    );
+};
+
+
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
   }
@@ -103,7 +147,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           <VStack alignItems={"start"} flex={1} spacing={0}>
             {preExpanderText !== '' && 
             // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
-            <Box aria-label="thinking-content" borderBottomWidth={1} borderBottomColor={'minusxGreen.800'}>
+            <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'}>
             <Markdown content={`Thinking...
                 ${preExpanderText}`}></Markdown>
                 </Box>
@@ -127,7 +171,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 </Box>
                 { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
             </HStack>
-            { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null }
+            {/* { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null } */}
+            <PreExpanderUndo />
             </HStack>
           </VStack>
         </HStack>
@@ -145,7 +190,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 boxSize={5}
               />
               {/* <Text>{action.function.name}{text ? " | " : ""}{text}</Text> */}
-              <Text>{action.function.name}</Text>
+                <Text>{action.function.name}</Text>
             </HStack>
             
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
