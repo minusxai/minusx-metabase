@@ -20,6 +20,7 @@ import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
 import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard } from 'react-icons/bi'
+import { ReviewBox } from './ReviewBox'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
 import { abortPlan, startNewThread } from '../../state/chat/reducer'
@@ -539,6 +540,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         </HStack>
         }
 
+        <ReviewBox />
         { !taskInProgress && 
             <Stack aria-label="chat-input-area" position={"relative"}>
                 <AutosizeTextarea
@@ -594,7 +596,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             </HStack>
           </HStack>
         </Stack>
-        }
+        } 
         {taskInProgress && (
             <HStack aria-label="stop-task-area" justifyContent="center" width="100%" py={2}>
                 <Button

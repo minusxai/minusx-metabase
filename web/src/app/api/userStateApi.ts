@@ -18,10 +18,10 @@ export const userStateApi = createApi({
     }),
     
     submitReview: builder.mutation({
-      query: ({ rating }) => ({
+      query: ({ rating, comments }) => ({
         url: 'user_state/review',
         method: 'POST',
-        body: { rating },
+        body: { rating, comments },
       }),
       transformResponse: (response: any) => {
         return response.success ? response.data : {}

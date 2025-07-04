@@ -119,7 +119,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const tool = getParsedIframeInfo().tool
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
-  const { data: userState, isLoading } = useGetUserStateQuery()
+  const { data: userState, isLoading } = useGetUserStateQuery({})
   console.log('userState is', isLoading, userState)
 //   const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
   
