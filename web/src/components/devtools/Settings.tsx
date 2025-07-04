@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -72,6 +72,7 @@ const SettingsPage = () => {
   const useMemory = useSelector((state: RootState) => state.settings.useMemory)
   const enableStyleCustomization = useSelector((state: RootState) => state.settings.enableStyleCustomization)
   const enableUserDebugTools = useSelector((state: RootState) => state.settings.enableUserDebugTools)
+  const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
 
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
@@ -131,6 +132,9 @@ const SettingsPage = () => {
   }
   const updateEnableUserDebugTools = (value: boolean) => {
     dispatch(setEnableUserDebugTools(value))
+  }
+  const updateEnableReviews = (value: boolean) => {
+    dispatch(setEnableReviews(value))
   }
   
   // const CURRENT_ACTION_TESTS = ACTION_TESTS[tool];
@@ -224,6 +228,10 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">User Debug Tools</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableUserDebugTools} onChange={(e) => updateEnableUserDebugTools(e.target.checked)} />
           </HStack>
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Enable Reviews</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableReviews} onChange={(e) => updateEnableReviews(e.target.checked)} />
+          </HStack>}
         </VStack>
       </SettingsBlock>
       <SettingsBlock title="Privacy">

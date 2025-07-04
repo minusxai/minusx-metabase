@@ -22,6 +22,7 @@ type ReviewState = 'initial' | 'feedback' | 'completed'
 export const ReviewBox: React.FC = () => {
   const { data: userState, isLoading: isUserStateLoading } = useGetUserStateQuery(undefined)
   const threads = useSelector((state: RootState) => state.chat.threads)
+  const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
   const [rating, setRating] = useState<number>(0)
   const [comments, setComments] = useState<string>('')
   const [reviewState, setReviewState] = useState<ReviewState>('initial')
@@ -54,6 +55,11 @@ export const ReviewBox: React.FC = () => {
       setReviewState('completed')
     }
   }, [isUserStateLoading, userState, isReviewed, wasEverShown, reviewState])
+
+  // Don't render if feature is disabled
+  if (!enableReviews) {
+    return null
+  }
 
   // Don't render if still loading, no user state, or manually closed
   // But DO render if wasEverShown is true (even after is_reviewed becomes true)
