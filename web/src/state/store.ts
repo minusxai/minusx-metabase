@@ -427,12 +427,17 @@ const migrations = {
     let newState = {...state}
     newState.settings.enableUserDebugTools = false
     return newState
+  },
+  40: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.enableReviews = false
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 39,
+  version: 40,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore
