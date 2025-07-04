@@ -27,7 +27,7 @@ function LinkRenderer(props: any) {
 
 function ModifiedParagraph(props: any) {
   return (
-    <p style={{margin: '3px'}}>{props.children}</p>
+    <p style={{margin: '3px', wordBreak: 'break-word', overflowWrap: 'break-word', wordWrap: 'break-word', whiteSpace: 'normal'}}>{props.children}</p>
   )
 }
 
