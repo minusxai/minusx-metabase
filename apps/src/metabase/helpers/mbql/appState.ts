@@ -22,12 +22,12 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
     mbqlQuery: mbqlState.dataset_query.query
   }
   
+  const sourceTableModelIds = getSourceTableIds(mbqlState?.dataset_query?.query);
   const allModels = dbId ?  await getAllRelevantModelsForSelectedDb(dbId) : []
-  const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels)
+  const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels, sourceTableModelIds)
   const relevantModelsWithFields = await getModelsWithFields(relevantModels)
-  const sourceTableIds = getSourceTableIds(mbqlState?.dataset_query?.query);
-
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableIds)
+  
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds)
   relevantTablesWithFields = relevantTablesWithFields.map(table => {
     if (table.schema === undefined || table.schema === '') {
       table.schema = defaultSchema || 'unknown'

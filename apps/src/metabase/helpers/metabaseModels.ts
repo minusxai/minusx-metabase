@@ -1,5 +1,5 @@
 import { RPCs } from "web";
-import { fetchModelInfo } from "./metabaseAPI";
+import { fetchModelInfo, fetchCard } from "./metabaseAPI";
 import { FormattedTable, MetabaseModel } from "./metabaseAPITypes";
 import { groupBy, uniqBy } from "lodash";
 import slugg from "slugg";
@@ -113,9 +113,22 @@ export const getModelsFromSql = async (sql: string, allModels: MetabaseModel[]) 
     return models
 }
 
-export const getSelectedAndRelevantModels = async (sqlQuery: string, selectedModels: MetabaseModel[], allModels: MetabaseModel[]): Promise<MetabaseModel[]> => {
+export const getSelectedAndRelevantModels = async (sqlQuery: string, selectedModels: MetabaseModel[], allModels: MetabaseModel[], mbqlTableModelIds: any[] = []): Promise<MetabaseModel[]> => {
     const relevantModels = await getModelsFromSql(sqlQuery, allModels)
-    // merge the two, avoiding duplicates
-    const mergedModels = uniqBy([...selectedModels, ...relevantModels], 'modelId')
+    const modelIdsInQuery = mbqlTableModelIds.filter(id => id.includes('card__')).map(id => parseInt(id.replace('card__', '')))
+    const modelsInQuery = await Promise.all(modelIdsInQuery.map(model_id => fetchCard({card_id: model_id})))
+
+    const modelsFromMBQL = modelsInQuery.map(model => {
+        return {
+            name: model.name,
+            collectionName: model.collection.name,
+            modelId: model.id,
+            collectionId: model.collection_id,
+            dbId: model.database_id,
+            description: model.description || '',
+        }
+    })
+    // merge the three, avoiding duplicates
+    const mergedModels = uniqBy([...selectedModels, ...relevantModels, ...modelsFromMBQL], 'modelId')
     return mergedModels
 }
