@@ -128,8 +128,8 @@ export const ReviewBox: React.FC = () => {
       >
         <VStack spacing={3}>
           <HStack justifyContent="space-between" w="100%">
-            <Text fontSize="sm" fontWeight="bold" color="minusxGreen.800">
-              Thank you for your feedback! 🙏
+            <Text fontSize="sm" fontWeight="bold" color="minusxGreen.800" textAlign={'center'}>
+              Thank you for your feedback :)
             </Text>
             <IconButton
               aria-label="Close review"
@@ -142,19 +142,21 @@ export const ReviewBox: React.FC = () => {
           
           {rating === 5 && (
             <VStack spacing={2}>
-              <Text fontSize="xs" textAlign="center">
-                Love MinusX? Help others discover it!
+              <Text fontSize="xs" textAlign={'center'}>
+                If you find MinusX useful, please leave us a review on the &nbsp;
+                <Link
+                  href="https://chromewebstore.google.com/detail/minusx/ngneijhbpnongpekeimkbjinkkpfkaop"
+                  isExternal
+                  color="minusxGreen.600"
+                  display={'inline'}
+                  fontSize="xs"
+                  fontWeight="bold"
+                  textDecoration="underline"
+                >
+                  Chrome Web Store. 
+                </Link>
+                &nbsp; to support our work!
               </Text>
-              <Link
-                href="https://chromewebstore.google.com/detail/minusx/ngneijhbpnongpekeimkbjinkkpfkaop"
-                isExternal
-                color="minusxGreen.600"
-                fontSize="xs"
-                fontWeight="bold"
-                textDecoration="underline"
-              >
-                Rate us on Chrome Web Store →
-              </Link>
             </VStack>
           )}
         </VStack>
