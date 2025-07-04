@@ -13,12 +13,15 @@ import {
 } from '@chakra-ui/react'
 import { BiStar, BiX } from 'react-icons/bi'
 import { useSubmitReviewMutation, useGetUserStateQuery } from '../../app/api/userStateApi'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../state/store'
 import _ from 'lodash'
 
 type ReviewState = 'initial' | 'feedback' | 'completed'
 
 export const ReviewBox: React.FC = () => {
   const { data: userState, isLoading: isUserStateLoading } = useGetUserStateQuery(undefined)
+  const threads = useSelector((state: RootState) => state.chat.threads)
   const [rating, setRating] = useState<number>(0)
   const [comments, setComments] = useState<string>('')
   const [reviewState, setReviewState] = useState<ReviewState>('initial')
@@ -29,13 +32,21 @@ export const ReviewBox: React.FC = () => {
 
   // Get review status once
   const isReviewed = _.get(userState, 'review.is_reviewed', false)
+  
+  // Check engagement conditions
+  const threadCount = Object.keys(threads).length
+  const totalUserMessages = Object.values(threads).reduce((total, thread) => {
+    return total + thread.messages.filter(msg => msg.role === 'user').length
+  }, 0)
+  const hasEnoughEngagement = threadCount >= 3 || totalUserMessages > 10
+  console.log('ReviewBox engagement check:', hasEnoughEngagement, threadCount, totalUserMessages)
 
   // Track if component was ever shown when user hadn't reviewed yet
   useEffect(() => {
-    if (!isUserStateLoading && userState && !isReviewed && !wasEverShown) {
+    if (!isUserStateLoading && userState && !isReviewed && !wasEverShown && hasEnoughEngagement) {
       setWasEverShown(true)
     }
-  }, [isUserStateLoading, userState, isReviewed, wasEverShown])
+  }, [isUserStateLoading, userState, isReviewed, wasEverShown, hasEnoughEngagement])
 
   // If user has already reviewed and we're showing the component, set to completed state
   useEffect(() => {
@@ -46,12 +57,18 @@ export const ReviewBox: React.FC = () => {
 
   // Don't render if still loading, no user state, or manually closed
   // But DO render if wasEverShown is true (even after is_reviewed becomes true)
+  console.log('ReviewBox render check:', { isUserStateLoading, userState, isClosed, isReviewed, wasEverShown })
   if (isUserStateLoading || !userState || isClosed) {
     return null
   }
 
   // Don't show if user already reviewed AND we never showed the component before
   if (isReviewed && !wasEverShown) {
+    return null
+  }
+
+  // Don't show if user doesn't have enough engagement AND we never showed the component before
+  if (!hasEnoughEngagement && !wasEverShown) {
     return null
   }
 
@@ -177,7 +194,7 @@ export const ReviewBox: React.FC = () => {
       <VStack spacing={3}>
         <HStack justifyContent="space-between" w="100%">
           <Text fontSize="sm" fontWeight="bold">
-            How are you enjoying MinusX?
+            How helpful do you find MinusX?
           </Text>
           <IconButton
             aria-label="Close review"
