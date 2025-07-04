@@ -11,7 +11,7 @@ import {
   useToast,
   IconButton
 } from '@chakra-ui/react'
-import { BiStar, BiX } from 'react-icons/bi'
+import { BiSolidStar, BiX } from 'react-icons/bi'
 import { useSubmitReviewMutation, useGetUserStateQuery } from '../../app/api/userStateApi'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
@@ -33,6 +33,7 @@ export const ReviewBox: React.FC = () => {
 
   // Get review status once
   const isReviewed = _.get(userState, 'review.is_reviewed', false)
+
   
   // Check engagement conditions
   const threadCount = Object.keys(threads).length
@@ -150,11 +151,14 @@ export const ReviewBox: React.FC = () => {
         w="100%"
       >
         <VStack spacing={3}>
-          <HStack justifyContent="space-between" w="100%">
+          <HStack justifyContent="center" w="100%" position={"relative"} pt={5} alignContent={'center'}>
             <Text fontSize="sm" fontWeight="bold" color="minusxGreen.800" textAlign={'center'}>
               Thank you for your feedback :)
             </Text>
             <IconButton
+                position={'absolute'}
+                top={-2}
+                right={-2}
               aria-label="Close review"
               icon={<Icon as={BiX} />}
               size="xs"
@@ -166,7 +170,7 @@ export const ReviewBox: React.FC = () => {
           {rating === 5 && (
             <VStack spacing={2}>
               <Text fontSize="xs" textAlign={'center'}>
-                If you find MinusX useful, please leave us a review on the &nbsp;
+                Please consider leaving us a review on the &nbsp;
                 <Link
                   href="https://chromewebstore.google.com/detail/minusx/ngneijhbpnongpekeimkbjinkkpfkaop"
                   isExternal
@@ -198,14 +202,18 @@ export const ReviewBox: React.FC = () => {
       w="100%"
     >
       <VStack spacing={3}>
-        <HStack justifyContent="space-between" w="100%">
-          <Text fontSize="sm" fontWeight="bold">
+        <VStack w="100%" spacing={0} alignItems="center" mb={3} gap={0}>
+        <HStack justifyContent="center" w="100%" position={"relative"} py={5} alignContent={'center'}>
+          <Text fontSize="sm" fontWeight="bold" textAlign={'center'}>
             How helpful do you find MinusX?
           </Text>
           <IconButton
             aria-label="Close review"
+            position={'absolute'}
+            top={-2}
+            right={-2}
             icon={<Icon as={BiX} />}
-            size="xs"
+            size="sm"
             variant="ghost"
             onClick={handleClose}
           />
@@ -224,7 +232,7 @@ export const ReviewBox: React.FC = () => {
               aria-label={`${star} star${star > 1 ? 's' : ''}`}
             >
               <Icon
-                as={BiStar}
+                as={BiSolidStar}
                 boxSize={6}
                 color={star <= rating ? 'minusxGreen.500' : 'minusxGreen.300'}
                 fill={star <= rating ? 'minusxGreen.500' : 'transparent'}
@@ -234,6 +242,7 @@ export const ReviewBox: React.FC = () => {
             </Box>
           ))}
         </HStack>
+        </VStack>
 
         {reviewState === 'feedback' && (
           <VStack spacing={2} w="100%">
@@ -245,7 +254,7 @@ export const ReviewBox: React.FC = () => {
             <Textarea
               value={comments}
               onChange={(e) => setComments(e.target.value)}
-              placeholder="Optional, but this could really help us!"
+              placeholder="Optional, but this will really help us!"
               size="sm"
               resize="none"
               rows={2}
