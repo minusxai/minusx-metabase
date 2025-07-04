@@ -16,6 +16,7 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
+  const defaultSchema = selectedDatabaseInfo?.default_schema;
   const mbqlState = await getMBQLState();
   const mbqlInfo: MBQLInfo = {
     mbqlQuery: mbqlState.dataset_query.query
@@ -26,7 +27,13 @@ export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | nu
   const relevantModelsWithFields = await getModelsWithFields(relevantModels)
   const sourceTableIds = getSourceTableIds(mbqlState?.dataset_query?.query);
 
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableIds)
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableIds)
+  relevantTablesWithFields = relevantTablesWithFields.map(table => {
+    if (table.schema === undefined || table.schema === '') {
+      table.schema = defaultSchema || 'unknown'
+    }
+    return table
+  })
   const relevantModelsWithFieldsMod = relevantModelsWithFields.map(model => {
     return {
       ...model,
