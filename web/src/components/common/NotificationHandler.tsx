@@ -5,6 +5,7 @@ import { toast } from '../../app/toast';
 import { markAsExecuted } from '../../state/notifications/reducer';
 import { notifications as notificationsAPI } from '../../app/api';
 import { Notification } from '../../types/notifications';
+import { get } from 'lodash';
 
 export const NotificationHandler: React.FC = () => {
   const dispatch = useDispatch();
@@ -14,14 +15,27 @@ export const NotificationHandler: React.FC = () => {
     try {
       if (notification.content.type === 'TOAST') {
         // Display toast notification
-        toast({
-          title: 'Notification',
-          description: notification.content.message,
-          status: 'info',
-          duration: 5000,
-          isClosable: true,
-          position: 'bottom-right',
-        });
+        const description = get(notification, 'content.message', '')
+        if (description) {
+          toast({
+            title: 'Notification',
+            description: notification.content.message,
+            status: 'info',
+            duration: 5000,
+            isClosable: true,
+            position: 'bottom-right',
+          });
+        }
+      } else if (notification.content.type === 'DISPATCH') {
+        const action = get(notification, 'content.action');
+        const payload = get(notification, 'content.payload', {});
+        if (action && typeof action === 'string') {
+          // Dispatch the action with payload
+          dispatch({
+            type: action,
+            payload,
+          });
+        }
       }
 
       // Mark as executed in local state
