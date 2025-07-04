@@ -7,7 +7,7 @@ import { applyTableDiff, TableInfo, resetDefaultTablesDB, setSelectedModels } fr
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { applyTableDiffs, getDatabaseTablesAndModelsWithoutFields } from "apps";
+import { applyTableDiffs, fetchModelInfo, getDatabaseTablesAndModelsWithoutFields } from "apps";
 import { isEmpty, sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
 import { ModelView } from "./ModelView";
@@ -68,6 +68,10 @@ export const TablesCatalog: React.FC<null> = () => {
           loading: false
         }
       }))
+      // invalidate cache for model info as well
+      const modelIds = updatedDbInfo.models.map((model) => model.modelId)
+      const allPromises = modelIds.map((modelId) => fetchModelInfo.invalidate({model_id: modelId}))
+      await Promise.all(allPromises)
     } catch (error) {
     }
   }
