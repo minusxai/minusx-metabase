@@ -146,7 +146,14 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     // })
     subscribe(whitelistQuery, async ({elements, url}) => {
       const getState = this.useStore().getState
-      const toolEnabledNew = shouldEnable(elements, url);
+      const dbId = await getSelectedDbId();
+      let toolEnabledNew = shouldEnable(elements, url);
+      if (dbId === undefined || dbId === null) {
+        toolEnabledNew = {
+          value: false,
+          reason: "Unable to detect correct database. Please navigate to a SQL query page to enable MinusX."
+        }
+      }
       const pageType: MetabasePageType = determineMetabasePageType(elements, url);
       getState().update((oldState) => ({
         ...oldState,
@@ -157,7 +164,6 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           url
         }
       }));
-      const dbId = await getSelectedDbId();
       const currentToolContext = getState().toolContext
       const oldDbId = get(currentToolContext, 'dbId')
       if (dbId && dbId !== oldDbId) {
