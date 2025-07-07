@@ -28,7 +28,8 @@ import {
   fetchFieldUniqueValues,
   fetchTableMetadata,
   fetchModels,
-  fetchCard
+  fetchCard,
+  fetchCards
 } from './metabaseAPI';
 import { Card, SearchApiResponse } from './types';
 
@@ -185,6 +186,15 @@ async function performFallbackSearch(apiFn: () => Promise<any>, errorMsg: string
 
 export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
+}
+
+export async function getAllCards() {
+  const response = await handlePromise(
+    fetchCards({}),
+    "[minusx] Error getting all cards",
+    []
+  );
+  return response
 }
 
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {

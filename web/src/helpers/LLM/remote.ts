@@ -4,6 +4,7 @@ import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { get, unset } from 'lodash'
+import { getAllCards } from 'apps'
 //@ts-ignore
 
 
@@ -28,6 +29,19 @@ export async function planActionsRemote({
   if (!deepResearch) {
     unset(payload, 'tasks')
   }
+
+  // Add cards data for analyst mode
+  if (deepResearch === 'analystPlanner') {
+    try {
+      const cards = await getAllCards();
+      // @ts-ignore
+      payload.cards = cards;
+    } catch (error) {
+      console.warn('[minusx] Failed to fetch cards for analyst mode:', error);
+      // Continue without cards data rather than failing the request
+    }
+  }
+
   //@ts-ignore
   const response = await getLLMResponse(payload, signal, deepResearch)
   // throw error if aborted

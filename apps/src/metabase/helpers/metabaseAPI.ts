@@ -35,6 +35,10 @@ export const fetchCard = createAPI<{card_id: number}>(
   '/api/card/{{card_id}}'
 );
 
+export const fetchCards = createAPI<{}>(
+  '/api/card/'
+);
+
 export const fetchModelInfo = createAPI<{model_id: number}>(
   '/api/card/{{model_id}}/query_metadata',
   'GET'
