@@ -72,8 +72,8 @@ export const theme = extendTheme({
     Radio: {
       baseStyle: {
         control: {
-          bg: "minusxBW.100",
-          borderColor: "transparent",
+          bg: "minusxBW.200",
+          borderColor: "minusxBW.500",
           _checked: {
             bg: "minusxGreen.800",
             color: "minusxBW.100",
