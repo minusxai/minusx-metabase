@@ -3,6 +3,7 @@ import { Text, VStack, Button, HStack} from "@chakra-ui/react";
 import { SettingsBlock } from "../common/SettingsBlock";
 import { getApp } from "../../helpers/app";
 import { getDashboardState } from "apps";
+import { get, set } from "lodash";
 
 
 const useAppStore = getApp().useStore()
@@ -19,6 +20,16 @@ const downloadState = async (pageType: string) => {
                 }
                 return card;
             })
+        }
+        const entities = get(state, 'tableContextYAML.entities', []);
+        if (entities.length > 0) {
+            set(state, 'tableContextYAML.entities', entities.map((entity: any) => {
+                entity.dimensions = entity.dimensions.map((dimension: any) => {
+                    const { sample_values, ...rest } = dimension;
+                    return rest;
+                })
+                return entity
+            }))
         }
 
         const dashboardState = await getDashboardState();
