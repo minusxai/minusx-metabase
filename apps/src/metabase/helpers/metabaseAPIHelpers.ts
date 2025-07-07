@@ -311,7 +311,7 @@ export async function searchAllQueries(dbId: number, query: string): Promise<Tab
 /**
  * Get sample values for a field
  */
-export async function getFieldUniqueValues(fieldId: number | string) {
+async function getFieldUniqueValues(fieldId: number | string) {
   return await fetchFieldUniqueValues({ field_id: fieldId });
 }
 
