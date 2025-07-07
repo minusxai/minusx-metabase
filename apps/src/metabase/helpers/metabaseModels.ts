@@ -115,7 +115,7 @@ export const getModelsFromSql = async (sql: string, allModels: MetabaseModel[]) 
 
 export const getSelectedAndRelevantModels = async (sqlQuery: string, selectedModels: MetabaseModel[], allModels: MetabaseModel[], mbqlTableModelIds: any[] = []): Promise<MetabaseModel[]> => {
     const relevantModels = await getModelsFromSql(sqlQuery, allModels)
-    const modelIdsInQuery = mbqlTableModelIds.filter(id => id.includes('card__')).map(id => parseInt(id.replace('card__', '')))
+    const modelIdsInQuery = mbqlTableModelIds.filter(id => String(id).includes('card__')).map(id => parseInt(id.replace('card__', '')))
     const modelsInQuery = await Promise.all(modelIdsInQuery.map(model_id => fetchCard({card_id: model_id})))
 
     const modelsFromMBQL = modelsInQuery.map(model => {

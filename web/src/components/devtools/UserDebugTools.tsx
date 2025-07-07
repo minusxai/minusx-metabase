@@ -10,7 +10,7 @@ const useAppStore = getApp().useStore()
 
 
 const downloadState = async (pageType: string) => {
-    const state = await getApp().getState();
+    let state = await getApp().getState();
     if (pageType === 'dashboard') {
         if (state.cards) {
             state.cards = state.cards.map((card: any) => {
@@ -43,6 +43,10 @@ const downloadState = async (pageType: string) => {
             });
             state.rawDashboardState = dashboardState;
         }
+    }
+    else if (pageType === 'sql') {
+        const { outputTableMarkdown, ...rest } = state;
+        state = rest;
     }
     const content = JSON.stringify(state, null, 2)
     const blob = new Blob([content], { type: "application/json" })
