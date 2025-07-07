@@ -126,23 +126,28 @@ export const Clarification = () => {
                 <Text fontSize="sm" color="minusxBW.800">{option}</Text>
               </Radio>
             ))}
-            <Radio 
-              value={allOptions.length.toString()}
-              colorScheme="minusxGreen"
-              size="sm"
-            >
-              <VStack alignItems="stretch" spacing={1}>
+            <HStack alignItems="flex-start" spacing={2}>
+              <Radio 
+                value={allOptions.length.toString()}
+                colorScheme="minusxGreen"
+                size="sm"
+                mt={1}
+              />
+              <VStack alignItems="stretch" spacing={1} flex={1}>
                 <Text fontSize="sm" color="minusxBW.800">Custom answer:</Text>
                 <Input
                   value={customAnswer}
-                  onChange={(e) => setCustomAnswer(e.target.value)}
+                  onChange={(e) => {
+                    setCustomAnswer(e.target.value)
+                    setSelectedOption(allOptions.length.toString())
+                  }}
+                  onFocus={() => setSelectedOption(allOptions.length.toString())}
                   placeholder="Enter your answer..."
                   size="sm"
                   bg="white"
-                  onClick={() => setSelectedOption(allOptions.length.toString())}
                 />
               </VStack>
-            </Radio>
+            </HStack>
           </Stack>
         </RadioGroup>
       </Box>
