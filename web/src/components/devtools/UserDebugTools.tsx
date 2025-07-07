@@ -11,8 +11,25 @@ const useAppStore = getApp().useStore()
 const downloadState = async (pageType: string) => {
     const state = await getApp().getState();
     if (pageType === 'dashboard') {
+        if (state.cards) {
+            state.cards = state.cards.map((card: any) => {
+                if (card.outputTableMarkdown) {
+                    const { outputTableMarkdown, ...rest } = card;
+                    return rest;
+                }
+                return card;
+            })
+        }
+
         const dashboardState = await getDashboardState();
-        if (dashboardState) {
+        if (dashboardState && dashboardState.dashcardData) {
+            Object.keys(dashboardState.dashcardData).forEach(cardId => {
+                Object.keys(dashboardState.dashcardData[cardId]).forEach(key => {
+                    if (dashboardState.dashcardData[cardId][key]?.data?.rows) {
+                        dashboardState.dashcardData[cardId][key].data.rows = [];
+                    }
+                });
+            });
             state.rawDashboardState = dashboardState;
         }
     }
