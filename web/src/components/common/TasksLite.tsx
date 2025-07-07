@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
 import { get, last } from 'lodash';
+import { getActionTaskLiteLabels } from '../../helpers/utils';
 
 interface TaskWithLevel extends Task {
   level: number;
@@ -106,7 +107,8 @@ const TimelineNode: React.FC<TimelineNodeProps> = ({
 
       {/* Task name */}
       <Text fontSize="sm" fontWeight="500" noOfLines={1} flexGrow={1} title={task.agent}>
-        {task.agent}
+        {/* {task.agent} */}
+        {getActionTaskLiteLabels(task.agent)}
       </Text>
     </HStack>
   );
@@ -170,7 +172,6 @@ export const TasksLite: React.FC = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
   const taskInProgress = !(activeThread.status === 'FINISHED')
   const allTasks: TasksInfo = activeThread?.tasks || [];
-  
   const flatTasks = useMemo(() => flattenTasks(allTasks), [allTasks]);
   
   const rootTasks = useMemo(() => {

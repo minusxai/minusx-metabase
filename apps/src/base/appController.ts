@@ -12,6 +12,7 @@ interface App<T> {
 interface ActionMetadata {
   labelRunning: string;
   labelDone: string;
+  labelTask?: string; 
   description: string;
   renderBody: Function;
 }

@@ -44,6 +44,10 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: "//div[@data-testid='visualization-root' and contains(@style, 'grayscale()') and contains(@style, 'pointer-events: none')]"
   },
+  viz_invalid2: {
+    type: 'XPATH',
+    selector: "//div[@data-testid='visualization-root']//span[contains(text(), 'Cannot read properties of')]"
+  },
   viz_settings: {
     type: 'XPATH',
     selector: "//div[@data-testid='chart-type-sidebar']"
