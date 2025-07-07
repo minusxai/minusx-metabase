@@ -671,7 +671,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     description: "Asks the user clarifying questions to better understand their request.",
     renderBody: ({ questions }: { questions: Array<{question: string, options: string[]}> }) => {
       const questionsText = questions.map((q, i) => `${i + 1}. ${q.question}\n   Options: ${q.options.join(', ')}`).join('\n')
-      return { text: `Clarifying questions:\n${questionsText}`, code: null }
+      return { text: null, code: null }
     }
   })
   async Clarify({ questions }: { questions: Array<{question: string, options: string[]}> }) {

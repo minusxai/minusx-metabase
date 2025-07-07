@@ -43,7 +43,7 @@ export const Clarification = () => {
   // Add standard options: "Figure it out" and custom input
   const allOptions = [
     ...currentQuestion.options,
-    "Figure it out"
+    "Figure it out!"
   ]
 
   const handleNext = () => {
@@ -86,21 +86,22 @@ export const Clarification = () => {
       alignItems="stretch" 
       padding={4}
       spacing={4}
-      maxWidth="500px"
+      w={"100%"}
       margin="0 auto"
     >
       <VStack spacing={2} alignItems="stretch">
         <Text 
-          fontSize="md" 
-          fontWeight="medium" 
+          fontSize="xs" 
+          fontWeight="bold" 
           color="minusxBW.900"
           textAlign="center"
+          textTransform={"uppercase"}
         >
-          Question {currentQuestionIndex + 1} of {clarification.questions.length}
+          Clarifying Question {currentQuestionIndex + 1} of {clarification.questions.length}
         </Text>
         
         <Text 
-          fontSize="sm" 
+          fontSize="md" 
           color="minusxBW.800"
           textAlign="center"
         >
@@ -134,7 +135,7 @@ export const Clarification = () => {
                 mt={1}
               />
               <VStack alignItems="stretch" spacing={1} flex={1}>
-                <Text fontSize="sm" color="minusxBW.800">Custom answer:</Text>
+                <Text fontSize="sm" color="minusxBW.800">Other</Text>
                 <Input
                   value={customAnswer}
                   onChange={(e) => {
@@ -142,7 +143,7 @@ export const Clarification = () => {
                     setSelectedOption(allOptions.length.toString())
                   }}
                   onFocus={() => setSelectedOption(allOptions.length.toString())}
-                  placeholder="Enter your answer..."
+                  placeholder="Specify the 'Other' option"
                   size="sm"
                   bg="white"
                 />
