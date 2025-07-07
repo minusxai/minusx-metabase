@@ -7,7 +7,7 @@ const dr_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_planner`
 const dr_tool_url = `${configs.BASE_SERVER_URL}/deepresearch/chat`
 
 export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepresearch = 'simple' ) => {
-    const remoteUrl = deepresearch === 'simple' ? url : deepresearch === 'deepResearchPlanner' ? dr_url : dr_tool_url
+    const remoteUrl = deepresearch === 'simple' ? url : dr_url
     return await axios.post(remoteUrl, payload, {
       headers: {
         'Content-Type': 'application/json',

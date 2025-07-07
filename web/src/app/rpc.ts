@@ -200,4 +200,5 @@ export { useAppFromExternal } from './sidechat'
 import chat from '../chat/chat';
 export const { addUserMessage } = chat;
 export { getUserConfirmation } from './userConfirmation'
+export { clarify } from './clarification'
 export { getAppSettings, getSemanticInfo, applySemanticQuery, getCache } from './appSettings'

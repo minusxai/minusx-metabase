@@ -104,6 +104,7 @@ interface Settings {
   tableDiff: TableDiff
   selectedModels: MetabaseModel[]
   drMode: boolean,
+  analystMode: boolean,
   selectedCatalog: string,
   availableCatalogs: ContextCatalog[],
   users: Record<string, UserInfo>
@@ -140,6 +141,7 @@ const initialState: Settings = {
   },
   selectedModels: [],
   drMode: true,
+  analystMode: false,
   selectedCatalog: DEFAULT_TABLES,
   availableCatalogs: [],
   users: {},
@@ -249,6 +251,16 @@ export const settingsSlice = createSlice({
     },
     setDRMode: (state, action: PayloadAction<boolean>) => {
       state.drMode = action.payload
+      // Auto-disable analyst mode when DR mode is disabled
+      if (!action.payload) {
+        state.analystMode = false
+      }
+    },
+    setAnalystMode: (state, action: PayloadAction<boolean>) => {
+      // Only allow analyst mode if DR mode is enabled
+      if (state.drMode) {
+        state.analystMode = action.payload
+      }
     },
     setUseMemory: (state, action: PayloadAction<boolean>) => {
       state.useMemory = action.payload
@@ -365,7 +377,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateIsAppOpen, updateAppMode, updateIsDevToolsOpen,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
-  applyTableDiff, setSelectedModels, setDRMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
+  applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews
 } = settingsSlice.actions
 

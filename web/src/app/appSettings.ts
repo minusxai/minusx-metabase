@@ -10,6 +10,7 @@ export const getAppSettings = () => {
     semanticPlanner: settings.demoMode,
     tableDiff: settings.tableDiff,
     drMode: settings.drMode,
+    analystMode: settings.analystMode,
     selectedCatalog: settings.selectedCatalog,
     availableCatalogs: settings.availableCatalogs,
     modelsMode: settings.modelsMode,

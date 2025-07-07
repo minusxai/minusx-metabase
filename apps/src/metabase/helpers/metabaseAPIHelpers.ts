@@ -5,7 +5,7 @@
  * from metabaseAPI.ts and state functions from metabaseStateAPI.ts.
  */
 
-import { map, get, isEmpty, flatMap } from 'lodash';
+import { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise, deterministicSample } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
@@ -28,7 +28,8 @@ import {
   fetchFieldUniqueValues,
   fetchTableMetadata,
   fetchModels,
-  fetchCard
+  fetchCard,
+  fetchCards
 } from './metabaseAPI';
 import { Card, SearchApiResponse } from './types';
 
@@ -187,6 +188,78 @@ export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
 }
 
+export async function getAllCards() {
+  const cards = await handlePromise(
+    fetchCards({}),
+    "[minusx] Error getting all cards",
+    []
+  );
+  
+  // Get selected database ID
+  const selectedDbId = await getSelectedDbId();
+  
+  // Calculate 3 months ago date
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const cutoffDate = threeMonthsAgo.toISOString();
+  
+  console.log('[minusx] getAllCards - Total cards:', cards);
+  
+  // Filter cards by database_id and last_used_at (last 3 months only)
+  const filteredCards = filter(cards, (card) => {
+    const lastUsedAt = get(card, 'last_used_at');
+    const databaseId = get(card, 'database_id');
+    
+    // Filter by selected database and last 3 months
+    const matchesDatabase = selectedDbId ? databaseId === selectedDbId : true;
+    const isRecent = lastUsedAt && lastUsedAt > cutoffDate;
+    const isModel = get(card, 'type') === 'model';
+
+    return matchesDatabase && isRecent && !isModel;
+  });
+  
+  // Sort by view_count descending
+  const sortedCards = reverse(sortBy(filteredCards, 'view_count'));
+  
+  // Remove unnecessary fields and keep only required fields
+  const fieldsToRemove = [
+    'cache_invalidated_at',
+    'archived', 
+    'collection_position',
+    'source_card_id',
+    'result_metadata',
+    'creator',
+    'initially_published_at',
+    'enable_embedding',
+    'collection_id',
+    'made_public_by_id',
+    'embedding_params',
+    'cache_ttl',
+    'archived_directly',
+    'collection_preview'
+  ];
+  
+  const processedCards = map(sortedCards, (card: any) => {
+    // Remove unwanted fields
+    const cleanCard: any = omit(card, fieldsToRemove);
+    
+    // Process nested fields - keep only specific properties
+    if (cleanCard['last-edit-info']) {
+      cleanCard['last-edit-info'] = pick(cleanCard['last-edit-info'], ['timestamp']);
+    }
+    
+    if (cleanCard.collection) {
+      cleanCard.collection = pick(cleanCard.collection, ['slug']);
+    }
+    
+    return cleanCard;
+  });
+  
+  console.log('Processed cards:', processedCards);
+  
+  return processedCards;
+}
+
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {
   const models = forceRefreshModels ? await fetchModels.refresh({db_id: dbId}) as SearchApiResponse : await fetchModels({db_id: dbId}) as SearchApiResponse;
   const data = get(models, 'data', []);
@@ -311,7 +384,7 @@ export async function searchAllQueries(dbId: number, query: string): Promise<Tab
 /**
  * Get sample values for a field
  */
-export async function getFieldUniqueValues(fieldId: number | string) {
+async function getFieldUniqueValues(fieldId: number | string) {
   return await fetchFieldUniqueValues({ field_id: fieldId });
 }
 
