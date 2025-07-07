@@ -213,8 +213,9 @@ export async function getAllCards() {
     // Filter by selected database and last 3 months
     const matchesDatabase = selectedDbId ? databaseId === selectedDbId : true;
     const isRecent = lastUsedAt && lastUsedAt > cutoffDate;
-    
-    return matchesDatabase && isRecent;
+    const isModel = get(card, 'type') === 'model';
+
+    return matchesDatabase && isRecent && !isModel;
   });
   
   // Sort by view_count descending
