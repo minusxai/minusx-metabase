@@ -108,6 +108,24 @@ export interface UserConfirmationState {
   userInput: UserConfirmationInput
 }
 
+export interface ClarificationQuestion {
+  question: string
+  options: string[]
+}
+
+export interface ClarificationAnswer {
+  question: string
+  answer: string
+}
+
+export interface ClarificationState {
+  show: boolean
+  questions: ClarificationQuestion[]
+  answers: ClarificationAnswer[]
+  currentQuestionIndex: number
+  isCompleted: boolean
+}
+
 export interface Task {
   agent: string;
   args: any;
@@ -127,6 +145,7 @@ interface ChatThread {
   messages: Array<ChatMessage>
   status: ChatThreadStatus
   userConfirmation: UserConfirmationState
+  clarification: ClarificationState
   interrupted: boolean
   tasks: Tasks
   id: string
@@ -141,6 +160,14 @@ export const initialUserConfirmationState: UserConfirmationState = {
   show: false,
   content: '',
   userInput: 'NULL'
+}
+
+export const initialClarificationState: ClarificationState = {
+  show: false,
+  questions: [],
+  answers: [],
+  currentQuestionIndex: 0,
+  isCompleted: false
 }
 
 export const initialTasks: Tasks = []
@@ -170,6 +197,7 @@ const initialState: ChatState = {
     messages: [],
     status: 'FINISHED',
     userConfirmation: initialUserConfirmationState,
+    clarification: initialClarificationState,
     interrupted: false,
     tasks: initialTasks,
     id: `v0-${getID()}-0`
@@ -373,6 +401,7 @@ export const chatSlice = createSlice({
           content: '',
           userInput: 'NULL'
         },
+        clarification: initialClarificationState,
         interrupted: false,
         tasks: [],
         id: newID
@@ -435,6 +464,37 @@ export const chatSlice = createSlice({
       const userConfirmation = state.threads[state.activeThread].userConfirmation
       userConfirmation.userInput = action.payload
     },
+    toggleClarification: (state, action: PayloadAction<{
+      show: boolean
+      questions: ClarificationQuestion[]
+    }>) => {
+      const clarification = state.threads[state.activeThread].clarification
+      const { show, questions } = action.payload
+      clarification.show = show
+      clarification.questions = questions
+      clarification.answers = []
+      clarification.currentQuestionIndex = 0
+      clarification.isCompleted = false
+    },
+    setClarificationAnswer: (state, action: PayloadAction<{
+      questionIndex: number
+      answer: string
+    }>) => {
+      const clarification = state.threads[state.activeThread].clarification
+      const { questionIndex, answer } = action.payload
+      const question = clarification.questions[questionIndex]
+      
+      // Update or add the answer
+      const existingAnswerIndex = clarification.answers.findIndex(a => a.question === question.question)
+      if (existingAnswerIndex >= 0) {
+        clarification.answers[existingAnswerIndex].answer = answer
+      } else {
+        clarification.answers.push({ question: question.question, answer })
+      }
+      
+      // Check if all questions are answered
+      clarification.isCompleted = clarification.answers.length === clarification.questions.length
+    },
     abortPlan: (state) => {
       const thread = state.activeThread
       const activeThread = state.threads[thread]
@@ -444,6 +504,6 @@ export const chatSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, switchToThread, abortPlan } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan } = chatSlice.actions
 
 export default chatSlice.reducer

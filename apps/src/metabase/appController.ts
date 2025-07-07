@@ -665,6 +665,27 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+  @Action({
+    labelRunning: "Asking for clarification",
+    labelDone: "Questions answered",
+    description: "Asks the user clarifying questions to better understand their request.",
+    renderBody: ({ questions }: { questions: Array<{question: string, options: string[]}> }) => {
+      const questionsText = questions.map((q, i) => `${i + 1}. ${q.question}\n   Options: ${q.options.join(', ')}`).join('\n')
+      return { text: `Clarifying questions:\n${questionsText}`, code: null }
+    }
+  })
+  async Clarify({ questions }: { questions: Array<{question: string, options: string[]}> }) {
+    const answers = await RPCs.clarify({ questions });
+    
+    const actionContent: DefaultMessageContent = {
+      type: "DEFAULT",
+      text: `Questions answered:\n${answers.map((a, i) => `${i + 1}. ${a.question}\n   Answer: ${a.answer}`).join('\n')}`,
+      images: [],
+    };
+    
+    return actionContent;
+  }
+
   // 1. Internal actions -------------------------------------------
   async toggleSQLEditor(mode: "open" | "close") {
     if (mode === "open") {

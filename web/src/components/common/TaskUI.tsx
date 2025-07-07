@@ -30,6 +30,7 @@ import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { Thumbnails } from './Thumbnails'
 import { UserConfirmation } from './UserConfirmation'
+import { Clarification } from './Clarification'
 import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle, readActiveSpreadsheet, getUserSelectedRange, stopRecording, startRecording } from '../../app/rpc'
 import { forwardToTab } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
@@ -422,6 +423,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation/>
+        <Clarification/>
         {/* {
             demoMode && currentTool == "google" && currentToolVersion == "sheets" ? 
             <HStack justify={"center"}>

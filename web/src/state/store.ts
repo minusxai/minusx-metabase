@@ -1,5 +1,5 @@
 import { Action, combineReducers, configureStore, createListenerMiddleware } from '@reduxjs/toolkit'
-import chat, { initialUserConfirmationState, initialTasks, getID } from './chat/reducer'
+import chat, { initialUserConfirmationState, initialClarificationState, initialTasks, getID } from './chat/reducer'
 import auth from './auth/reducer'
 import thumbnails from './thumbnails/reducer'
 import settings, { DEFAULT_TABLES, DEFAULT_MINUSXMD } from './settings/reducer'
@@ -432,12 +432,22 @@ const migrations = {
     let newState = {...state}
     newState.settings.enableReviews = false
     return newState
+  },
+  41: (state: RootState) => {
+    let newState = {...state}
+    // Add clarification state to all existing threads
+    newState.chat.threads.forEach((thread: any) => {
+      if (!thread.clarification) {
+        thread.clarification = initialClarificationState
+      }
+    })
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 40,
+  version: 41,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore
