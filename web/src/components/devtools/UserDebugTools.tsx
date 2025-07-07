@@ -11,6 +11,16 @@ const useAppStore = getApp().useStore()
 
 const downloadState = async (pageType: string) => {
     let state = await getApp().getState();
+    const entities = get(state, 'tableContextYAML.entities', []);
+    if (entities.length > 0) {
+        set(state, 'tableContextYAML.entities', entities.map((entity: any) => {
+            entity.dimensions = entity.dimensions.map((dimension: any) => {
+                const { sample_values, ...rest } = dimension;
+                return rest;
+            })
+            return entity
+        }))
+    }
     if (pageType === 'dashboard') {
         if (state.cards) {
             state.cards = state.cards.map((card: any) => {
@@ -20,17 +30,7 @@ const downloadState = async (pageType: string) => {
                 }
                 return card;
             })
-        }
-        const entities = get(state, 'tableContextYAML.entities', []);
-        if (entities.length > 0) {
-            set(state, 'tableContextYAML.entities', entities.map((entity: any) => {
-                entity.dimensions = entity.dimensions.map((dimension: any) => {
-                    const { sample_values, ...rest } = dimension;
-                    return rest;
-                })
-                return entity
-            }))
-        }
+        } 
 
         const dashboardState = await getDashboardState();
         if (dashboardState && dashboardState.dashcardData) {
