@@ -18,9 +18,7 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
   const messageHistory = activeThread.messages;
   const tasks = activeThread.tasks;
   const conversationID = activeThread.id;
-  const deepResearch = state.settings.drMode 
-    ? (state.settings.analystMode ? 'analystPlanner' : 'deepResearchPlanner') 
-    : 'simple' as researchMode
+  const deepResearch = state.settings.drMode ? 'deepResearchPlanner' : 'simple' as researchMode
   const prompts = {
     system: plannerConfig.systemPrompt,
     user: plannerConfig.userPrompt,

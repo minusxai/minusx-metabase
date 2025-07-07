@@ -4,7 +4,7 @@ import { planActionsRemote } from "./remote";
 import { Tasks, ToolCalls } from "../../state/chat/reducer";
 import { LLMContext, LLMResponse, LLMSettings } from "./types";
 
-export type researchMode = 'simple' | 'deepResearchPlanner' | 'deepResearchTool' | 'analystPlanner'
+export type researchMode = 'simple' | 'deepResearchPlanner' | 'deepResearchTool'
 
 export type PlanActionsParams = {
   messages: LLMContext,
