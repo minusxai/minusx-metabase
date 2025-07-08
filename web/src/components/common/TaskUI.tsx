@@ -168,7 +168,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   }
 
   const isMessageTooLong = () => {
-    return messages.length >= 10 && JSON.stringify(messages).length / 4 > 50000
+    return messages.length >= 10 && JSON.stringify(messages).length / 4 > 12000
   }
 
   const handleSnapClick = async () => {
@@ -392,7 +392,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
           {/* <Divider borderColor={"minusxBW.500"}/> */}
-          {isMessageTooLong() && <Text fontSize="medium" color={"black"}>Your thread is too long and is reducing your performance & accuracy. Click
+          {isMessageTooLong() && <Notify>
+                <Text fontSize="xs" lineHeight={"1rem"}>
+                    Your chat is too long, reducing accuracy and costing you more credits. Click
             {" "}<Text
               as="span"
               color="blue.500"
@@ -402,7 +404,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
               onClick={clearMessages}
             >
               here
-            </Text>{" "} to start a new chat.</Text>}
+            </Text>{" "} to start a new thread.</Text>
+            </Notify>
+            }
             {/* <ChatSuggestions
               suggestQueries={suggestQueries}
               toggleSuggestions={toggleSuggestions}
