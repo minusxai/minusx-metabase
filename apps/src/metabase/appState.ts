@@ -70,7 +70,8 @@ const getHighlightStyles = () => `
     z-index: 2 !important;
   }
   div.cm-selectionLayer > div.cm-selectionBackground {
-    background: rgba(203, 226, 247, 0.5) !important;
+    background: rgba(100, 180, 255, 0.4) !important;
+    pointer-events: none !important;
   }
   .cm-selectionLayer span {
     display: none;
@@ -86,7 +87,11 @@ const getHighlightStyles = () => `
     display: none !important;
   }
   div.ace_marker-layer > div.ace_selection {
-    background: rgba(203, 226, 247, 0.5) !important;
+    background: rgba(100, 180, 255, 0.4) !important;
+  }
+  
+  div.ace_marker-layer > div.ace_selected-word {
+    background: rgba(100, 180, 255, 0.4) !important;
   }
 
   .ace_layer > .ace_selection > .minusx_highlight_button {
@@ -109,11 +114,13 @@ const getHighlightStyles = () => `
     background-color: #519ee4;
     color: white;
     cursor: pointer;
+    pointer-events: auto !important;
   }
   #modify-snippet {
     background-color: #519ee4;
     color: white;
     cursor: pointer;
+    pointer-events: auto !important;
   }
 `;
 
@@ -279,27 +286,23 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         type: "CSS",
         selector: 'button#explain-snippet'
       }, async (event) => {
-        const selectedText = _currentlySelectedText;
+        const selectedText = _currentlySelectedText.trim();
         RPCs.toggleMinusXRoot('closed', false)
         RPCs.addUserMessage({
           content: {
             type: "DEFAULT",
             text: `explain the highlighted SQL snippet: 
-                  \`\`\`
-                  ${selectedText}
-                  \`\`\`
-                  `,
-            images: []
-          },
-        });
-
+\`\`\`
+${selectedText}
+\`\`\`
+`, images: []}});
       }, ['mousedown'])
       
       addNativeEventListener({
         type: "CSS",
         selector: 'button#modify-snippet'
       }, async (event) => {
-          const selectedText = _currentlySelectedText;
+          const selectedText = _currentlySelectedText.trim();
           RPCs.toggleMinusXRoot('closed', false)
           dispatch(setInstructions(`Modify only this snippet of the SQL query: 
 \`\`\`
