@@ -20,25 +20,18 @@ async function processCards() {
   // Get stored hashes from Redux
   const currentState = getState()
   const storedHashes = currentState.settings.cardsMetadataHashes
-  console.log('Stored hashes:', storedHashes)
-  console.log('Current hash:', currentHash)
   
   // Only upload if hash doesn't exist in the Record
   if (!storedHashes[currentHash]) {
     try {
-      console.log('[minusx] Cards data changed, uploading to metadata endpoint')
       const serverHash = await uploadCardsMetadata(cards, currentHash)
-      console.log('Server hash:', serverHash)
       
       // Store the new hash in Redux
       dispatch(setCardsMetadataHash(serverHash))
-      console.log('[minusx] Cards metadata uploaded and hash updated')
     } catch (error) {
       console.warn('[minusx] Failed to upload cards metadata:', error)
       // Continue without failing the entire request
     }
-  } else {
-    console.log('[minusx] Cards data unchanged, skipping metadata upload')
   }
   
   // Return the hash instead of actual cards data
@@ -79,7 +72,6 @@ export async function planActionsRemote({
         const cardsHash = await getCardsPromise;
         // @ts-ignore
         payload.cardsHash = cardsHash;
-        console.log('[minusx] Added metadata hash to request for analyst mode');
       } catch (error) {
         console.warn('[minusx] Failed to fetch cards for analyst mode:', error);
         // Continue without cards data rather than failing the request

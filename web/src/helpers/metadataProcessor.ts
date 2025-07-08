@@ -45,7 +45,6 @@ export async function processMetadata(metadataItems: MetadataItem[]): Promise<an
       }
     );
 
-    console.log(`Successfully uploaded ${metadataItems.length} metadata items`);
     return response.data;
   } catch (error) {
     console.warn('Failed to upload metadata items:', error);
