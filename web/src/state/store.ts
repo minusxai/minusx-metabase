@@ -445,7 +445,14 @@ const migrations = {
   },
   42: (state: RootState) => {
     let newState = {...state}
-    newState.settings.cardsMetadataHashes = {}
+    // Migrate cardsMetadataHashes to unified metadataHashes
+    const oldSettings = newState.settings as any
+    if (oldSettings.cardsMetadataHashes) {
+      newState.settings.metadataHashes = oldSettings.cardsMetadataHashes
+      delete oldSettings.cardsMetadataHashes
+    } else {
+      newState.settings.metadataHashes = {}
+    }
     return newState
   }
 }

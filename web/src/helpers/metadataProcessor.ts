@@ -88,3 +88,27 @@ export async function uploadCardsMetadata(cards: any, metadataHash: string): Pro
     throw error;
   }
 }
+
+/**
+ * Uploads database schema metadata to the backend using processMetadata
+ * @param dbSchemaData The database schema data to upload
+ * @param metadataHash The calculated hash to send to server
+ * @returns The hash returned from the server
+ */
+export async function uploadDBSchemaMetadata(dbSchemaData: any, metadataHash: string): Promise<string> {
+  const metadataItem: MetadataItem = {
+    metadata_type: 'dbSchema',
+    metadata_value: { dbSchemaData },
+    version: '1.0',
+    metadata_hash: metadataHash
+  };
+
+  try {
+    const response = await processMetadata([metadataItem]);
+    const hash = get(response, 'results[0].metadata_hash')
+    return hash
+  } catch (error) {
+    console.warn('Failed to upload database schema metadata:', error);
+    throw error;
+  }
+}

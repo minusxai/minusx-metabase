@@ -279,9 +279,16 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
 }
 
 
-export async function getDatabaseTablesAndModelsWithoutFields(dbId: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
-  const jsonResponse = await fetchDatabaseWithTables({ db_id: dbId });
-  const models = await getAllRelevantModelsForSelectedDb(dbId, forceRefreshModels) ;
+export async function getDatabaseTablesAndModelsWithoutFields(dbId?: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
+  // If dbId not provided, get the currently selected database ID
+  const effectiveDbId = dbId || await getSelectedDbId();
+  
+  if (!effectiveDbId) {
+    throw new Error('No database ID provided and no database currently selected');
+  }
+  
+  const jsonResponse = await fetchDatabaseWithTables({ db_id: effectiveDbId });
+  const models = await getAllRelevantModelsForSelectedDb(effectiveDbId, forceRefreshModels) ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))

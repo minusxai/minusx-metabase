@@ -5,37 +5,54 @@ import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
 import { dispatch } from '../../state/dispatch'
-import { setCardsMetadataHash } from '../../state/settings/reducer'
+import { setMetadataHash } from '../../state/settings/reducer'
 import { get, unset } from 'lodash'
-import { getAllCards } from 'apps'
-import { calculateMetadataHash, uploadCardsMetadata } from '../metadataProcessor'
+import { getAllCards, getDatabaseTablesAndModelsWithoutFields } from 'apps'
+import { calculateMetadataHash, uploadCardsMetadata, uploadDBSchemaMetadata } from '../metadataProcessor'
 //@ts-ignore
 
-async function processCards() {
-  const cards = await getAllCards()
+async function processMetadataWithCaching(
+  metadataType: string,
+  dataFetcher: () => Promise<any>,
+  uploadFn: (data: any, hash: string) => Promise<string>
+): Promise<string> {
+  // Fetch the data
+  const data = await dataFetcher()
   
-  // Calculate hash of current cards data
-  const currentHash = await calculateMetadataHash('cards', { cards }, '1.0')
+  // Calculate hash of current data
+  const currentHash = await calculateMetadataHash(metadataType, { [metadataType]: data }, '1.0')
   
   // Get stored hashes from Redux
   const currentState = getState()
-  const storedHashes = currentState.settings.cardsMetadataHashes
+  const storedHashes = currentState.settings.metadataHashes
   
   // Only upload if hash doesn't exist in the Record
   if (!storedHashes[currentHash]) {
     try {
-      const serverHash = await uploadCardsMetadata(cards, currentHash)
+      console.log(`[minusx] ${metadataType} data changed, uploading to metadata endpoint`)
+      const serverHash = await uploadFn(data, currentHash)
       
       // Store the new hash in Redux
-      dispatch(setCardsMetadataHash(serverHash))
+      dispatch(setMetadataHash(serverHash))
+      console.log(`[minusx] ${metadataType} metadata uploaded and hash updated`)
     } catch (error) {
-      console.warn('[minusx] Failed to upload cards metadata:', error)
+      console.warn(`[minusx] Failed to upload ${metadataType} metadata:`, error)
       // Continue without failing the entire request
     }
+  } else {
+    console.log(`[minusx] ${metadataType} data unchanged, skipping metadata upload`)
   }
   
-  // Return the hash instead of actual cards data
+  // Return the hash
   return currentHash
+}
+
+async function processCards() {
+  return await processMetadataWithCaching('cards', getAllCards, uploadCardsMetadata)
+}
+
+async function processDBSchema() {
+  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields, uploadDBSchemaMetadata)
 }
 
 
@@ -62,19 +79,24 @@ export async function planActionsRemote({
   }
 
   const getCardsPromise = processCards()
+  const getDBSchemaPromise = processDBSchema()
 
-  // Add cards data for analyst mode (when both drMode and analystMode are enabled)
+  // Add metadata hashes for analyst mode (when both drMode and analystMode are enabled)
   if (deepResearch !== 'simple') {
     // Check if analyst mode is enabled by getting current state
     const currentState = getState();
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
         const cardsHash = await getCardsPromise;
+        const dbSchemaHash = await getDBSchemaPromise;
         // @ts-ignore
         payload.cardsHash = cardsHash;
+        // @ts-ignore
+        payload.dbSchemaHash = dbSchemaHash;
+        console.log('[minusx] Added metadata hashes to request for analyst mode');
       } catch (error) {
-        console.warn('[minusx] Failed to fetch cards for analyst mode:', error);
-        // Continue without cards data rather than failing the request
+        console.warn('[minusx] Failed to fetch metadata for analyst mode:', error);
+        // Continue without metadata rather than failing the request
       }
     }
   }
