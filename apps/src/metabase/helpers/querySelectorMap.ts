@@ -94,6 +94,18 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'CSS',
     selector: '[aria-label="Switch to data"]'
   },
+  switch_to_viz: {
+    type: 'CSS',
+    selector: '[aria-label="Switch to visualization"]'
+  },
+  table_root: {
+    type: 'XPATH',
+    selector: "//div[@data-testid='table-root']"
+  },
+  table_root2: {
+    type: 'XPATH',
+    selector: "//div[@data-testid='TableInteractive-root']"
+  },
   cancel_running_query: {
     type: 'XPATH',
     selector: '//button[@aria-label="Cancel" and @data-testid="run-button"]|//button[contains(@class,"RunButton")]/div/*[@aria-label="close icon"]/../..'

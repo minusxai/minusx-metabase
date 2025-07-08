@@ -438,6 +438,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     dimensions?: string[],
     metrics?: string[]
   }) {
+    const actionContent: BlankMessageContent = { type: "BLANK" };
     // vivek: ensure the visualization type is capital case
     function toCapitalCase(str: string) {
       return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -458,8 +459,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       try {
         await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
         await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
-        await this.checkVisualizationInvalid();
-        return
+        actionContent.content = await this.checkVisualizationInvalid();
+        return actionContent;
       }
       catch (error) {
         console.error("Failed to update visualization type, falling back to UI method", error);
@@ -467,18 +468,18 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     if (state.visualizationType === visualization_type.toLowerCase()) {
-      return;
+      actionContent.content = `Visualization type "${visualization_type}" already set`;
+      return actionContent;
     }
     if (state.visualizationSettingsStatus == "closed") {
       await this.uClick({ query: "vizualization_button" });
     }
 
-    const querySelectorMap = await this.app.getQuerySelectorMap();
     const query = `${visualization_type}_button`;
     await this.uClick({ query });
     await this.uClick({ query: "vizualization_button" });
-    await this.checkVisualizationInvalid();
-    return;
+    actionContent.content = await this.checkVisualizationInvalid();
+    return actionContent;
   }
 
   @Action({
@@ -691,18 +692,27 @@ export class MetabaseController extends AppController<MetabaseAppState> {
 
   // 1. Internal actions -------------------------------------------
   async checkVisualizationInvalid() {
+    let returnMessage = "Visualization set successfully";
     const querySelectorMap = await this.app.getQuerySelectorMap();
     // @vivek: Check if the visualization is invalid. Need to actually solve the issue
-    const vizInvalid = await RPCs.queryDOMSingle({
-      selector: querySelectorMap["viz_invalid"],
+    const tableViz = await RPCs.queryDOMMap({
+        'metabase_52': {selector: querySelectorMap["table_root"]},
+        'metabase_54': {selector: querySelectorMap["table_root2"]},
     });
-    const vizInvalid2 = await RPCs.queryDOMSingle({
-      selector: querySelectorMap["viz_invalid2"],
-    });
-    if (vizInvalid.length > 0 || vizInvalid2.length > 0) {
-      await this.uClick({ query: "switch_to_data" });
+    // check if any of the tableViz keys have a length > 0
+    if (Object.values(tableViz).some((v) => v.length > 0)) {
+      await this.uClick({ query: "switch_to_viz" });
     }
-    return
+    
+    const vizInvalid = await RPCs.queryDOMMap({
+        'metabase_52': {selector: querySelectorMap["viz_invalid"]},
+        'metabase_54': {selector: querySelectorMap["viz_invalid2"]},
+    })
+    if (Object.values(vizInvalid).some((v) => v.length > 0)) {
+      await this.uClick({ query: "switch_to_data" });
+      returnMessage = "Error while setting visualization type. Set to table view instead.";
+    }
+    return returnMessage
   }
 
   async toggleSQLEditor(mode: "open" | "close") {
