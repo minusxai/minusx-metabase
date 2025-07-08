@@ -150,7 +150,7 @@ const initialState: Settings = {
   groupsEnabled: false,
   modelsMode: true,
   viewAllCatalogs: false,
-  enable_highlight_helpers: false,
+  enable_highlight_helpers: true,
   useMemory: true,
   customCSS: '',
   enableStyleCustomization: false,

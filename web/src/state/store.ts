@@ -460,12 +460,18 @@ const migrations = {
       newState.settings.metadataHashes = {}
     }
     return newState
-  }
+  },
+  44: (state: RootState) => {
+    let newState = {...state}
+    // migrate enable_highlight_helpers in settings to default true
+    newState.settings.enable_highlight_helpers = true
+    return newState
+  },   
 }
 
 const persistConfig = {
   key: 'root',
-  version: 43,
+  version: 44,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore
