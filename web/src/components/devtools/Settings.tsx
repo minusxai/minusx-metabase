@@ -220,10 +220,10 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">Analyst Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={analystMode} onChange={(e) => updateAnalystMode(e.target.checked)} />
           </HStack>}
-          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
-            <Text color={"minusxBW.800"} fontSize="sm">Highlight Helpers</Text>
+          <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Metabase UI Hooks</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableHighlightHelpers} onChange={(e) => updateEnableHighlightHelpers(e.target.checked)} />
-          </HStack>}
+          </HStack>
           <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Use Memory</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={useMemory} onChange={(e) => updateUseMemory(e.target.checked)} />
