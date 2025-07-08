@@ -1,9 +1,18 @@
 import { Textarea, TextareaProps, Box } from '@chakra-ui/react';
 import ResizeTextarea from 'react-textarea-autosize';
-import React from 'react';
+import React, { useRef, useImperativeHandle, useEffect } from 'react';
 
 const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   (props, ref) => {
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    useImperativeHandle(ref, () => textareaRef.current!, []);
+
+    useEffect(() => {
+      if (textareaRef.current) {
+        textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
+      }
+    }, [props.value]);
     return (
       <Box
         maxHeight={500}
@@ -22,7 +31,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           overflow="auto"
           w="100%"
           resize="none"
-          ref={ref}
+          ref={textareaRef}
           minRows={2}
           maxHeight={300}
           as={ResizeTextarea}
