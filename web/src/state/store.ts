@@ -442,12 +442,17 @@ const migrations = {
       }
     })
     return newState
+  },
+  42: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.cardsMetadataHashes = {}
+    return newState
   }
 }
 
 const persistConfig = {
   key: 'root',
-  version: 41,
+  version: 42,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore

@@ -193,7 +193,7 @@ export function createAPI<T extends Record<string, any>, >(
       try {
         const metadataItems = finalConfig.metadataProcessor!(response);
         if (metadataItems && metadataItems.length > 0) {
-          processMetadata(metadataItems, template).catch(error => {
+          processMetadata(metadataItems).catch(error => {
             console.warn(`Metadata processing failed for ${template}:`, error);
           });
         }

@@ -4,9 +4,46 @@ import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
+import { dispatch } from '../../state/dispatch'
+import { setCardsMetadataHash } from '../../state/settings/reducer'
 import { get, unset } from 'lodash'
 import { getAllCards } from 'apps'
+import { calculateMetadataHash, uploadCardsMetadata } from '../metadataProcessor'
 //@ts-ignore
+
+async function processCards() {
+  const cards = await getAllCards()
+  
+  // Calculate hash of current cards data
+  const currentHash = await calculateMetadataHash('cards', { cards }, '1.0')
+  
+  // Get stored hashes from Redux
+  const currentState = getState()
+  const storedHashes = currentState.settings.cardsMetadataHashes
+  console.log('Stored hashes:', storedHashes)
+  console.log('Current hash:', currentHash)
+  
+  // Only upload if hash doesn't exist in the Record
+  if (!storedHashes[currentHash]) {
+    try {
+      console.log('[minusx] Cards data changed, uploading to metadata endpoint')
+      const serverHash = await uploadCardsMetadata(cards, currentHash)
+      console.log('Server hash:', serverHash)
+      
+      // Store the new hash in Redux
+      dispatch(setCardsMetadataHash(serverHash))
+      console.log('[minusx] Cards metadata uploaded and hash updated')
+    } catch (error) {
+      console.warn('[minusx] Failed to upload cards metadata:', error)
+      // Continue without failing the entire request
+    }
+  } else {
+    console.log('[minusx] Cards data unchanged, skipping metadata upload')
+  }
+  
+  // Return the hash instead of actual cards data
+  return currentHash
+}
 
 
 export async function planActionsRemote({
@@ -31,16 +68,18 @@ export async function planActionsRemote({
     unset(payload, 'tasks')
   }
 
+  const getCardsPromise = processCards()
+
   // Add cards data for analyst mode (when both drMode and analystMode are enabled)
   if (deepResearch !== 'simple') {
     // Check if analyst mode is enabled by getting current state
     const currentState = getState();
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
-        const cards = await getAllCards();
+        const cardsHash = await getCardsPromise;
         // @ts-ignore
-        payload.cards = cards;
-        console.log('[minusx] Added cards to request for analyst mode');
+        payload.cardsHash = cardsHash;
+        console.log('[minusx] Added metadata hash to request for analyst mode');
       } catch (error) {
         console.warn('[minusx] Failed to fetch cards for analyst mode:', error);
         // Continue without cards data rather than failing the request

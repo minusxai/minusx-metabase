@@ -41,7 +41,6 @@ export const ReviewBox: React.FC = () => {
     return total + thread.messages.filter(msg => msg.role === 'user').length
   }, 0)
   const hasEnoughEngagement = threadCount >= 3 || totalUserMessages > 10
-  console.log('ReviewBox engagement check:', hasEnoughEngagement, threadCount, totalUserMessages)
 
   // Track if component was ever shown when user hadn't reviewed yet
   useEffect(() => {
@@ -64,7 +63,6 @@ export const ReviewBox: React.FC = () => {
 
   // Don't render if still loading, no user state, or manually closed
   // But DO render if wasEverShown is true (even after is_reviewed becomes true)
-  console.log('ReviewBox render check:', { isUserStateLoading, userState, isClosed, isReviewed, wasEverShown })
   if (isUserStateLoading || !userState || isClosed) {
     return null
   }
