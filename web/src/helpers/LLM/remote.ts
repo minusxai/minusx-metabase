@@ -8,13 +8,12 @@ import { dispatch } from '../../state/dispatch'
 import { setMetadataHash } from '../../state/settings/reducer'
 import { get, unset } from 'lodash'
 import { getAllCards, getDatabaseTablesAndModelsWithoutFields } from 'apps'
-import { calculateMetadataHash, uploadCardsMetadata, uploadDBSchemaMetadata } from '../metadataProcessor'
+import { calculateMetadataHash, uploadMetadata } from '../metadataProcessor'
 //@ts-ignore
 
 async function processMetadataWithCaching(
   metadataType: string,
-  dataFetcher: () => Promise<any>,
-  uploadFn: (data: any, hash: string) => Promise<string>
+  dataFetcher: () => Promise<any>
 ): Promise<string> {
   // Fetch the data
   const data = await dataFetcher()
@@ -30,7 +29,7 @@ async function processMetadataWithCaching(
   if (!storedHashes[currentHash]) {
     try {
       console.log(`[minusx] ${metadataType} data changed, uploading to metadata endpoint`)
-      const serverHash = await uploadFn(data, currentHash)
+      const serverHash = await uploadMetadata(metadataType, data, currentHash)
       
       // Store the new hash in Redux
       dispatch(setMetadataHash(serverHash))
@@ -48,11 +47,11 @@ async function processMetadataWithCaching(
 }
 
 async function processCards() {
-  return await processMetadataWithCaching('cards', getAllCards, uploadCardsMetadata)
+  return await processMetadataWithCaching('cards', getAllCards)
 }
 
 async function processDBSchema() {
-  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields, uploadDBSchemaMetadata)
+  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields)
 }
 
 

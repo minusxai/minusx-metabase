@@ -445,6 +445,12 @@ const migrations = {
   },
   42: (state: RootState) => {
     let newState = {...state}
+    // @ts-ignore since no longer in state
+    newState.settings.cardsMetadataHashes = {}
+    return newState
+  },
+  43: (state: RootState) => {
+    let newState = {...state}
     // Migrate cardsMetadataHashes to unified metadataHashes
     const oldSettings = newState.settings as any
     if (oldSettings.cardsMetadataHashes) {
@@ -459,7 +465,7 @@ const migrations = {
 
 const persistConfig = {
   key: 'root',
-  version: 42,
+  version: 43,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore
