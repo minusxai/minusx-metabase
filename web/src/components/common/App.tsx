@@ -149,7 +149,8 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       dispatch(setBillingInfo({
         credits: billingInfo.credits,
         isSubscribed: billingInfo.subscribed,
-        stripeCustomerId: billingInfo.stripe_customer_id
+        stripeCustomerId: billingInfo.stripe_customer_id,
+        infoLoaded: true
       }))
     })
     

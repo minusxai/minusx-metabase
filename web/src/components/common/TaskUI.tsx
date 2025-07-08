@@ -104,7 +104,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const drMode = useSelector((state: RootState) => state.settings.drMode)
 
   const credits = useSelector((state: RootState) => state.billing.credits)
-  const creditsExhausted = () => credits <= 0
+  const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
+  const creditsExhausted = () => (credits <= 0 && infoLoaded)
 
   const relevantTables = toolContext.relevantTables || []
 
