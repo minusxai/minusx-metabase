@@ -187,6 +187,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
    @Action({
     labelRunning: "Showing Data Model Editor",
     labelDone: "Opened Data Model Editor",
+    labelTask: "Opened Data Model Editor",
     description: "Opens the Data Model Editor in the MinusX Dev Tools.",
     renderBody: ({ explanation }: { explanation: string }, appState: MetabaseAppStateDashboard) => {
       return {text: null, code: null}
@@ -206,6 +207,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
    @Action({
     labelRunning: "Adding memory",
     labelDone: "Memory Task Completed",
+    labelTask: "Memory Triggered",
     description: "Remembers notable memories",
     renderBody: ({ memory }: { memory: string }, appState: MetabaseAppStateDashboard) => {
       return {text: null, code: null}
@@ -232,6 +234,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   @Action({
     labelRunning: "Executing SQL Query",
     labelDone: "Executed SQL query",
+    labelTask: "Executed SQL query",
     description: "Executes the SQL query in the Metabase SQL editor.",
     renderBody: () => {
       return {text: null, code: null}
@@ -248,6 +251,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   @Action({
     labelRunning: "Executes the SQL query",
     labelDone: "Executed query",
+    labelTask: "Executed SQL query",
     description: "Executes the SQL query in the Metabase SQL editor.",
     renderBody: ({ sql, explanation }: { sql: string, explanation: string }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
@@ -270,6 +274,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   @Action({
     labelRunning: "Updating SQL Variable",
     labelDone: "Updated SQL Variable",
+    labelTask: "Updated SQL Variable",
     description: "Updates value or metadata of a variable in the SQL editor.",
     renderBody: ({ variable, value, type, displayName }: { variable: string, value: string, type: string, displayName: string}) => {
       return {text: `variable: ${variable}`, code: JSON.stringify({value, type, displayName})}
@@ -336,6 +341,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   @Action({
     labelRunning: "Constructs the MBQL query",
     labelDone: "MBQL built",
+    labelTask: "Built MBQL query",
     description: "Constructs the MBQL query in the GUI editor",
     renderBody: ({ mbql, explanation }: { mbql: any, explanation: string }) => {
         if (isEmpty(mbql)) {
@@ -416,6 +422,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   @Action({
     labelRunning: "Plotting data",
     labelDone: "Plotted data",
+    labelTask: "Setup Metabase visualization",
     description: "Plots the data in the SQL editor using the given visualization type.",
     renderBody: ({ visualization_type, dimensions, metrics}: { visualization_type: VisualizationType, dimensions?: string[], metrics?: string[] }) => {
     //   return {text: `plot: ${visualization_type}`, code: JSON.stringify({dimensions, metrics})}
@@ -451,6 +458,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       try {
         await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
         await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+        await this.checkVisualizationInvalid();
         return
       }
       catch (error) {
@@ -469,13 +477,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const query = `${visualization_type}_button`;
     await this.uClick({ query });
     await this.uClick({ query: "vizualization_button" });
-    // @vivek: Check if the visualization is invalid. Need to actually solve the issue
-    const vizInvalid = await RPCs.queryDOMSingle({
-      selector: querySelectorMap["viz_invalid"],
-    });
-    if (vizInvalid.length > 0) {
-      await this.uClick({ query: "switch_to_data" });
-    }
+    await this.checkVisualizationInvalid();
     return;
   }
 
@@ -668,6 +670,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   @Action({
     labelRunning: "Asking for clarification",
     labelDone: "Questions answered",
+    labelTask: "Clarifying questions answered",
     description: "Asks the user clarifying questions to better understand their request.",
     renderBody: ({ questions }: { questions: Array<{question: string, options: string[]}> }) => {
       const questionsText = questions.map((q, i) => `${i + 1}. ${q.question}\n   Options: ${q.options.join(', ')}`).join('\n')
@@ -687,6 +690,21 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   // 1. Internal actions -------------------------------------------
+  async checkVisualizationInvalid() {
+    const querySelectorMap = await this.app.getQuerySelectorMap();
+    // @vivek: Check if the visualization is invalid. Need to actually solve the issue
+    const vizInvalid = await RPCs.queryDOMSingle({
+      selector: querySelectorMap["viz_invalid"],
+    });
+    const vizInvalid2 = await RPCs.queryDOMSingle({
+      selector: querySelectorMap["viz_invalid2"],
+    });
+    if (vizInvalid.length > 0 || vizInvalid2.length > 0) {
+      await this.uClick({ query: "switch_to_data" });
+    }
+    return
+  }
+
   async toggleSQLEditor(mode: "open" | "close") {
     if (mode === "open") {
       await this.uDblClick({ query: "expand_editor" });

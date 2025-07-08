@@ -1,4 +1,5 @@
 import { isEqual, some } from "lodash";
+import { getApp } from "./app";
 
 export async function sleep(ms: number = 0) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,4 +58,26 @@ export type MxModel = {
       "template-tags": {}
     }
   }
+}
+
+const controller = getApp().actionController
+export const getActionTaskLiteLabels = (action: string) => {
+    const extraMapping: { [key: string]: string } = {
+        'UpdateTaskStatus': 'Task completed',
+        'MetabaseSimpleAgent': 'Start Metabase Agent',
+        'MetabaseLowLevelAgent': 'SQL Task Initialized',
+        'MetabaseMBQLAgent': 'MBQL Task Initialized',
+        'MetabaseDashboardAgent': 'Dashboard Task Initialized',
+    }
+    let taskString = ''
+
+
+
+    if (controller) {
+        const metadata = Reflect.getMetadata('actionMetadata', controller, action);
+        if (metadata) {
+            taskString = metadata['labelTask'] || metadata['labelDone'];
+        }
+    }
+    return taskString || extraMapping[action] || action;
 }
