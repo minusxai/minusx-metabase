@@ -445,18 +445,7 @@ const migrations = {
   },
   42: (state: RootState) => {
     let newState = {...state}
-    // Migrate cardsMetadataHash (string) to cardsMetadataHashes (Record<string, number>)
-    if (newState.settings.cardsMetadataHash) {
-      // If old single hash exists, add it to the new Record with current timestamp
-      newState.settings.cardsMetadataHashes = {
-        [newState.settings.cardsMetadataHash]: Date.now()
-      }
-      // Remove the old property
-      delete newState.settings.cardsMetadataHash
-    } else {
-      // If no old hash, initialize with empty Record
-      newState.settings.cardsMetadataHashes = {}
-    }
+    newState.settings.cardsMetadataHashes = {}
     return newState
   }
 }
