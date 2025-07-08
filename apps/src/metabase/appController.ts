@@ -148,6 +148,73 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
   }
+
+  @Action({
+    labelRunning: "Updating SQL query with parameters",
+    labelDone: "Updated query with parameters",
+    description: "Updates the SQL query in the Metabase SQL editor with explicit template tags and parameters.",
+    renderBody: ({ sql, template_tags, parameters }: { sql: string, template_tags: object, parameters: any[] }, appState: MetabaseAppStateSQLEditor) => {
+      const sqlQuery = appState?.sqlQuery
+      return {text: `Using ${Object.keys(template_tags || {}).length} template tags and ${(parameters || []).length} parameters`, code: sql, oldCode: sqlQuery}
+    }
+  })
+  async updateSQLQueryWithParams({ sql, template_tags = {}, parameters = [], executeImmediately = true, _type = "markdown", ctes = [] }: { sql: string, template_tags?: object, parameters?: any[], executeImmediately?: boolean, _type?: string, ctes: CTE[] }) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    // sql = processSQLWithCtesOrModels(sql, ctes);
+    // const metabaseState = this.app as App<MetabaseAppState>;
+    // const allModels = metabaseState.useStore().getState().toolContext?.dbInfo?.models || [];
+    // use allModels for this replacement
+    // sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, allModels)
+    const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
+    const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query with parameters?", oldContent: state.sqlQuery});
+    if (!userApproved) {
+      throw new Error("Action (and subsequent plan) cancelled!");
+    }
+    if (state.sqlEditorState == "closed") {
+      await this.toggleSQLEditor("open");
+    }
+    const currentCard = await getCurrentCard() as Card;
+    
+    // Get existing template tags and parameters to merge with provided ones
+    const existingTemplateTags = currentCard.dataset_query.native['template-tags'] || {};
+    const existingParameters = currentCard.parameters || [];
+    
+    // Merge provided template tags with existing ones (provided ones take precedence)
+    const mergedTemplateTags = {
+      ...existingTemplateTags,
+      ...template_tags
+    };
+    
+    // Merge provided parameters with existing ones (provided ones take precedence)
+    const mergedParameters = [...existingParameters];
+    if (parameters && Array.isArray(parameters)) {
+      parameters.forEach((param) => {
+        const existingParamIndex = mergedParameters.findIndex(p => p.slug === param.slug);
+        if (existingParamIndex !== -1) {
+          mergedParameters[existingParamIndex] = { ...mergedParameters[existingParamIndex], ...param };
+        } else {
+          mergedParameters.push(param);
+        }
+      });
+    }
+    
+    currentCard.dataset_query.native['template-tags'] = mergedTemplateTags;
+    currentCard.parameters = mergedParameters;
+    currentCard.dataset_query.native.query = sql;
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
+    await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
+    await RPCs.dispatchMetabaseAction('metabase/qb/TOGGLE_TEMPLATE_TAGS_EDITOR');
+    await RPCs.dispatchMetabaseAction('metabase/qb/TOGGLE_TEMPLATE_TAGS_EDITOR');
+    
+    if (executeImmediately) {
+      return await this._executeSQLQueryInternal(_type);
+    } else {
+      actionContent.content = "OK";
+      return actionContent;
+    }
+  }
   // for dashboard interface
   @Action({
     labelRunning: "Running SQL Query",
@@ -175,6 +242,41 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
     const response = await runSQLQueryFromDashboard(sql, dbID, allTemplateTags);
+    if (response.error) {
+      actionContent.content = `<ERROR>${response.error}</ERROR>`;
+    } else {
+      const asMarkdown = metabaseToCSV(response.data);
+      actionContent.content = asMarkdown;
+    }
+    return actionContent;
+  }
+
+  @Action({
+    labelRunning: "Running SQL Query with parameters",
+    labelDone: "Ran SQL query with parameters",
+    description: "Runs an SQL Query against the database with explicit template tags and parameters",
+    renderBody: ({ sql, template_tags, parameters }: { sql: string, template_tags: object, parameters: any[] }, appState: MetabaseAppStateDashboard) => {
+      return {text: `Using ${Object.keys(template_tags || {}).length} template tags and ${(parameters || []).length} parameters`, code: sql}
+    }
+  })
+  async runSQLQueryWithParams({ sql, template_tags = {}, parameters = [], ctes = [] }: { sql: string, template_tags?: object, parameters?: any[], ctes: CTE[] }) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    sql = processSQLWithCtesOrModels(sql, ctes);
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const allModels = metabaseState.useStore().getState().toolContext?.dbInfo?.models || [];
+    // use all models in this replacement
+    sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, allModels)
+    const state = (await this.app.getState()) as MetabaseAppStateDashboard;
+    const dbID = state?.selectedDatabaseInfo?.id as number
+    if (!dbID) {
+      actionContent.content = "No database selected";
+      return actionContent;
+    }
+    
+    // Use provided template tags directly instead of auto-generating them
+    const response = await runSQLQueryFromDashboard(sql, dbID, template_tags);
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
@@ -258,15 +360,43 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: explanation, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql, _ctes = [], explanation = "" }: { sql: string, _ctes?: CTE[], explanation?: string }) {
+  async ExecuteSQLClient({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
+    console.log('Template tags are', template_tags)
+    console.log('Parameters are', parameters)
+    // Try parsing template_tags and parameters if they are strings
+    try {
+      if (typeof template_tags === 'string') {
+        template_tags = JSON.parse(template_tags);
+      }
+    } catch (error) {
+      console.error('Error parsing template_tags or parameters:', error);
+    }
+    try {
+      if (typeof parameters === 'string') {
+        parameters = JSON.parse(parameters);
+      }
+    } catch (error) {
+      console.error('Error parsing parameters:', error);
+    }
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     
+    // Check if template_tags or parameters are provided and non-empty
+    const hasTemplateTagsOrParams = (template_tags && Object.keys(template_tags).length > 0) || (parameters && Array.isArray(parameters) && parameters.length > 0);
+    
     if (pageType === 'sql') {
-        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
+        if (hasTemplateTagsOrParams) {
+            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, executeImmediately: true, _type: "csv", ctes: _ctes });
+        } else {
+            return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
+        }
     }
     else if (pageType === 'dashboard') {
-        return await this.runSQLQuery({ sql, ctes: _ctes });      
+        if (hasTemplateTagsOrParams) {
+            return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });
+        } else {
+            return await this.runSQLQuery({ sql, ctes: _ctes });
+        }
     }
   }
 
