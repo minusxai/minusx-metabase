@@ -21,8 +21,8 @@ async function processCards() {
   const currentState = getState()
   const storedHashes = currentState.settings.cardsMetadataHashes
   
-  // Only upload if hash doesn't exist in the set
-  if (!storedHashes.has(currentHash)) {
+  // Only upload if hash doesn't exist in the Record
+  if (!storedHashes[currentHash]) {
     try {
       console.log('[minusx] Cards data changed, uploading to metadata endpoint')
       const serverHash = await uploadCardsMetadata(cards)

@@ -77,7 +77,7 @@ export async function calculateMetadataHash(metadataType: string, metadataValue:
 export async function uploadCardsMetadata(cards: any): Promise<string> {
   const metadataItem: MetadataItem = {
     metadata_type: 'cards',
-    metadata_value: cards,
+    metadata_value: { cards },
     version: '1.0'
   };
 

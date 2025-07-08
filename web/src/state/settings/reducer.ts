@@ -118,7 +118,7 @@ interface Settings {
   enableStyleCustomization: boolean,
   enableUserDebugTools: boolean
   enableReviews: boolean
-  cardsMetadataHashes: Set<string>
+  cardsMetadataHashes: Record<string, number>
 }
 
 const initialState: Settings = {
@@ -156,7 +156,7 @@ const initialState: Settings = {
   enableStyleCustomization: false,
   enableUserDebugTools: false,
   enableReviews: false,
-  cardsMetadataHashes: new Set(),
+  cardsMetadataHashes: {},
 }
 
 export const settingsSlice = createSlice({
@@ -371,7 +371,7 @@ export const settingsSlice = createSlice({
         state.enableReviews = action.payload
     },
     setCardsMetadataHash: (state, action: PayloadAction<string>) => {
-        state.cardsMetadataHashes.add(action.payload)
+        state.cardsMetadataHashes[action.payload] = Date.now()
     }
   },
 })
