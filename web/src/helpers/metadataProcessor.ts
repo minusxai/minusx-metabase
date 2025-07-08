@@ -21,6 +21,37 @@ export interface MetadataRequest {
 }
 
 /**
+ * Uploads metadata items to the backend (simplified, immediate upload)
+ * @param metadataItems Array of metadata items to upload
+ * @returns The response from the server
+ */
+export async function processMetadata(metadataItems: MetadataItem[]): Promise<any> {
+  const metadataRequest: MetadataRequest = {
+    origin: getOrigin(),
+    metadata_items: metadataItems
+  };
+
+  try {
+    const response = await axios.post(
+      `${configs.DEEPRESEARCH_BASE_URL}/metadata`, 
+      metadataRequest, 
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      }
+    );
+
+    console.log(`Successfully uploaded ${metadataItems.length} metadata items`);
+    return response.data;
+  } catch (error) {
+    console.warn('Failed to upload metadata items:', error);
+    throw error;
+  }
+}
+
+/**
  * Calculates metadata hash for caching purposes
  */
 export async function calculateMetadataHash(metadataType: string, metadataValue: any, version: string): Promise<string> {
@@ -39,36 +70,21 @@ export async function calculateMetadataHash(metadataType: string, metadataValue:
 }
 
 /**
- * Uploads cards metadata to the backend (simplified, immediate upload)
+ * Uploads cards metadata to the backend using processMetadata
  * @param cards The cards data to upload
  * @returns The hash returned from the server
  */
 export async function uploadCardsMetadata(cards: any): Promise<string> {
-  const metadataRequest: MetadataRequest = {
-    origin: getOrigin(),
-    metadata_items: [
-      {
-        metadata_type: 'cards',
-        metadata_value: cards,
-        version: '1.0'
-      }
-    ]
+  const metadataItem: MetadataItem = {
+    metadata_type: 'cards',
+    metadata_value: cards,
+    version: '1.0'
   };
 
   try {
-    const response = await axios.post<{hash: string}>(
-      `${configs.DEEPRESEARCH_BASE_URL}/metadata`, 
-      metadataRequest, 
-      {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
-    );
-
+    const response = await processMetadata([metadataItem]);
     console.log('Successfully uploaded cards metadata');
-    return response.data.hash;
+    return response.hash;
   } catch (error) {
     console.warn('Failed to upload cards metadata:', error);
     throw error;
