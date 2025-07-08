@@ -8,11 +8,13 @@
 import axios from 'axios';
 import { configs } from '../constants';
 import { getOrigin } from './origin';
+import { get } from 'lodash';
 
 export interface MetadataItem {
   metadata_type: string;
   metadata_value: any;
   version: string;
+  metadata_hash: string;
 }
 
 export interface MetadataRequest {
@@ -52,17 +54,12 @@ export async function processMetadata(metadataItems: MetadataItem[]): Promise<an
 }
 
 /**
- * Calculates metadata hash for caching purposes
+ * Calculates metadata hash for caching purposes (simplified & faster)
  */
 export async function calculateMetadataHash(metadataType: string, metadataValue: any, version: string): Promise<string> {
-  const hashParts = [
-    `metadata_type:${metadataType}`,
-    `version:${version}`,
-    `metadata_value:${JSON.stringify(metadataValue, Object.keys(metadataValue).sort())}`
-  ];
-
-  const hashContent = hashParts.join('|');
-  const data = new TextEncoder().encode(hashContent);
+  // Simplified hash calculation - just hash the stringified data
+  const content = JSON.stringify({ metadataType, version, metadataValue });
+  const data = new TextEncoder().encode(content);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
 
   return Array.from(new Uint8Array(hashBuffer))
@@ -72,19 +69,21 @@ export async function calculateMetadataHash(metadataType: string, metadataValue:
 /**
  * Uploads cards metadata to the backend using processMetadata
  * @param cards The cards data to upload
+ * @param metadataHash The calculated hash to send to server
  * @returns The hash returned from the server
  */
-export async function uploadCardsMetadata(cards: any): Promise<string> {
+export async function uploadCardsMetadata(cards: any, metadataHash: string): Promise<string> {
   const metadataItem: MetadataItem = {
     metadata_type: 'cards',
     metadata_value: { cards },
-    version: '1.0'
+    version: '1.0',
+    metadata_hash: metadataHash
   };
 
   try {
     const response = await processMetadata([metadataItem]);
-    console.log('Successfully uploaded cards metadata');
-    return response.hash;
+    const hash = get(response, 'results[0].metadata_hash')
+    return hash
   } catch (error) {
     console.warn('Failed to upload cards metadata:', error);
     throw error;
