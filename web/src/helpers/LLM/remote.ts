@@ -4,13 +4,42 @@ import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
+import { dispatch } from '../../state/dispatch'
+import { setCardsMetadataHash } from '../../state/settings/reducer'
 import { get, unset } from 'lodash'
 import { getAllCards } from 'apps'
+import { calculateMetadataHash, uploadCardsMetadata } from '../metadataProcessor'
 //@ts-ignore
 
 async function processCards() {
   const cards = await getAllCards()
-  return cards
+  
+  // Calculate hash of current cards data
+  const currentHash = await calculateMetadataHash('cards', cards, '1.0')
+  
+  // Get stored hashes from Redux
+  const currentState = getState()
+  const storedHashes = currentState.settings.cardsMetadataHashes
+  
+  // Only upload if hash doesn't exist in the set
+  if (!storedHashes.has(currentHash)) {
+    try {
+      console.log('[minusx] Cards data changed, uploading to metadata endpoint')
+      const serverHash = await uploadCardsMetadata(cards)
+      
+      // Store the new hash in Redux
+      dispatch(setCardsMetadataHash(serverHash))
+      console.log('[minusx] Cards metadata uploaded and hash updated')
+    } catch (error) {
+      console.warn('[minusx] Failed to upload cards metadata:', error)
+      // Continue without failing the entire request
+    }
+  } else {
+    console.log('[minusx] Cards data unchanged, skipping metadata upload')
+  }
+  
+  // Return the hash instead of actual cards data
+  return currentHash
 }
 
 
@@ -44,10 +73,10 @@ export async function planActionsRemote({
     const currentState = getState();
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
-        const cards = await getCardsPromise;
+        const cardsHash = await getCardsPromise;
         // @ts-ignore
-        payload.cards = cards;
-        console.log('[minusx] Added cards to request for analyst mode');
+        payload.cardHash = cardsHash;
+        console.log('[minusx] Added cards hash to request for analyst mode');
       } catch (error) {
         console.warn('[minusx] Failed to fetch cards for analyst mode:', error);
         // Continue without cards data rather than failing the request

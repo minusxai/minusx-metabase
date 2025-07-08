@@ -118,6 +118,7 @@ interface Settings {
   enableStyleCustomization: boolean,
   enableUserDebugTools: boolean
   enableReviews: boolean
+  cardsMetadataHashes: Set<string>
 }
 
 const initialState: Settings = {
@@ -155,6 +156,7 @@ const initialState: Settings = {
   enableStyleCustomization: false,
   enableUserDebugTools: false,
   enableReviews: false,
+  cardsMetadataHashes: new Set(),
 }
 
 export const settingsSlice = createSlice({
@@ -367,6 +369,9 @@ export const settingsSlice = createSlice({
     },
     setEnableReviews: (state, action: PayloadAction<boolean>) => {
         state.enableReviews = action.payload
+    },
+    setCardsMetadataHash: (state, action: PayloadAction<string>) => {
+        state.cardsMetadataHashes.add(action.payload)
     }
   },
 })
@@ -378,7 +383,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setCardsMetadataHash
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

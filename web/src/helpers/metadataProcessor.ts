@@ -1,9 +1,8 @@
 /**
- * Metadata Processing with Batching
+ * Cards Metadata Processing
  * 
- * This module handles processing metadata from fresh API responses
- * to the backend for analytics and insights. It batches metadata items
- * and sends them every 30 seconds to reduce API calls.
+ * This module handles uploading cards metadata to the backend
+ * with hash-based caching to avoid redundant uploads.
  */
 
 import axios from 'axios';
@@ -21,96 +20,57 @@ export interface MetadataRequest {
   metadata_items: MetadataItem[];
 }
 
-// Batching configuration
-const BATCH_INTERVAL_MS = 30 * 1000; // 30 seconds
-let metadataBatch: MetadataItem[] = [];
-let batchTimer: NodeJS.Timeout | null = null;
+/**
+ * Calculates metadata hash for caching purposes
+ */
+export async function calculateMetadataHash(metadataType: string, metadataValue: any, version: string): Promise<string> {
+  const hashParts = [
+    `metadata_type:${metadataType}`,
+    `version:${version}`,
+    `metadata_value:${JSON.stringify(metadataValue, Object.keys(metadataValue).sort())}`
+  ];
+
+  const hashContent = hashParts.join('|');
+  const data = new TextEncoder().encode(hashContent);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+
+  return Array.from(new Uint8Array(hashBuffer))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 /**
- * Sends the current batch of metadata items to the backend
+ * Uploads cards metadata to the backend (simplified, immediate upload)
+ * @param cards The cards data to upload
+ * @returns The hash returned from the server
  */
-async function sendBatch(): Promise<void> {
-  if (metadataBatch.length === 0) {
-    return;
-  }
-
-  const itemsToSend = [...metadataBatch];
-  metadataBatch = []; // Clear the batch
+export async function uploadCardsMetadata(cards: any): Promise<string> {
+  const metadataRequest: MetadataRequest = {
+    origin: getOrigin(),
+    metadata_items: [
+      {
+        metadata_type: 'cards',
+        metadata_value: cards,
+        version: '1.0'
+      }
+    ]
+  };
 
   try {
-    const metadataRequest: MetadataRequest = {
-      origin: getOrigin(),
-      metadata_items: itemsToSend
-    };
-
-    await axios.post(`${configs.DEEPRESEARCH_BASE_URL}/metadata`, metadataRequest, {
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await axios.post<{hash: string}>(
+      `${configs.DEEPRESEARCH_BASE_URL}/metadata`, 
+      metadataRequest, 
+      {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
       }
-    });
+    );
 
-    console.log(`Successfully processed batch of ${itemsToSend.length} metadata items`);
+    console.log('Successfully uploaded cards metadata');
+    return response.data.hash;
   } catch (error) {
-    console.warn(`Failed to process metadata batch:`, error);
-    // On failure, we could consider re-adding items to batch, but for now we'll just log
-  }
-}
-
-/**
- * Starts the batch timer if not already running
- */
-function startBatchTimer(): void {
-  if (batchTimer !== null) {
-    return; // Timer already running
-  }
-
-  batchTimer = setInterval(() => {
-    if (metadataBatch.length > 0) {
-      sendBatch();
-    }
-  }, BATCH_INTERVAL_MS);
-}
-
-/**
- * Processes metadata items by adding them to a batch
- * The batch is automatically sent every 30 seconds if non-empty
- * @param metadataItems Array of metadata items to process
- * @param apiTemplate The API template that generated this metadata
- */
-export async function processMetadata(metadataItems: MetadataItem[], apiTemplate: string): Promise<void> {
-  if (!metadataItems || metadataItems.length === 0) {
-    return;
-  }
-
-  // Add items to the batch
-  metadataBatch.push(...metadataItems);
-  
-  // Start the timer if this is the first batch
-  startBatchTimer();
-
-  console.log(`Added ${metadataItems.length} metadata items from ${apiTemplate} to batch (total: ${metadataBatch.length})`);
-}
-
-/**
- * Forces immediate sending of the current batch
- * Useful for cleanup on app shutdown or for testing
- */
-export async function flushMetadataBatch(): Promise<void> {
-  if (batchTimer) {
-    clearInterval(batchTimer);
-    batchTimer = null;
-  }
-  await sendBatch();
-}
-
-/**
- * Stops the batching timer
- * Useful for cleanup on app shutdown
- */
-export function stopMetadataBatching(): void {
-  if (batchTimer) {
-    clearInterval(batchTimer);
-    batchTimer = null;
+    console.warn('Failed to upload cards metadata:', error);
+    throw error;
   }
 }
