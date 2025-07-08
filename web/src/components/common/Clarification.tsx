@@ -76,7 +76,15 @@ export const Clarification = () => {
   }
 
   const handleCancel = () => {
-    dispatch(toggleClarification({show: false, questions: []}))
+    clarification.questions.forEach((_, index) => {
+        // For each question from currentQuestionIndex, set the answer to "Figure it out"
+        if (index >= currentQuestionIndex) {
+            dispatch(setClarificationAnswer({
+                questionIndex: index,
+                answer: "Figure it out"
+            }))
+        }
+    })
   }
 
   return (
