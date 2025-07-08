@@ -103,6 +103,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
 
+  const credits = useSelector((state: RootState) => state.billing.credits)
+  const creditsExhausted = () => credits <= 0
+
   const relevantTables = toolContext.relevantTables || []
 
   const allTables = dbInfo.tables || []
@@ -240,6 +243,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(validSelectedModels)) {
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
+        preventRunTask = true
+    }
+    else if (creditsExhausted()) {
+        toastTitle = 'Credits exhausted'
+        toastDescription = "Go to settings to purchase a Pro subscription."
         preventRunTask = true
     }
 
@@ -392,7 +400,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
           {/* <Divider borderColor={"minusxBW.500"}/> */}
-          {isMessageTooLong() && <Notify>
+          {isMessageTooLong() && <Notify title="Conversation Too Long" >
                 <Text fontSize="xs" lineHeight={"1rem"}>
                     Your chat is too long, reducing accuracy and costing you more credits. Click
             {" "}<Text
@@ -501,6 +509,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
             </Notify>
         }
+        {
+            creditsExhausted() && 
+            <Notify title="Uh oh, Credits Exhausted!">
+                <Text fontSize="xs" lineHeight={"1rem"}>You've exhausted your credits for the week. You can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>speak with us</Link> for 1 month free Pro!</Text>
+            </Notify>
+        }
         {   !taskInProgress &&
             <SettingsBlock title='Quick Actions'>
                 <HStack justifyContent={"center"} flexWrap={"wrap"} gap={1}>
@@ -517,7 +531,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         <VStack width={"100%"} alignItems={"stretch"} gap={0}>
-        { currentTool == 'metabase'  && !taskInProgress &&
+        { currentTool == 'metabase'  && !taskInProgress && !creditsExhausted() &&
         <HStack 
           mb={-2} 
           p={2} 
@@ -547,7 +561,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         <ReviewBox />
-        { !taskInProgress && 
+        { !taskInProgress && !creditsExhausted() && 
             <Stack aria-label="chat-input-area" position={"relative"}>
                 <AutosizeTextarea
                 ref={ref}
