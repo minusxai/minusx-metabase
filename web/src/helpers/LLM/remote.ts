@@ -8,6 +8,11 @@ import { get, unset } from 'lodash'
 import { getAllCards } from 'apps'
 //@ts-ignore
 
+async function processCards() {
+  const cards = await getAllCards()
+  return cards
+}
+
 
 export async function planActionsRemote({
   messages,
@@ -31,13 +36,15 @@ export async function planActionsRemote({
     unset(payload, 'tasks')
   }
 
+  const getCardsPromise = processCards()
+
   // Add cards data for analyst mode (when both drMode and analystMode are enabled)
   if (deepResearch !== 'simple') {
     // Check if analyst mode is enabled by getting current state
     const currentState = getState();
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
-        const cards = await getAllCards();
+        const cards = await getCardsPromise;
         // @ts-ignore
         payload.cards = cards;
         console.log('[minusx] Added cards to request for analyst mode');
