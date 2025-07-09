@@ -304,7 +304,7 @@ ${selectedText}
       }, async (event) => {
           const selectedText = _currentlySelectedText.trim();
           RPCs.toggleMinusXRoot('closed', false)
-          dispatch(setInstructions(`Modify only this snippet of the SQL query: 
+          dispatch(setInstructions(`Modify only this snippet of the SQL query as instructed. You have to incorporate the modified snippet into the original (current) query and return the full query. DO NOT change the rest of the query: 
 \`\`\`
 ${selectedText}
 \`\`\`
