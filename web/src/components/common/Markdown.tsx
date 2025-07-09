@@ -25,10 +25,44 @@ function LinkRenderer(props: any) {
   );
 }
 
+const processRogueParagraphs = (text: string) => {
+    const badgeTypes = [
+        { tag: '[badge_mx]Sources', label: 'Sources' },
+        { tag: '[badge_mx]Logic', label: 'Logic' },
+        { tag: '[badge_mx]Assumptions', label: 'Assumptions' }
+    ];
+    
+    let processedText = text;
+    let resultElements: React.ReactNode[] = [];
+    
+    for (const badge of badgeTypes) {
+        if (processedText.includes(badge.tag)) {
+            const parts = processedText.split(badge.tag);
+            if (parts[0]) resultElements.push(parts[0]);
+            // Add a line break before each badge
+            resultElements.push(<br key={`br-${badge.label}`}></br>);
+            resultElements.push(
+                <Badge key={`${badge.label.toLowerCase()}`} bg="minusxGreen.600" color="white" mx={1}>
+                    {badge.label}
+                </Badge>
+            );
+            processedText = parts[1];
+        }
+    }
+    
+    // Add any remaining text
+    if (processedText) resultElements.push(processedText);
+    
+    return resultElements;
+};
+
 function ModifiedParagraph(props: any) {
-  return (
-    <p style={{margin: '3px', wordBreak: 'break-word', overflowWrap: 'break-word', wordWrap: 'break-word', whiteSpace: 'normal'}}>{props.children}</p>
-  )
+
+    return (
+        <p style={{margin: '3px', wordBreak: 'break-word', overflowWrap: 'break-word', wordWrap: 'break-word', whiteSpace: 'normal'}}>
+            {props.children?.toString().includes('[badge_mx]') ? processRogueParagraphs(props.children) : props.children}
+        </p>
+    )
 }
 
 function ModifiedUL(props: any) {
