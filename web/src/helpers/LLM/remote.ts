@@ -17,6 +17,7 @@ async function processMetadataWithCaching(
 ): Promise<string> {
   // Fetch the data
   const data = await dataFetcher()
+  console.log('Retrieved data for metadata type', metadataType, data)
   
   // Calculate hash of current data
   const currentHash = await calculateMetadataHash(metadataType, { [metadataType]: data }, '1.0')
