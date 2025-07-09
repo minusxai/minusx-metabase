@@ -23,7 +23,7 @@ import { Markdown } from './Markdown';
 
 // Todo: Vivek: Hardcoding here, need to fix this later
 // This is a list of actions that are undo/redoable
-const UNDO_REDO_ACTIONS = ['ExecuteSQLClient']
+const UNDO_REDO_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery']
 
 
 function removeThinkingTags(input: string): string {

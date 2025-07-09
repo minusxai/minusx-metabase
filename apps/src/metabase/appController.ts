@@ -351,16 +351,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Executes the SQL query",
-    labelDone: "Executed query",
-    labelTask: "Executed SQL query",
-    description: "Executes the SQL query in the Metabase SQL editor.",
+    labelRunning: "Executes the SQL query with parameters",
+    labelDone: "Executed query with parameters",
+    labelTask: "Executed SQL query with parameters",
+    description: "Executes the SQL query in the Metabase SQL editor with support for template tags and parameters.",
     renderBody: ({ sql, explanation }: { sql: string, explanation: string }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
       return {text: explanation, code: sql, oldCode: sqlQuery, language: "sql"}
     }
   })
-  async ExecuteSQLClient({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
+  async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
     console.log('Template tags are', template_tags)
     console.log('Parameters are', parameters)
     // Try parsing template_tags and parameters if they are strings
@@ -397,6 +397,28 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         } else {
             return await this.runSQLQuery({ sql, ctes: _ctes });
         }
+    }
+  }
+
+  @Action({
+    labelRunning: "Executes the SQL query",
+    labelDone: "Executed query",
+    labelTask: "Executed SQL query",
+    description: "Executes the SQL query in the Metabase SQL editor.",
+    renderBody: ({ sql, explanation }: { sql: string, explanation: string }, appState: MetabaseAppStateSQLEditor) => {
+      const sqlQuery = appState?.sqlQuery
+      return {text: explanation, code: sql, oldCode: sqlQuery, language: "sql"}
+    }
+  })
+  async ExecuteSQLClient({ sql, _ctes = [], explanation = "" }: { sql: string, _ctes?: CTE[], explanation?: string }) {
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const pageType = metabaseState.useStore().getState().toolContext?.pageType;
+    
+    if (pageType === 'sql') {
+        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
+    }
+    else if (pageType === 'dashboard') {
+        return await this.runSQLQuery({ sql, ctes: _ctes });
     }
   }
 

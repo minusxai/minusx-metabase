@@ -149,6 +149,7 @@ function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number
       for (let j = message.content.toolCalls.length - 1; j >= 0; j--) {
         const toolCall = message.content.toolCalls[j];
         if (toolCall.function?.name === 'ExecuteSQLClient' || 
+            toolCall.function?.name === 'ExecuteQuery' ||
             toolCall.function?.name === 'updateSQLQuery' || 
             toolCall.function?.name === 'runSQLQuery') {
           try {
