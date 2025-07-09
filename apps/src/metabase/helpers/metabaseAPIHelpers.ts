@@ -219,8 +219,14 @@ export async function getAllCards() {
   });
   
   // Sort by view_count descending
+  // if length > 1000, limit to 1000
   const sortedCards = reverse(sortBy(filteredCards, 'view_count'));
-  
+
+  // Limit to 1000 cards
+  if (sortedCards.length > 1000) {
+    sortedCards.length = 1000;
+  }
+
   // Remove unnecessary fields and keep only required fields
   const fieldsToRemove = [
     'cache_invalidated_at',

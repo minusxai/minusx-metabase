@@ -41,12 +41,6 @@ export async function processMetadata(metadataItems: MetadataItem[]): Promise<an
     const response = await axios.post(
       `${configs.DEEPRESEARCH_BASE_URL}/metadata`, 
       metadataRequest, 
-      {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      }
     );
 
     return response.data;
