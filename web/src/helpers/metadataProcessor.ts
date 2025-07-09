@@ -38,12 +38,14 @@ export async function processMetadata(metadataItems: MetadataItem[]): Promise<an
   };
 
   try {
-    const response = await axios.post(
-      `${configs.DEEPRESEARCH_BASE_URL}/metadata`, 
-      metadataRequest, 
-    );
-
-    return response.data;
+    const profile_id = getState().auth.profile_id
+    if (profile_id) {
+      const response = await axios.post(
+        `${configs.DEEPRESEARCH_BASE_URL}/metadata`, 
+        metadataRequest, 
+      );
+      return response.data;
+    }
   } catch (error) {
     console.warn('Failed to upload metadata items:', error);
     throw error;
@@ -73,7 +75,7 @@ const ongoingUploads = new Map<string, Promise<string>>();
  * @param metadataHash The calculated hash to send to server
  * @returns The hash returned from the server
  */
-async function uploadMetadata(metadataType: string, data: any, metadataHash: string): Promise<string> {
+async function uploadMetadata(metadataType: string, data: any, metadataHash: string): Promise<string | undefined> {
   // Check if this hash is already being uploaded
   if (ongoingUploads.has(metadataHash)) {
     console.log(`[minusx] Upload already in progress for hash ${metadataHash}, waiting...`)
@@ -110,7 +112,7 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
 
 async function processMetadataWithCaching(
   metadataType: string,
-  dataFetcher: () => Promise<any>): Promise<string> {
+  dataFetcher: () => Promise<any>): Promise<string | undefined> {
   // Fetch the data
   const data = await dataFetcher()
   console.log('Retrieved data for metadata type', metadataType, data)
@@ -129,6 +131,10 @@ async function processMetadataWithCaching(
       const serverHash = await uploadMetadata(metadataType, data, currentHash)
 
       // Store the new hash in Redux
+      if (!serverHash) {
+        console.warn(`[minusx] No hash returned for ${metadataType} metadata upload`)
+        return serverHash; // Return current hash even if upload failed
+      }
       dispatch(setMetadataHash(serverHash))
       console.log(`[minusx] ${metadataType} metadata uploaded and hash updated`)
     } catch (error) {
