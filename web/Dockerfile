@@ -62,7 +62,7 @@ RUN yarn install
 ENV PATH="/app/node_modules/.bin:$PATH"
 
 # CMD ["sh", "-c", "sleep 300"]
-ENV NODE_OPTIONS="--max-old-space-size=6144"
+ENV NODE_OPTIONS="--max-old-space-size=5120"
 
 RUN yarn build
 
