@@ -17,6 +17,7 @@ import { SettingsBlock } from '../common/SettingsBlock';
 import { GroupViewer } from '../common/GroupViewer';
 import { getApp } from '../../helpers/app';
 import { SupportButton } from '../common/Support'
+import { useGetUserStateQuery } from '../../app/api/userStateApi'
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
@@ -56,6 +57,7 @@ const SettingsPage = () => {
   // const currentApiKey = useSelector(state => state.settings.apiKey)
   // const [apiKey, setApiKey] = React.useState(currentApiKey);
   // const [showPassword, setShowPassword] = React.useState(false);
+  const { data: userState, isLoading } = useGetUserStateQuery({})
   const discordLink = 'https://discord.gg/jtFeyPMDcH'
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
@@ -217,7 +219,7 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">Agent Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={drMode} onChange={(e) => updateDRMode(e.target.checked)} />
           </HStack>
-          {configs.IS_DEV && drMode && <HStack justifyContent={"space-between"}>
+          {(configs.IS_DEV || userState?.flags?.showAnalystMode) && drMode && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Analyst Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={analystMode} onChange={(e) => updateAnalystMode(e.target.checked)} />
           </HStack>}
