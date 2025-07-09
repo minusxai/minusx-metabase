@@ -9,6 +9,10 @@ import axios from 'axios';
 import { configs } from '../constants';
 import { getOrigin } from './origin';
 import { get } from 'lodash';
+import { setMetadataHash } from '../state/settings/reducer';
+import { getState } from '../state/store';
+import { dispatch } from '../state/dispatch';
+import { getAllCards, getDatabaseTablesAndModelsWithoutFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
 
 export interface MetadataItem {
   metadata_type: string;
@@ -55,7 +59,7 @@ export async function processMetadata(metadataItems: MetadataItem[]): Promise<an
 /**
  * Calculates metadata hash for caching purposes (simplified & faster)
  */
-export async function calculateMetadataHash(metadataType: string, metadataValue: any, version: string): Promise<string> {
+async function calculateMetadataHash(metadataType: string, metadataValue: any, version: string): Promise<string> {
   // Simplified hash calculation - just hash the stringified data
   const content = JSON.stringify({ metadataType, version, metadataValue });
   const data = new TextEncoder().encode(content);
@@ -103,3 +107,47 @@ export async function uploadCardsMetadata(cards: any, metadataHash: string): Pro
 export async function uploadDBSchemaMetadata(dbSchemaData: any, metadataHash: string): Promise<string> {
   return uploadMetadata('dbSchema', dbSchemaData, metadataHash);
 }
+
+async function processMetadataWithCaching(
+  metadataType: string,
+  dataFetcher: () => Promise<any>): Promise<string> {
+  // Fetch the data
+  const data = await dataFetcher()
+  console.log('Retrieved data for metadata type', metadataType, data)
+
+  // Calculate hash of current data
+  const currentHash = await calculateMetadataHash(metadataType, { [metadataType]: data }, '1.0')
+
+  // Get stored hashes from Redux
+  const currentState = getState()
+  const storedHashes = currentState.settings.metadataHashes
+
+  // Only upload if hash doesn't exist in the Record
+  if (!storedHashes[currentHash]) {
+    try {
+      console.log(`[minusx] ${metadataType} data changed, uploading to metadata endpoint`)
+      const serverHash = await uploadMetadata(metadataType, data, currentHash)
+
+      // Store the new hash in Redux
+      dispatch(setMetadataHash(serverHash))
+      console.log(`[minusx] ${metadataType} metadata uploaded and hash updated`)
+    } catch (error) {
+      console.warn(`[minusx] Failed to upload ${metadataType} metadata:`, error)
+      // Continue without failing the entire request
+    }
+  } else {
+    console.log(`[minusx] ${metadataType} data unchanged, skipping metadata upload`)
+  }
+
+  // Return the hash
+  return currentHash
+}
+
+export async function processCards() {
+  return await processMetadataWithCaching('cards', getAllCards)
+}
+
+export async function processDBSchema() {
+  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields)
+}
+

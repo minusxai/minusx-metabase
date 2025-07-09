@@ -278,7 +278,6 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
   return modelsAsTables.filter((model: MetabaseModel) => model.collectionName !== 'mx_internal');
 }
 
-
 export async function getDatabaseTablesAndModelsWithoutFields(dbId?: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   // If dbId not provided, get the currently selected database ID
   const effectiveDbId = dbId || await getSelectedDbId();

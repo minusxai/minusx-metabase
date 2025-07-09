@@ -4,57 +4,8 @@ import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
-import { dispatch } from '../../state/dispatch'
-import { setMetadataHash } from '../../state/settings/reducer'
-import { get, unset } from 'lodash'
-import { getAllCards, getDatabaseTablesAndModelsWithoutFields } from 'apps'
-import { calculateMetadataHash, uploadMetadata } from '../metadataProcessor'
-//@ts-ignore
-
-async function processMetadataWithCaching(
-  metadataType: string,
-  dataFetcher: () => Promise<any>
-): Promise<string> {
-  // Fetch the data
-  const data = await dataFetcher()
-  console.log('Retrieved data for metadata type', metadataType, data)
-  
-  // Calculate hash of current data
-  const currentHash = await calculateMetadataHash(metadataType, { [metadataType]: data }, '1.0')
-  
-  // Get stored hashes from Redux
-  const currentState = getState()
-  const storedHashes = currentState.settings.metadataHashes
-  
-  // Only upload if hash doesn't exist in the Record
-  if (!storedHashes[currentHash]) {
-    try {
-      console.log(`[minusx] ${metadataType} data changed, uploading to metadata endpoint`)
-      const serverHash = await uploadMetadata(metadataType, data, currentHash)
-      
-      // Store the new hash in Redux
-      dispatch(setMetadataHash(serverHash))
-      console.log(`[minusx] ${metadataType} metadata uploaded and hash updated`)
-    } catch (error) {
-      console.warn(`[minusx] Failed to upload ${metadataType} metadata:`, error)
-      // Continue without failing the entire request
-    }
-  } else {
-    console.log(`[minusx] ${metadataType} data unchanged, skipping metadata upload`)
-  }
-  
-  // Return the hash
-  return currentHash
-}
-
-async function processCards() {
-  return await processMetadataWithCaching('cards', getAllCards)
-}
-
-async function processDBSchema() {
-  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields)
-}
-
+import { unset } from 'lodash'
+import { processCards, processDBSchema } from '../metadataProcessor'
 
 export async function planActionsRemote({
   messages,
