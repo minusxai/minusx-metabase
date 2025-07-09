@@ -135,14 +135,15 @@ export const metabaseInternalState: MetabaseInternalState = {
     dbInfo: DB_INFO_DEFAULT,
     loading: true,
   },
-  helperMessage: `Checkout MinusX [docs](https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase) here.
-To get started, select a database and simply ask: 
+  helperMessage: `To get started, select a database and simply ask: 
 > what tables can you see?
 
-\`[badge]New: \`  **[MinusX Memory: minusx.md](https://minusx.ai/blog/memory/)**
+---
+
+\`[badge]New Feature: \`  **[Modify Selected SQL](https://docs.minusx.ai/en/articles/11737789-modify-explain-sql-snippet)**
 
 
-[![img](https://minusx.ai/app_assets/memory_gif.gif)](https://minusx.ai/blog/memory/)
+[![img](https://minusx.ai/app_assets/modify.png)](https://docs.minusx.ai/en/articles/11737789-modify-explain-sql-snippet)
 
 `,
 };
