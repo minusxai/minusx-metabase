@@ -79,7 +79,7 @@ const ongoingUploads = new Map<string, Promise<string>>();
  * @param metadataHash The calculated hash to send to server
  * @returns The hash returned from the server
  */
-export async function uploadMetadata(metadataType: string, data: any, metadataHash: string): Promise<string> {
+async function uploadMetadata(metadataType: string, data: any, metadataHash: string): Promise<string> {
   // Check if this hash is already being uploaded
   if (ongoingUploads.has(metadataHash)) {
     console.log(`[minusx] Upload already in progress for hash ${metadataHash}, waiting...`)
