@@ -5,9 +5,12 @@ import { cotPlan } from './cotPlan';
 import type { RootState, AppDispatch } from '../state/store';
 import { toast } from '../app/toast';
 import { isAxiosError } from 'axios';
+import axios from 'axios';
 import { getApp } from '../helpers/app';
 import { ToolPlannerConfig } from 'apps/types';
 import { performActions } from './plannerActions';
+import { getParsedIframeInfo } from '../helpers/origin';
+import { configs } from '../constants';
 export const plannerListener = createListenerMiddleware();
 function shouldContinue(getState: () => RootState) {
   const thread = getState().chat.activeThread
@@ -80,11 +83,28 @@ startListening({
           description = err.response?.data?.error || err.message
         } else if (err instanceof Error) {
           description = err.message
+        } 
+        
+        // Capture error to backend for analysis
+        try {
+          const iframeParams = getParsedIframeInfo()
+          axios.post(`${configs.SERVER_BASE_URL}/user_state/capture_error`, {
+            error_description: description,
+            iframe_params: iframeParams
+          }).catch(captureErr => {
+            // Silently handle capture errors to avoid cascading failures
+            console.warn("Failed to capture error:", captureErr)
+          })
+        } catch (captureErr) {
+          // Silently handle any errors in the capture process
+          console.warn("Error in capture process:", captureErr)
         }
+
         // shorten it if it's too long
         description = description.length > 1000 ? description.substring(0, 1000) + '...' : description
         // log it
         console.warn("Planner error", description)
+
         toast({
           title: 'Planner Error',
           description,
