@@ -237,6 +237,8 @@ async function substituteParameters(
       sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `'${parameterValue}'`);
     } else if (templateTag.type == 'date') {
       sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `Date('${parameterValue}')`);
+    } else if (templateTag.type == 'number') {
+      sql = sql.replace(new RegExp(`{{\\s*${dashcardParameter.slug}\\s*}}`, 'g'), `${parameterValue}`);
     } else {
       throw new Error(`Parameter type ${dashcardParameter?.type} is not supported. template tag: ${templateTag.name}`);
     }
