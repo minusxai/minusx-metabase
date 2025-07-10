@@ -1,19 +1,21 @@
-import { Text, VStack, HStack, Box } from '@chakra-ui/react';
+import { Text, VStack, HStack, Box, Icon } from '@chakra-ui/react';
 import { BiSolidInfoCircle } from 'react-icons/bi';
 import React from 'react';
 
 interface NotifyProps {
   children?: React.ReactNode;
   title?: string;
+  notificationType?: 'info' | 'warning' | 'error';
 }
 
 export const Notify = ({ 
   children, 
-  title = "Heads Up!"
+  title = "Heads Up!",
+  notificationType = "info" 
 }: NotifyProps) => {
   const bgColor = 'white'
-  const borderColor = 'minusxGreen.800'
-  const iconColor = 'minusxGreen.800'
+  const borderColor = notificationType === 'info' ? 'minusxGreen.800' : notificationType === 'warning' ? 'orange.500' : 'red.600'
+  const iconColor = notificationType === 'info' ? 'minusxGreen.800' : notificationType === 'warning' ? 'orange.500' : 'red.600';
 
   return (
     <Box
@@ -27,7 +29,13 @@ export const Notify = ({
     >
       <VStack align="flex-start" spacing={2} w="full">
         <HStack spacing={2} align="center">
-          <BiSolidInfoCircle size={16} color={"teal"} />
+          {
+            notificationType === 'warning' ? 
+              <Icon as={BiSolidInfoCircle} size={16} color={"orange.500"} /> :
+            notificationType === 'error' ? 
+              <Icon as={BiSolidInfoCircle} size={16} color={"red.600"} /> : 
+            <Icon as={BiSolidInfoCircle} size={16} color={"minusxGreen.800"} />
+          }
           <Text 
             fontSize="sm" 
             fontWeight="semibold" 

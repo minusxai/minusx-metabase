@@ -67,6 +67,7 @@ import { dump } from 'js-yaml';
 
 
 const useAppStore = getApp().useStore()
+const LOW_CREDITS_THRESHOLD = 15
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const currentTool = getParsedIframeInfo().tool
@@ -106,6 +107,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
+  const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
 
   const relevantTables = toolContext.relevantTables || []
 
@@ -401,7 +403,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         { !userConfirmation.show && !(currentTool === "google" && currentToolVersion === "sheets") &&
         <>
           {/* <Divider borderColor={"minusxBW.500"}/> */}
-          {isMessageTooLong() && <Notify title="Conversation Too Long" >
+          {isMessageTooLong() && <Notify title="Conversation Too Long" notificationType='warning'>
                 <Text fontSize="xs" lineHeight={"1rem"}>
                     Your chat is too long, reducing accuracy and costing you more credits. Click
             {" "}<Text
@@ -506,14 +508,20 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
         {
             !drMode && 
-            <Notify title="Hi There!">
+            <Notify title="Hi There!" notificationType='warning'>
                 <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
             </Notify>
         }
         {
             creditsExhausted() && 
-            <Notify title="Uh oh, Credits Exhausted!">
+            <Notify title="Uh oh, Credits Exhausted!" notificationType='error'>
                 <Text fontSize="xs" lineHeight={"1rem"}>You've exhausted your credits for the week. You can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>speak with us</Link> for 1 month free Pro!</Text>
+            </Notify>
+        }
+        {
+            creditsLow() && 
+            <Notify title="Ooof, Running low on Credits!" notificationType='warning'>
+                <Text fontSize="xs" lineHeight={"1rem"}>You're running low on credits. To get more, you can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>speak with us</Link> for 1 month free Pro!</Text>
             </Notify>
         }
         {   !taskInProgress &&
