@@ -125,6 +125,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   
   // Get JWT token for Socket.io authentication
   const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
+  const analystMode = useSelector((state: RootState) => state.settings.analystMode)
 
   // Disabling sockets for now
   // useSocketIO({
@@ -206,6 +207,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             { !subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Plan</Link> }
             {/* {drMode && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> } */}
+            { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Analyst Mode]</Text> }
         </HStack>
     )
   }
