@@ -49,16 +49,9 @@ export async function getSelectedDbId(): Promise<number | undefined> {
   let dbId;
   
   if (isDashboard) {
-    // const dashcards = await getMetabaseState('dashboard.dashcards') as any;
-    // const dbIds = Object.values(dashcards || []).map((d: any) => d.card.database_id);
-    // this is deprecated in new Metabase versions
+    const dashcards = await getMetabaseState('dashboard.dashcards') as any;
+    const dbIds = Object.values(dashcards || []).map((d: any) => d.card.database_id);
 
-    const dashcards = await getMetabaseState('dashboard.dashcardData') as any;
-    const dbIds = Object.keys(dashcards).map(cardId => {
-                return Object.keys(dashcards[cardId]).map(key => {
-                    return dashcards[cardId][key]?.database_id;
-                });
-            });
     dbId = _.chain(dbIds).countBy().toPairs().maxBy(_.last).head().value();
     try {
       dbId = parseInt(dbId);
