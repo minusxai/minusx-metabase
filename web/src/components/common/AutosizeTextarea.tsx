@@ -32,6 +32,7 @@ const AutosizeTextarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           w="100%"
           resize="none"
           ref={textareaRef}
+          placeholder='Ask Anything!'
           minRows={2}
           maxHeight={300}
           as={ResizeTextarea}

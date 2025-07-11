@@ -6,7 +6,7 @@ import { extendTheme } from '@chakra-ui/react'
 import { StyleSheetManager } from 'styled-components';
 import isPropValid from '@emotion/is-prop-valid';
 import '@fontsource/bebas-neue';
-import '@fontsource/poppins';
+import '@fontsource/inter';
 
 export const theme = extendTheme({
   fonts: {
@@ -139,7 +139,7 @@ export const theme = extendTheme({
   styles: {
     global: {
       '.scroll-body, .scroll-body *, .settings-body, .settings-body *': {
-        fontFamily: `"Poppins", serif`,
+        fontFamily: `"Inter", sans-serif`,
       },
       // add ol and ul tstyles. this is a fix for the list rendering the bullets way to the left
       'ol, ul': {
