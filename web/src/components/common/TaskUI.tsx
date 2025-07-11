@@ -518,13 +518,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         {
             creditsExhausted() && 
             <Notify title="Uh oh, Credits Exhausted!" notificationType='error'>
-                <Text fontSize="xs" lineHeight={"1rem"}>You've exhausted your credits for the week. You can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>speak with us</Link> for 1 month free Pro!</Text>
+                <Text fontSize="xs" lineHeight={"1rem"}>You've exhausted your credits for the week. You can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>talk to us</Link> and get 1 month free Pro!</Text>
             </Notify>
         }
         {
             creditsLow() && 
             <Notify title="Ooof, Running low on Credits!" notificationType='warning'>
-                <Text fontSize="xs" lineHeight={"1rem"}>You're running low on credits. To get more, you can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>speak with us</Link> for 1 month free Pro!</Text>
+                <Text fontSize="xs" lineHeight={"1rem"}>To get more, you can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>talk to us</Link> and get 1 month free Pro!</Text>
             </Notify>
         }
         {   !taskInProgress &&
