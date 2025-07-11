@@ -12,6 +12,7 @@ import CSSCustomization from './CSSCustomization';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { UserDebugTools } from './UserDebugTools';
+import { History } from './History';
 
 const Monitors: MonitorDef[] = [
   {
@@ -27,6 +28,11 @@ const Monitors: MonitorDef[] = [
   {
     title: "Memory",
     component: MinusXMD,
+    tags: ['production']
+  },
+  {
+    title: "History",
+    component: History,
     tags: ['production']
   },
   {
