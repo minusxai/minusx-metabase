@@ -77,6 +77,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const thumbnails = useSelector((state: RootState) => state.thumbnails.thumbnails)
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  const totalThreads = useSelector((state: RootState) => state.chat.threads.length)
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
   const messages = activeThread.messages
@@ -108,6 +109,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
   const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
+  const lastThread = () => (thread === totalThreads - 1)
 
   const relevantTables = toolContext.relevantTables || []
 
@@ -392,6 +394,17 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     message: "You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!",
                     type: "error",
                     title: "Try Agent Mode!"
+                }
+            };
+        }
+
+        if (!lastThread()) {
+            return {
+                inputBox: false,
+                alert: {
+                    message: "You're viewing an older thread. Please start a new thread to continue.",
+                    type: "warning",
+                    title: "Previous Thread"
                 }
             };
         }
