@@ -166,6 +166,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   }, [initialInstructions]);
 
   const clearMessages = () => {
+    if (taskInProgress) {
+      dispatch(abortPlan())
+    }
     dispatch(startNewThread())
   }
 

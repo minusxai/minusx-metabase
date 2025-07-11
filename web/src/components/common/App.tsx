@@ -36,7 +36,7 @@ import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
-import { startNewThread } from '../../state/chat/reducer'
+import { abortPlan, startNewThread } from '../../state/chat/reducer'
 import { toast } from '../../app/toast'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 import NotificationHandler from './NotificationHandler'
@@ -120,6 +120,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
   const { data: userState, isLoading } = useGetUserStateQuery({})
+  const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  const taskInProgress = !(activeThread.status == 'FINISHED')
   console.log('userState is', isLoading, userState)
 //   const metabaseMode = useSelector((state: RootState) => state.settings.aiRules) == '' ? 'Basic' : 'Custom'
   
@@ -198,6 +201,12 @@ const AppLoggedIn = forwardRef((_props, ref) => {
 //   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const platformShortcut = getPlatformShortcut()
   const width = getParsedIframeInfo().width
+  const clearMessages = () => {
+    if (taskInProgress) {
+      dispatch(abortPlan())
+    }
+    dispatch(startNewThread())
+  }
 
   const MXMode = () => {
     const subscribed = useSelector((state: RootState) => state.billing.isSubscribed)
@@ -245,7 +254,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 aria-label="Chat"
                 size={'sm'}
                 icon={<Icon as={BiMessageAdd} boxSize={5} />}
-                onClick={() => dispatch(startNewThread())}
+                onClick={clearMessages}
               />
             </Tooltip>
             
