@@ -20,6 +20,7 @@ import { parseArguments } from '../../planner/plannerActions';
 import { CodeBlock } from './CodeBlock';
 import { ActionRenderInfo } from '../../state/chat/types';
 import { Markdown } from './Markdown';
+import {processModelToUIText} from '../../helpers/utils';
 
 // Todo: Vivek: Hardcoding here, need to fix this later
 // This is a list of actions that are undo/redoable
@@ -52,6 +53,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
   const controller = getApp().actionController
   const pageType = useAppStore((state) => state.toolContext.pageType) || '';
+  const url = useAppStore((state) => state.toolContext.url) || '';
+  const origin = url ? new URL(url).origin : '';
+  
   const getActionLabels = (action: string, attr: string) => {
     if (controller) {
       const metadata = Reflect.getMetadata('actionMetadata', controller, action);
@@ -72,10 +76,20 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     title = [...new Set(titles)].join(', ')
 
   }
-  let preExpanderText = actions.map(action => {
+  const preExpanderTextArr = actions.map(action => {
     const { text } = action.renderInfo || {}
-    return text || ''
-  }).filter(text => text !== '').join(', ')
+    return processModelToUIText(text || '', origin)
+  }).filter(text => text !== '')
+
+  const preExpanderText = preExpanderTextArr.length > 1 
+      ? preExpanderTextArr.map((text, i) => {
+          if (text.startsWith("Query:")) {
+            return `Query ${i+1}: ${text.substring(6).trim()}`;
+          }
+          return `Query ${i+1}: ${text}`;
+        }).join(', ')
+      : preExpanderTextArr.join(', ');
+
 
 
 const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({fn, sql, type}) => {

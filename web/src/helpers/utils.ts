@@ -81,3 +81,24 @@ export const getActionTaskLiteLabels = (action: string) => {
     }
     return taskString || extraMapping[action] || action;
 }
+
+
+export const processModelToUIText = (text: string, origin: string): string => {
+    if (text === ''){
+        return ''
+    }
+    if (text.includes("[badge_mx]")) {
+        // Replace [[badge_mx]Text] with `[badge_mx]Text`
+        text = text.replace(/\[\[badge_mx\](.*?)\]/g, '`[badge_mx]$1`')
+                   .replace(/\[\[badge_mx\]/g, '`[badge_mx]`')
+                   .replace(/\]\]/g, '`]')  
+    }
+    if (text.includes("card_id:") && (origin != '')) {
+        //Replace [card_id:<id>] with link
+        // Replace [card_id:<id>] with markdown link
+        text = text.replace(/\[card_id:(\d+)\]/g, (match, id) => {
+            return `[Card ID: ${id}](${origin}/question/${id})`;
+        });
+    }
+    return text
+}
