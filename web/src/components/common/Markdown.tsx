@@ -3,7 +3,7 @@ import MarkdownComponent from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ChatContent.css'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Image, Box, Button, Collapse } from "@chakra-ui/react"
+import { Image, Box, Collapse, Tag, TagLabel, TagLeftIcon, Button } from "@chakra-ui/react"
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { renderString } from '../../helpers/templatize'
@@ -22,7 +22,11 @@ function LinkRenderer(props: any) {
     if (props.children.toString().includes('Card ID')) {
         return (
             <a href={props.href} target="_blank" rel="minusxapp">
-                <Button leftIcon={<BsBarChartFill />} size={"xs"} colorScheme={"minusxGreen"}>{props.children}</Button>
+                {/* <Button leftIcon={<BsBarChartFill />} size={"xs"} colorScheme={"minusxGreen"}>{props.children}</Button> */}
+                <Tag size='sm' colorScheme='minusxGreen' variant='solid'>
+                    <TagLeftIcon as={BsBarChartFill} />
+                    <TagLabel>{props.children}</TagLabel>
+                </Tag>
             </a>
         )
     } 
@@ -79,7 +83,7 @@ function ModifiedCode(props: any) {
         return <Badge color={"minusxGreen.600"}>{text.replace('[badge]', '')}</Badge>;
         }
         if (text.startsWith('[badge_mx]')) {
-        return <><br></br><br></br><Badge borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
+        return <><br></br><Badge borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
         }
     }
     

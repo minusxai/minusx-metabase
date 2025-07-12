@@ -81,54 +81,45 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     return processModelToUIText(text || '', origin)
   }).filter(text => text !== '')
 
-  const preExpanderText = preExpanderTextArr.length > 1 
-      ? preExpanderTextArr.map((text, i) => {
-          if (text.startsWith("Query:")) {
-            return `Query ${i+1}: ${text.substring(6).trim()}`;
-          }
-          return `Query ${i+1}: ${text}`;
-        }).join(', ')
-      : preExpanderTextArr.join(', ');
+//   const preExpanderText = preExpanderTextArr.length > 1 
+//       ? preExpanderTextArr.map((text, i) => {
+//           return `\n\n **Query ${i+1}**: ${text} \n\n  ---`;
+//         }).join('\n\n')
+//       : preExpanderTextArr.join('\n\n');
 
 
 
-const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({fn, sql, type}) => {
-    const urHandler = (event: React.MouseEvent, fn: string, sql: string) => {
-        event.preventDefault();
-        event.stopPropagation();
-        executeAction({
-            index: -1,
-            function: fn,
-            args: {sql: sql},
-        });
+    const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({fn, sql, type}) => {
+        const urHandler = (event: React.MouseEvent, fn: string, sql: string) => {
+            event.preventDefault();
+            event.stopPropagation();
+            executeAction({
+                index: -1,
+                function: fn,
+                args: {sql: sql},
+            });
+        };
+        
+        return <Button
+                size="xs"
+                w={"100%"}
+                leftIcon={ type === 'undo' ? <BiUndo /> : <BiRedo /> }
+                variant={'solid'}
+                colorScheme="minusxGreen"
+                onClick={(event) => urHandler(event, fn, sql)}>
+                    {type === 'undo' ? 'Undo' : 'Redo'}
+                </Button>
     };
-    
-    return <Button
-            size="xs"
-            leftIcon={ type === 'undo' ? <BiUndo /> : <BiRedo /> }
-            variant={'solid'}
-            colorScheme="minusxGreen"
-            onClick={(event) => urHandler(event, fn, sql)}>
-                {type === 'undo' ? 'Undo' : 'Redo'}
-            </Button>
-};
 
-const PreExpanderUndo: React.FC = () => {
-    return (
-        <>
-            {actions.map(action => {
+    const undoRedoArr = actions.map(action => {
                 const { code, oldCode } = action.renderInfo || {}
                 return UNDO_REDO_ACTIONS.includes(action.function.name) && (
-                    <HStack>
-                        {oldCode && <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'}/> }
-                        {code && <UndoRedo fn={action.function.name} sql={code} type={'redo'}/> }
+                    <HStack w={"100%"} justify={"center"} mb={2}>
+                        {oldCode ? <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'}/>:<UndoRedo fn={action.function.name} sql={''} type={'undo'}/>}
+                        {code ? <UndoRedo fn={action.function.name} sql={code} type={'redo'}/> : <UndoRedo fn={action.function.name} sql={''} type={'redo'}/> }
                     </HStack>
                 )
-            })}
-        </>
-    );
-};
-
+            })
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
@@ -165,14 +156,18 @@ const PreExpanderUndo: React.FC = () => {
           p={0}
         >
           <VStack alignItems={"start"} flex={1} spacing={0}>
-            {preExpanderText !== '' && 
+            <VStack>
+            {preExpanderTextArr.length > 0 && 
             // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
-            <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'}>
-            <Markdown content={`Thinking...
-                ${preExpanderText}`}></Markdown>
-                </Box>
-
-            }
+            preExpanderTextArr.map((text, i) => {
+                return (
+                    <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'} w={"100%"}>
+                        <Markdown content={text}></Markdown>
+                        {pageType && pageType == 'sql' && undoRedoArr[i]}
+                    </Box>
+                )
+            })}
+            </VStack>
             <HStack
               aria-label="thinking-header"
               paddingBottom={actions.length && isExpanded ? 1 : 0}
@@ -192,7 +187,6 @@ const PreExpanderUndo: React.FC = () => {
                 { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
             </HStack>
             {/* { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null } */}
-            {pageType && pageType == 'sql' && <PreExpanderUndo />}
             </HStack>
           </VStack>
         </HStack>
