@@ -13,7 +13,7 @@ import { getParsedIframeInfo } from "../../helpers/origin"
 import { isEmpty, set } from 'lodash';
 import { MetabaseContext } from 'apps/types';
 import { BiBook, BiExpand } from "react-icons/bi";
-import { BsMagic } from "react-icons/bs";
+import { BsMagic, BsRocketTakeoffFill } from "react-icons/bs";
 import { MetabaseAppStateDashboard } from "../../../../apps/src/metabase/helpers/DOMToState";
 import { getLLMResponse } from "../../app/api";
 import _ from 'lodash';
@@ -30,6 +30,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const currentUserId = useSelector((state: RootState) => state.auth.profile_id)
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
+    const analystMode = useSelector((state: RootState) => state.settings.analystMode)
     const origin = getParsedIframeInfo().origin
     // Enable to limit catalog visibility
     // const visibleCatalogs = viewAllCatalogs ? availableCatalogs : availableCatalogs.filter((catalog: ContextCatalog) => !catalog.origin || catalog.origin === origin)
@@ -92,8 +93,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
             setIsCreatingDashboardToCatalog(false)
         })
     }
-
-    return (
+    const catalogContent = (
         <>
         <Box display="flex" alignItems="center" justifyContent="space-between">
             <Text fontSize="lg" fontWeight="bold">Available Catalogs</Text>
@@ -161,6 +161,69 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
           </>
         )}
         </>
+    )
+
+    return (
+        <Box position="relative">
+            {catalogContent}
+            {analystMode && (
+                <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    width="100%"
+                    height="100%"
+                    bg="rgba(255, 255, 255, 0.5)"
+                    backdropFilter="blur(4px)"
+                    zIndex={1000}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                >
+                    <Box
+                        bg="white"
+                        borderRadius="xl"
+                        boxShadow="2xl"
+                        p={8}
+                        mx={6}
+                        maxWidth="400px"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        transform="scale(1)"
+                        transition="all 0.2s ease-in-out"
+                        _hover={{
+                            transform: 'scale(1.02)',
+                            boxShadow: '3xl'
+                        }}
+                        display="flex"
+                        flexDirection="column"
+                        alignItems="center"
+                    >
+                        <Box
+                            width="60px"
+                            height="60px"
+                            borderRadius="full"
+                            bg="minusxGreen.100"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            mb={4}
+                        >
+                            <BsRocketTakeoffFill size={24} color="white" />
+                        </Box>
+                        <Box
+                            fontSize="md"
+                            fontWeight="medium"
+                            color="gray.700"
+                            textAlign="center"
+                            lineHeight="1.6"
+                        >
+                            In Analyst Mode, MinusX automatically figures out the relevant context, don't worry about it!
+                        </Box>
+                    </Box>
+                </Box>
+            )}
+        </Box>
     )
 }
 
