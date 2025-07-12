@@ -352,8 +352,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
 
   @Action({
     labelRunning: "Executes the SQL query with parameters",
-    labelDone: "Executed query with parameters",
-    labelTask: "Executed SQL query with parameters",
+    labelDone: "Executed query",
+    labelTask: "Executed SQL query",
     description: "Executes the SQL query in the Metabase SQL editor with support for template tags and parameters.",
     renderBody: ({ sql, explanation }: { sql: string, explanation: string }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
@@ -361,8 +361,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
-    console.log('Template tags are', template_tags)
-    console.log('Parameters are', parameters)
+    // console.log('Template tags are', template_tags)
+    // console.log('Parameters are', parameters)
     // Try parsing template_tags and parameters if they are strings
     try {
       if (typeof template_tags === 'string') {
