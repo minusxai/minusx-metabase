@@ -5,7 +5,7 @@ import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
 import { unset } from 'lodash'
-import { processCards, processDBSchema } from '../metadataProcessor'
+import { processCards, processDBSchema, processFields } from '../metadataProcessor'
 
 export async function planActionsRemote({
   messages,
@@ -31,6 +31,7 @@ export async function planActionsRemote({
 
   const getCardsPromise = processCards()
   const getDBSchemaPromise = processDBSchema()
+  const getFieldsPromise = processFields()
 
   // Add metadata hashes for analyst mode (when both drMode and analystMode are enabled)
   if (deepResearch !== 'simple') {
@@ -40,10 +41,13 @@ export async function planActionsRemote({
       try {
         const cardsHash = await getCardsPromise;
         const dbSchemaHash = await getDBSchemaPromise;
+        const fieldsHash = await getFieldsPromise;
         // @ts-ignore
         payload.cardsHash = cardsHash;
         // @ts-ignore
         payload.dbSchemaHash = dbSchemaHash;
+        // @ts-ignore
+        payload.fieldsHash = fieldsHash;
         console.log('[minusx] Added metadata hashes to request for analyst mode');
       } catch (error) {
         console.warn('[minusx] Failed to fetch metadata for analyst mode:', error);

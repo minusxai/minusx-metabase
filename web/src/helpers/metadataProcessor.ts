@@ -12,7 +12,7 @@ import { get } from 'lodash';
 import { setMetadataHash } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
-import { getAllCards, getDatabaseTablesAndModelsWithoutFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
+import { getAllCards, getDatabaseTablesAndModelsWithoutFields, getAllFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
 
 export interface MetadataItem {
   metadata_type: string;
@@ -155,5 +155,9 @@ export async function processCards() {
 
 export async function processDBSchema() {
   return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields)
+}
+
+export async function processFields() {
+  return await processMetadataWithCaching('fields', getAllFields)
 }
 

@@ -29,7 +29,8 @@ import {
   fetchTableMetadata,
   fetchModels,
   fetchCard,
-  fetchCards
+  fetchCards,
+  fetchDatabaseFields
 } from './metabaseAPI';
 import { Card, SearchApiResponse } from './types';
 
@@ -264,6 +265,31 @@ export async function getAllCards() {
   console.log('Processed cards:', processedCards);
   
   return processedCards;
+}
+
+export async function getAllFields() {
+  // Get selected database ID
+  const selectedDbId = await getSelectedDbId();
+  
+  if (!selectedDbId) {
+    console.log('[minusx] getAllFields - No database selected');
+    return [];
+  }
+
+  const fields = await handlePromise(
+    fetchDatabaseFields({ db_id: selectedDbId }),
+    "[minusx] Error getting all fields",
+    []
+  );
+  
+  console.log('[minusx] getAllFields - Total fields:', fields.length);
+  
+  // Return top 1000 fields
+  const limitedFields = fields.slice(0, 1000);
+  
+  console.log('[minusx] getAllFields - Returning fields:', limitedFields.length);
+  
+  return limitedFields;
 }
 
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {

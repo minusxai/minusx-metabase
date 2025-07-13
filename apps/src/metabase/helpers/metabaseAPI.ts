@@ -178,6 +178,10 @@ export const fetchFieldInfo = createAPI<{ field_id: number }>(
   '/api/field/{{field_id}}'
 );
 
+export const fetchDatabaseFields = createAPI<{ db_id: number }>(
+  '/api/database/{{db_id}}/fields'
+);
+
 // Dataset Operations - For running SQL queries
 export const executeDatasetQuery = createAPI<{
   database: number;
