@@ -5,7 +5,7 @@
  * from metabaseAPI.ts and state functions from metabaseStateAPI.ts.
  */
 
-import { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit } from 'lodash';
+import _, { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise, deterministicSample } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
@@ -263,6 +263,21 @@ export async function getAllCards() {
   });
   
   console.log('Processed cards:', processedCards);
+  const tables: Record<string, TableAndSchema> = {};
+  _.forEach(processedCards, (card) => {
+    getTablesFromSqlRegex(card.dataset_query?.native?.query || '').forEach((table: TableAndSchema) => {
+      const tableKey = `${table.schema}.${table.name}`;
+      if (!tables[tableKey]) {
+        table.count = table.count || 1; // Initialize count if not present
+        tables[tableKey] = table;
+      } else {
+        // If table already exists, merge the counts
+        tables[tableKey].count = (tables[tableKey].count || 0) + (table.count || 0);
+      }
+    })
+  })
+  const relevantTables = _.chain(tables).values().sortBy('count').reverse().value();
+  console.log('Tables from cards:', relevantTables);
   
   return processedCards;
 }
