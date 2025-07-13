@@ -5,7 +5,7 @@
  * from metabaseAPI.ts and state functions from metabaseStateAPI.ts.
  */
 
-import { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit } from 'lodash';
+import _, { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise, deterministicSample } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
@@ -29,7 +29,8 @@ import {
   fetchTableMetadata,
   fetchModels,
   fetchCard,
-  fetchCards
+  fetchCards,
+  fetchDatabaseFields
 } from './metabaseAPI';
 import { Card, SearchApiResponse } from './types';
 
@@ -262,8 +263,92 @@ export async function getAllCards() {
   });
   
   console.log('Processed cards:', processedCards);
+  const tables: Record<string, TableAndSchema> = {};
+  _.forEach(processedCards, (card) => {
+    getTablesFromSqlRegex(card.dataset_query?.native?.query || '').forEach((table: TableAndSchema) => {
+      const tableKey = `${table.schema}.${table.name}`;
+      if (!tables[tableKey]) {
+        table.count = table.count || 1; // Initialize count if not present
+        tables[tableKey] = table;
+      } else {
+        // If table already exists, merge the counts
+        tables[tableKey].count = (tables[tableKey].count || 0) + (table.count || 0);
+      }
+    })
+  })
+  const relevantTables = _.chain(tables).values().sortBy('count').reverse().value();
+  console.log('Tables from cards:', relevantTables);
   
-  return processedCards;
+  return { cards: processedCards, tables: relevantTables };
+}
+
+export async function getAllCardsLegacy() {
+  const result = await getAllCards();
+  return result.cards;
+}
+
+export async function getAllFields() {
+  // Get selected database ID
+  const selectedDbId = await getSelectedDbId();
+  
+  if (!selectedDbId) {
+    console.log('[minusx] getAllFields - No database selected');
+    return [];
+  }
+
+  const fields = await handlePromise(
+    fetchDatabaseFields({ db_id: selectedDbId }),
+    "[minusx] Error getting all fields",
+    []
+  );
+  
+  console.log('[minusx] getAllFields - Total fields:', fields.length);
+  
+  // Return top 1000 fields
+  const limitedFields = fields.slice(0, 1000);
+  
+  console.log('[minusx] getAllFields - Returning fields:', limitedFields.length);
+  
+  return limitedFields;
+}
+
+export async function getAllFieldsFiltered(tableNames: string[]) {
+  if (!tableNames || tableNames.length === 0) {
+    console.log('[minusx] getAllFieldsFiltered - No table names provided, returning empty array');
+    return [];
+  }
+
+  // Get selected database ID
+  const selectedDbId = await getSelectedDbId();
+  
+  if (!selectedDbId) {
+    console.log('[minusx] getAllFieldsFiltered - No database selected');
+    return [];
+  }
+
+  const allFields = await handlePromise(
+    fetchDatabaseFields({ db_id: selectedDbId }),
+    "[minusx] Error getting all fields",
+    []
+  );
+  
+  console.log('[minusx] getAllFieldsFiltered - Total fields before filtering:', allFields.length);
+  
+  // Create a set of table names for faster lookup
+  const tableNameSet = new Set(tableNames);
+  
+  // Filter fields to only those belonging to specified tables
+  const filteredFields = filter(allFields, (field) => {
+    const tableName = get(field, 'table_name');
+    const tableSchema = get(field, 'schema');
+    const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName;
+    
+    return tableNameSet.has(tableName) || tableNameSet.has(fullTableName);
+  });
+  
+  console.log('[minusx] getAllFieldsFiltered - Fields after filtering:', filteredFields.length);
+  
+  return filteredFields;
 }
 
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {

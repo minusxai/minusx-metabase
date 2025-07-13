@@ -12,7 +12,9 @@ import { get } from 'lodash';
 import { setMetadataHash } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
-import { getAllCards, getDatabaseTablesAndModelsWithoutFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
+import { getAllCards, getAllCardsLegacy, getDatabaseTablesAndModelsWithoutFields, getAllFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
+import { fetchDatabaseFields } from '../../../apps/src/metabase/helpers/metabaseAPI';
+import { getSelectedDbId } from '../../../apps/src/metabase/helpers/metabaseStateAPI';
 
 export interface MetadataItem {
   metadata_type: string;
@@ -149,11 +151,93 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
-export async function processCards() {
-  return await processMetadataWithCaching('cards', getAllCards)
-}
-
-export async function processDBSchema() {
-  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields)
+export async function processAllMetadata() {
+  console.log('[minusx] Starting coordinated metadata processing with parallel API calls...')
+  
+  // Step 1: Start all expensive API calls in parallel
+  console.log('[minusx] Initiating parallel API calls...')
+  const selectedDbId = await getSelectedDbId()
+  
+  if (!selectedDbId) {
+    throw new Error('No database selected for metadata processing')
+  }
+  
+  const [dbSchema, { cards, tables: referencedTables }, allFields] = await Promise.all([
+    getDatabaseTablesAndModelsWithoutFields(),
+    getAllCards(),
+    fetchDatabaseFields({ db_id: selectedDbId })
+  ])
+  
+  console.log('[minusx] All API calls completed. Processing data...')
+  
+  // Step 2: Create sets for efficient lookup of existing tables
+  const existingTableNames = new Set<string>()
+  
+  // Add tables from dbSchema
+  if (dbSchema.tables) {
+    dbSchema.tables.forEach((table: any) => {
+      const tableName = table.name
+      const schemaName = table.schema || dbSchema.default_schema
+      const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
+      
+      existingTableNames.add(tableName)
+      existingTableNames.add(fullName)
+    })
+  }
+  
+  // Add models from dbSchema
+  if (dbSchema.models) {
+    dbSchema.models.forEach((model: any) => {
+      existingTableNames.add(model.name)
+    })
+  }
+  
+  console.log('[minusx] Found existing tables/models:', existingTableNames.size)
+  
+  // Step 3: Find intersection of referenced tables that actually exist
+  const validReferencedTables = referencedTables.filter((table: any) => {
+    const tableName = table.name
+    const schemaName = table.schema
+    const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
+    
+    return existingTableNames.has(tableName) || existingTableNames.has(fullName)
+  })
+  
+  console.log('[minusx] Valid referenced tables:', validReferencedTables.length, 'out of', referencedTables.length)
+  
+  // Step 4: Filter fields in-memory using table names
+  const validTableNames = new Set(validReferencedTables.map((table: any) => {
+    const schemaName = table.schema
+    return schemaName ? `${schemaName}.${table.name}` : table.name
+  }))
+  
+  console.log('[minusx] Filtering fields for', validTableNames.size, 'valid tables...')
+  
+  const filteredFields = allFields.filter((field: any) => {
+    const tableName = get(field, 'table_name')
+    const tableSchema = get(field, 'schema')
+    const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName
+    
+    return validTableNames.has(tableName) || validTableNames.has(fullTableName)
+  })
+  
+  console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
+  
+  // Step 5: Process metadata for all three with filtered data
+  console.log('[minusx] Processing metadata with filtered data...')
+  
+  const [cardsHash, dbSchemaHash, fieldsHash] = await Promise.all([
+    processMetadataWithCaching('cards', async () => cards),
+    processMetadataWithCaching('dbSchema', async () => dbSchema),
+    processMetadataWithCaching('fields', async () => filteredFields)
+  ])
+  
+  console.log('[minusx] Coordinated metadata processing complete')
+  
+  return {
+    cardsHash,
+    dbSchemaHash, 
+    fieldsHash
+  }
 }
 
