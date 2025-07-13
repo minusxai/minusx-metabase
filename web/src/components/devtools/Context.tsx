@@ -218,7 +218,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                             textAlign="center"
                             lineHeight="1.6"
                         >
-                            In Analyst Mode, MinusX automatically figures out the relevant context, don't worry about it!
+                            In Analyst Mode, MinusX automatically figures out what matters with smart search and context awareness — no manual setup required! Like Claude Code, it just works.
                         </Box>
                     </Box>
                 </Box>
