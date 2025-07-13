@@ -233,22 +233,22 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "Please select a database"
         preventRunTask = true
     }
-    else if (toolContext.pageType === 'dashboard' && !drMode) {
+    else if (toolContext.pageType === 'dashboard' && (!drMode || analystMode)) {
         toastTitle = 'Dashboard is supported only in agent mode'
         toastDescription = "You can enable agent mode in settings"
         preventRunTask = true
     }
-    else if (toolContext.pageType === 'mbql' && !drMode) {
+    else if (toolContext.pageType === 'mbql' && (!drMode || analystMode)) {
         toastTitle = 'MBQL Editor is supported only in agent mode'
         toastDescription = "You can enable agent mode in settings"
         preventRunTask = true
     }
-    else if (toolContext.pageType === 'mbql' && selectedCatalog != DEFAULT_TABLES) {
+    else if (toolContext.pageType === 'mbql' && (selectedCatalog != DEFAULT_TABLES || analystMode)) {
         toastTitle = 'MBQL Editor is supported only in Default Tables catalog'
         toastDescription = "You can switch to Default Tables catalog in settings"
         preventRunTask = true
     }
-    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(validSelectedModels)) {
+    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(validSelectedModels) && !analystMode) {
         toastTitle = 'No Table in Default Tables'
         toastDescription = "Please select at least one table in Default Tables catalog"
         preventRunTask = true
@@ -379,6 +379,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     <>
     {
         isAppEnabled && !shouldBeEnabled && <DisabledOverlay toolEnabledReason={"You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!"}/>
+    }
+    {
+        analystMode && (toolContext.pageType != 'sql') && <DisabledOverlay toolEnabledReason={"You're currently using `[badge]Analyst Mode (alpha)`, which only works on SQL Editor pages for now!"}/>
     }
     <VStack
       justifyContent="space-between"

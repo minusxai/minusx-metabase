@@ -842,6 +842,24 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     return actionContent;
   }
 
+  @Action({
+    labelRunning: "Thinking",
+    labelDone: "Formulated a plan",
+    labelTask: "Formulated a plan",
+    description: "Formulates a plan to answer the user's request.",
+    renderBody: ({ thoughts }: { thoughts: string }) => {
+      return { text: null, code: null }
+    }
+  })
+  async Think({ thoughts }: { thoughts: string[] }) {
+    const actionContent: DefaultMessageContent = {
+      type: "DEFAULT",
+      text: `Thinking:\n${thoughts}`,
+      images: [],
+    };
+    return actionContent;
+  }
+
   // 1. Internal actions -------------------------------------------
   async checkVisualizationInvalid() {
     let returnMessage = "Visualization set successfully";
