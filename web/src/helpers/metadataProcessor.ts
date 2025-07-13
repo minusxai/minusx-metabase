@@ -151,18 +151,6 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
-export async function processCards() {
-  return await processMetadataWithCaching('cards', getAllCardsLegacy)
-}
-
-export async function processDBSchema() {
-  return await processMetadataWithCaching('dbSchema', getDatabaseTablesAndModelsWithoutFields)
-}
-
-export async function processFields() {
-  return await processMetadataWithCaching('fields', getAllFields)
-}
-
 export async function processAllMetadata() {
   console.log('[minusx] Starting coordinated metadata processing with parallel API calls...')
   

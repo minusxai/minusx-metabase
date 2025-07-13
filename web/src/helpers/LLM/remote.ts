@@ -5,7 +5,7 @@ import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
 import { unset } from 'lodash'
-import { processCards, processDBSchema, processFields, processAllMetadata } from '../metadataProcessor'
+import { processAllMetadata } from '../metadataProcessor'
 
 export async function planActionsRemote({
   messages,
