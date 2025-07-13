@@ -106,6 +106,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
+  const analystMode = useSelector((state: RootState) => state.settings.analystMode)
+
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
   const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
 
@@ -556,19 +558,30 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
           gap={0}
           alignItems={"center"}
         >
-            <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Entities can be Base Tables, Metabase Models or MinusX Catalog Entities"><Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text></Tooltip>
-          <Button 
-            size="xs" 
-            colorScheme="minusxGreen" 
-            variant="outline" 
-            fontSize="xs"
-            fontWeight="medium"
-            py={0}
-            px={3}
-            onClick={()=>openDevtoolTab("Context")}
-          >
-            {selectedCatalog.slice(0, 15)}{selectedCatalog.length > 12 ? '...' : ''}
-          </Button>
+          {
+            analystMode ? 
+                <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Context contains Base Tables, Metabase Models, Cards and Dashboards. MinusX figures out the rest.">
+                    <Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>Everything in context</Text>
+                </Tooltip>
+            :
+            <>
+                <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Entities can be Base Tables, Metabase Models or MinusX Catalog Entities">
+                    <Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text>
+                </Tooltip>
+                <Button 
+                    size="xs" 
+                    colorScheme="minusxGreen" 
+                    variant="outline" 
+                    fontSize="xs"
+                    fontWeight="medium"
+                    py={0}
+                    px={3}
+                    onClick={()=>openDevtoolTab("Context")}
+                >
+                    {selectedCatalog.slice(0, 15)}{selectedCatalog.length > 12 ? '...' : ''}
+                </Button>
+            </>
+          }
         </HStack>
         }
 

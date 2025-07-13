@@ -3,7 +3,7 @@ import MarkdownComponent from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ChatContent.css'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Image, Box, Button, Collapse } from "@chakra-ui/react"
+import { Image, Box, Collapse, Tag, TagLabel, TagLeftIcon, Button } from "@chakra-ui/react"
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { renderString } from '../../helpers/templatize'
@@ -15,54 +15,34 @@ import type { MetabaseModel } from 'apps/types'
 import { Badge } from "@chakra-ui/react";
 import { CodeBlock } from './CodeBlock';
 import { BiChevronDown, BiChevronRight } from 'react-icons/bi';
+import { BsBarChartFill } from "react-icons/bs";
 
 
 function LinkRenderer(props: any) {
-  return (
+    if (props.children.toString().includes('Card ID')) {
+        return (
+            <a href={props.href} target="_blank" rel="minusxapp">
+                {/* <Button leftIcon={<BsBarChartFill />} size={"xs"} colorScheme={"minusxGreen"}>{props.children}</Button> */}
+                <Tag size='sm' colorScheme='minusxGreen' variant='solid'>
+                    <TagLeftIcon as={BsBarChartFill} />
+                    <TagLabel>{props.children}</TagLabel>
+                </Tag>
+            </a>
+        )
+    } 
+    return (
     <a href={props.href} target="_blank" rel="minusxapp" style={{color: '#5f27cd'}}>
       <u>{props.children}</u>
     </a>
   );
 }
 
-const processRogueParagraphs = (text: string | string[]) => {
-    const badgeTypes = [
-        { tag: '[badge_mx]Sources', label: 'Sources' },
-        { tag: '[badge_mx]Logic', label: 'Logic' },
-        { tag: '[badge_mx]Assumptions', label: 'Assumptions' }
-    ];
-    
-    let processedText = text;
-    let resultElements: React.ReactNode[] = [];
-    
-    for (const badge of badgeTypes) {
-        if (processedText.includes(badge.tag)) {
-          if (typeof processedText === 'string') {
-            const parts = processedText.split(badge.tag);
-            if (parts[0]) resultElements.push(parts[0]);
-            // Add a line break before each badge
-            resultElements.push(<br key={`br-${badge.label}`}></br>);
-            resultElements.push(
-                <Badge key={`${badge.label.toLowerCase()}`} bg="minusxGreen.600" color="white" mx={1}>
-                    {badge.label}
-                </Badge>
-            );
-            processedText = parts[1];
-          }
-        }
-    }
-    
-    // Add any remaining text
-    if (processedText) resultElements.push(processedText);
-    
-    return resultElements;
-};
 
 function ModifiedParagraph(props: any) {
 
     return (
-        <p style={{margin: '3px', wordBreak: 'break-word', overflowWrap: 'break-word', wordWrap: 'break-word', whiteSpace: 'normal'}}>
-            {props.children?.toString().includes('[badge_mx]') ? processRogueParagraphs(props.children) : props.children}
+        <p style={{margin: '3px', wordBreak: 'break-word', overflowWrap: 'break-word', wordWrap: 'break-word', whiteSpace: 'normal', hyphens: 'auto'}}>
+            {props.children}
         </p>
     )
 }
@@ -103,7 +83,7 @@ function ModifiedCode(props: any) {
         return <Badge color={"minusxGreen.600"}>{text.replace('[badge]', '')}</Badge>;
         }
         if (text.startsWith('[badge_mx]')) {
-        return <><br></br><Badge bg={"minusxGreen.600"} color={"white"}>{text.replace('[badge_mx]', '')}</Badge></>;
+        return <><br></br><Badge borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
         }
     }
     
