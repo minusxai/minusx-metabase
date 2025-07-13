@@ -1,4 +1,4 @@
-import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInfo, unsubscribe, captureEvent, GLOBAL_EVENTS, processCards, processDBSchema, processFields } from "web";
+import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInfo, unsubscribe, captureEvent, GLOBAL_EVENTS, processAllMetadata } from "web";
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
@@ -206,9 +206,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
           // Perf caching
           if (!isCancelled()) {
             console.log('Running perf caching')
-            processCards()
-            processDBSchema()
-            processFields()
+            processAllMetadata()
             getDatabaseInfo(dbId)
           }
         })

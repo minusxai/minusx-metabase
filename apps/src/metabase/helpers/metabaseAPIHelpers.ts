@@ -279,7 +279,12 @@ export async function getAllCards() {
   const relevantTables = _.chain(tables).values().sortBy('count').reverse().value();
   console.log('Tables from cards:', relevantTables);
   
-  return processedCards;
+  return { cards: processedCards, tables: relevantTables };
+}
+
+export async function getAllCardsLegacy() {
+  const result = await getAllCards();
+  return result.cards;
 }
 
 export async function getAllFields() {
@@ -305,6 +310,45 @@ export async function getAllFields() {
   console.log('[minusx] getAllFields - Returning fields:', limitedFields.length);
   
   return limitedFields;
+}
+
+export async function getAllFieldsFiltered(tableNames: string[]) {
+  if (!tableNames || tableNames.length === 0) {
+    console.log('[minusx] getAllFieldsFiltered - No table names provided, returning empty array');
+    return [];
+  }
+
+  // Get selected database ID
+  const selectedDbId = await getSelectedDbId();
+  
+  if (!selectedDbId) {
+    console.log('[minusx] getAllFieldsFiltered - No database selected');
+    return [];
+  }
+
+  const allFields = await handlePromise(
+    fetchDatabaseFields({ db_id: selectedDbId }),
+    "[minusx] Error getting all fields",
+    []
+  );
+  
+  console.log('[minusx] getAllFieldsFiltered - Total fields before filtering:', allFields.length);
+  
+  // Create a set of table names for faster lookup
+  const tableNameSet = new Set(tableNames);
+  
+  // Filter fields to only those belonging to specified tables
+  const filteredFields = filter(allFields, (field) => {
+    const tableName = get(field, 'table_name');
+    const tableSchema = get(field, 'schema');
+    const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName;
+    
+    return tableNameSet.has(tableName) || tableNameSet.has(fullTableName);
+  });
+  
+  console.log('[minusx] getAllFieldsFiltered - Fields after filtering:', filteredFields.length);
+  
+  return filteredFields;
 }
 
 export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefreshModels: boolean = false): Promise<MetabaseModel[]> => {
