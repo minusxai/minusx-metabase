@@ -168,7 +168,7 @@ export const ReviewBox: React.FC = () => {
           {rating === 5 && (
             <VStack spacing={2}>
               <Text fontSize="xs" textAlign={'center'}>
-                Please consider leaving us a review on the &nbsp;
+                Please consider rating us on the &nbsp;
                 <Link
                   href="https://chromewebstore.google.com/detail/minusx/ngneijhbpnongpekeimkbjinkkpfkaop"
                   isExternal
