@@ -67,7 +67,7 @@ export const setMinusxMode = (mode: string) =>
 export const toggleMinusXRoot = (
   className: ValidMinusxRootClass,
   value?: boolean
-) => sendMessage('toggleMinusXRoot', [className, value], { log_rpc: true })
+) => sendMessage('toggleMinusXRoot', [className, value], { log_rpc: false })
 export const captureVisibleTab = () =>
   sendMessage('captureVisibleTab', [], { log_rpc: true })
 export const getElementScreenCapture = (selector: QuerySelector) =>
@@ -107,11 +107,11 @@ export const fetchData = (
   })
 export const queryURL = () => sendMessage('queryURL', [])
 export const getMetabaseState = (path: Parameters<typeof get>[1]) =>
-  sendMessage('getMetabaseState', [path], { log_rpc: true })
+  sendMessage('getMetabaseState', [path], { log_rpc: false })
 export const dispatchMetabaseAction = (type: string, payload?: any) =>
   sendMessage('dispatchMetabaseAction', [type, payload], { log_rpc: true, timeout: 1000 })
 export const getSelectedTextOnEditor = () =>
-  sendMessage('getSelectedTextOnEditor', [], { log_rpc: true })
+  sendMessage('getSelectedTextOnEditor', [], { log_rpc: false })
 export const subscribeMetabaseState = (path: string) =>
   sendMessage('subscribeMetabaseState', [path], { log_rpc: true }) as unknown as Promise<number>
 export const getJupyterState = (mode?: string) =>
@@ -126,7 +126,7 @@ export const getPosthogAppContext = (path: Parameters<typeof get>[1]) =>
 export const setTextPosthog = (selector: QuerySelector, value: string = '') =>
   sendMessage('setTextPosthog', [selector, value], { log_rpc: true })
 export const attachMutationListener = (domQueryMap: DOMQueryMap) =>
-  sendMessage('attachMutationListener', [domQueryMap], { log_rpc: true })
+  sendMessage('attachMutationListener', [domQueryMap], { log_rpc: false })
 export const detachMutationListener = (id: number) =>
   sendMessage('detachMutationListener', [id], { log_rpc: true })
 export const forwardToTab = (tool: string, message: string) =>
@@ -166,11 +166,11 @@ export const gsheetSetUserToken = (token: string) =>
 
 export const attachEventsListener = (
   selector: QuerySelector, events?: string[]
-) => sendMessage('attachEventsListener', [selector, events], { log_rpc: true })
+) => sendMessage('attachEventsListener', [selector, events], { log_rpc: false })
 
 export const addNativeElements = (
   selector: QuerySelector, htmlElement: HTMLJSONNode, attachType: AttachType='lastChild'
-) => sendMessage('addNativeElements', [selector, htmlElement, attachType], { log_rpc: true })
+) => sendMessage('addNativeElements', [selector, htmlElement, attachType], { log_rpc: false })
 
 export const startRecording = () => sendMessage('startRecording', [])
 export const stopRecording = () => sendMessage('stopRecording', [])
