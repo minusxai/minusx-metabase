@@ -151,7 +151,13 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
-export async function processAllMetadata() {
+interface MetadataProcessingResult {
+  cardsHash?: string;
+  dbSchemaHash?: string;
+  fieldsHash?: string;
+}
+
+export async function processAllMetadata() : Promise<MetadataProcessingResult> {
   console.log('[minusx] Starting coordinated metadata processing with parallel API calls...')
   
   // Step 1: Start all expensive API calls in parallel
