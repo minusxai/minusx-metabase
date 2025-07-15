@@ -391,7 +391,6 @@ const migrations = {
     let newState = {...state}
     newState.notifications = {
       notifications: [],
-      isPolling: false,
       lastFetchTime: null,
     }
     return newState

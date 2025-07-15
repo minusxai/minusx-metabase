@@ -1,5 +1,5 @@
 import { AppDispatch } from '../state/store';
-import { setNotifications, setPollingStatus, markAsDelivered } from '../state/notifications/reducer';
+import { setNotifications, markAsDelivered } from '../state/notifications/reducer';
 import { notifications as notificationsAPI } from '../app/api';
 import { isEmpty } from 'lodash';
 
@@ -50,7 +50,6 @@ class NotificationService {
     if (this.isPolling || !this.dispatch) return;
 
     this.isPolling = true;
-    this.dispatch(setPollingStatus(true));
 
     // Fetch immediately on start
     this.fetchNotifications();
@@ -65,7 +64,6 @@ class NotificationService {
     if (!this.isPolling || !this.dispatch) return;
 
     this.isPolling = false;
-    this.dispatch(setPollingStatus(false));
 
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
