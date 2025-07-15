@@ -95,3 +95,24 @@ export function memoize<T extends AsyncFunction>(
 
   return memoized as MemoizedFn<T>;
 }
+
+// Debug function to list all cache entries
+async function listAllCacheEntries() {
+  const { openDB } = await import('idb');
+  const db = await openDB('minusx-cache-db', 1);
+  const tx = db.transaction('cache', 'readonly');
+  const store = tx.objectStore('cache');
+  const allEntries = await store.getAll();
+  const allKeys = await store.getAllKeys();
+  
+  const entries = allEntries.map((entry, index) => ({
+    key: allKeys[index],
+    createdAt: new Date(entry.createdAt).toISOString(),
+    ageInHours: ((Date.now() - entry.createdAt) / (1000 * 60 * 60)).toFixed(2),
+    dataSize: JSON.stringify(entry.data).length
+  }));
+  
+  console.table(entries);
+  return entries;
+}
+listAllCacheEntries()
