@@ -23,7 +23,7 @@ function LinkRenderer(props: any) {
         return (
             <a href={props.href} target="_blank" rel="minusxapp">
                 {/* <Button leftIcon={<BsBarChartFill />} size={"xs"} colorScheme={"minusxGreen"}>{props.children}</Button> */}
-                <Tag size='sm' colorScheme='minusxGreen' variant='solid'>
+                <Tag size='sm' colorScheme='minusxGreen' variant='solid' border={"1px solid #fff"}>
                     <TagLeftIcon as={BsBarChartFill} />
                     <TagLabel>{props.children}</TagLabel>
                 </Tag>

@@ -45,6 +45,9 @@ export function metabaseToMarkdownTable(table: MetabaseStateTable, truncateLengt
   if (md.length > truncateLength) {
     md = `${md.slice(0, truncateLength)}...[truncated]`;
   }
+  if (dataRows.length === 0) {
+    md = md + '\n' + '| <Empty results, no data returned> |';
+  }
   return md;
 }
 
@@ -57,7 +60,11 @@ export function metabaseToCSV(table: MetabaseStateTable, truncateLength: number 
     ).join(',')
   );
   const allRows = [headerRow, ...dataRows]
-  return allRows.slice(0, truncateLength).join('\n');
+  let csv = allRows.slice(0, truncateLength).join('\n');
+  if (dataRows.length === 0) {
+    csv = csv + '\n' + '<Empty results, no data returned>';
+  }
+  return csv;
 }
 
 
