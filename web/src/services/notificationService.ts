@@ -54,10 +54,10 @@ class NotificationService {
     // Fetch immediately on start
     this.fetchNotifications();
 
-    // Set up polling every 1 minute (60000 ms)
+    // Set up polling every 5 minutes
     this.pollingInterval = setInterval(() => {
       this.fetchNotifications();
-    }, 60000);
+    }, 5 * 60 * 1000); // 5 minutes
   }
 
   stopPolling() {
