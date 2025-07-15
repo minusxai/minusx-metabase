@@ -70,6 +70,9 @@ async function calculateMetadataHash(metadataType: string, metadataValue: any, v
 // Global map to track ongoing uploads by hash
 const ongoingUploads = new Map<string, Promise<string>>();
 
+// Global map to track ongoing metadata processing by dbId
+const ongoingMetadataProcessing = new Map<number, Promise<MetadataProcessingResult>>();
+
 /**
  * Generic function to upload any metadata type to the backend
  * @param metadataType The type of metadata (e.g., 'cards', 'dbSchema')
@@ -162,106 +165,125 @@ export async function processAllMetadata() : Promise<MetadataProcessingResult> {
     throw new Error('No database selected for metadata processing')
   }
   
-  // Check cache for this database ID
-  const currentState = getState()
-  const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
-  
-  if (cacheEntry) {
-    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-    const isStale = Date.now() - cacheEntry.timestamp > SEVEN_DAYS_MS
-    
-    if (!isStale) {
-      console.log(`[minusx] Using cached metadata for database ${selectedDbId}`)
-      return cacheEntry.result
-    } else {
-      console.log(`[minusx] Cached metadata for database ${selectedDbId} is stale, clearing cache`)
-      // Clear stale cache entry
-      delete currentState.settings.metadataProcessingCache[selectedDbId]
-    }
+  // Check if processing is already in progress for this database ID
+  if (ongoingMetadataProcessing.has(selectedDbId)) {
+    console.log(`[minusx] Metadata processing already in progress for database ${selectedDbId}, returning existing promise`)
+    return await ongoingMetadataProcessing.get(selectedDbId)!
   }
   
-  const [dbSchema, { cards, tables: referencedTables }, allFields] = await Promise.all([
-    getDatabaseTablesAndModelsWithoutFields(),
-    getAllCards(),
-    fetchDatabaseFields({ db_id: selectedDbId })
-  ])
-  
-  console.log('[minusx] All API calls completed. Processing data...')
-  
-  // Step 2: Create sets for efficient lookup of existing tables
-  const existingTableNames = new Set<string>()
-  
-  // Add tables from dbSchema
-  if (dbSchema.tables) {
-    dbSchema.tables.forEach((table: any) => {
-      const tableName = table.name
-      const schemaName = table.schema || dbSchema.default_schema
-      const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
+  // Create and store the processing promise
+  const processingPromise = (async () => {
+    try {
+      // Check cache for this database ID
+      const currentState = getState()
+      const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
       
-      existingTableNames.add(tableName)
-      existingTableNames.add(fullName)
-    })
-  }
+      if (cacheEntry) {
+        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+        const isStale = Date.now() - cacheEntry.timestamp > SEVEN_DAYS_MS
+        
+        if (!isStale) {
+          console.log(`[minusx] Using cached metadata for database ${selectedDbId}`)
+          return cacheEntry.result
+        } else {
+          console.log(`[minusx] Cached metadata for database ${selectedDbId} is stale, clearing cache`)
+          // Clear stale cache entry
+          delete currentState.settings.metadataProcessingCache[selectedDbId]
+        }
+      }
+      
+      const [dbSchema, { cards, tables: referencedTables }, allFields] = await Promise.all([
+        getDatabaseTablesAndModelsWithoutFields(),
+        getAllCards(),
+        fetchDatabaseFields({ db_id: selectedDbId })
+      ])
+      
+      console.log('[minusx] All API calls completed. Processing data...')
+      
+      // Step 2: Create sets for efficient lookup of existing tables
+      const existingTableNames = new Set<string>()
+      
+      // Add tables from dbSchema
+      if (dbSchema.tables) {
+        dbSchema.tables.forEach((table: any) => {
+          const tableName = table.name
+          const schemaName = table.schema || dbSchema.default_schema
+          const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
+          
+          existingTableNames.add(tableName)
+          existingTableNames.add(fullName)
+        })
+      }
+      
+      // Add models from dbSchema
+      if (dbSchema.models) {
+        dbSchema.models.forEach((model: any) => {
+          existingTableNames.add(model.name)
+        })
+      }
+      
+      console.log('[minusx] Found existing tables/models:', existingTableNames.size)
+      
+      // Step 3: Find intersection of referenced tables that actually exist
+      const validReferencedTables = referencedTables.filter((table: any) => {
+        const tableName = table.name
+        const schemaName = table.schema
+        const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
+        
+        return existingTableNames.has(tableName) || existingTableNames.has(fullName)
+      })
+      
+      console.log('[minusx] Valid referenced tables:', validReferencedTables.length, 'out of', referencedTables.length)
+      
+      // Step 4: Filter fields in-memory using table names
+      const validTableNames = new Set(validReferencedTables.map((table: any) => {
+        const schemaName = table.schema
+        return schemaName ? `${schemaName}.${table.name}` : table.name
+      }))
+      
+      console.log('[minusx] Filtering fields for', validTableNames.size, 'valid tables...')
+      
+      const filteredFields = allFields.filter((field: any) => {
+        const tableName = get(field, 'table_name')
+        const tableSchema = get(field, 'schema')
+        const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName
+        
+        return validTableNames.has(tableName) || validTableNames.has(fullTableName)
+      })
+      
+      console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
+      
+      // Step 5: Process metadata for all three with filtered data
+      console.log('[minusx] Processing metadata with filtered data...')
+      
+      const [cardsHash, dbSchemaHash, fieldsHash] = await Promise.all([
+        processMetadataWithCaching('cards', async () => cards),
+        processMetadataWithCaching('dbSchema', async () => dbSchema),
+        processMetadataWithCaching('fields', async () => filteredFields)
+      ])
+      
+      console.log('[minusx] Coordinated metadata processing complete')
+      
+      const result = {
+        cardsHash,
+        dbSchemaHash, 
+        fieldsHash
+      }
   
-  // Add models from dbSchema
-  if (dbSchema.models) {
-    dbSchema.models.forEach((model: any) => {
-      existingTableNames.add(model.name)
-    })
-  }
+      // Cache the result for this database ID
+      dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
+      console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
+      
+      return result
+    } finally {
+      // Clean up the ongoing processing tracking
+      ongoingMetadataProcessing.delete(selectedDbId)
+    }
+  })()
   
-  console.log('[minusx] Found existing tables/models:', existingTableNames.size)
+  // Store the promise in the map
+  ongoingMetadataProcessing.set(selectedDbId, processingPromise)
   
-  // Step 3: Find intersection of referenced tables that actually exist
-  const validReferencedTables = referencedTables.filter((table: any) => {
-    const tableName = table.name
-    const schemaName = table.schema
-    const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
-    
-    return existingTableNames.has(tableName) || existingTableNames.has(fullName)
-  })
-  
-  console.log('[minusx] Valid referenced tables:', validReferencedTables.length, 'out of', referencedTables.length)
-  
-  // Step 4: Filter fields in-memory using table names
-  const validTableNames = new Set(validReferencedTables.map((table: any) => {
-    const schemaName = table.schema
-    return schemaName ? `${schemaName}.${table.name}` : table.name
-  }))
-  
-  console.log('[minusx] Filtering fields for', validTableNames.size, 'valid tables...')
-  
-  const filteredFields = allFields.filter((field: any) => {
-    const tableName = get(field, 'table_name')
-    const tableSchema = get(field, 'schema')
-    const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName
-    
-    return validTableNames.has(tableName) || validTableNames.has(fullTableName)
-  })
-  
-  console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
-  
-  // Step 5: Process metadata for all three with filtered data
-  console.log('[minusx] Processing metadata with filtered data...')
-  
-  const [cardsHash, dbSchemaHash, fieldsHash] = await Promise.all([
-    processMetadataWithCaching('cards', async () => cards),
-    processMetadataWithCaching('dbSchema', async () => dbSchema),
-    processMetadataWithCaching('fields', async () => filteredFields)
-  ])
-  
-  console.log('[minusx] Coordinated metadata processing complete')
-  
-  const result = {
-    cardsHash,
-    dbSchemaHash, 
-    fieldsHash
-  }
-  
-  // Cache the result for this database ID
-  dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
-  console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
-  
-  return result
+  return await processingPromise
 }
 
