@@ -472,11 +472,22 @@ const migrations = {
     newState.settings.metadataProcessingCache = {}
     return newState
   },
+  46: (state: RootState) => {
+    let newState = {...state}
+    // Clear tasks objects in all threads except latest
+    const activeThreadIndex = newState.chat.activeThread
+    newState.chat.threads.forEach((thread, index: number) => {
+      if (index !== activeThreadIndex) {
+        thread.tasks = []
+      }
+    })
+    return newState
+  },
 }
 
 const persistConfig = {
   key: 'root',
-  version: 45,
+  version: 46,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore
