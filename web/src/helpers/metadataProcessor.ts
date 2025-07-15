@@ -9,7 +9,7 @@ import axios from 'axios';
 import { configs } from '../constants';
 import { getOrigin } from './origin';
 import { get } from 'lodash';
-import { MetadataProcessingResult, setMetadataHash, setMetadataProcessingCache } from '../state/settings/reducer';
+import { MetadataProcessingResult, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
 import { getAllCards, getAllCardsLegacy, getDatabaseTablesAndModelsWithoutFields, getAllFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
@@ -165,6 +165,24 @@ export async function processAllMetadata() : Promise<MetadataProcessingResult> {
     throw new Error('No database selected for metadata processing')
   }
   
+  // Check cache for this database ID first (synchronous)
+  const currentState = getState()
+  const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
+  
+  if (cacheEntry) {
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
+    const isStale = Date.now() - cacheEntry.timestamp > SEVEN_DAYS_MS
+    
+    if (!isStale) {
+      console.log(`[minusx] Using cached metadata for database ${selectedDbId}`)
+      return cacheEntry.result
+    } else {
+      console.log(`[minusx] Cached metadata for database ${selectedDbId} is stale, clearing cache`)
+      // Clear stale cache entry using proper Redux action
+      dispatch(clearMetadataProcessingCache(selectedDbId))
+    }
+  }
+  
   // Check if processing is already in progress for this database ID
   if (ongoingMetadataProcessing.has(selectedDbId)) {
     console.log(`[minusx] Metadata processing already in progress for database ${selectedDbId}, returning existing promise`)
@@ -174,23 +192,6 @@ export async function processAllMetadata() : Promise<MetadataProcessingResult> {
   // Create and store the processing promise
   const processingPromise = (async () => {
     try {
-      // Check cache for this database ID
-      const currentState = getState()
-      const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
-      
-      if (cacheEntry) {
-        const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-        const isStale = Date.now() - cacheEntry.timestamp > SEVEN_DAYS_MS
-        
-        if (!isStale) {
-          console.log(`[minusx] Using cached metadata for database ${selectedDbId}`)
-          return cacheEntry.result
-        } else {
-          console.log(`[minusx] Cached metadata for database ${selectedDbId} is stale, clearing cache`)
-          // Clear stale cache entry
-          delete currentState.settings.metadataProcessingCache[selectedDbId]
-        }
-      }
       
       const [dbSchema, { cards, tables: referencedTables }, allFields] = await Promise.all([
         getDatabaseTablesAndModelsWithoutFields(),
