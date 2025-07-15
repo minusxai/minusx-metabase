@@ -4,6 +4,17 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
 import { ContextCatalog, MxModel } from '../../helpers/utils'
 
+export interface MetadataProcessingResult {
+  cardsHash?: string;
+  dbSchemaHash?: string;
+  fieldsHash?: string;
+}
+
+interface MetadataProcessingCacheEntry {
+  result: MetadataProcessingResult;
+  timestamp: number;
+}
+
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization' | 'Debug Tools'
@@ -119,6 +130,7 @@ interface Settings {
   enableUserDebugTools: boolean
   enableReviews: boolean
   metadataHashes: Record<string, number>
+  metadataProcessingCache: Record<number, MetadataProcessingCacheEntry>
 }
 
 const initialState: Settings = {
@@ -157,6 +169,7 @@ const initialState: Settings = {
   enableUserDebugTools: false,
   enableReviews: false,
   metadataHashes: {},
+  metadataProcessingCache: {},
 }
 
 export const settingsSlice = createSlice({
@@ -372,6 +385,15 @@ export const settingsSlice = createSlice({
     },
     setMetadataHash: (state, action: PayloadAction<string>) => {
         state.metadataHashes[action.payload] = Date.now()
+    },
+    setMetadataProcessingCache: (state, action: PayloadAction<{dbId: number, result: MetadataProcessingResult}>) => {
+        state.metadataProcessingCache[action.payload.dbId] = {
+          result: action.payload.result,
+          timestamp: Date.now()
+        }
+    },
+    clearMetadataProcessingCache: (state, action: PayloadAction<number>) => {
+        delete state.metadataProcessingCache[action.payload]
     }
   },
 })
@@ -383,7 +405,7 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

@@ -391,7 +391,6 @@ const migrations = {
     let newState = {...state}
     newState.notifications = {
       notifications: [],
-      isPolling: false,
       lastFetchTime: null,
     }
     return newState
@@ -466,12 +465,18 @@ const migrations = {
     // migrate enable_highlight_helpers in settings to default true
     newState.settings.enable_highlight_helpers = true
     return newState
-  },   
+  },
+  45: (state: RootState) => {
+    let newState = {...state}
+    // Add metadataProcessingCache to settings
+    newState.settings.metadataProcessingCache = {}
+    return newState
+  },
 }
 
 const persistConfig = {
   key: 'root',
-  version: 44,
+  version: 45,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore

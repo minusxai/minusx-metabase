@@ -1,6 +1,7 @@
 import { AppDispatch } from '../state/store';
-import { setNotifications, setPollingStatus, markAsDelivered } from '../state/notifications/reducer';
+import { setNotifications, markAsDelivered } from '../state/notifications/reducer';
 import { notifications as notificationsAPI } from '../app/api';
+import { isEmpty } from 'lodash';
 
 class NotificationService {
   private dispatch: AppDispatch | null = null;
@@ -20,7 +21,7 @@ class NotificationService {
     try {
       const response = await notificationsAPI.getNotifications();
       
-      if (response.success && response.notifications) {
+      if (response.success && !isEmpty(response.notifications)) {
         // Set the notifications in Redux store
         this.dispatch(setNotifications(response.notifications));
 
@@ -49,22 +50,20 @@ class NotificationService {
     if (this.isPolling || !this.dispatch) return;
 
     this.isPolling = true;
-    this.dispatch(setPollingStatus(true));
 
     // Fetch immediately on start
     this.fetchNotifications();
 
-    // Set up polling every 1 minute (60000 ms)
+    // Set up polling every 5 minutes
     this.pollingInterval = setInterval(() => {
       this.fetchNotifications();
-    }, 60000);
+    }, 5 * 60 * 1000); // 5 minutes
   }
 
   stopPolling() {
     if (!this.isPolling || !this.dispatch) return;
 
     this.isPolling = false;
-    this.dispatch(setPollingStatus(false));
 
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);

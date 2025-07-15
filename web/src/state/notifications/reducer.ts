@@ -4,13 +4,11 @@ import { Notification } from '../../types/notifications'
 
 interface NotificationsState {
   notifications: Notification[];
-  isPolling: boolean;
   lastFetchTime: number | null;
 }
 
 const initialState: NotificationsState = {
   notifications: [],
-  isPolling: false,
   lastFetchTime: null,
 }
 
@@ -48,12 +46,6 @@ export const notificationsSlice = createSlice({
     removeExecutedNotifications: (state) => {
       state.notifications = state.notifications.filter(n => !n.executed_at)
     },
-    setPollingStatus: (
-      state,
-      action: PayloadAction<boolean>
-    ) => {
-      state.isPolling = action.payload
-    },
   },
 })
 
@@ -62,8 +54,7 @@ export const {
   setNotifications, 
   markAsDelivered, 
   markAsExecuted, 
-  removeExecutedNotifications, 
-  setPollingStatus 
+  removeExecutedNotifications
 } = notificationsSlice.actions
 
 export default notificationsSlice.reducer

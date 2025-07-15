@@ -19,9 +19,6 @@ export const unsubscribe = async (id: number) => {
 
 export const onSubscription = (payload: SubscriptionPayload) => {
     const { id, url } = payload
-    captureEvent(GLOBAL_EVENTS.subscription, {
-        subscription_id: id, url
-    })
     if (!(id in listeners)) {
         return
     }

@@ -204,7 +204,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
             }
           }))
           // Perf caching
-          if (!isCancelled()) {
+          if (!isCancelled() && dbId !== oldDbId) {
             console.log('Running perf caching')
             processAllMetadata()
             getDatabaseInfo(dbId)

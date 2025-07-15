@@ -95,3 +95,77 @@ export function memoize<T extends AsyncFunction>(
 
   return memoized as MemoizedFn<T>;
 }
+
+// Debug function to list all cache entries and clean up old ones
+async function clearStaleEntries() {
+  const { openDB } = await import('idb');
+  const db = await openDB('minusx-cache-db', 1);
+  
+  // First, get all entries
+  const tx = db.transaction('cache', 'readonly');
+  const store = tx.objectStore('cache');
+  const allEntries = await store.getAll();
+  const allKeys = await store.getAllKeys();
+
+  const FOUR_WEEKS_MS = 28 * 24 * 60 * 60 * 1000; // 4 weeks in milliseconds
+  const now = Date.now();
+  
+  const entries = allEntries.map((entry, index) => {
+    const key = allKeys[index];
+    const hasCreatedAt = entry.createdAt && typeof entry.createdAt === 'number';
+    
+    if (!hasCreatedAt) {
+      return {
+        key,
+        createdAt: 'MISSING',
+        ageInHours: 'N/A',
+        dataSize: JSON.stringify(entry.data).length,
+        isStale: true, // Remove entries without createdAt
+        reason: 'Missing createdAt'
+      };
+    }
+    
+    return {
+      key,
+      createdAt: new Date(entry.createdAt).toISOString(),
+      ageInHours: ((now - entry.createdAt) / (1000 * 60 * 60)).toFixed(2),
+      dataSize: JSON.stringify(entry.data).length,
+      isStale: (now - entry.createdAt) > FOUR_WEEKS_MS,
+      reason: (now - entry.createdAt) > FOUR_WEEKS_MS ? 'Older than 4 weeks' : 'Fresh'
+    };
+  });
+
+  // Find stale entries (older than 4 weeks OR missing createdAt)
+  const staleEntries = entries.filter(entry => entry.isStale);
+  
+  if (staleEntries.length > 0) {
+    console.log(`Found ${staleEntries.length} stale entries (older than 4 weeks or missing createdAt), removing...`);
+    console.log('Breakdown:', staleEntries.reduce((acc, entry) => {
+      acc[entry.reason] = (acc[entry.reason] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>));
+    
+    // Delete stale entries
+    const deleteTx = db.transaction('cache', 'readwrite');
+    const deleteStore = deleteTx.objectStore('cache');
+    
+    for (const staleEntry of staleEntries) {
+      await deleteStore.delete(staleEntry.key);
+    }
+    
+    await deleteTx.done;
+    console.log(`Removed ${staleEntries.length} stale cache entries`);
+  }
+  
+  // Show remaining entries
+  const remainingEntries = entries.filter(entry => !entry.isStale);
+  console.table(remainingEntries);
+  
+  return {
+    total: entries.length,
+    remaining: remainingEntries.length,
+    removed: staleEntries.length,
+    entries: remainingEntries
+  };
+}
+clearStaleEntries()
