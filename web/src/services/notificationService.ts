@@ -1,6 +1,7 @@
 import { AppDispatch } from '../state/store';
 import { setNotifications, setPollingStatus, markAsDelivered } from '../state/notifications/reducer';
 import { notifications as notificationsAPI } from '../app/api';
+import { isEmpty } from 'lodash';
 
 class NotificationService {
   private dispatch: AppDispatch | null = null;
@@ -20,7 +21,7 @@ class NotificationService {
     try {
       const response = await notificationsAPI.getNotifications();
       
-      if (response.success && response.notifications) {
+      if (response.success && !isEmpty(response.notifications)) {
         // Set the notifications in Redux store
         this.dispatch(setNotifications(response.notifications));
 
