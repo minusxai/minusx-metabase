@@ -36,7 +36,9 @@ import {
   getParameters,
   getVariablesAndUuidsInQuery,
   MetabaseStateSnippetsDict,
-  getAllTemplateTagsInQuery
+  getAllTemplateTagsInQuery,
+  applySQLEdits,
+  SQLEdits
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
@@ -398,6 +400,24 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             return await this.runSQLQuery({ sql, ctes: _ctes });
         }
     }
+  }
+
+  @Action({
+    labelRunning: "Executes the SQL query with parameters",
+    labelDone: "Executed query",
+    labelTask: "Executed SQL query",
+    description: "Executes the SQL query in the Metabase SQL editor with support for template tags and parameters.",
+    renderBody: ({ explanation, sql_edits}: { explanation: string, sql_edits: SQLEdits }, appState: MetabaseAppStateSQLEditor) => {
+      const sqlQuery = appState?.sqlQuery
+      const newQuery = applySQLEdits(sqlQuery, sql_edits);
+      return {text: explanation, code: newQuery, oldCode: sqlQuery, language: "sql"}
+    }
+  })
+  async EditAndExecuteQuery({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
+    const appState = (await this.app.getState()) as MetabaseAppStateSQLEditor;
+    let sql = appState.sqlQuery || "";
+    sql = applySQLEdits(sql, sql_edits);
+    return await this.ExecuteQuery({ sql, _ctes, explanation, template_tags, parameters });
   }
 
   @Action({

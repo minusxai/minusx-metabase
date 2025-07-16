@@ -151,3 +151,51 @@ export const getAllTemplateTagsInQuery = (query: string, allSnippets?: MetabaseS
   const modelTags = getModelsInQuery(query);
   return { ...snippetTags, ...modelTags };
 }
+
+
+export interface SQLEdit {
+    old_sql: string;
+    new_sql: string;
+    replace_all: boolean; // replace all occurrences if true, otherwise replace only the first occurrence
+}
+export type SQLEdits = SQLEdit[];
+
+
+export const applySQLEdits = (sql: string, edits: SQLEdits): string => {
+    //Rules
+    // - The edits will be applied in the order they are provided.
+    // - Use sql_edits to apply edits to the SQL query (have to provide old_sql, new_sql, and replace_all flag)
+    // - If you want to replace the entire current SQL query, set old_sql to <ENTIRE_QUERY> and new_sql to the new query.
+    // - If you want to replace a specific part of the SQL query, set old_sql to the part you want to replace and new_sql to the new part.
+    // - If the current sql query is empty, you can set old_sql to an empty string and new_sql to the new query.
+    // - If you want to not change the SQL query, you can set old_sql to an empty string and new_sql to an empty string.
+    // - If the diff is too complicated (>5 edits), consider just replacing the entire query with a new one.
+  try {
+    if (typeof edits === 'string') {
+        edits = JSON.parse(edits) as SQLEdits;
+    }
+  } catch (error) {
+      console.error("Error parsing sql_edits:", error);
+      return sql; // Return the original SQL if parsing fails
+  }
+
+
+  let updatedSQL = sql;
+  for (const edit of edits) {
+    const { old_sql, new_sql, replace_all } = edit;
+    if (old_sql === "<ENTIRE_QUERY>") {
+      // Replace the entire SQL query
+      updatedSQL = new_sql;
+    } else if (old_sql === "") {
+      // If old_sql is empty, set new_sql as the updated SQL
+      updatedSQL = new_sql;
+    } else if (replace_all) {
+      // Replace all occurrences of old_sql with new_sql
+      updatedSQL = updatedSQL.split(old_sql).join(new_sql);
+    } else {
+      // Replace only the first occurrence of old_sql with new_sql
+      updatedSQL = updatedSQL.replace(old_sql, new_sql);
+    }
+  }
+  return updatedSQL;
+};
