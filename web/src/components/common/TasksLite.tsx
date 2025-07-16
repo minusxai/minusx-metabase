@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import {
   Box,
+  Button,
   HStack,
   Icon,
+  IconButton,
   Spinner,
   Text,
+  Textarea,
   VStack,
 } from '@chakra-ui/react';
 import {
@@ -12,8 +15,12 @@ import {
     BiSolidErrorCircle,
 } from 'react-icons/bi';
 import { BiCircle } from 'react-icons/bi';
+<<<<<<< HEAD
 import { MdBlock } from 'react-icons/md';
 import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
+=======
+import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill } from 'react-icons/bs';
+>>>>>>> bcca3be (add all ui for feedback)
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
@@ -214,6 +221,9 @@ const flattenTasks = (tasks: TasksInfo, expandedRootTasks: Set<string> = new Set
 };
 
 export const TasksLite: React.FC = () => {
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [negativeText, setNegativeText] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const thread = useSelector((state: RootState) => state.chat.activeThread);
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
   const taskInProgress = !(activeThread.status === 'FINISHED')
@@ -222,8 +232,13 @@ export const TasksLite: React.FC = () => {
   const [expandedRootTasks, setExpandedRootTasks] = useState<Set<string>>(new Set());
 
   const allTasks: TasksInfo = activeThread?.tasks || [];
+<<<<<<< HEAD
   const flatTasks = useMemo(() => flattenTasks(allTasks, expandedRootTasks), [allTasks, expandedRootTasks]);
   
+=======
+  const flatTasks = useMemo(() => flattenTasks(allTasks), [allTasks]);
+
+>>>>>>> bcca3be (add all ui for feedback)
   const rootTasks = useMemo(() => {
     if (!allTasks || allTasks.length === 0) return [];
     const taskMap = new Map(allTasks.map(t => [t.id, t]));
@@ -259,6 +274,23 @@ export const TasksLite: React.FC = () => {
       get(lastMessage, 'role') === 'user' ||
       (typeof lastMessageContent === 'string' && lastMessageContent.includes('/start_task'))
     ) && (isEmpty || isLoading);
+
+  const handlePositiveFeedback = () => {
+    setFeedback('positive');
+    console.log('Positive feedback submitted');
+  };
+
+  const handleNegativeFeedback = () => {
+    setFeedback('negative');
+    console.log('Negative feedback submitted');
+  };
+
+  const handleSubmitNegativeFeedback = () => {
+    console.log('Negative feedback submitted:', negativeText);
+    setFeedbackSubmitted(true);
+  };
+
+  const showFeedbackButtons = !isEmpty && !isLoading && !taskInProgress && (feedback === null);
 
   if (isStarting) {
     return (
@@ -344,6 +376,68 @@ export const TasksLite: React.FC = () => {
             })}
           </VStack>
         </Box>
+
+        {showFeedbackButtons && (
+          <VStack spacing={1} pt={2}>
+            <Text fontSize="11" color="minusxBW.600" textAlign="center">
+              Were you satisfied with this answer? Feedback helps the agent improve and better adapt to you!
+            </Text>
+            <HStack justifyContent="center" spacing={2} w={"100%"}>
+              <IconButton
+                aria-label="Thumbs up"
+                icon={<BsFillHandThumbsUpFill />}
+                size="xs"
+                width="25%"
+                height="24px"
+                variant='outline'
+                onClick={handlePositiveFeedback}
+              />
+              <IconButton
+                aria-label="Thumbs down"
+                icon={<BsFillHandThumbsDownFill />}
+                size="xs"
+                width="25%"
+                height="24px"
+                variant='outline'
+                onClick={handleNegativeFeedback}
+              />
+            </HStack>
+          </VStack>
+        )}
+
+        {feedback === 'negative' && !feedbackSubmitted && (
+          <VStack spacing={2} pt={2}>
+            <Textarea
+              placeholder="Please tell us what went wrong..."
+              value={negativeText}
+              onChange={(e) => setNegativeText(e.target.value)}
+              size="xs"
+              resize="vertical"
+              minH="60px"
+              bg="minusxBW.200"
+              border="1px solid"
+              borderColor="minusxBW.500"
+              borderRadius={5}
+              _focus={{ borderColor: "minusxBW.700" }}
+            />
+            <Button
+              size="xs"
+              colorScheme="minusxGreen"
+              onClick={handleSubmitNegativeFeedback}
+              isDisabled={!negativeText.trim()}
+            >
+              Submit Feedback
+            </Button>
+          </VStack>
+        )}
+
+        {((feedback == 'positive') || (feedbackSubmitted)) && (
+          <VStack spacing={1} pt={2}>
+            <Text fontSize="xs" color="minusxGreen.600" textAlign="center" fontWeight="500">
+              Thanks for the feedback!
+            </Text>
+          </VStack>
+        )}
       </VStack>
     </Box>
   );

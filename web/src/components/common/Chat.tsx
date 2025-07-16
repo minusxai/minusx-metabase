@@ -138,7 +138,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
             // borderLeftColor={role == 'user' ? 'transparent' : 'minusxBW.600'}
           />
         </Box>
-        {(isHovered || (reaction !== "unrated")) && (role == 'tool') && (
+        {/* {(isHovered || (reaction !== "unrated")) && (role == 'tool') && (
           <Box aria-label="message-reactions" position="absolute" bottom={-1} right={0}>
             <IconButton
               aria-label="Thumbs up"
@@ -158,7 +158,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
               onClick={reaction == "negative" ? clearReactions : addNegativeReaction}
             />
           </Box>
-        )}
+        )} */}
         {(isHovered || (reaction !== "unrated")) && (role == 'user') && (
           <Box aria-label="message-actions" position="absolute" bottom={-1} right={0}>
             <IconButton
