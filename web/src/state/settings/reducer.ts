@@ -167,7 +167,7 @@ const initialState: Settings = {
   customCSS: '',
   enableStyleCustomization: false,
   enableUserDebugTools: false,
-  enableReviews: false,
+  enableReviews: true,
   metadataHashes: {},
   metadataProcessingCache: {},
 }
