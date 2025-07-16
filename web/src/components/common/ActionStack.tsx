@@ -25,7 +25,7 @@ import { get, isEmpty } from 'lodash';
 
 // Todo: Vivek: Hardcoding here, need to fix this later
 // This is a list of actions that are undo/redoable
-const UNDO_REDO_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery']
+const UNDO_REDO_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery']
 
 
 function removeThinkingTags(input: string): string {
@@ -96,7 +96,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             event.stopPropagation();
             executeAction({
                 index: -1,
-                function: fn,
+                function: 'ExecuteQuery',
                 args: {sql: sql},
             });
         };
