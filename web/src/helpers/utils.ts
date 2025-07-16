@@ -63,12 +63,12 @@ export type MxModel = {
 const controller = getApp().actionController
 export const getActionTaskLiteLabels = (action: string) => {
     const extraMapping: { [key: string]: string } = {
-        'UpdateTaskStatus': 'Task completed',
-        'MetabaseSimpleAgent': 'Start Metabase Agent',
-        'MetabaseLowLevelAgent': 'SQL Task Initialized',
-        'MetabaseMBQLAgent': 'MBQL Task Initialized',
-        'MetabaseDashboardAgent': 'Dashboard Task Initialized',
-        'MetabaseAnalystAgent': 'Start Explorer Agent'
+        'UpdateTaskStatus': 'All done!',
+        'MetabaseSimpleAgent': 'Spin up Metabase Agent',
+        'MetabaseLowLevelAgent': 'Kick off SQL',
+        'MetabaseMBQLAgent': 'Construct MBQL Query',
+        'MetabaseDashboardAgent': 'Investigate Dashboard',
+        'MetabaseAnalystAgent': 'Initialize Analyst Agent',
     }
     let taskString = ''
 
