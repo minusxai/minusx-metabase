@@ -60,10 +60,8 @@ import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 import { setupCollectionsAndModels } from '../../state/settings/availableCatalogsListener'
 import { Notify } from './Notify'
-import { DisabledOverlay } from './DisabledOverlay'
 import { ContextCatalog } from '../../helpers/utils';
-import { dump } from 'js-yaml';
-
+import { Markdown } from './Markdown'
 
 
 const useAppStore = getApp().useStore()
@@ -96,7 +94,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
   const dbInfo = toolContext.dbInfo
-  const isAppEnabled: boolean = useAppStore((state) => state.isEnabled)?.value || false
+  const toolEnabled = useAppStore((state) => state.isEnabled)
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
   // only take models for the current db id
   const validSelectedModels = selectedModels.filter(model => model.dbId === dbInfo.id)
@@ -372,17 +370,88 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     });
   }
 
-  const shouldBeEnabled = drMode || toolContext.pageType === 'sql'
-  
+  const shouldBeEnabled = (drMode || toolContext.pageType === 'sql')
+    
+    const getAlertStatus = () => {
+        // 1. All cases when the input box should be disabled, and an alert shown
+        if (!toolEnabled?.value || false){
+            return {
+                inputBox: false,
+                alert: {
+                    message: toolEnabled.reason || "MinusX is not enabled for this app.",
+                    type: "error",
+                    title: "MinusX Unavailable"
+                }
+            };
+
+        }
+        if (!shouldBeEnabled) {
+            return {
+                inputBox: false,
+                alert: {
+                    message: "You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!",
+                    type: "error",
+                    title: "Try Agent Mode!"
+                }
+            };
+        }
+        
+        if (creditsExhausted()) {
+            return {
+                inputBox: false,
+                alert: {
+                    message: "You've exhausted your credits for the week. You can either upgrade to a Pro subscription in settings or [talk to us](https://minusx.ai/demo) and get 1 month free Pro!",
+                    type: "error",
+                    title: "Uh Oh! Credits Exhausted"
+                }
+            };
+        }
+
+        // 2. All cases when the input box should be enabled, but an alert shown
+        if (toolContext.pageType === 'mbql'){
+            return {
+                inputBox: true,
+                alert: {
+                    message: "Question Builder feature is new and still in progress. Some things might not work just yet.",
+                    type: "info",
+                    title: "Try Question Builder!"
+                }
+            }
+        }
+        if (!drMode) {
+            return {
+                inputBox: true,
+                alert: {
+                    message: "You're currently using MinusX Classic. [Find out](https://minusx.ai/demo) how to switch to Agent Mode and unlock exciting new features!",
+                    type: "warning",
+                    title: "Try Agent Mode!"
+                }
+            };
+        }
+        if (creditsLow()) {
+            return {
+                inputBox: true,
+                alert: {
+                    message: "Running low on credits. You can either upgrade to a Pro subscription in settings or [talk to us](https://minusx.ai/demo) and get 1 month free Pro!",
+                    type: "warning",
+                    title: "Uh Oh! Running Low on Credits"
+                }
+            };
+        }
+
+        // 3. All cases when the input box should be enabled, and no alert shown
+        return {
+            inputBox: true,
+            alert: {
+                type: null,
+            }
+        };
+    }
+
+    const appEnabledStatus = getAlertStatus()
 
   return (
     <>
-    {
-        isAppEnabled && !shouldBeEnabled && <DisabledOverlay toolEnabledReason={"You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!"}/>
-    }
-    {/* {
-        analystMode && (toolContext.pageType != 'sql') && <DisabledOverlay toolEnabledReason={"You're currently using `[badge]Analyst Mode (alpha)`, which only works on SQL Editor pages for now!"}/>
-    } */}
     <VStack
       justifyContent="space-between"
       alignItems="stretch"
@@ -509,27 +578,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
         } */}
         {
-            (toolContext.pageType === 'mbql' ) && 
-            <Notify>
-                <Text fontSize="xs" lineHeight={"1rem"}>Question Builder feature is new and still in progress. Some things might not work just yet.</Text>
-            </Notify>
-        }
-        {
-            !drMode && 
-            <Notify title="Hi There!" notificationType='warning'>
-                <Text fontSize="xs" lineHeight={"1rem"}>You're currently using MinusX Classic. <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>Find out</Link> how to switch to Agent Mode and unlock exciting new features!</Text>
-            </Notify>
-        }
-        {
-            creditsExhausted() && 
-            <Notify title="Uh oh, Credits Exhausted!" notificationType='error'>
-                <Text fontSize="xs" lineHeight={"1rem"}>You've exhausted your credits for the week. You can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>talk to us</Link> and get 1 month free Pro!</Text>
-            </Notify>
-        }
-        {
-            creditsLow() && 
-            <Notify title="Ooof, Running low on Credits!" notificationType='warning'>
-                <Text fontSize="xs" lineHeight={"1rem"}>To get more, you can either upgrade to a Pro subscription in <span onClick={() => openDevtoolTab("General Settings")} style={{textDecoration: 'underline', cursor: 'pointer'}}>settings</span> or <Link style={{textDecoration: 'underline'}} href="https://minusx.ai/demo" isExternal>talk to us</Link> and get 1 month free Pro!</Text>
+            appEnabledStatus.alert.type && 
+            <Notify title={appEnabledStatus.alert.title} notificationType={appEnabledStatus.alert.type}>
+                <Text fontSize="xs" lineHeight={"1rem"}>
+                    <Markdown content={appEnabledStatus.alert.message} />
+                </Text>
             </Notify>
         }
         {   !taskInProgress &&
@@ -548,7 +601,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         <VStack width={"100%"} alignItems={"stretch"} gap={0}>
-        { currentTool == 'metabase'  && !taskInProgress && !creditsExhausted() &&
+        { currentTool == 'metabase'  && !taskInProgress && appEnabledStatus.inputBox &&
         <HStack 
           mb={-2} 
           p={2} 
@@ -590,7 +643,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         <ReviewBox />
-        { !taskInProgress && !creditsExhausted() && 
+        { !taskInProgress && appEnabledStatus.inputBox && 
             <Stack aria-label="chat-input-area" position={"relative"}>
                 <AutosizeTextarea
                 ref={ref}
