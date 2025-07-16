@@ -8,7 +8,7 @@
 import axios from 'axios';
 import { configs } from '../constants';
 import { getOrigin } from './origin';
-import { get } from 'lodash';
+import { get, isEmpty } from 'lodash';
 import { MetadataProcessingResult, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
@@ -120,6 +120,10 @@ async function processMetadataWithCaching(
   dataFetcher: () => Promise<any>): Promise<string | undefined> {
   // Fetch the data
   const data = await dataFetcher()
+  if (isEmpty(data)) {
+    console.warn(`[minusx] No data found for ${metadataType}, skipping upload`)
+    return undefined; // No data to process
+  }
   console.log('Retrieved data for metadata type', metadataType, data)
 
   // Calculate hash of current data
@@ -272,6 +276,10 @@ export async function processAllMetadata() : Promise<MetadataProcessingResult> {
       }
   
       // Cache the result for this database ID
+      if (!result.cardsHash) {
+        console.warn('[minusx] Cardshash is undefined, not caching result')
+        return result; // Return even if some hashes are missing
+      }
       dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
       console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
       

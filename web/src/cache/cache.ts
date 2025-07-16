@@ -159,7 +159,7 @@ async function clearStaleEntries() {
   
   // Show remaining entries
   const remainingEntries = entries.filter(entry => !entry.isStale);
-  console.table(remainingEntries);
+  // console.table(remainingEntries);
   
   return {
     total: entries.length,
