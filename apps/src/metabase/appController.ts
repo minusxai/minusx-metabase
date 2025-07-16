@@ -414,45 +414,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async EditAndExecuteQuery({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
-    // console.log('Template tags are', template_tags)
-    // console.log('Parameters are', parameters)
-    // Try parsing template_tags and parameters if they are strings
     const appState = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     let sql = appState.sqlQuery || "";
     sql = applySQLEdits(sql, sql_edits);
-    try {
-      if (typeof template_tags === 'string') {
-        template_tags = template_tags === ""? {}: JSON.parse(template_tags);
-      }
-    } catch (error) {
-      console.error('Error parsing template_tags or parameters:', error);
-    }
-    try {
-      if (typeof parameters === 'string') {
-        parameters = parameters === ""? []: JSON.parse(parameters);
-      }
-    } catch (error) {
-      console.error('Error parsing parameters:', error);
-    }
-    const metabaseState = this.app as App<MetabaseAppState>;
-    const pageType = metabaseState.useStore().getState().toolContext?.pageType;
-    
-    // Check if template_tags or parameters are provided and non-empty
-    const hasTemplateTagsOrParams = (template_tags && Object.keys(template_tags).length > 0) || (parameters && Array.isArray(parameters) && parameters.length > 0);
-    if (pageType === 'sql') {
-        if (hasTemplateTagsOrParams) {
-            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, executeImmediately: true, _type: "csv", ctes: _ctes });
-        } else {
-            return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
-        }
-    }
-    else if (pageType === 'dashboard') {
-        if (hasTemplateTagsOrParams) {
-            return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });
-        } else {
-            return await this.runSQLQuery({ sql, ctes: _ctes });
-        }
-    }
+    return await this.ExecuteQuery({ sql, _ctes, explanation, template_tags, parameters });
   }
 
   @Action({
