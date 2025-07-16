@@ -42,7 +42,6 @@ import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 import NotificationHandler from './NotificationHandler'
 import notificationService from '../../services/notificationService'
 import { useSocketIO } from '../../hooks/useSocketIO'
-import { DisabledOverlay } from './DisabledOverlay'
 import { useCustomCSS } from '../../hooks/useCustomCSS'
 
 const useAppStore = getApp().useStore()
@@ -311,8 +310,6 @@ const AppBody = forwardRef((_props, ref) => {
   const auth = useSelector((state: RootState) => state.auth)
   const appMode = useSelector((state: RootState) => state.settings.appMode)
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
-  const demoMode = useSelector((state: RootState) => state.settings.demoMode)
-  const toolEnabled = useAppStore((state) => state.isEnabled)
   const variant = getParsedIframeInfo().variant
   
   // Apply custom CSS throughout the application
@@ -360,7 +357,6 @@ const AppBody = forwardRef((_props, ref) => {
     return (
       <>
         {isDevToolsOpen && <DevToolsBox />}
-        {!toolEnabled.value && <DisabledOverlay toolEnabledReason={toolEnabled.reason} />}
         <AppLoggedIn ref={ref}/>
       </>
     )
