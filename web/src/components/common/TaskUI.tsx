@@ -380,7 +380,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 alert: {
                     message: toolEnabled.reason || "MinusX is not enabled for this app.",
                     type: "error",
-                    title: "MinusX Unavailable"
+                    title: "MinusX unavailable on this page!"
                 }
             };
 
