@@ -1,31 +1,9 @@
-import { Parser } from 'node-sql-parser';
-import { uniqBy } from 'lodash';
-
 export interface TableAndSchema {
   name: string;
   schema: string;
   count?: number;
 }
 
-// using regex version so we don't have to deal with metabase filters syntax
-// might be a better idea to just use this one instead of the ridiculous regex
-/*export*/ function getTablesFromSql(sql: string): TableAndSchema[] {
-  const parser = new Parser();
-  try {
-    const tableList = parser.tableList(sql);
-    // returned is {type}::{schemaName}::{tableName} eg. select::public::users
-    return tableList.map((table: string) => {
-      const [type, schema, tableName] = table.split('::');
-      return {
-        name: tableName,
-        schema: schema
-      };
-    });
-  } catch (error) {
-    console.warn('Error parsing SQL (maybe malformed):', sql, error);
-    return [];
-  }
-}
 export const removeSurroundingBackticksAndQuotes = (str: string) => {
   // trim away surrounding backticks and quotes
   return str.replace(/^[`"]|[`"]$/g, '');
