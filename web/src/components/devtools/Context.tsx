@@ -17,6 +17,7 @@ import { BsMagic, BsRocketTakeoffFill } from "react-icons/bs";
 import { MetabaseAppStateDashboard } from "../../../../apps/src/metabase/helpers/DOMToState";
 import { getLLMResponse } from "../../app/api";
 import _ from 'lodash';
+import { processAllMetadata } from "../../helpers/metadataProcessor";
 
 
 
@@ -31,6 +32,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
     const analystMode = useSelector((state: RootState) => state.settings.analystMode)
+    const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
     const manuallySelectContext = useSelector((state: RootState) => state.settings.manuallyLimitContext)
     const origin = getParsedIframeInfo().origin
     const updateSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,6 +230,10 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                         </Box>
                         <br />
                         <Checkbox isChecked={manuallySelectContext} onChange={updateSelection}>Manually limit context</Checkbox>
+                        <HStack justifyContent={"flex-end"}>
+                            { isEmpty(metadataProcessingCache[toolContext.dbInfo.id]) ? <Text>Syncing...</Text> : <Text fontSize={"xs"} color={"minusxGreen.600"}>Last synced: {new Date(metadataProcessingCache[toolContext.dbInfo.id].timestamp).toLocaleString()}</Text> }
+                            <Button size={'xs'} colorScheme="minusxGreen" onClick={() => processAllMetadata(true)}>Resync</Button>
+                        </HStack>
                     </Box>
                 </Box>
             )}

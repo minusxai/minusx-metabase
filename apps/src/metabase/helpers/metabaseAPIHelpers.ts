@@ -189,9 +189,9 @@ export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
 }
 
-export async function getAllCards() {
+export async function getAllCards(forceRefresh = false) {
   const cards = await handlePromise(
-    fetchCards({}),
+    forceRefresh ? fetchCards.refresh({}) : fetchCards({}),
     "[minusx] Error getting all cards",
     []
   );
@@ -369,16 +369,10 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
   return modelsAsTables.filter((model: MetabaseModel) => model.collectionName !== 'mx_internal');
 }
 
-export async function getDatabaseTablesAndModelsWithoutFields(dbId?: number, forceRefreshModels: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
+export async function getDatabaseTablesAndModelsWithoutFields(db_id: number, forceRefreshModels: boolean = false, forceRefreshTables: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   // If dbId not provided, get the currently selected database ID
-  const effectiveDbId = dbId || await getSelectedDbId();
-  
-  if (!effectiveDbId) {
-    throw new Error('No database ID provided and no database currently selected');
-  }
-  
-  const jsonResponse = await fetchDatabaseWithTables({ db_id: effectiveDbId });
-  const models = await getAllRelevantModelsForSelectedDb(effectiveDbId, forceRefreshModels) ;
+  const jsonResponse = forceRefreshTables ? await  fetchDatabaseWithTables.refresh({ db_id }) : await fetchDatabaseWithTables({ db_id });
+  const models = await getAllRelevantModelsForSelectedDb(db_id, forceRefreshModels) ;
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
       map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
