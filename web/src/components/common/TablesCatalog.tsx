@@ -51,7 +51,7 @@ export const TablesCatalog: React.FC<null> = () => {
   const allModels = dbInfo.models|| []
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
 
-  const syncModels = async () => {
+  const resync = async () => {
     const currentDbId = toolContext.dbId
     if (!currentDbId) return
 
@@ -164,7 +164,7 @@ export const TablesCatalog: React.FC<null> = () => {
         </TabPanels>
     </Tabs>
     <HStack justifyContent={"flex-end"}>
-        <Button size={'xs'} colorScheme="minusxGreen" onClick={syncModels}>Hard Sync Models</Button>
+        <Button size={'xs'} colorScheme="minusxGreen" onClick={resync}>Resync</Button>
     </HStack>
     {/* {
       isModelView ? (
