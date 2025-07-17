@@ -3,8 +3,8 @@ import { TablesCatalog } from '../common/TablesCatalog';
 import { CatalogEditor, createCatalog } from '../common/CatalogEditor';
 import { refreshMemberships, YAMLCatalog } from '../common/YAMLCatalog';
 import { getApp } from '../../helpers/app';
-import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link, Spinner} from "@chakra-ui/react";
-import { DEFAULT_TABLES, setSelectedCatalog, saveCatalog } from "../../state/settings/reducer";
+import { Text, Badge, Select, Spacer, Box, Button, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, useDisclosure, IconButton, Link, Spinner, Checkbox} from "@chakra-ui/react";
+import { DEFAULT_TABLES, setSelectedCatalog, saveCatalog, updateManualContextSelection } from "../../state/settings/reducer";
 import { ContextCatalog } from '../../helpers/utils';
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
@@ -31,7 +31,12 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
     const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
     const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
     const analystMode = useSelector((state: RootState) => state.settings.analystMode)
+    const manuallySelectContext = useSelector((state: RootState) => state.settings.manuallyLimitContext)
     const origin = getParsedIframeInfo().origin
+    const updateSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const isChecked = e.target.checked
+        dispatch(updateManualContextSelection(isChecked))
+    }
     // Enable to limit catalog visibility
     // const visibleCatalogs = viewAllCatalogs ? availableCatalogs : availableCatalogs.filter((catalog: ContextCatalog) => !catalog.origin || catalog.origin === origin)
     const visibleCatalogs = availableCatalogs
@@ -165,8 +170,9 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
 
     return (
         <Box position="relative">
+            <Checkbox isChecked={manuallySelectContext} onChange={updateSelection}>Manually limit context</Checkbox>
             {catalogContent}
-            {analystMode && (
+            {!manuallySelectContext && analystMode && (
                 <Box
                     position="absolute"
                     top={0}
@@ -220,6 +226,8 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                         >
                             In Analyst Mode, MinusX automatically figures out what matters with smart search and context awareness — no manual setup required! Like Claude Code, it just works.
                         </Box>
+                        <br />
+                        <Checkbox isChecked={manuallySelectContext} onChange={updateSelection}>Manually limit context</Checkbox>
                     </Box>
                 </Box>
             )}

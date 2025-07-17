@@ -131,6 +131,7 @@ interface Settings {
   enableReviews: boolean
   metadataHashes: Record<string, number>
   metadataProcessingCache: Record<number, MetadataProcessingCacheEntry>
+  manuallyLimitContext: boolean
 }
 
 const initialState: Settings = {
@@ -170,6 +171,7 @@ const initialState: Settings = {
   enableReviews: true,
   metadataHashes: {},
   metadataProcessingCache: {},
+  manuallyLimitContext: false
 }
 
 export const settingsSlice = createSlice({
@@ -394,6 +396,9 @@ export const settingsSlice = createSlice({
     },
     clearMetadataProcessingCache: (state, action: PayloadAction<number>) => {
         delete state.metadataProcessingCache[action.payload]
+    },
+    updateManualContextSelection: (state, action: PayloadAction<boolean>) => {
+      state.manuallyLimitContext = action.payload
     }
   },
 })
@@ -405,7 +410,8 @@ export const { updateIsLocal, updateUploadLogs,
   updateSidePanelTabName, updateDevToolsTabName, setSuggestQueries,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
-  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache
+  setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
+  updateManualContextSelection
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
