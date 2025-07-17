@@ -49,6 +49,8 @@ export interface FormattedTable {
   related_tables_freq?: number[][];
   count?: number;
   sample_values_completion_percentage?: number;
+  modelId?: number; // Optional model ID if this is a model
+  modelName?: string; // Optional model name if this is a model
 }
 
 export interface MetabaseModel {

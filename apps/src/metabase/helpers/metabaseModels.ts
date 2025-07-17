@@ -37,10 +37,12 @@ const fieldRefToId = (modelId: number, fieldRef: FieldRef): string => {
     return `mxfield-${JSON.stringify(fieldRef)}`;
 }
 
-const metabaseModelToLLMFriendlyIdentifier = (model: MetabaseModel): {schema: string, table: string} => {
+const metabaseModelToLLMFriendlyIdentifier = (model: MetabaseModel): {schema: string, table: string, modelId?: number, modelName?: string} => {
     return {
         schema: 'mm_' + slugg(model.collectionName || 'default_collection', {separator: '_'}),
-        table: slugg(model.name + '_' + model.modelId, {separator: '_'})
+        table: slugg(model.name + '_' + model.modelId, {separator: '_'}),
+        modelId: model.modelId,
+        modelName: model.name,
     };
 }
 
@@ -92,7 +94,9 @@ const getModelData = async (model: MetabaseModel): Promise<FormattedTable> => {
         name: schemaAndTable.table,
         id: model.modelId,
         schema: schemaAndTable.schema,
-        columns
+        columns,
+        modelId: model.modelId,
+        modelName: model.name,
     };
 }
   

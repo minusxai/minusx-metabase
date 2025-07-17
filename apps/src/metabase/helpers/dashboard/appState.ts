@@ -316,7 +316,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   if (!dashboardInfo.description) {
     delete dashboardInfo.description;
   }
-  return { 
+  const dashboardAppState: MetabaseAppStateDashboard = {
     ...dashboardInfo,
     type: MetabaseAppStateType.Dashboard,
     tableContextYAML,
@@ -324,7 +324,25 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     metabaseOrigin: url,
     metabaseUrl: fullUrl,
     isEmbedded: getParsedIframeInfo().isEmbedded,
-};
+  };
+  if (appSettings.analystMode && appSettings.manuallyLimitContext) {
+    const relevantTablesWithFieldsAndType = relevantTablesWithFields.map(table => ({
+      ...table,
+      type: 'table',
+    }))
+    const relevantModelsWithFieldsAndType = relevantModelsWithFields.map(model => ({
+      ...model,
+      type: 'model',
+      name: model.modelName,
+      id: model.modelId,
+      schema: undefined,
+      table: undefined,
+      modelId: undefined,
+      modelName: undefined,
+    }))
+    dashboardAppState.relevantEntitiesWithFields = [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
+  }
+  return dashboardAppState
 }
 
 

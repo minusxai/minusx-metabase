@@ -180,12 +180,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const currentCard = await getCurrentCard() as Card;
     
     // Get existing template tags and parameters to merge with provided ones
+    const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
+    const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const existingTemplateTags = currentCard.dataset_query.native['template-tags'] || {};
     const existingParameters = currentCard.parameters || [];
     
     // Merge provided template tags with existing ones (provided ones take precedence)
     const mergedTemplateTags = {
       ...existingTemplateTags,
+      ...allTemplateTags,
       ...template_tags
     };
     
@@ -387,18 +390,18 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const hasTemplateTagsOrParams = (template_tags && Object.keys(template_tags).length > 0) || (parameters && Array.isArray(parameters) && parameters.length > 0);
     
     if (pageType === 'sql') {
-        if (hasTemplateTagsOrParams) {
+        // if (hasTemplateTagsOrParams) {
             return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, executeImmediately: true, _type: "csv", ctes: _ctes });
-        } else {
-            return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
-        }
+        // } else {
+            // return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
+        // }
     }
     else if (pageType === 'dashboard') {
-        if (hasTemplateTagsOrParams) {
+        // if (hasTemplateTagsOrParams) {
             return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });
-        } else {
-            return await this.runSQLQuery({ sql, ctes: _ctes });
-        }
+        // } else {
+            // return await this.runSQLQuery({ sql, ctes: _ctes });
+        // }
     }
   }
 

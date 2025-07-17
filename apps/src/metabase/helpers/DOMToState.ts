@@ -70,6 +70,7 @@ export interface MetabaseAppStateSQLEditor {
   metabaseOrigin?: string;
   metabaseUrl?: string;
   isEmbedded: boolean;
+  relevantEntitiesWithFields?: FormattedTable[];
 }
 
 // make this DashboardInfo
@@ -80,6 +81,7 @@ export interface MetabaseAppStateDashboard extends DashboardInfo {
   metabaseOrigin?: string;
   metabaseUrl?: string;
   isEmbedded: boolean;
+  relevantEntitiesWithFields?: FormattedTable[];
 }
 
 export interface MetabaseAppStateMBQLEditor extends MBQLInfo {
@@ -177,6 +179,23 @@ export async function convertDOMtoStateSQLQuery() {
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
+  }
+  if (appSettings.analystMode && appSettings.manuallyLimitContext) {
+    const relevantTablesWithFieldsAndType = relevantTablesWithFields.map(table => ({
+      ...table,
+      type: 'table',
+    }))
+    const relevantModelsWithFieldsAndType = relevantModelsWithFields.map(model => ({
+      ...model,
+      type: 'model',
+      name: model.modelName,
+      id: model.modelId,
+      schema: undefined,
+      table: undefined,
+      modelId: undefined,
+      modelName: undefined,
+    }))
+    metabaseAppStateSQLEditor.relevantEntitiesWithFields = [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
   }
   return metabaseAppStateSQLEditor;
 }

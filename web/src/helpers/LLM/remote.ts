@@ -44,8 +44,6 @@ export async function planActionsRemote({
         payload.dbSchemaHash = dbSchemaHash;
         // @ts-ignore
         payload.fieldsHash = fieldsHash;
-        // @ts-ignore
-        payload.manuallyLimitContext = currentState.settings.manuallyLimitContext;
         console.log('[minusx] Added metadata hashes to request for analyst mode');
       } catch (error) {
         console.warn('[minusx] Failed to fetch metadata for analyst mode:', error);

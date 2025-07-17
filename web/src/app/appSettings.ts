@@ -15,7 +15,8 @@ export const getAppSettings = () => {
     availableCatalogs: settings.availableCatalogs,
     modelsMode: settings.modelsMode,
     selectedModels: settings.selectedModels,
-    enable_highlight_helpers: settings.enable_highlight_helpers
+    enable_highlight_helpers: settings.enable_highlight_helpers,
+    manuallyLimitContext: settings.manuallyLimitContext,
   }
 }
 
