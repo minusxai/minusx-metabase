@@ -38,7 +38,7 @@ export const History: React.FC<null> = () => {
     return (
       <Box>
         <Text fontSize="2xl" fontWeight="bold">History</Text>
-        <Text fontSize="md" color="minusxBW.600">Your last ~10 conversations</Text>
+        <Text fontSize="md" color="minusxBW.600">Your recent conversations</Text>
         
         <VStack mt={4} spacing={2} align="stretch">
           {threads
@@ -76,7 +76,7 @@ export const History: React.FC<null> = () => {
                     {getThreadPreview(threadIdx)}
                   </Text>
                   <Text fontSize="xs" color="gray.500">
-                    {thread.messages.length} messages
+                    {thread.messages.filter(msg => msg.role === 'user' || msg.role === 'assistant').length} messages
                   </Text>
                 </VStack>
                 <Text fontSize="xs" color="gray.500" flexShrink={0}>
