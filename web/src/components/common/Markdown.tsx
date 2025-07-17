@@ -226,8 +226,11 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
           const questionURL = generateMetabaseQuestionURL(metabaseOrigin, lastSQL, databaseId);
           
           return renderString(content, {
-            'MX_LAST_SQL_URL': questionURL
+            'MX_LAST_SQL_URL': `\n\n --- \n\n Continue your analysis [here](${questionURL})`
           });
+        } 
+        else {
+            return content.replace('{{MX_LAST_SQL_URL}}', ''); // Remove if no SQL found
         }
       } catch (error) {
         console.warn('Failed to generate MX_LAST_SQL_URL:', error);

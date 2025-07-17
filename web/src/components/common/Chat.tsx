@@ -119,7 +119,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           color={role == 'user' ? 'minusxBW.900' : 'minusxBW.50'}
           position="relative"
         >
-          <ChatContent content={content} messageIndex={index} />
+          <ChatContent content={content} messageIndex={index} role={role}/>
           
           <Box
             position="absolute"
