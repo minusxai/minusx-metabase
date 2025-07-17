@@ -158,8 +158,8 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
-export async function processAllMetadata() : Promise<MetadataProcessingResult> {
-  console.log('[minusx] Starting coordinated metadata processing with parallel API calls...')
+export async function processAllMetadata(forceRefresh = false) : Promise<MetadataProcessingResult> {
+  console.log('[minusx] Starting coordinated metadata processing with parallel API calls...') 
   
   // Step 1: Start all expensive API calls in parallel
   console.log('[minusx] Initiating parallel API calls...')
@@ -168,12 +168,15 @@ export async function processAllMetadata() : Promise<MetadataProcessingResult> {
   if (!selectedDbId) {
     throw new Error('No database selected for metadata processing')
   }
+  if (forceRefresh) {
+    dispatch(clearMetadataProcessingCache(selectedDbId))
+  }
   
   // Check cache for this database ID first (synchronous)
   const currentState = getState()
   const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
   
-  if (cacheEntry) {
+  if (!forceRefresh && cacheEntry) {
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
     const isStale = Date.now() - cacheEntry.timestamp > SEVEN_DAYS_MS
     
@@ -198,9 +201,9 @@ export async function processAllMetadata() : Promise<MetadataProcessingResult> {
     try {
       
       const [dbSchema, { cards, tables: referencedTables }, allFields] = await Promise.all([
-        getDatabaseTablesAndModelsWithoutFields(),
-        getAllCards(),
-        fetchDatabaseFields({ db_id: selectedDbId })
+        getDatabaseTablesAndModelsWithoutFields(selectedDbId, forceRefresh, forceRefresh),
+        getAllCards(forceRefresh),
+        forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId })
       ])
       
       console.log('[minusx] All API calls completed. Processing data...')
