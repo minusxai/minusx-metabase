@@ -1,28 +1,44 @@
-import React, {FC, useEffect, useState, useRef, useCallback, useMemo} from 'react';
-import * as monaco from "monaco-editor";
-import Editor, { loader } from "@monaco-editor/react";
-loader.config({ monaco });
-import { configureMonacoYaml } from 'monaco-yaml'
-import yamlWorker from "./yaml.worker.js?worker";
+import React, {FC, useEffect, useState, useRef, useCallback, useMemo, Suspense} from 'react';
+import { Box, Spinner } from '@chakra-ui/react';
 
-// @ts-ignore
-window.MonacoEnvironment = {
-    getWorker(moduleId: any, label: string) {
-        switch (label) {
-            case 'yaml':
-                return new yamlWorker();
-            default:
-                throw new Error(`Unknown label ${label}`);
-        }
-    },
+// Lazy load Monaco Editor and related modules
+const LazyEditor = React.lazy(() => import("@monaco-editor/react"));
+
+// Dynamic imports for Monaco setup
+const loadMonaco = async () => {
+  const [monaco, { configureMonacoYaml }, yamlWorker] = await Promise.all([
+    import("monaco-editor"),
+    import('monaco-yaml'),
+    import("./yaml.worker.js?worker")
+  ]);
+  return { monaco, configureMonacoYaml, yamlWorker };
 };
 
 // Global configuration to prevent multiple setups
 let yamlConfigured = false;
 let stylesInjected = false;
+let monacoLoaded = false;
 
-const configureYamlOnce = (schemaUri?: string) => {
+const configureYamlOnce = async (schemaUri?: string) => {
     if (yamlConfigured) return;
+    
+    const { monaco, configureMonacoYaml, yamlWorker } = await loadMonaco();
+    
+    // Configure Monaco environment
+    if (!monacoLoaded) {
+        // @ts-ignore
+        window.MonacoEnvironment = {
+            getWorker(moduleId: any, label: string) {
+                switch (label) {
+                    case 'yaml':
+                        return new yamlWorker.default();
+                    default:
+                        throw new Error(`Unknown label ${label}`);
+                }
+            },
+        };
+        monacoLoaded = true;
+    }
     
     const schemas = schemaUri ? [{
         uri: schemaUri,
@@ -93,7 +109,7 @@ export const CodeEditor: FC<CodeEditorProps> = (props) => {
         debouncedOnChange(value);
     }, [debouncedOnChange]);
 
-    const onValidate = useCallback((markers: any[]) => {
+    const onValidate = useCallback(async (markers: any[]) => {
         const yamlMarkerErrors = markers.map((marker: any) => marker.message);
         setYamlErrors(yamlMarkerErrors);
         onValidation(markers.length > 0);
@@ -109,6 +125,8 @@ export const CodeEditor: FC<CodeEditorProps> = (props) => {
         if (editorRef.current && markersSignature !== lastMarkersRef.current) {
             const model = editorRef.current.getModel();
             if (!model) return;
+            
+            const { monaco } = await loadMonaco();
             
             const decorations = markers.map((marker: any) => {
                 const lineLength = model.getLineLength(marker.startLineNumber) || 1;
@@ -139,10 +157,11 @@ export const CodeEditor: FC<CodeEditorProps> = (props) => {
         }
     }, [onValidation]);
 
-    const handleEditorDidMount = useCallback((editor: monaco.editor.IStandaloneCodeEditor) => {
+    const handleEditorDidMount = useCallback(async (editor: any) => {
         editorRef.current = editor;
         injectErrorStyles();
-    }, []);
+        await configureYamlOnce(schemaUri);
+    }, [schemaUri]);
 
     // Configure YAML once when component mounts
     useEffect(() => {
@@ -162,38 +181,50 @@ export const CodeEditor: FC<CodeEditorProps> = (props) => {
 
     return (
         <div style={{border: "1px solid #ccc"}} className={className}>
-            <Editor
-                options={{
-                    readOnly: disabled,
-                    lineDecorationsWidth: 5,
-                    lineNumbersMinChars: 0,
-                    glyphMargin: false,
-                    folding: false,
-                    lineNumbers: 'off',
-                    minimap: {
-                        enabled: false
-                    },
-                    fontSize: 11,
-                    // Performance optimizations
-                    wordWrap: 'off',
-                    scrollBeyondLastLine: false,
-                    renderLineHighlight: 'none',
-                    occurrencesHighlight: 'off',
-                    renderControlCharacters: false,
-                    renderWhitespace: 'none',
-                    automaticLayout: true,
-                    // Reduce some visual overhead
-                    hideCursorInOverviewRuler: true,
-                    overviewRulerBorder: false,
-                }}
-                width={width}
-                height={height}
-                language={language}
-                value={value}
-                onValidate={onValidate}
-                onChange={handleOnChange}
-                onMount={handleEditorDidMount}
-            />
+            <Suspense fallback={
+                <Box 
+                    display="flex" 
+                    alignItems="center" 
+                    justifyContent="center" 
+                    width={width} 
+                    height={height}
+                >
+                    <Spinner size="md" />
+                </Box>
+            }>
+                <LazyEditor
+                    options={{
+                        readOnly: disabled,
+                        lineDecorationsWidth: 5,
+                        lineNumbersMinChars: 0,
+                        glyphMargin: false,
+                        folding: false,
+                        lineNumbers: 'off',
+                        minimap: {
+                            enabled: false
+                        },
+                        fontSize: 11,
+                        // Performance optimizations
+                        wordWrap: 'off',
+                        scrollBeyondLastLine: false,
+                        renderLineHighlight: 'none',
+                        occurrencesHighlight: 'off',
+                        renderControlCharacters: false,
+                        renderWhitespace: 'none',
+                        automaticLayout: true,
+                        // Reduce some visual overhead
+                        hideCursorInOverviewRuler: true,
+                        overviewRulerBorder: false,
+                    }}
+                    width={width}
+                    height={height}
+                    language={language}
+                    value={value}
+                    onValidate={onValidate}
+                    onChange={handleOnChange}
+                    onMount={handleEditorDidMount}
+                />
+            </Suspense>
         </div>
     );
 };
