@@ -200,6 +200,8 @@ const AppLoggedIn = forwardRef((_props, ref) => {
 //   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const platformShortcut = getPlatformShortcut()
   const width = getParsedIframeInfo().width
+  const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+
   const clearMessages = () => {
     if (taskInProgress) {
       dispatch(abortPlan())
@@ -211,7 +213,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     const subscribed = useSelector((state: RootState) => state.billing.isSubscribed)
     const drMode = useSelector((state: RootState) => state.settings.drMode)
     return (
-        <HStack>
+        <HStack aria-label='mx-mode'>
             { !subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Plan</Link> }
             {/* {drMode && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> } */}
@@ -296,8 +298,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       {/* {sidePanelTabName === 'settings' ? <Settings /> : null} */}
       <HStack justifyContent="space-between" alignItems="center" width="100%" py="1" aria-label="app-footer">
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
-        { !isSheets && <DevToolsToggle size={"micro"}/>}
-        { !isSheets && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
+        { !isSheets && <Box aria-label="settings-toggle"><DevToolsToggle size={"micro"}/></Box> }
+        { !isSheets && !isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
+        {isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{"Powered by MinusX"}</Text>}
         {/* { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>} */}
         {/* <SupportButton email={email} /> */}
       </HStack>
