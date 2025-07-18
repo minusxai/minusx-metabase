@@ -7,12 +7,14 @@ interface BillingState {
   credits: number
   stripeCustomerId?: string
   infoLoaded: boolean
+  isEnterpriseCustomer: boolean
 }
 
 const initialState: BillingState = {
   isSubscribed: false,
   credits: 0,
-  infoLoaded: false
+  infoLoaded: false,
+  isEnterpriseCustomer: false
 }
 
 
@@ -28,6 +30,7 @@ export const billingSlice = createSlice({
       state.isSubscribed = action.payload.isSubscribed
       state.stripeCustomerId = action.payload.stripeCustomerId
       state.infoLoaded = action.payload.infoLoaded
+      state.isEnterpriseCustomer = action.payload.isEnterpriseCustomer
     },
     updateCredits: (
       state,

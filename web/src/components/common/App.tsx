@@ -152,6 +152,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       dispatch(setBillingInfo({
         credits: billingInfo.credits,
         isSubscribed: billingInfo.subscribed,
+        isEnterpriseCustomer: billingInfo.enterprise_customer || false,
         stripeCustomerId: billingInfo.stripe_customer_id,
         infoLoaded: true
       }))
@@ -211,12 +212,13 @@ const AppLoggedIn = forwardRef((_props, ref) => {
 
   const MXMode = () => {
     const subscribed = useSelector((state: RootState) => state.billing.isSubscribed)
+    const isEnterpriseCustomer = useSelector((state: RootState) => state.billing.isEnterpriseCustomer)
     const drMode = useSelector((state: RootState) => state.settings.drMode)
     return (
         <HStack aria-label='mx-mode'>
-            { !subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
+            { !(subscribed || isEnterpriseCustomer) && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Plan</Link> }
-            {/* {drMode && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> } */}
+            {isEnterpriseCustomer && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> }
             { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Analyst Mode]</Text> }
         </HStack>
     )

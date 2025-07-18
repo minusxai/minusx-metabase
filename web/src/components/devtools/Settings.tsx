@@ -76,7 +76,7 @@ const SettingsPage = () => {
   const enableStyleCustomization = useSelector((state: RootState) => state.settings.enableStyleCustomization)
   const enableUserDebugTools = useSelector((state: RootState) => state.settings.enableUserDebugTools)
   const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
-
+  const isSubscribedOrEnterpriseCustomer = billing.isSubscribed || billing.isEnterpriseCustomer
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
       if (billingInfo && billingInfo.subscribed) {
@@ -87,6 +87,7 @@ const SettingsPage = () => {
       dispatch(setBillingInfo({
         credits: billingInfo.credits,
         isSubscribed: billingInfo.subscribed,
+        isEnterpriseCustomer: billingInfo.enterprise_customer || false,
         stripeCustomerId: billingInfo.stripe_customer_id,
         infoLoaded: true
       }))
@@ -163,8 +164,8 @@ const SettingsPage = () => {
           </Stack>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text color={"minusxBW.800"} fontSize="sm">Subscription</Text>
-            <Tag colorScheme={billing.isSubscribed ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
-              <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Basic Plan'}</TagLabel>
+            <Tag colorScheme={isSubscribedOrEnterpriseCustomer ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
+              <TagLabel color={isSubscribedOrEnterpriseCustomer ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : billing.isEnterpriseCustomer ? 'Enterprise Plan' : 'Basic Plan'}</TagLabel>
             </Tag>
           </Stack>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
@@ -174,7 +175,7 @@ const SettingsPage = () => {
               <TagLabel color={billing.isSubscribed ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : 'Free Plan'}</TagLabel>
             </Tag> */}
           </Stack>
-          {!billing.isSubscribed && <SubscribeButton />}
+          {!isSubscribedOrEnterpriseCustomer && <SubscribeButton />}
           {billing.stripeCustomerId && <PortalButton />}
           <PricingPlans />
           <Text>
