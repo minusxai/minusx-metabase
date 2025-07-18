@@ -280,8 +280,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
     
-    // Use provided template tags directly instead of auto-generating them
-    const response = await runSQLQueryFromDashboard(sql, dbID, template_tags);
+    const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
+    const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
+    const mergedTemplateTags = {
+      ...allTemplateTags,
+      ...template_tags
+    };
+    const response = await runSQLQueryFromDashboard(sql, dbID, mergedTemplateTags);
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
