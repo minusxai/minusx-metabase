@@ -496,11 +496,17 @@ const migrations = {
     newState.settings.analystMode = true
     return newState
   },
+  49: (state: RootState) => {
+    let newState = {...state}
+    // Refresh metadataProcessingCache
+    newState.settings.enableReviews = true
+    return newState
+  },
 }
 
 const persistConfig = {
   key: 'root',
-  version: 48,
+  version: 49,
   storage,
   blacklist: ['billing', 'cache', userStateApi.reducerPath],
   // @ts-ignore
