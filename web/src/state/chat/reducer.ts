@@ -172,22 +172,26 @@ export const initialClarificationState: ClarificationState = {
 
 export const initialTasks: Tasks = []
 
+const currentSessionID = getUniqueString()
+
 export function getID() {
-  return getUniqueString() + '_' + getParsedIframeInfo().r
+  return currentSessionID + '_' + getParsedIframeInfo().r
 }
 
-function generateNextThreadID(currentID: string): string {
+function generateNextThreadID(currentID?: string): string {
   if (!currentID) {
     return `v0-${getID()}-0`
   }
   
+  let newIndex = 0
   try {
     const splitID = currentID.split('-')
     const oldIndex = splitID[splitID.length - 1]
-    return splitID.slice(0, -1).join('-') + '-' + (parseInt(oldIndex) + 1)
+    newIndex = parseInt(oldIndex) + 1
   } catch (e) {
-    return `v0-${getID()}-${Date.now()}`
+    newIndex = Date.now() % 1000000
   }
+  return `v0-${getID()}-${newIndex}`
 }
 
 const initialState: ChatState = {
@@ -200,7 +204,7 @@ const initialState: ChatState = {
     clarification: initialClarificationState,
     interrupted: false,
     tasks: initialTasks,
-    id: `v0-${getID()}-0`
+    id: generateNextThreadID()
   }],
   activeThread: 0,
 }
@@ -241,6 +245,12 @@ export const chatSlice = createSlice({
         return
       }
       activeThread.messages = activeThread.messages.slice(0, messageIndex)
+      activeThread.id = generateNextThreadID(activeThread.id)
+    },
+    updateThreadID: (
+      state,
+    ) => {
+      const activeThread = getActiveThread(state)
       activeThread.id = generateNextThreadID(activeThread.id)
     },
     addActionPlanMessage: (
@@ -521,6 +531,6 @@ export const chatSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID } = chatSlice.actions
 
 export default chatSlice.reducer

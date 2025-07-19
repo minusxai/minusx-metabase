@@ -36,7 +36,7 @@ import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
-import { abortPlan, startNewThread } from '../../state/chat/reducer'
+import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
 import { toast } from '../../app/toast'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 import NotificationHandler from './NotificationHandler'
@@ -146,6 +146,11 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   //     console.error('Socket.io connection error:', error);
   //   }
   // });
+
+  // Update thread id on start
+  useEffect(() => {
+    dispatch(updateThreadID())
+  }, [])
 
   useEffect(() => {
     getBillingInfo().then(billingInfo => {
