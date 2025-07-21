@@ -29,7 +29,7 @@ import { dispatch, logoutState } from '../../state/dispatch'
 import {auth as authModule} from '../../app/api'
 import Auth from './Auth'
 import _, { attempt } from 'lodash'
-import { updateAppMode } from '../../state/settings/reducer'
+import { updateAppMode, setAnalystMode, setDRMode } from '../../state/settings/reducer'
 import { DevToolsBox } from '../devtools';
 import { RootState } from '../../state/store'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
@@ -120,6 +120,7 @@ You can activate the MinusX Sheets add-on from the extensions menu:
   )
 }
 
+
 const AppLoggedIn = forwardRef((_props, ref) => {
   const tool = getParsedIframeInfo().tool
   const toolVersion = getParsedIframeInfo().toolVersion
@@ -134,13 +135,27 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Get JWT token for Socket.io authentication
   const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
-  const [selectedAgent, setSelectedAgent] = useState('Explorer Agent')
+  const currentAgent = analystMode ? 'Explorer Agent' : 'Simple Agent'
+  const [selectedAgent, setSelectedAgent] = useState(currentAgent)
 
   const agentIconMap: Record<string, any> = {
     'Explorer Agent': BiSolidMapAlt,
     'Simple Agent': BiCode,
-    'Business Agent': BiSolidBusiness
+    'KPI Agent': BiSolidBusiness
   }
+
+  const handleAgentChange = (agent: string) => {
+    console.log('Agent changed to:', agent)
+    if (agent === 'Explorer Agent') {
+        dispatch(setDRMode(true))
+        dispatch(setAnalystMode(true))
+    }
+    else if (agent === 'Simple Agent') {
+        dispatch(setDRMode(true))
+        dispatch(setAnalystMode(false))
+    }
+    setSelectedAgent(agent);
+  };
 
   // Disabling sockets for now
   // useSocketIO({
@@ -279,37 +294,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 onClick={clearMessages}
               />
             </Tooltip>
-            
-            {/* <Tooltip hasArrow label="Chat" placement='bottom' borderRadius={5} openDelay={500}>
-              <IconButton
-                variant={sidePanelTabName === 'chat' ? 'solid' : 'ghost'}
-                colorScheme="minusxGreen"
-                aria-label="Chat"
-                size={'sm'}
-                icon={<Icon as={BiMessage} boxSize={5} />}
-                onClick={() => dispatch(updateSidePanelTabName('chat'))}
-              />
-            </Tooltip> */}
-            {/* <Tooltip hasArrow label="Additional Context" placement='bottom' borderRadius={5} openDelay={500}>
-              <IconButton
-                variant={sidePanelTabName === 'context' ? 'solid' : 'ghost'}
-                colorScheme="minusxGreen"
-                aria-label="Additional Context"
-                size={'sm'}
-                icon={<Icon as={BiFolderOpen} boxSize={5} />}
-                onClick={() => dispatch(updateSidePanelTabName('context'))}
-              />
-            </Tooltip> */}
-            {/* <Tooltip hasArrow label="Settings" placement='bottom' borderRadius={5} openDelay={500}>
-              <IconButton
-              variant={sidePanelTabName === 'settings' ? 'solid' : 'ghost'}
-              colorScheme="minusxGreen"
-              aria-label="Settings"
-              size={'sm'}
-              icon={<Icon as={BiCog} boxSize={5} />}
-              onClick={() => dispatch(updateSidePanelTabName('settings'))}
-              />
-            </Tooltip> */}
           </HStack>
         </HStack>
         <HStack justifyContent={'space-between'}>
@@ -331,11 +315,11 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 </MenuButton>
                 <Portal>
                   <MenuList fontSize="sm">
-                    <MenuItem onClick={() => setSelectedAgent('Explorer Agent')}>
+                    <MenuItem onClick={() => handleAgentChange('Explorer Agent')}>
                       <Icon as={BiSolidMapAlt} mr={2} />
                       Explorer Agent
                     </MenuItem>
-                    <MenuItem onClick={() => setSelectedAgent('Simple Agent')}>
+                    <MenuItem onClick={() => handleAgentChange('Simple Agent')}>
                       <Icon as={BiCode} mr={2} />
                       Simple Agent
                     </MenuItem>
