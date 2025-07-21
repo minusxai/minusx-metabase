@@ -135,13 +135,14 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Get JWT token for Socket.io authentication
   const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
-  const currentAgent = analystMode ? 'Explorer Agent' : 'Simple Agent'
-  const [selectedAgent, setSelectedAgent] = useState(currentAgent)
+  const drMode = useSelector((state: RootState) => state.settings.drMode)
+  const currentAgent = analystMode ? 'Explorer Agent' : drMode ? 'Simple Agent' : 'Classic [DEPRECATED]'
 
   const agentIconMap: Record<string, any> = {
     'Explorer Agent': BiSolidMapAlt,
     'Simple Agent': BiCode,
-    'KPI Agent': BiSolidBusiness
+    'KPI Agent': BiSolidBusiness,
+    'Classic [DEPRECATED]': BiFolder
   }
 
   const handleAgentChange = (agent: string) => {
@@ -154,7 +155,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         dispatch(setDRMode(true))
         dispatch(setAnalystMode(false))
     }
-    setSelectedAgent(agent);
   };
 
   // Disabling sockets for now
@@ -304,14 +304,14 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                   variant={'solid'}
                   colorScheme="minusxGreen"
                   size={'xs'}
-                  leftIcon={<Icon as={agentIconMap[selectedAgent]} boxSize={3} />}
+                  leftIcon={<Icon as={agentIconMap[currentAgent]} boxSize={3} />}
                   rightIcon={<Icon as={BiChevronDown} boxSize={3} />}
                   minW="auto"
                   px={2}
                   h="20px"
                 //   fontWeight={'bold'}
                 >
-                  {selectedAgent}
+                  {currentAgent}
                 </MenuButton>
                 <Portal>
                   <MenuList fontSize="sm">
