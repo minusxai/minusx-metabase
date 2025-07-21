@@ -22,7 +22,9 @@ import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
 import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
-import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket, BiChevronDown, BiSolidMapAlt, BiCode, BiSolidBusiness, BiSolidInfoCircle } from 'react-icons/bi'
+import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket, BiChevronDown, BiSolidMapAlt, BiCode, BiSolidBusiness } from 'react-icons/bi'
+import { BsFillPatchQuestionFill } from "react-icons/bs";
+
 import { useSelector } from 'react-redux'
 import { login, register } from '../../state/auth/reducer'
 import { dispatch, logoutState } from '../../state/dispatch'
@@ -285,7 +287,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           borderBottomColor={'minusxBW.500'}
           borderBottomWidth={1}
           borderBottomStyle={'solid'}
-          paddingBottom={2}
+          paddingBottom={1}
           gap={0}
         >
         <HStack justifyContent={'space-between'}>
@@ -300,16 +302,17 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 colorScheme="minusxGreen"
                 aria-label="Chat"
                 size={'sm'}
-                icon={<Icon as={BiMessageAdd} boxSize={5} />}
+                icon={<Icon as={BiMessageAdd} boxSize={6} />}
                 onClick={clearMessages}
               />
             </Tooltip>
           </HStack>
         </HStack>
-        <HStack justifyContent={'space-between'}>
+        <HStack justifyContent={'space-between'} mt={1}>
             <MXMode />
-            <HStack gap={0} justifyContent={'center'} alignItems={'center'}>
-            <Menu>
+            <HStack gap={1} justifyContent={'center'} alignItems={'center'}>
+              {/* <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} display={"flex"} justifyContent={"center"} alignItems={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BsFillInfoSquareFill} boxSize={3} /></Link></Text> */}
+                <Menu>
                 <MenuButton
                   as={Button}
                   variant={'solid'}
@@ -326,23 +329,23 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 </MenuButton>
                 <Portal>
                   <MenuList fontSize="sm">
-                    <MenuItem onClick={() => handleAgentChange(AGENTS.EXPLORER)}>
-                      <Icon as={BiSolidMapAlt} mr={2} />
-                      {AGENTS.EXPLORER}
-                    </MenuItem>
-                    <MenuItem onClick={() => handleAgentChange(AGENTS.SIMPLE)}>
-                      <Icon as={BiCode} mr={2} />
-                      {AGENTS.SIMPLE}
-                    </MenuItem>
-                    <MenuItem isDisabled>
-                      <Icon as={BiSolidBusiness} mr={2} />
-                      KPI Agent (coming soon!)
-                    </MenuItem>
+                    {Object.entries(AGENTS).map(([key, value]) => (
+                        <MenuItem 
+                            key={key}
+                            onClick={() => key !== 'KPI' ? handleAgentChange(value) : undefined}
+                            isDisabled={key === 'KPI' || key === 'CLASSIC'}
+                        >
+                            <Icon as={agentIconMap[value]} mr={2} />
+                            {value}{key === 'KPI' ? " (coming soon!)" : ""}
+                        </MenuItem>
+                    ))}
                   </MenuList>
                 </Portal>
-              </Menu>
-              {/* <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BiSolidInfoCircle} boxSize={3} /></Link></Text> */}
-              </HStack>
+                </Menu>
+                <Tooltip hasArrow label="What are MinusX Agents?" placement='bottom' borderRadius={5} openDelay={500}>
+                  <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} display={"flex"} justifyContent={"center"} alignItems={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BsFillPatchQuestionFill} boxSize={4} /></Link></Text>
+                </Tooltip>
+            </HStack>
         </HStack>
       </VStack>
       {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
