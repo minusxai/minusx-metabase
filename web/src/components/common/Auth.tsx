@@ -16,11 +16,18 @@ import { toast } from '../../app/toast';
 import { get } from 'lodash';
 import { setMinusxMode } from '../../app/rpc';
 import { RootState } from '../../state/store';
+import { getApp } from '../../helpers/app';
+import { Markdown } from './Markdown';
+
+
+const useAppStore = getApp().useStore()
+
 
 interface HighlightItem {
   content: React.ReactNode;
   top: string;
   arrow: boolean;
+  duration?: number;
 }
 
 const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
@@ -38,7 +45,7 @@ const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
         }
         return prevProgress + 0.5;
       });
-    }, 50);
+    }, items[hintIdx].duration || 50);
 
     return () => clearInterval(timer);
   }, [hintIdx]);
@@ -64,7 +71,7 @@ const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
           borderTop="10px solid transparent"
           borderBottom="10px solid transparent"
           borderRight="10px solid"
-          borderRightColor={"minusxBW.600"}
+          borderRightColor={"minusxGreen.600"}
         />
       }
       
@@ -74,8 +81,10 @@ const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
         mr={4}
         position="relative"
         alignItems="flex-start"
-        bg={"minusxBW.600"}
-        color={"white"}
+        bg={"minusxBW.200"}
+        border={"2px solid"}
+        borderColor={"minusxGreen.600"}
+        // color={"white"}
         // border={"1px solid"}
       >
         <CloseButton
@@ -84,10 +93,11 @@ const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
           top={2}
           size="sm"
           onClick={() => setIsVisible(false)}
+          color={'minusxGreen.600'}
         />        
         {items[hintIdx].content}
-        <HStack fontSize={"xs"} fontWeight={"bold"} alignItems={"center"} color={"minusxGreen.400"} width={"100%"} justifyContent={"space-between"}>
-          <HStack fontSize={"xs"} fontWeight={"bold"} alignItems={"center"} color={"minusxGreen.400"}>
+        <HStack fontSize={"xs"} fontWeight={"bold"} alignItems={"center"} color={"minusxGreen.600"} width={"100%"} justifyContent={"space-between"}>
+          <HStack fontSize={"xs"} fontWeight={"bold"} alignItems={"center"} color={"minusxGreen.600"}>
             <BsLightbulbFill/><Box>Pro Tip {hintIdx + 1}/{numHints}</Box>
           </HStack>
           <Button onClick={handleNext} variant="ghost" aria-label="Next" rightIcon={<BsArrowRight />} size="sm" fontWeight="bold">Next</Button>
@@ -166,6 +176,8 @@ const Auth = () => {
   const [otp, setOTP] = useState("");
   const [discoverySource, setDiscoverySource] = useState("");
   const isOTPMode = authJWT ? true : false
+  const helperMessage = useAppStore((state) => state.helperMessage)?.split('---')[1] || "Welcome to MinusX! You can ask us anything related to your data, and our agents will take care of the rest!"
+  
 
   useEffect(() => {
     setMinusxMode('open-sidepanel')
@@ -269,7 +281,20 @@ const Auth = () => {
     {
       content: (
         <>
-          <Box fontWeight="bold">Telemetry & Activity</Box>
+          <Box fontWeight="bold" color={'minusxGreen.600'}>Welcome to MinusX</Box>
+          <VStack>
+            <Markdown content={helperMessage}/>
+          </VStack>
+        </>
+      ),
+      top: "50%",
+      arrow: false,
+      duration: 200,
+    },
+    {
+      content: (
+        <>
+          <Box fontWeight="bold" color={'minusxGreen.600'}>Telemetry & Activity</Box>
           <VStack>
             <TelemetryToggle color="minusxBW.50"/>
             <HStack>
@@ -279,21 +304,23 @@ const Auth = () => {
         </>
       ),
       top: "50%",
-      arrow: false
+      arrow: false,
+        duration: 50,
     },
     {
       content: (
         <>
-          <Box fontWeight="bold">Toggle MinusX</Box>
+          <Box fontWeight="bold" color={'minusxGreen.600'}>Toggle MinusX</Box>
           <VStack spacing={2}>
             <HStack>
-              <Text>Click the <Text as="span" color="minusxGreen.400" fontWeight="bold">MinusX logo</Text>, or hit <Text color="minusxGreen.400" fontWeight="bold" as="span">{getPlatformShortcut()}</Text> to toggle the MinusX sidebar.</Text>
+              <Text>Click the <Text as="span" color="minusxGreen.600" fontWeight="bold">MinusX logo</Text>, or hit <Text color="minusxGreen.600" fontWeight="bold" as="span">{getPlatformShortcut()}</Text> to toggle the MinusX sidebar.</Text>
             </HStack>
           </VStack>
         </>
       ),
       top: "50%",
-      arrow: true
+      arrow: true,
+        duration: 50,
     }
   ];
   const width = getParsedIframeInfo().width
