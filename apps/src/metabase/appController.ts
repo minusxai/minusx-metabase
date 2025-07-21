@@ -411,10 +411,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Executes the SQL query with parameters",
-    labelDone: "Executed query",
-    labelTask: "Executed SQL query",
-    description: "Executes the SQL query in the Metabase SQL editor with support for template tags and parameters.",
+    labelRunning: "Edits the SQL query",
+    labelDone: "Edited query",
+    labelTask: "Edited SQL query",
+    description: "Edits the SQL query in the Metabase SQL editor with support for template tags and parameters.",
     renderBody: ({ explanation, sql_edits}: { explanation: string, sql_edits: SQLEdits }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
       const newQuery = applySQLEdits(sqlQuery, sql_edits);
