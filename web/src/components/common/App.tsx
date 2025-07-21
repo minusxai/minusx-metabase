@@ -22,7 +22,7 @@ import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
 import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
-import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket, BiChevronDown, BiSolidMapAlt, BiCode, BiSolidBusiness } from 'react-icons/bi'
+import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket, BiChevronDown, BiSolidMapAlt, BiCode, BiSolidBusiness, BiSolidInfoCircle } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { login, register } from '../../state/auth/reducer'
 import { dispatch, logoutState } from '../../state/dispatch'
@@ -43,6 +43,16 @@ import { Markdown } from './Markdown'
 import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
+
+// Agent constants
+const AGENTS = {
+  EXPLORER: 'Explorer Agent',
+  SIMPLE: 'Simple Agent', 
+  KPI: 'KPI Agent',
+  CLASSIC: 'Classic [DEPRECATED]'
+} as const
+
+type AgentType = typeof AGENTS[keyof typeof AGENTS]
 import { toast } from '../../app/toast'
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking'
 import NotificationHandler from './NotificationHandler'
@@ -136,22 +146,22 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
-  const currentAgent = analystMode ? 'Explorer Agent' : drMode ? 'Simple Agent' : 'Classic [DEPRECATED]'
+  const currentAgent: AgentType = analystMode ? AGENTS.EXPLORER : drMode ? AGENTS.SIMPLE : AGENTS.CLASSIC
 
-  const agentIconMap: Record<string, any> = {
-    'Explorer Agent': BiSolidMapAlt,
-    'Simple Agent': BiCode,
-    'KPI Agent': BiSolidBusiness,
-    'Classic [DEPRECATED]': BiFolder
+  const agentIconMap: Record<AgentType, any> = {
+    [AGENTS.EXPLORER]: BiSolidMapAlt,
+    [AGENTS.SIMPLE]: BiCode,
+    [AGENTS.KPI]: BiSolidBusiness,
+    [AGENTS.CLASSIC]: BiFolder
   }
 
-  const handleAgentChange = (agent: string) => {
+  const handleAgentChange = (agent: AgentType) => {
     console.log('Agent changed to:', agent)
-    if (agent === 'Explorer Agent') {
+    if (agent === AGENTS.EXPLORER) {
         dispatch(setDRMode(true))
         dispatch(setAnalystMode(true))
     }
-    else if (agent === 'Simple Agent') {
+    else if (agent === AGENTS.SIMPLE) {
         dispatch(setDRMode(true))
         dispatch(setAnalystMode(false))
     }
@@ -298,6 +308,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         </HStack>
         <HStack justifyContent={'space-between'}>
             <MXMode />
+            <HStack gap={0} justifyContent={'center'} alignItems={'center'}>
             <Menu>
                 <MenuButton
                   as={Button}
@@ -315,13 +326,13 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 </MenuButton>
                 <Portal>
                   <MenuList fontSize="sm">
-                    <MenuItem onClick={() => handleAgentChange('Explorer Agent')}>
+                    <MenuItem onClick={() => handleAgentChange(AGENTS.EXPLORER)}>
                       <Icon as={BiSolidMapAlt} mr={2} />
-                      Explorer Agent
+                      {AGENTS.EXPLORER}
                     </MenuItem>
-                    <MenuItem onClick={() => handleAgentChange('Simple Agent')}>
+                    <MenuItem onClick={() => handleAgentChange(AGENTS.SIMPLE)}>
                       <Icon as={BiCode} mr={2} />
-                      Simple Agent
+                      {AGENTS.SIMPLE}
                     </MenuItem>
                     <MenuItem isDisabled>
                       <Icon as={BiSolidBusiness} mr={2} />
@@ -330,6 +341,8 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                   </MenuList>
                 </Portal>
               </Menu>
+              {/* <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BiSolidInfoCircle} boxSize={3} /></Link></Text> */}
+              </HStack>
         </HStack>
       </VStack>
       {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
