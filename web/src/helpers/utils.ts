@@ -68,6 +68,7 @@ export const getActionTaskLiteLabels = (action: string) => {
         'MetabaseLowLevelAgent': 'SQL Task Initialized',
         'MetabaseMBQLAgent': 'MBQL Task Initialized',
         'MetabaseDashboardAgent': 'Dashboard Task Initialized',
+        'MetabaseAnalystAgent': 'Start Explorer Agent'
     }
     let taskString = ''
 

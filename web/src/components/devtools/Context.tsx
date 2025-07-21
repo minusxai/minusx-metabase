@@ -226,7 +226,7 @@ const CatalogDisplay = ({isInModal, modalOpen}: {isInModal: boolean, modalOpen: 
                             textAlign="center"
                             lineHeight="1.6"
                         >
-                            In Analyst Mode, MinusX automatically figures out what matters with smart search and context awareness — no manual setup required! Like Claude Code, it just works.
+                            Explorer Agent automatically figures out what matters with smart search and context awareness — no manual setup required! Like Claude Code, it just works.
                         </Box>
                         <br />
                         <Checkbox isChecked={manuallySelectContext} onChange={updateSelection}>Manually limit context</Checkbox>

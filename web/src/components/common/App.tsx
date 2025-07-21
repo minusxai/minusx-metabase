@@ -224,7 +224,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             { !(subscribed || isEnterpriseCustomer) && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Plan</Link> }
             {isEnterpriseCustomer && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> }
-            { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Analyst Mode]</Text> }
+            { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Explorer Agent]</Text> }
         </HStack>
     )
   }

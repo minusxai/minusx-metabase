@@ -221,7 +221,7 @@ const SettingsPage = () => {
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={drMode} onChange={(e) => updateDRMode(e.target.checked)} />
           </HStack> */}
           {drMode && <HStack justifyContent={"space-between"}>
-            <Text color={"minusxBW.800"} fontSize="sm">Analyst Mode</Text>
+            <Text color={"minusxBW.800"} fontSize="sm">Explorer Agent</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={analystMode} onChange={(e) => updateAnalystMode(e.target.checked)} />
           </HStack>}
           <HStack justifyContent={"space-between"}>

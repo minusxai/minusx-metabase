@@ -135,15 +135,15 @@ export const metabaseInternalState: MetabaseInternalState = {
     dbInfo: DB_INFO_DEFAULT,
     loading: true,
   },
-  helperMessage: `To get started, select a database and simply ask: 
-> what tables can you see?
+  helperMessage: `To get started, simply ask: 
+> **What are some interesting questions I can ask about my data?**
 
 ---
 
-\`[badge]New Feature: \`  **[Modify Selected SQL](https://docs.minusx.ai/en/articles/11737789-modify-explain-sql-snippet)**
+\`[badge]✨New Agent Launch✨\`  \n #### **[Explorer Agent 🗺️ (Docs)](https://docs.minusx.ai/en/articles/11813453-explorer-agent)**
 
 
-[![img](https://minusx.ai/app_assets/modify.png)](https://docs.minusx.ai/en/articles/11737789-modify-explain-sql-snippet)
+[![img](https://minusx.ai/app_assets/explorer_gif.gif)](https://docs.minusx.ai/en/articles/11813453-explorer-agent)
 
 `,
 };
