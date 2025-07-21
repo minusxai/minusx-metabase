@@ -234,13 +234,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         preventRunTask = true
     }
     else if (toolContext.pageType === 'dashboard' && (!drMode)) {
-        toastTitle = 'Dashboard is supported only in agent mode'
-        toastDescription = "You can enable agent mode in settings"
+        toastTitle = 'Dashboard is supported only by the Simple or Explorer agents'
+        toastDescription = "You can enable either agent in settings"
         preventRunTask = true
     }
     else if (toolContext.pageType === 'mbql' && (!drMode)) {
-        toastTitle = 'MBQL Editor is supported only in agent mode'
-        toastDescription = "You can enable agent mode in settings"
+        toastTitle = 'MBQL Editor is supported only by the Simple or Explorer agents'
+        toastDescription = "You can enable either agent in settings"
         preventRunTask = true
     }
     else if (toolContext.pageType === 'mbql' && (selectedCatalog != DEFAULT_TABLES)) {
@@ -391,7 +391,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             return {
                 inputBox: false,
                 alert: {
-                    message: "You're currently using MinusX Classic, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!",
+                    message: "You're currently using **MinusX Classic Agent**, which only works on SQL Editor pages. [Find out](https://minusx.ai/demo) how to enable Agent mode and unlock all the features!",
                     type: "error",
                     title: "Try Agent Mode!"
                 }
@@ -433,11 +433,21 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
         if (!drMode) {
             return {
+                inputBox: false,
+                alert: {
+                    message: "You're currently using **MinusX Classic Agent**, which is deprecated. [Find out](https://minusx.ai/demo) how the Explorer Agent can unlock exciting new features!",
+                    type: "error",
+                    title: "Try Explorer Agent!"
+                }
+            };
+        }
+        if (!analystMode) {
+            return {
                 inputBox: true,
                 alert: {
-                    message: "You're currently using MinusX Classic. [Find out](https://minusx.ai/demo) how to switch to Agent Mode and unlock exciting new features!",
+                    message: "You're currently using **MinusX Simple Agent**. [Find out](https://minusx.ai/demo) how the Explorer Agent can unlock exciting new features!",
                     type: "warning",
-                    title: "Try Agent Mode!"
+                    title: "Try Explorer Agent!"
                 }
             };
         }
