@@ -140,10 +140,10 @@ export const metabaseInternalState: MetabaseInternalState = {
 
 ---
 
-\`[badge]✨New Agent Launch✨\`  \n ### [Explorer Agent 🗺️ (Docs)](https://docs.minusx.ai/en/articles/11737789-modify-explain-sql-snippet)
+\`[badge]✨New Agent Launch✨\`  \n #### **[Explorer Agent 🗺️ (Docs)](https://docs.minusx.ai/en/articles/11813453-explorer-agent)**
 
 
-[![img](https://minusx.ai/app_assets/modify.png)](https://docs.minusx.ai/en/articles/11737789-modify-explain-sql-snippet)
+[![img](https://minusx.ai/app_assets/explorer_gif.gif)](https://docs.minusx.ai/en/articles/11813453-explorer-agent)
 
 `,
 };

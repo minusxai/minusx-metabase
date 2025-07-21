@@ -116,6 +116,39 @@ function ModifiedBlockquote(props: any) {
     )
 }
 
+function ModifiedH1(props: any) {
+    return (
+        <h1 style={{'margin': '0px'}}>
+            {props.children}
+        </h1>
+    )
+}
+
+function ModifiedH2(props: any) {
+    return (
+        <h2 style={{'margin': '0px'}}>
+            {props.children}
+        </h2>
+    )
+}
+
+function ModifiedH3(props: any) {
+    return (
+        <h3 style={{'margin': '0px'}}>
+            {props.children}
+        </h3>
+    )
+}
+
+
+function ModifiedH4(props: any) {
+    return (
+        <h4 style={{'margin': '0px'}}>
+            {props.children}
+        </h4>
+    )
+}
+
 function ZoomableImage({src, alt}: {src: string, alt: string}) {
   return <div style={{cursor: "grabbing"}}>
     <TransformWrapper initialScale={1} doubleClick={{disabled: true}}>
@@ -241,6 +274,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode, hr: HorizontalLine}}>{processedContent}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode, hr: HorizontalLine, h1: ModifiedH1, h2: ModifiedH2, h3: ModifiedH3, h4: ModifiedH4 }}>{processedContent}</MarkdownComponent>
   )
 }
