@@ -10,13 +10,19 @@ import {
   Button,
   Link,
   Box,
-  Flex
+  Flex,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    Portal,
+
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
 import React, { forwardRef, useEffect, useState } from 'react'
 import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
-import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket } from 'react-icons/bi'
+import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket, BiChevronDown, BiSolidMapAlt, BiCode, BiSolidBusiness } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { login, register } from '../../state/auth/reducer'
 import { dispatch, logoutState } from '../../state/dispatch'
@@ -128,6 +134,13 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Get JWT token for Socket.io authentication
   const sessionJwt = useSelector((state: RootState) => state.auth.session_jwt)
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
+  const [selectedAgent, setSelectedAgent] = useState('Explorer Agent')
+
+  const agentIconMap: Record<string, any> = {
+    'Explorer Agent': BiSolidMapAlt,
+    'Simple Agent': BiCode,
+    'Business Agent': BiSolidBusiness
+  }
 
   // Disabling sockets for now
   // useSocketIO({
@@ -224,7 +237,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             { !(subscribed || isEnterpriseCustomer) && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Plan</Link> }
             {isEnterpriseCustomer && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> }
-            { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Explorer Agent]</Text> }
+            {/* { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Explorer Agent]</Text> } */}
         </HStack>
     )
   }
@@ -243,17 +256,17 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       borderLeftColor={"minusxBW.500"}
     >
       <NotificationHandler />
-      <VStack justifyContent="start" alignItems="stretch" width="100%">
-        <HStack
+      <VStack justifyContent="start" alignItems="stretch" width="100%"
           borderBottomColor={'minusxBW.500'}
           borderBottomWidth={1}
           borderBottomStyle={'solid'}
-          justifyContent={'space-between'}
           paddingBottom={2}
+          gap={0}
         >
+        <HStack justifyContent={'space-between'}>
           <VStack aria-label="mx-logos" alignItems={'start'} spacing={0} paddingLeft={1}>
             <Image src={logo} alt="MinusX" maxWidth='150px'/>
-            <MXMode />
+            {/* <MXMode /> */}
           </VStack>
           <HStack aria-label="mx-controls">
             <Tooltip hasArrow label="Start New Chat" placement='bottom' borderRadius={5} openDelay={500}>
@@ -298,6 +311,41 @@ const AppLoggedIn = forwardRef((_props, ref) => {
               />
             </Tooltip> */}
           </HStack>
+        </HStack>
+        <HStack justifyContent={'space-between'}>
+            <MXMode />
+            <Menu>
+                <MenuButton
+                  as={Button}
+                  variant={'solid'}
+                  colorScheme="minusxGreen"
+                  size={'xs'}
+                  leftIcon={<Icon as={agentIconMap[selectedAgent]} boxSize={3} />}
+                  rightIcon={<Icon as={BiChevronDown} boxSize={3} />}
+                  minW="auto"
+                  px={2}
+                  h="20px"
+                //   fontWeight={'bold'}
+                >
+                  {selectedAgent}
+                </MenuButton>
+                <Portal>
+                  <MenuList fontSize="sm">
+                    <MenuItem onClick={() => setSelectedAgent('Explorer Agent')}>
+                      <Icon as={BiSolidMapAlt} mr={2} />
+                      Explorer Agent
+                    </MenuItem>
+                    <MenuItem onClick={() => setSelectedAgent('Simple Agent')}>
+                      <Icon as={BiCode} mr={2} />
+                      Simple Agent
+                    </MenuItem>
+                    <MenuItem isDisabled>
+                      <Icon as={BiSolidBusiness} mr={2} />
+                      KPI Agent (coming soon!)
+                    </MenuItem>
+                  </MenuList>
+                </Portal>
+              </Menu>
         </HStack>
       </VStack>
       {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
