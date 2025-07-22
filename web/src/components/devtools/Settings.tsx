@@ -216,10 +216,10 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">View all catalogs</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={viewAllCatalogs} onChange={(e) => updateViewAllCatalogs(e.target.checked)} />
           </HStack>}
-          <HStack justifyContent={"space-between"}>
+          {/* <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Agent Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={drMode} onChange={(e) => updateDRMode(e.target.checked)} />
-          </HStack>
+          </HStack> */}
           {drMode && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Explorer Agent</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={analystMode} onChange={(e) => updateAnalystMode(e.target.checked)} />
