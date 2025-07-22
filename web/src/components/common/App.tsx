@@ -310,7 +310,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         </HStack>
         <HStack justifyContent={'space-between'} mt={1}>
             <MXMode />
-            <HStack gap={1} justifyContent={'center'} alignItems={'center'}>
+            <HStack gap={1} justifyContent={'center'} alignItems={'center'}  aria-label='mx-agent-selector'>
               {/* <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} display={"flex"} justifyContent={"center"} alignItems={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BsFillInfoSquareFill} boxSize={3} /></Link></Text> */}
                 <Menu>
                 <MenuButton
@@ -355,7 +355,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         {/* {configs.IS_DEV ? <DevToolsToggle size={"micro"}/> : null} */}
         { !isSheets && <Box aria-label="settings-toggle"><DevToolsToggle size={"micro"}/></Box> }
         { !isSheets && !isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
-        {isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{"Powered by MinusX"}</Text>}
+        {/* {isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{"Powered by MinusX"}</Text>} */}
         {/* { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>} */}
         {/* <SupportButton email={email} /> */}
       </HStack>
