@@ -196,10 +196,10 @@ const SettingsPage = () => {
       {groupsEnabled && <GroupViewer />}
       <SettingsBlock title="Features" >
         <VStack alignItems="">
-          <HStack justifyContent={"space-between"}>
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">User Confirmation</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
-          </HStack>
+          </HStack>}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Demo Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={demoMode} onChange={(e) => updateDemoMode(e.target.checked)} />
@@ -232,14 +232,14 @@ const SettingsPage = () => {
             <Text color={"minusxBW.800"} fontSize="sm">Use Memory</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={useMemory} onChange={(e) => updateUseMemory(e.target.checked)} />
           </HStack>
-          <HStack justifyContent={"space-between"}>
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Style Customization</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableStyleCustomization} onChange={(e) => updateEnableStyleCustomization(e.target.checked)} />
-          </HStack>
-          <HStack justifyContent={"space-between"}>
+          </HStack>}
+          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">User Debug Tools</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableUserDebugTools} onChange={(e) => updateEnableUserDebugTools(e.target.checked)} />
-          </HStack>
+          </HStack>}
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Enable Reviews</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableReviews} onChange={(e) => updateEnableReviews(e.target.checked)} />
