@@ -106,9 +106,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
+  const proUser = useSelector((state: RootState) => state.billing.isSubscribed)
+  const enterpriseUser = useSelector((state: RootState) => state.billing.isEnterpriseCustomer)
 
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
   const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
+  // approx check if this is a new user
+  const newUserProxy = () => (credits >= 200 && infoLoaded) && !proUser && !enterpriseUser && messages.length < 2
   const lastThread = () => (thread === totalThreads - 1)
 
   const relevantTables = toolContext.relevantTables || []
@@ -458,6 +462,16 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     message: "Running low on credits. You can either upgrade to a Pro subscription in settings or [talk to us](https://minusx.ai/demo) and get 1 month free Pro!",
                     type: "warning",
                     title: "Uh Oh! Running Low on Credits"
+                }
+            };
+        }
+        if (newUserProxy()) {
+            return {
+                inputBox: true,
+                alert: {
+                    message: "Welcome to MinusX! Since we like you so much, we are giving you **250 free credits** this week to try out the product! Happy querying!",
+                    type: "info",
+                    title: "Bonus credits, yay!"
                 }
             };
         }
