@@ -15,6 +15,7 @@ import { dispatch } from '../state/dispatch';
 import { getAllCards, getAllCardsLegacy, getDatabaseTablesAndModelsWithoutFields, getAllFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
 import { fetchDatabaseFields } from '../../../apps/src/metabase/helpers/metabaseAPI';
 import { getSelectedDbId } from '../../../apps/src/metabase/helpers/metabaseStateAPI';
+import { getModelsWithFields } from '../../../apps/src/metabase/helpers/metabaseModels';
 
 export interface MetadataItem {
   metadata_type: string;
@@ -261,13 +262,22 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
       
       console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
       
-      // Step 5: Process metadata for all three with filtered data
+
+      // Step 5: Get model fields, flatten into modelFields
+      const modelsWithFields = await getModelsWithFields(dbSchema.models, true)
+      const modelFields = modelsWithFields.flatMap((model) => Object.values(model.columns || {}).map(value => ({
+        ...value,
+        modelId: model.modelId,
+      })))
+      
+      // Step 5: Process metadata for all four with filtered data
       console.log('[minusx] Processing metadata with filtered data...')
       
-      const [cardsHash, dbSchemaHash, fieldsHash] = await Promise.all([
+      const [cardsHash, dbSchemaHash, fieldsHash, modelFieldsHash] = await Promise.all([
         processMetadataWithCaching('cards', async () => cards),
         processMetadataWithCaching('dbSchema', async () => dbSchema),
-        processMetadataWithCaching('fields', async () => filteredFields)
+        processMetadataWithCaching('fields', async () => filteredFields),
+        processMetadataWithCaching('modelFields', async () => modelFields)
       ])
       
       console.log('[minusx] Coordinated metadata processing complete')
@@ -275,7 +285,8 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
       const result = {
         cardsHash,
         dbSchemaHash, 
-        fieldsHash
+        fieldsHash,
+        modelFieldsHash
       }
   
       // Cache the result for this database ID
