@@ -5,7 +5,7 @@
  * from metabaseAPI.ts and state functions from metabaseStateAPI.ts.
  */
 
-import _, { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit } from 'lodash';
+import _, { map, get, isEmpty, flatMap, filter, sortBy, reverse, pick, omit, partition } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import { handlePromise, deterministicSample } from '../../common/utils';
 import { getCurrentUserInfo, getSelectedDbId } from './metabaseStateAPI';
@@ -189,7 +189,16 @@ export async function getDatabases() {
   return await fetchDatabases({}) as DatabaseResponse;
 }
 
-export async function getAllCards(forceRefresh = false) {
+type ResultMetadataElm = {
+  display_name: string;
+  source: string;
+  name: string;
+  base_type: string;
+  semantic_type: string;
+  field_ref: [string, string, { "base-type": string }];
+};
+
+export async function getAllCardsAndModels(forceRefresh = false) {
   const cards = await handlePromise(
     forceRefresh ? fetchCards.refresh({}) : fetchCards({}),
     "[minusx] Error getting all cards",
@@ -207,18 +216,18 @@ export async function getAllCards(forceRefresh = false) {
   console.log('[minusx] getAllCards - Total cards:', cards);
   
   // Filter cards by database_id and last_used_at (last 3 months only)
-  const filteredCards = filter(cards, (card) => {
+  const filteredCardsAndModels = filter(cards, (card) => {
     const lastUsedAt = get(card, 'last_used_at');
     const databaseId = get(card, 'database_id');
     
     // Filter by selected database and last 3 months
     const matchesDatabase = selectedDbId ? databaseId === selectedDbId : true;
     const isRecent = lastUsedAt && lastUsedAt > cutoffDate;
-    const isModel = get(card, 'type') === 'model';
 
-    return matchesDatabase && isRecent && !isModel;
+    return matchesDatabase && isRecent;
   });
-  
+  // split into cards and models
+  const [filteredCards, filteredModels] = partition(filteredCardsAndModels, (card) => get(card, 'type') !== 'model');
   // Sort by view_count descending
   // if length > 1000, limit to 1000
   const sortedCards = reverse(sortBy(filteredCards, 'view_count'));
@@ -262,6 +271,19 @@ export async function getAllCards(forceRefresh = false) {
     return cleanCard;
   });
   
+  const processedModelFields = filteredModels.flatMap((model) => {
+    const columns = get(model, 'result_metadata', []).map((column: ResultMetadataElm) => {
+      return {
+        id: get(column, 'name'),
+        name: get(column, 'name'),
+        type: get(column, 'base_type'),
+        model_id: get(model, 'id'),
+        model_name: get(model, 'name')
+      }
+    })
+    return columns
+  })
+  
   console.log('Processed cards:', processedCards);
   const tables: Record<string, TableAndSchema> = {};
   _.forEach(processedCards, (card) => {
@@ -279,11 +301,11 @@ export async function getAllCards(forceRefresh = false) {
   const relevantTables = _.chain(tables).values().sortBy('count').reverse().value();
   console.log('Tables from cards:', relevantTables);
   
-  return { cards: processedCards, tables: relevantTables };
+  return { cards: processedCards, tables: relevantTables, modelFields: processedModelFields };
 }
 
 export async function getAllCardsLegacy() {
-  const result = await getAllCards();
+  const result = await getAllCardsAndModels();
   return result.cards;
 }
 
