@@ -106,6 +106,7 @@ export const fetchData = (
     log_rpc: true,
   })
 export const queryURL = () => sendMessage('queryURL', [])
+export const getMXToken = () => sendMessage('getMXToken', [])
 export const getMetabaseState = (path: Parameters<typeof get>[1]) =>
   sendMessage('getMetabaseState', [path], { log_rpc: false })
 export const dispatchMetabaseAction = (type: string, payload?: any) =>

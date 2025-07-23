@@ -6,7 +6,7 @@ import { captureVisibleTab } from "./rpcCalls"
 import { copyToClipboard } from "./copyToClipboard"
 import { getElementScreenCapture } from "./elementScreenCapture"
 import ripple from "./ripple"
-import { fetchData } from "./fetchData"
+import { fetchData, getMXToken } from "./fetchData"
 import { initWindowListener, RPCPayload } from './initListeners'
 import { addNativeElements, attachEventsListener, attachMutationListener, detachMutationListener, initMutationObserver } from "./mutationObserver"
 import { respondToOtherTab, forwardToTab, getPendingMessage } from "./crossInstanceComms"
@@ -43,6 +43,7 @@ export const rpc = {
     stopRecording,
     attachEventsListener,
     addNativeElements,
+    getMXToken
 }
 
 type RPC = typeof rpc

@@ -42,7 +42,7 @@ import { setBillingInfo } from '../../state/billing/reducer'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
-import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
+import { getMXToken, setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
 
@@ -190,6 +190,17 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Update thread id on start
   useEffect(() => {
     dispatch(updateThreadID())
+  }, [])
+
+  useEffect(() => {
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+    const checkToken = async () => {
+      const mx_token = await getMXToken()
+      console.log('MX Token is', mx_token)
+    }
+    if (isEmbedded) {
+      checkToken()
+    }
   }, [])
 
   useEffect(() => {

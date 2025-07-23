@@ -15,6 +15,11 @@ function getCookie(name: string): string | null {
   return cookieValue
 }
 
+export function getMXToken(): string | null {
+  // Get the CSRF token from the cookie
+  return getCookie('mx_jwt')
+}
+
 export async function fetchData<T>(
   url: string,
   method: HttpMethod,
