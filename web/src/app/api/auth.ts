@@ -77,5 +77,14 @@ export default {
       }
       return {}
     }
+  },
+
+  async embedAuth(token: string) {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/embed`, { token });
+      return response.data;
+    } catch (error) {
+      console.error('Error during embed auth:', error);
+    }
   }
 }
