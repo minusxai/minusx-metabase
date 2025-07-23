@@ -270,9 +270,14 @@ export async function getAllCardsAndModels(forceRefresh = false) {
     
     return cleanCard;
   });
-  
+
   const processedModelFields = filteredModels.flatMap((model) => {
-    const columns = get(model, 'result_metadata', []).map((column: ResultMetadataElm) => {
+    const result_metadata = get(model, 'result_metadata', [])
+    if (result_metadata == null) {
+      console.warn("[minusx] model has no result_metadata: ", model)
+      return []
+    }
+    const columns = result_metadata.map((column: ResultMetadataElm) => {
       return {
         id: get(column, 'name'),
         name: get(column, 'name'),
@@ -283,7 +288,7 @@ export async function getAllCardsAndModels(forceRefresh = false) {
     })
     return columns
   })
-  
+
   console.log('Processed cards:', processedCards);
   const tables: Record<string, TableAndSchema> = {};
   _.forEach(processedCards, (card) => {
