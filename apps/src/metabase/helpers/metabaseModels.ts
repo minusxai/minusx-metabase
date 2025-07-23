@@ -77,7 +77,7 @@ export const modifySqlForMetabaseModels = (sql: string, models: MetabaseModel[])
 }
 
 
-const getModelData = async (model: MetabaseModel, keepOriginalFieldRefs = false): Promise<FormattedTable> => {
+const getModelData = async (model: MetabaseModel): Promise<FormattedTable> => {
     const modelInfo = await fetchModelInfo({model_id: model.modelId}) as ModelsQueryResponse;
     const schemaAndTable = metabaseModelToLLMFriendlyIdentifier(model);
     // take the last table
@@ -85,7 +85,7 @@ const getModelData = async (model: MetabaseModel, keepOriginalFieldRefs = false)
     const fieldArray = table.fields.map(field => {
         return {
             name: field.name,
-            id: keepOriginalFieldRefs ? field.field_ref[1] : fieldRefToId(model.modelId, field.field_ref),
+            id: fieldRefToId(model.modelId, field.field_ref),
             type: field.base_type,
         }
     })
@@ -101,8 +101,8 @@ const getModelData = async (model: MetabaseModel, keepOriginalFieldRefs = false)
 }
   
 
-export const getModelsWithFields = async (models: MetabaseModel[], keepOriginalFieldRefs = false) => {
-    const promises = models.map(model => getModelData(model, keepOriginalFieldRefs));
+export const getModelsWithFields = async (models: MetabaseModel[]) => {
+    const promises = models.map(model => getModelData(model));
     const modelInfos = await Promise.all(promises);
     return modelInfos;
 }
