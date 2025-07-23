@@ -42,7 +42,7 @@ import { setBillingInfo } from '../../state/billing/reducer'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
-import { getMXToken, setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
+import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
 
@@ -191,30 +191,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Update thread id on start
   useEffect(() => {
     dispatch(updateThreadID())
-  }, [])
-
-  useEffect(() => {
-    const checkToken = async () => {
-      const mx_token = await getMXToken()
-      
-      if (mx_token) {
-        try {
-          const embedAuthResult = await authModule.embedAuth(mx_token)
-          const { session_jwt, profile_id, email } = embedAuthResult
-          dispatch(login({
-            session_jwt,
-            profile_id,
-            email,
-          }))
-        } catch (error) {
-          console.error('Failed to authenticate embed token:', error)
-        }
-      }
-    }
-    if (isEmbedded) {
-      checkToken()
-    }
-  }, [])
+  }, []) 
 
   useEffect(() => {
     getBillingInfo().then(billingInfo => {

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button, Input, Box, VStack, Image, CloseButton, HStack, Text, Progress } from '@chakra-ui/react';
 import { Select, CreatableSelect } from "chakra-react-select";
 import { login } from '../../state/auth/reducer'
-import { dispatch } from '../../state/dispatch'
+import { dispatch, logoutState, resetState } from '../../state/dispatch'
 import {auth, auth as authModule} from '../../app/api'
 import { useSelector } from 'react-redux';
 import logo from '../../assets/img/logo.svg'
@@ -14,10 +14,11 @@ import { TelemetryToggle } from '../devtools/Settings';
 import { getParsedIframeInfo } from '../../helpers/origin';
 import { toast } from '../../app/toast';
 import { get } from 'lodash';
-import { setMinusxMode } from '../../app/rpc';
+import { getMXToken, setMinusxMode } from '../../app/rpc';
 import { RootState } from '../../state/store';
 import { getApp } from '../../helpers/app';
 import { Markdown } from './Markdown';
+import { setCurrentEmail } from '../../state/settings/reducer';
 
 
 const useAppStore = getApp().useStore()
@@ -177,6 +178,35 @@ const Auth = () => {
   const [discoverySource, setDiscoverySource] = useState("");
   const isOTPMode = authJWT ? true : false
   const helperMessage = useAppStore((state) => state.helperMessage)?.split('---')[1] || "Welcome to MinusX! You can ask us anything related to your data, and our agents will take care of the rest!"
+  const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+  const currentEmail = useSelector((state: RootState) => state.settings.currentEmail)
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const mx_token = await getMXToken()
+      
+      if (mx_token) {
+        try {
+          const embedAuthResult = await authModule.embedAuth(mx_token)
+          const { session_jwt, profile_id, email } = embedAuthResult
+          if (email != currentEmail) {
+            resetState()
+          }
+          dispatch(login({
+            session_jwt,
+            profile_id,
+            email,
+          }))
+          dispatch(setCurrentEmail(email))
+        } catch (error) {
+          console.error('Failed to authenticate embed token:', error)
+        }
+      }
+    }
+    if (isEmbedded) {
+      checkToken()
+    }
+  }, [])
   
 
   useEffect(() => {
@@ -217,6 +247,7 @@ const Auth = () => {
           profile_id,
           email,
       }))
+      dispatch(setCurrentEmail(email))
       if (is_new_user) {
         captureEvent(GLOBAL_EVENTS.user_signup, { email, profile_id, discoverySource })
       } else {
@@ -330,12 +361,13 @@ const Auth = () => {
     borderWidth={1.5} borderLeftColor={"minusxBW.500"}>
       <Image src={logo} alt="MinusX" maxWidth='150px'/>
       <VStack spacing={4} mt={5} position={"relative"}>
+        {isEmbedded && <Text>Logging you in...</Text>}
         <Input
           type="email"
           placeholder="Enter work email ID"
           aria-label="Enter work email ID"
           value={email}
-          disabled={isOTPMode ? true : false}
+          disabled={isEmbedded ? true : isOTPMode ? true : false}
           onChange={(e) => setEmail(e.target.value)}
           // just trigger the handleSignin function when enter is pressed in this input as well
           onKeyUp={(e) => {

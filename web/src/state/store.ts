@@ -16,6 +16,7 @@ import cache from './cache/reducer'
 import notifications from './notifications/reducer'
 import { userStateApi } from '../app/api/userStateApi'
 import { get } from 'lodash'
+import { getParsedIframeInfo } from '../helpers/origin'
 
 const combinedReducer = combineReducers({
   chat,
@@ -502,13 +503,25 @@ const migrations = {
     newState.settings.enableReviews = true
     return newState
   },
+  50: (state: RootState) => {
+    let newState = {...state}
+    // Refresh metadataProcessingCache
+    newState.settings.currentEmail = newState.auth?.email
+    return newState
+  },
+}
+
+const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath]
+const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+if (isEmbedded) {
+  BLACKLIST.push('auth')
 }
 
 const persistConfig = {
   key: 'root',
-  version: 49,
+  version: 50,
   storage,
-  blacklist: ['billing', 'cache', userStateApi.reducerPath],
+  blacklist: BLACKLIST,
   // @ts-ignore
   migrate: createMigrate(migrations, { debug: true }),
 };

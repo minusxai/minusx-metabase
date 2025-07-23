@@ -69,7 +69,7 @@ export const DevToolsBox: React.FC = () => {
     // Check existing dev/production logic
     const isAllowedByEnv = configs.IS_DEV || Monitor.tags?.includes('production')
 
-    if (isEmbedded) {
+    if (isEmbedded && !configs.IS_DEV) {
         if (Monitor.title === 'History' || Monitor.title === 'Memory') {
             return true
         }

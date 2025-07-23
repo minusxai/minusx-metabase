@@ -133,6 +133,7 @@ interface Settings {
   metadataHashes: Record<string, number>
   metadataProcessingCache: Record<number, MetadataProcessingCacheEntry>
   manuallyLimitContext: boolean
+  currentEmail?: string
 }
 
 const initialState: Settings = {
@@ -223,6 +224,9 @@ export const settingsSlice = createSlice({
     },
     setAppRecording: (state, action: PayloadAction<boolean>) => {
       state.isRecording = action.payload
+    },
+    setCurrentEmail: (state, action: PayloadAction<string | undefined>) => {
+      state.currentEmail = action.payload
     },
     setAiRules: (state, action: PayloadAction<string>) => {
       state.aiRules = action.payload
@@ -412,7 +416,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection
+  updateManualContextSelection, setCurrentEmail
 } = settingsSlice.actions
 
 export default settingsSlice.reducer
