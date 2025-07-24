@@ -82,6 +82,32 @@ export const ACTION_DESCRIPTIONS_PLANNER: ActionDescription[] = [
     `,
   },
   {
+    name: 'setQueryParameterValues',
+    args: {
+      parameterValues: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: "The id of the parameter to set the value for."
+            },
+            value: {
+              type: 'array',
+              items: {
+                type: 'string'
+              },
+              description: "The value to set for the parameter."
+            }
+          }
+        },
+        description: "The parameters to set in the SQL editor."
+      }
+    },
+    description: "Sets the values of the parameters in the SQL editor. This is useful for setting the values of variables in the SQL query. The parameterValues should be an array of objects, each containing the id of the parameter and the value to set.",
+  },
+  {
     name: 'setVisualizationType',
     args: {
       visualization_type: {

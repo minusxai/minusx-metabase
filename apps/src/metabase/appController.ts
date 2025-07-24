@@ -29,6 +29,7 @@ import {
   primaryVisualizationTypes,
   Card,
   toLowerVisualizationType,
+  ParameterValues,
  } from "./helpers/types";
 import {
   getTemplateTags as getTemplateTagsForVars,
@@ -40,7 +41,7 @@ import {
   SQLEdits
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState, getCurrentQuery } from "./helpers/metabaseStateAPI";
+import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState, getCurrentQuery, getParameterValues } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
@@ -357,6 +358,25 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       throw new Error("Action (and subsequent plan) cancelled!");
     }
     return await this._executeSQLQueryInternal();
+  }
+
+  @Action({
+    labelRunning: "Sets parameter values for a query",
+    labelDone: "Parameter values set",
+    labelTask: "Parameter values set",
+    description: "Sets parameter values for a query in the Metabase SQL editor.",
+    renderBody: ({ parameterValues }: { parameterValues: Array<{id: string, value: string[]}> }) => {
+      return {text: null, code: JSON.stringify({ parameterValues })}
+    }
+  })
+  async setQueryParameterValues({ parameterValues }: { parameterValues: Array<{id: string, value: string[]}> }) {
+    await Promise.all(parameterValues.map(async ({id, value}) => {
+      return RPCs.dispatchMetabaseAction('metabase/qb/SET_PARAMETER_VALUE', { id, value });
+    }));
+    const currentParameterValues = await getParameterValues() as Promise<ParameterValues>
+    const actionContent: BlankMessageContent = { type: "BLANK" };
+    actionContent.content = `<CurrentParameterValues>${JSON.stringify(currentParameterValues)}</CurrentParameterValues>`;
+    return actionContent
   }
 
   @Action({
