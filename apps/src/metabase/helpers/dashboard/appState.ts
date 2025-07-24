@@ -1,6 +1,6 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { forEach, reduce, template, values } from 'lodash';
-import { MetabaseAppStateDashboard,  MetabaseAppStateType} from '../DOMToState';
+import { MetabaseAppStateDashboard} from '../DOMToState';
 import { getTablesWithFields } from '../getDatabaseSchema';
 import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
@@ -11,6 +11,7 @@ import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
 import { getTableContextYAML } from '../catalog';
 import { getModelsFromSql, getModelsWithFields, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from '../metabaseModels';
+import { MetabaseAppStateType } from '../analystModeTypes';
 
 // Removed: const { getMetabaseState } = RPCs - using centralized state functions instead
 

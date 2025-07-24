@@ -7,7 +7,6 @@ import {
   MetabaseAppStateSQLEditor,
   MetabaseSemanticQueryAppState,
   MetabaseAppStateMBQLEditor,
-  MetabaseAppStateType,
   MetabasePageType,
 } from "./helpers/DOMToState";
 import {
