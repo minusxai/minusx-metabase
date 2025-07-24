@@ -18,6 +18,7 @@ import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogA
 import { getMBQLAppState } from './mbql/appState';
 import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
+import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -40,12 +41,6 @@ interface ExtractedTable {
   id: number;
 }
 
-export enum MetabaseAppStateType {
-    SQLEditor = 'metabaseSQLEditor',
-    Dashboard = 'metabaseDashboard',
-    SemanticQuery = 'metabaseSemanticQuery',
-    MBQLEditor = 'metabaseMBQLEditor'
-}
 export interface MetabaseAppStateSQLEditor {
   type: MetabaseAppStateType.SQLEditor;
   availableDatabases?: string[];
@@ -71,6 +66,7 @@ export interface MetabaseAppStateSQLEditor {
   metabaseUrl?: string;
   isEmbedded: boolean;
   relevantEntitiesWithFields?: FormattedTable[];
+  currentCard?: Card;
 }
 
 // make this DashboardInfo
@@ -107,6 +103,30 @@ export interface MetabaseSemanticQueryAppState {
 export { type MetabasePageType } from '../defaultState'
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
+
+export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQLEditorV2> {
+  const [metabaseUrl, currentCardRaw, outputMarkdown, parameterValues] = await Promise.all([
+    RPCs.queryURL(),
+    getCurrentCard() as Promise<Card>,
+    getAndFormatOutputTable(),
+    getParameterValues() as Promise<ParameterValues>
+  ]);
+  const currentCard = processCard(currentCardRaw);
+  const metabaseOrigin = new URL(metabaseUrl).origin;
+  const isEmbedded = getParsedIframeInfo().isEmbedded
+  const relevantEntitiesWithFields: FormattedTable[] = []
+  return {
+    type: MetabaseAppStateType.SQLEditor,
+    version: '2',
+    metabaseOrigin,
+    metabaseUrl,
+    isEmbedded,
+    relevantEntitiesWithFields,
+    currentCard,
+    outputMarkdown,
+    parameterValues,
+  }
+}
 
 export async function convertDOMtoStateSQLQuery() {
   // CAUTION: This one does not update when changed via ui for some reason
@@ -153,12 +173,14 @@ export async function convertDOMtoStateSQLQuery() {
   const vizType = await getVisualizationType()
   const visualizationSettings = await getVisualizationSettings() as visualizationSettings
   const sqlVariables = await getSqlVariables();
+  const currentCard = await getCurrentCard() as Card;
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     type: MetabaseAppStateType.SQLEditor,
     availableDatabases,
     selectedDatabaseInfo,
     relevantTables: relevantTablesWithFields,
     sqlQuery: sqlQuery || '',
+    currentCard,
     queryExecuted,
     sqlEditorState: nativeEditorOpen ? 'open' : 'closed',
     visualizationType: showingRawTable ? 'table' : vizType,
@@ -244,8 +266,13 @@ export async function convertDOMtoState() {
 //   if(appSettings.semanticPlanner) {
 //     return await semanticQueryState();
 //   }
+  const appSettings = RPCs.getAppSettings()
+  if (appSettings.useV2States) {
+    return await convertDOMtoStateSQLQueryV2();
+  }
   return await convertDOMtoStateSQLQuery();
 }
+
 async function getSqlVariables() {
   const currentCard = await getCurrentCard() as Card;
   if (!currentCard) {

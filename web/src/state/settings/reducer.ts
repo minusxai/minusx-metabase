@@ -133,6 +133,7 @@ interface Settings {
   metadataHashes: Record<string, number>
   metadataProcessingCache: Record<number, MetadataProcessingCacheEntry>
   manuallyLimitContext: boolean
+  useV2States: boolean
   currentEmail?: string
 }
 
@@ -173,7 +174,8 @@ const initialState: Settings = {
   enableReviews: true,
   metadataHashes: {},
   metadataProcessingCache: {},
-  manuallyLimitContext: false
+  manuallyLimitContext: false,
+  useV2States: false
 }
 
 export const settingsSlice = createSlice({
@@ -404,6 +406,9 @@ export const settingsSlice = createSlice({
     },
     updateManualContextSelection: (state, action: PayloadAction<boolean>) => {
       state.manuallyLimitContext = action.payload
+    },
+    setUseV2States: (state, action: PayloadAction<boolean>) => {
+      state.useV2States = action.payload
     }
   },
 })
@@ -416,7 +421,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection, setCurrentEmail
+  updateManualContextSelection, setUseV2States, setCurrentEmail
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

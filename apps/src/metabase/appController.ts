@@ -7,7 +7,6 @@ import {
   MetabaseAppStateSQLEditor,
   MetabaseSemanticQueryAppState,
   MetabaseAppStateMBQLEditor,
-  MetabaseAppStateType,
   MetabasePageType,
 } from "./helpers/DOMToState";
 import {
@@ -30,6 +29,7 @@ import {
   primaryVisualizationTypes,
   Card,
   toLowerVisualizationType,
+  ParameterValues,
  } from "./helpers/types";
 import {
   getTemplateTags as getTemplateTagsForVars,
@@ -41,7 +41,7 @@ import {
   SQLEdits
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
+import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState, getCurrentQuery, getParameterValues } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
@@ -361,6 +361,22 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
+    labelRunning: "Setting parameter values for a query",
+    labelDone: "Parameter values set",
+    labelTask: "Parameter values set",
+    description: "Sets parameter values for a query in the Metabase SQL editor and execute.",
+    renderBody: ({ parameterValues }: { parameterValues: Array<{id: string, value: string[]}> }) => {
+      return {text: null, code: JSON.stringify({ parameterValues })}
+    }
+  })
+  async setQueryParameterValues({ parameterValues }: { parameterValues: Array<{id: string, value: string[]}> }) {
+    await Promise.all(parameterValues.map(async ({id, value}) => {
+      return RPCs.dispatchMetabaseAction('metabase/qb/SET_PARAMETER_VALUE', { id, value });
+    }));
+    return this._executeSQLQueryInternal()
+  }
+
+  @Action({
     labelRunning: "Executes the SQL query with parameters",
     labelDone: "Executed query",
     labelTask: "Executed SQL query",
@@ -422,8 +438,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async EditAndExecuteQuery({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
-    const appState = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    let sql = appState.sqlQuery || "";
+    let sql = await getCurrentQuery() || ""
     sql = applySQLEdits(sql, sql_edits);
     return await this.ExecuteQuery({ sql, _ctes, explanation, template_tags, parameters });
   }
@@ -927,14 +942,20 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     await this.uClick({ query: "run_query" });
     await waitForQueryExecution();
+    const [currentCard, currentParameterValues] = await Promise.all([
+      getCurrentCard(),
+      getParameterValues()
+    ]) as [Card, ParameterValues];
+    const cardState = `<CURRENT_CARD>${JSON.stringify(currentCard)}</CURRENT_CARD>`
+    const parameterValuesState = `<CURRENT_PARAMETER_VALUES>${JSON.stringify(currentParameterValues)}</CURRENT_PARAMETER_VALUES>`;
     const sqlErrorMessage = await getSqlErrorMessage();
     if (sqlErrorMessage) {
-      actionContent.content = `<ERROR>${sqlErrorMessage}</ERROR>`;
+      actionContent.content = `${cardState}${parameterValuesState}<ERROR>${sqlErrorMessage}</ERROR>`;
     } else {
       // table output
-      let tableOutput = ""
-      tableOutput = await getAndFormatOutputTable(_type);
-      actionContent.content = tableOutput;
+      let output = ""
+      output = await getAndFormatOutputTable(_type);
+      actionContent.content = `${cardState}${parameterValuesState}<OUTPUT>${output}<OUTPUT>`;
     }
     return actionContent;
   }

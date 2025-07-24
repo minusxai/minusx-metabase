@@ -33,6 +33,7 @@ import {
   fetchDatabaseFields
 } from './metabaseAPI';
 import { Card, SearchApiResponse } from './types';
+import { processCard } from './analystModeTypes';
 
 // =============================================================================
 // HELPER FUNCTIONS FOR DATA EXTRACTION
@@ -237,39 +238,7 @@ export async function getAllCardsAndModels(forceRefresh = false) {
     sortedCards.length = 1000;
   }
 
-  // Remove unnecessary fields and keep only required fields
-  const fieldsToRemove = [
-    'cache_invalidated_at',
-    'archived', 
-    'collection_position',
-    'source_card_id',
-    'result_metadata',
-    'creator',
-    'initially_published_at',
-    'enable_embedding',
-    'collection_id',
-    'made_public_by_id',
-    'embedding_params',
-    'cache_ttl',
-    'archived_directly',
-    'collection_preview'
-  ];
-  
-  const processedCards = map(sortedCards, (card: any) => {
-    // Remove unwanted fields
-    const cleanCard: any = omit(card, fieldsToRemove);
-    
-    // Process nested fields - keep only specific properties
-    if (cleanCard['last-edit-info']) {
-      cleanCard['last-edit-info'] = pick(cleanCard['last-edit-info'], ['timestamp']);
-    }
-    
-    if (cleanCard.collection) {
-      cleanCard.collection = pick(cleanCard.collection, ['slug']);
-    }
-    
-    return cleanCard;
-  });
+  const processedCards = map(sortedCards, processCard);
 
   const processedModelFields = filteredModels.flatMap((model) => {
     const result_metadata = get(model, 'result_metadata', [])

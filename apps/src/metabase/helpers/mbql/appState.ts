@@ -1,4 +1,4 @@
-import { MetabaseAppStateMBQLEditor,  MetabaseAppStateType} from '../DOMToState';
+import { MetabaseAppStateMBQLEditor} from '../DOMToState';
 import { getParsedIframeInfo, RPCs } from 'web';
 import { MBQLInfo, getSourceTableIds } from './utils';
 import { getMBQLState, getSelectedDbId } from '../metabaseStateAPI';
@@ -8,6 +8,7 @@ import { getTableContextYAML } from '../catalog';
 import { getTablesWithFields } from '../getDatabaseSchema';
 import { getModelsWithFields, getSelectedAndRelevantModels } from '../metabaseModels';
 import { getAndFormatOutputTable } from '../operations';
+import { MetabaseAppStateType } from '../analystModeTypes';
 
 
 export async function getMBQLAppState(): Promise<MetabaseAppStateMBQLEditor | null> {
