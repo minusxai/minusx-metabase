@@ -71,6 +71,7 @@ export interface MetabaseAppStateSQLEditor {
   metabaseUrl?: string;
   isEmbedded: boolean;
   relevantEntitiesWithFields?: FormattedTable[];
+  currentCard?: Card;
 }
 
 // make this DashboardInfo
@@ -153,12 +154,14 @@ export async function convertDOMtoStateSQLQuery() {
   const vizType = await getVisualizationType()
   const visualizationSettings = await getVisualizationSettings() as visualizationSettings
   const sqlVariables = await getSqlVariables();
+  const currentCard = await getCurrentCard() as Card;
   const metabaseAppStateSQLEditor: MetabaseAppStateSQLEditor = {
     type: MetabaseAppStateType.SQLEditor,
     availableDatabases,
     selectedDatabaseInfo,
     relevantTables: relevantTablesWithFields,
     sqlQuery: sqlQuery || '',
+    currentCard,
     queryExecuted,
     sqlEditorState: nativeEditorOpen ? 'open' : 'closed',
     visualizationType: showingRawTable ? 'table' : vizType,

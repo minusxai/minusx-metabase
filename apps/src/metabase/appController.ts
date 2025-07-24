@@ -927,14 +927,16 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     await this.uClick({ query: "run_query" });
     await waitForQueryExecution();
+    const currentCard = await getCurrentCard() as Card;
+    const cardState = `<CURRENT_CARD>${JSON.stringify(currentCard)}</CURRENT_CARD>`
     const sqlErrorMessage = await getSqlErrorMessage();
     if (sqlErrorMessage) {
-      actionContent.content = `<ERROR>${sqlErrorMessage}</ERROR>`;
+      actionContent.content = `${cardState}<ERROR>${sqlErrorMessage}</ERROR>`;
     } else {
       // table output
-      let tableOutput = ""
-      tableOutput = await getAndFormatOutputTable(_type);
-      actionContent.content = tableOutput;
+      let output = ""
+      output = await getAndFormatOutputTable(_type);
+      actionContent.content = `${cardState}<OUTPUT>${output}<OUTPUT>`;
     }
     return actionContent;
   }
