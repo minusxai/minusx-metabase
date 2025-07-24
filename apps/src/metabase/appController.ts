@@ -40,7 +40,7 @@ import {
   SQLEdits
 } from "./helpers/sqlQuery";
 import axios from 'axios'
-import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState } from "./helpers/metabaseStateAPI";
+import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState, getCurrentQuery } from "./helpers/metabaseStateAPI";
 import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
@@ -421,8 +421,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async EditAndExecuteQuery({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
-    const appState = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    let sql = appState.sqlQuery || "";
+    let sql = await getCurrentQuery() || ""
     sql = applySQLEdits(sql, sql_edits);
     return await this.ExecuteQuery({ sql, _ctes, explanation, template_tags, parameters });
   }
