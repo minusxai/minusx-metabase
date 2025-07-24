@@ -361,10 +361,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Sets parameter values for a query",
+    labelRunning: "Setting parameter values for a query",
     labelDone: "Parameter values set",
     labelTask: "Parameter values set",
-    description: "Sets parameter values for a query in the Metabase SQL editor.",
+    description: "Sets parameter values for a query in the Metabase SQL editor and execute.",
     renderBody: ({ parameterValues }: { parameterValues: Array<{id: string, value: string[]}> }) => {
       return {text: null, code: JSON.stringify({ parameterValues })}
     }
@@ -373,10 +373,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     await Promise.all(parameterValues.map(async ({id, value}) => {
       return RPCs.dispatchMetabaseAction('metabase/qb/SET_PARAMETER_VALUE', { id, value });
     }));
-    const currentParameterValues = await getParameterValues() as Promise<ParameterValues>
-    const actionContent: BlankMessageContent = { type: "BLANK" };
-    actionContent.content = `<CurrentParameterValues>${JSON.stringify(currentParameterValues)}</CurrentParameterValues>`;
-    return actionContent
+    return this._executeSQLQueryInternal()
   }
 
   @Action({
@@ -945,16 +942,20 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     };
     await this.uClick({ query: "run_query" });
     await waitForQueryExecution();
-    const currentCard = await getCurrentCard() as Card;
+    const [currentCard, currentParameterValues] = await Promise.all([
+      getCurrentCard(),
+      getParameterValues()
+    ]) as [Card, ParameterValues];
     const cardState = `<CURRENT_CARD>${JSON.stringify(currentCard)}</CURRENT_CARD>`
+    const parameterValuesState = `<CURRENT_PARAMETER_VALUES>${JSON.stringify(currentParameterValues)}</CURRENT_PARAMETER_VALUES>`;
     const sqlErrorMessage = await getSqlErrorMessage();
     if (sqlErrorMessage) {
-      actionContent.content = `${cardState}<ERROR>${sqlErrorMessage}</ERROR>`;
+      actionContent.content = `${cardState}${parameterValuesState}<ERROR>${sqlErrorMessage}</ERROR>`;
     } else {
       // table output
       let output = ""
       output = await getAndFormatOutputTable(_type);
-      actionContent.content = `${cardState}<OUTPUT>${output}<OUTPUT>`;
+      actionContent.content = `${cardState}${parameterValuesState}<OUTPUT>${output}<OUTPUT>`;
     }
     return actionContent;
   }
