@@ -17,6 +17,7 @@ export const getAppSettings = () => {
     selectedModels: settings.selectedModels,
     enable_highlight_helpers: settings.enable_highlight_helpers,
     manuallyLimitContext: settings.manuallyLimitContext,
+    useV2States: settings.useV2States,
   }
 }
 

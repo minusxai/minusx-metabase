@@ -266,6 +266,10 @@ export async function convertDOMtoState() {
 //   if(appSettings.semanticPlanner) {
 //     return await semanticQueryState();
 //   }
+  const appSettings = RPCs.getAppSettings()
+  if (appSettings.useV2States) {
+    return await convertDOMtoStateSQLQueryV2();
+  }
   return await convertDOMtoStateSQLQuery();
 }
 
