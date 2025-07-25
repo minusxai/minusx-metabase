@@ -19,6 +19,7 @@ import { getMBQLAppState } from './mbql/appState';
 import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
+import { MetabaseTableOrModel } from './metabaseAPITypes';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -40,6 +41,7 @@ interface ExtractedTable {
   schema?: string;
   id: number;
 }
+
 
 export interface MetabaseAppStateSQLEditor {
   type: MetabaseAppStateType.SQLEditor;
@@ -65,7 +67,7 @@ export interface MetabaseAppStateSQLEditor {
   metabaseOrigin?: string;
   metabaseUrl?: string;
   isEmbedded: boolean;
-  relevantEntitiesWithFields?: FormattedTable[];
+  limitedEntities?: MetabaseTableOrModel[];
   currentCard?: Card;
 }
 
@@ -77,7 +79,7 @@ export interface MetabaseAppStateDashboard extends DashboardInfo {
   metabaseOrigin?: string;
   metabaseUrl?: string;
   isEmbedded: boolean;
-  relevantEntitiesWithFields?: FormattedTable[];
+  limitedEntities?: MetabaseTableOrModel[];
 }
 
 export interface MetabaseAppStateMBQLEditor extends MBQLInfo {
@@ -114,14 +116,14 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const currentCard = processCard(currentCardRaw);
   const metabaseOrigin = new URL(metabaseUrl).origin;
   const isEmbedded = getParsedIframeInfo().isEmbedded
-  const relevantEntitiesWithFields: FormattedTable[] = []
+  const limitedEntities: MetabaseTableOrModel[] = []
   return {
     type: MetabaseAppStateType.SQLEditor,
     version: '2',
     metabaseOrigin,
     metabaseUrl,
     isEmbedded,
-    relevantEntitiesWithFields,
+    limitedEntities,
     currentCard,
     outputMarkdown,
     parameterValues,
@@ -203,21 +205,20 @@ export async function convertDOMtoStateSQLQuery() {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;
   }
   if (appSettings.analystMode && appSettings.manuallyLimitContext) {
-    const relevantTablesWithFieldsAndType = relevantTablesWithFields.map(table => ({
-      ...table,
+    const limitToTables: MetabaseTableOrModel[] = relevantTablesWithFields.map(table => ({
       type: 'table',
+      id: table.id,
+      name: table.name,
+      schema: table.schema,
+      description: table.description,
     }))
-    const relevantModelsWithFieldsAndType = relevantModelsWithFields.map(model => ({
-      ...model,
+    const limitToModels: MetabaseTableOrModel[] = relevantModels.map(model => ({
       type: 'model',
-      name: model.modelName,
       id: model.modelId,
-      schema: undefined,
-      table: undefined,
-      modelId: undefined,
-      modelName: undefined,
+      name: model.name,
+      description: model.description,
     }))
-    metabaseAppStateSQLEditor.relevantEntitiesWithFields = [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
+    metabaseAppStateSQLEditor.limitedEntities = [...limitToTables, ...limitToModels];
   }
   return metabaseAppStateSQLEditor;
 }
