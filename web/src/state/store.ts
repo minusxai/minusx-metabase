@@ -509,6 +509,11 @@ const migrations = {
     newState.settings.currentEmail = newState.auth?.email
     return newState
   },
+  51: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.useV2States = true
+    return newState
+  }
 }
 
 const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath]
@@ -519,7 +524,7 @@ if (isEmbedded) {
 
 const persistConfig = {
   key: 'root',
-  version: 50,
+  version: 51,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

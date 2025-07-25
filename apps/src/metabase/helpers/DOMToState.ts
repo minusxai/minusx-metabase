@@ -268,7 +268,7 @@ export async function convertDOMtoState() {
 //     return await semanticQueryState();
 //   }
   const appSettings = RPCs.getAppSettings()
-  if (appSettings.useV2States) {
+  if (appSettings.useV2States && appSettings.analystMode) {
     return await convertDOMtoStateSQLQueryV2();
   }
   return await convertDOMtoStateSQLQuery();
