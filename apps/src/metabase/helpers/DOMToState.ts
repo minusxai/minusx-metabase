@@ -106,6 +106,65 @@ export { type MetabasePageType } from '../defaultState'
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
 
+async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<FormattedTable[]> {
+  const appSettings = RPCs.getAppSettings();
+  
+  // Early return if conditions not met
+  if (!appSettings.analystMode || !appSettings.manuallyLimitContext) {
+    return [];
+  }
+  
+  const dbId = await getSelectedDbId();
+  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
+  const defaultSchema = selectedDatabaseInfo?.default_schema;
+  
+  const sqlTables = getTablesFromSqlRegex(sqlQuery);
+  const selectedCatalogObj = find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog });
+  const selectedCatalog = get(selectedCatalogObj, 'content');
+  
+  // Apply default schema to tables if needed
+  if (defaultSchema) {
+    sqlTables.forEach((table) => {
+      if (table.schema === undefined || table.schema === '') {
+        table.schema = defaultSchema;
+      }
+    });
+  }
+  
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, []);
+  
+  // Add defaultSchema back to relevantTablesWithFields
+  relevantTablesWithFields = relevantTablesWithFields.map(table => {
+    if (table.schema === undefined || table.schema === '') {
+      table.schema = defaultSchema || 'unknown';
+    }
+    return table;
+  });
+  
+  const allModels = dbId ? await getAllRelevantModelsForSelectedDb(dbId) : [];
+  const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "", appSettings.selectedModels, allModels);
+  const relevantModelsWithFields = await getModelsWithFields(relevantModels);
+  
+  // Transform and combine tables and models with type annotations
+  const relevantTablesWithFieldsAndType = relevantTablesWithFields.map(table => ({
+    ...table,
+    type: 'table',
+  }));
+  
+  const relevantModelsWithFieldsAndType = relevantModelsWithFields.map(model => ({
+    ...model,
+    type: 'model',
+    name: model.modelName || '',
+    id: model.modelId || 0,
+    schema: '',
+    table: undefined,
+    modelId: undefined,
+    modelName: undefined,
+  }));
+  
+  return [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType] as FormattedTable[];
+}
+
 export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQLEditorV2> {
   const [metabaseUrl, currentCardRaw, outputMarkdown, parameterValues] = await Promise.all([
     RPCs.queryURL(),
@@ -116,7 +175,9 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const currentCard = processCard(currentCardRaw);
   const metabaseOrigin = new URL(metabaseUrl).origin;
   const isEmbedded = getParsedIframeInfo().isEmbedded
-  const limitedEntities: MetabaseTableOrModel[] = []
+  const limitedEntities = await getRelevantEntitiesWithFields(
+    get(currentCard, 'dataset_query.native.query', '') || ''
+  );
   return {
     type: MetabaseAppStateType.SQLEditor,
     version: '2',
@@ -268,7 +329,7 @@ export async function convertDOMtoState() {
 //     return await semanticQueryState();
 //   }
   const appSettings = RPCs.getAppSettings()
-  if (appSettings.useV2States) {
+  if (appSettings.useV2States && appSettings.analystMode) {
     return await convertDOMtoStateSQLQueryV2();
   }
   return await convertDOMtoStateSQLQuery();
