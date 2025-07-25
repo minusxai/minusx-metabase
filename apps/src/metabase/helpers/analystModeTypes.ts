@@ -1,6 +1,7 @@
 import { omit, pick } from "lodash";
 import { DashboardInfo } from "./dashboard/types";
 import { Card, FormattedTable, ParameterValues } from "./types";
+import { MetabaseTableOrModel } from "./metabaseAPITypes";
 
 export enum MetabaseAppStateType {
     SQLEditor = 'metabaseSQLEditor',
@@ -15,7 +16,7 @@ interface MetabaseAppStateBase {
   metabaseOrigin: string;
   metabaseUrl: string;
   isEmbedded: boolean;
-  relevantEntitiesWithFields: FormattedTable[];
+  limitedEntities: MetabaseTableOrModel[];
 }
 
 export interface MetabaseAppStateSQLEditorV2 extends MetabaseAppStateBase {

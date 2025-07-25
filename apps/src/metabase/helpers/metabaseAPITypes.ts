@@ -62,6 +62,15 @@ export interface MetabaseModel {
   dbId: number;
 }
 
+
+export interface MetabaseTableOrModel {
+  type: 'table' | 'model'
+  id: number | string
+  description?: string
+  schema?: string
+  name: string
+}
+
 export interface DatabaseInfo {
   name: string;
   description: string;

@@ -12,6 +12,7 @@ import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
 import { getTableContextYAML } from '../catalog';
 import { getModelsFromSql, getModelsWithFields, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from '../metabaseModels';
 import { MetabaseAppStateType } from '../analystModeTypes';
+import { MetabaseTableOrModel } from '../metabaseAPITypes';
 
 // Removed: const { getMetabaseState } = RPCs - using centralized state functions instead
 
@@ -327,21 +328,20 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     isEmbedded: getParsedIframeInfo().isEmbedded,
   };
   if (appSettings.analystMode && appSettings.manuallyLimitContext) {
-    const relevantTablesWithFieldsAndType = relevantTablesWithFields.map(table => ({
-      ...table,
+    const limitToTables: MetabaseTableOrModel[] = relevantTablesWithFields.map(table => ({
       type: 'table',
+      id: table.id,
+      name: table.name,
+      schema: table.schema,
+      description: table.description,
     }))
-    const relevantModelsWithFieldsAndType = relevantModelsWithFields.map(model => ({
-      ...model,
+    const limitToModels: MetabaseTableOrModel[] = dedupedCardAndSelectedModels.map(model => ({
       type: 'model',
-      name: model.modelName,
       id: model.modelId,
-      schema: undefined,
-      table: undefined,
-      modelId: undefined,
-      modelName: undefined,
+      name: model.name,
+      description: model.description,
     }))
-    dashboardAppState.relevantEntitiesWithFields = [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
+    dashboardAppState.limitedEntities = [...limitToTables, ...limitToModels];
   }
   return dashboardAppState
 }
