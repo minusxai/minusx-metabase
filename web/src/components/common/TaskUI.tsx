@@ -112,7 +112,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
   const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
   // approx check if this is a new user
-  const newUserProxy = () => (credits >= 200 && infoLoaded) && !proUser && !enterpriseUser && messages.length < 2
+  const newUserProxy = () => (credits >= 200 && infoLoaded && credits <= 300) && !proUser && !enterpriseUser && messages.length < 2
   const lastThread = () => (thread === totalThreads - 1)
 
   const relevantTables = toolContext.relevantTables || []
