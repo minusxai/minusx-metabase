@@ -400,6 +400,9 @@ export const TasksLite: React.FC = () => {
                 height="24px"
                 variant='outline'
                 onClick={handleNegativeFeedback}
+                color='red.400'
+                borderColor={'red.400'}
+                _hover={{ bg: 'red.400', color: 'white' }}
               />
             </HStack>
           </VStack>
@@ -433,7 +436,7 @@ export const TasksLite: React.FC = () => {
 
         {((feedback == 'positive') || (feedbackSubmitted)) && (
           <VStack spacing={1} pt={2}>
-            <Text fontSize="xs" color="minusxGreen.600" textAlign="center" fontWeight="500">
+            <Text fontSize="xs" color="minusxBW.600" textAlign="center" fontWeight="500">
               Thanks for the feedback!
             </Text>
           </VStack>
