@@ -1,11 +1,12 @@
 
-import { LLMContext, LLMContextWithMeta } from '../helpers/LLM/types';
+import { LLMContext, LLMContextWithMeta, LLMMetadata } from '../helpers/LLM/types';
 import { ChatMessage, UserChatMessage } from '../state/chat/reducer';
 import { renderString } from '../helpers/templatize';
 import { formatLLMMessageHistory } from '../helpers/LLM/context';
 import _ from 'lodash';
 import { AppState } from 'apps/types';
 import { getState } from '../state/store';
+import { getParsedIframeInfo } from '../helpers/origin';
 
 
 type LLMPrompts = {
@@ -107,12 +108,21 @@ export function getLLMContextFromState(
     ...context,
   ];
 
-  const meta: { timeDelta: number; threadTimeDelta?: number } = {
+  const iframeInfo = getParsedIframeInfo();
+  const meta: LLMMetadata = {
     timeDelta
   };
   
   if (threadTimeDelta !== undefined) {
     meta.threadTimeDelta = threadTimeDelta;
+  }
+  
+  if (iframeInfo.gitCommitId) {
+    meta.gitCommitId = iframeInfo.gitCommitId;
+  }
+  
+  if (iframeInfo.webGitCommitId) {
+    meta.webGitCommitId = iframeInfo.webGitCommitId;
   }
 
   return {

@@ -2,7 +2,7 @@ import { planActionsOpenAI } from "./OpenAI";
 import { getState } from '../../state/store'
 import { planActionsRemote } from "./remote";
 import { Tasks, ToolCalls } from "../../state/chat/reducer";
-import { LLMContext, LLMResponse, LLMSettings } from "./types";
+import { LLMContext, LLMResponse, LLMSettings, LLMMetadata } from "./types";
 
 export type researchMode = 'simple' | 'deepResearchPlanner' | 'deepResearchTool'
 
@@ -14,10 +14,7 @@ export type PlanActionsParams = {
   deepResearch: researchMode,
   tasks: Tasks,
   conversationID: string,
-  meta?: {
-    timeDelta: number;
-    threadTimeDelta?: number;
-  },
+  meta?: LLMMetadata,
 }
 export async function planActions(params: PlanActionsParams ) : Promise<LLMResponse> { 
   const { isLocal } = getState().settings

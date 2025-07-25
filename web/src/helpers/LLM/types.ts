@@ -3,12 +3,16 @@ import { Tasks, ToolCalls } from "../../state/chat/reducer";
 
 export type LLMContext = Array<ChatCompletionMessageParam>
 
+export type LLMMetadata = {
+  timeDelta: number; // Time difference in milliseconds between current and last message
+  threadTimeDelta?: number; // Time difference from last user message in previous thread (when timeDelta is 0)
+  gitCommitId?: string; // Git commit ID from iframe props (extension/host)
+  webGitCommitId?: string; // Git commit ID from web package
+}
+
 export type LLMContextWithMeta = {
   context: LLMContext;
-  meta: {
-    timeDelta: number; // Time difference in milliseconds between current and last message
-    threadTimeDelta?: number; // Time difference from last user message in previous thread (when timeDelta is 0)
-  };
+  meta: LLMMetadata;
 }
 export type LLMResponse = {
   tool_calls: ToolCalls,
