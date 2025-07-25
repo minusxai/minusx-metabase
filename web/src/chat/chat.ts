@@ -1,10 +1,13 @@
 import { dispatch } from '../state/dispatch'
-import { addActionPlanMessage, addUserMessage } from '../state/chat/reducer'
+import { addActionPlanMessage, addUserMessage, startNewThread } from '../state/chat/reducer'
 import { DefaultMessageContent } from '../state/chat/types'
 import { LLMResponse } from '../helpers/LLM/types'
 import { updateCredits } from '../state/billing/reducer'
 import { getState } from '../state/store'
 import { toast } from '../app/toast'
+
+
+const HRS_THRESHOLD = 1; 
 
 export default {
   async addUserMessage({ content }: { content: DefaultMessageContent }) {
@@ -32,5 +35,21 @@ export default {
     // update credits. not sure if this is the best place to do this
     dispatch(updateCredits(llmResponse.credits))
   },
+  async createNewThreadIfNeeded() {
+    const state = getState()
+    // if on an old thread, create a new one
+    if (state.chat.activeThread && state.chat.activeThread < state.chat.threads.length - 1) {
+      dispatch(startNewThread())
+    }
+    // if it has been a while since the last message, create a new thread
+    if (state.chat.threads.length > 0 && state.chat.threads[state.chat.activeThread].messages.length > 0) {
+        const messages = state.chat.threads[state.chat.activeThread].messages;
+        const lastMessageTime = messages[messages.length - 1].createdAt;
+        const now = Date.now();
+        const hrsSinceLastMessage = (now - lastMessageTime) / (1000 * 60 * 60);
+        if (hrsSinceLastMessage > HRS_THRESHOLD) {
+          dispatch(startNewThread())
+        }
+    }
+  }
 }
-
