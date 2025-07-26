@@ -56,6 +56,10 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const pageType = useAppStore((state) => state.toolContext.pageType) || '';
   const url = useAppStore((state) => state.toolContext.url) || '';
   const origin = url ? new URL(url).origin : '';
+  const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const totalThreads = useSelector((state: RootState) => state.chat.threads.length)
+
+  const lastThread = (thread === totalThreads - 1)
   
   const getActionLabels = (action: string, attr: string) => {
     if (controller) {
@@ -114,7 +118,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
 
     const undoRedoArr = actions.map(action => {
                 const { code, oldCode, extraArgs } = action.renderInfo || {}
-                return UNDO_REDO_ACTIONS.includes(action.function.name) && (
+                return UNDO_REDO_ACTIONS.includes(action.function.name) && lastThread && (
                     <HStack w={"100%"} justify={"center"} mb={2}>
                         {oldCode ? <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'} extraArgs={extraArgs?.old || {}}/>:<UndoRedo fn={action.function.name} sql={''} type={'undo'} extraArgs={extraArgs?.old || {}}/>}
                         {code ? <UndoRedo fn={action.function.name} sql={code} type={'redo'} extraArgs={extraArgs?.new || {}}/> : <UndoRedo fn={action.function.name} sql={''} type={'redo'} extraArgs={extraArgs?.new || {}}/> }
