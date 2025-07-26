@@ -90,14 +90,14 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
 
 
 
-    const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo'}> = ({fn, sql, type}) => {
+    const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo', extraArgs: any}> = ({fn, sql, type, extraArgs}) => {
         const urHandler = (event: React.MouseEvent, fn: string, sql: string) => {
             event.preventDefault();
             event.stopPropagation();
             executeAction({
                 index: -1,
                 function: 'ExecuteQuery',
-                args: {sql: sql},
+                args: {sql: sql, template_tags: extraArgs?.template_tags || {}, parameters: extraArgs?.parameters || []},
             });
         };
         
@@ -113,11 +113,11 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     };
 
     const undoRedoArr = actions.map(action => {
-                const { code, oldCode } = action.renderInfo || {}
+                const { code, oldCode, extraArgs } = action.renderInfo || {}
                 return UNDO_REDO_ACTIONS.includes(action.function.name) && (
                     <HStack w={"100%"} justify={"center"} mb={2}>
-                        {oldCode ? <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'}/>:<UndoRedo fn={action.function.name} sql={''} type={'undo'}/>}
-                        {code ? <UndoRedo fn={action.function.name} sql={code} type={'redo'}/> : <UndoRedo fn={action.function.name} sql={''} type={'redo'}/> }
+                        {oldCode ? <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'} extraArgs={extraArgs}/>:<UndoRedo fn={action.function.name} sql={''} type={'undo'} extraArgs={extraArgs}/>}
+                        {code ? <UndoRedo fn={action.function.name} sql={code} type={'redo'} extraArgs={extraArgs}/> : <UndoRedo fn={action.function.name} sql={''} type={'redo'} extraArgs={extraArgs}/> }
                     </HStack>
                 )
             })
@@ -192,7 +192,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
           </VStack>
         </HStack>
         {isExpanded && actions.map((action, index) => {
-          const { text, code, oldCode, language } = action.renderInfo || {}
+          const { text, code, oldCode, language, extraArgs } = action.renderInfo || {}
           return (
           <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
             <HStack>
@@ -207,12 +207,13 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
               {/* <Text>{action.function.name}{text ? " | " : ""}{text}</Text> */}
                 <Text>{action.function.name}</Text>
             </HStack>
-            
+            <VStack width={"100%"} alignItems={"stretch"}>
             { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
               <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode} language={language} />
              </Box>
             }
-            
+            {extraArgs && <CodeBlock code={JSON.stringify(extraArgs, null, 2)} language='json' tool={currentTool}/>}
+            </VStack>
           </VStack>
         )})}
         {/* {isHovered && isExpanded && configs.IS_DEV && index >= 0 && (

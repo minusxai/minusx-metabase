@@ -381,9 +381,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelDone: "Executed query",
     labelTask: "Executed SQL query",
     description: "Executes the SQL query in the Metabase SQL editor with support for template tags and parameters.",
-    renderBody: ({ sql, explanation }: { sql: string, explanation: string }, appState: MetabaseAppStateSQLEditor) => {
+    renderBody: ({ sql, explanation, template_tags={}, parameters=[] }: { sql: string, explanation: string, template_tags?: object, parameters?: any[] }, appState: MetabaseAppStateSQLEditor) => {
       const sqlQuery = appState?.sqlQuery
-      return {text: explanation, code: sql, oldCode: sqlQuery, language: "sql"}
+      return {text: explanation, code: sql, oldCode: sqlQuery, language: "sql", extraArgs: {template_tags, parameters}}
     }
   })
   async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
