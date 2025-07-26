@@ -103,7 +103,7 @@ export const fetchData = (
   csrfInfo?: { cookieKey: string; headerKey: string }
 ) =>
   sendMessage('fetchData', [url, method, body, headers || {}, csrfInfo], {
-    log_rpc: true,
+    log_rpc: false,
   })
 export const queryURL = () => sendMessage('queryURL', [])
 export const getMXToken = () => sendMessage('getMXToken', [])
