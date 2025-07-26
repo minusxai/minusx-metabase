@@ -15,7 +15,8 @@ export async function planActionsRemote({
   deepResearch,
   tasks,
   conversationID,
-  meta
+  meta,
+  isPrewarm
 }: PlanActionsParams): Promise<LLMResponse> {
   const payload = {
     messages,
@@ -23,7 +24,8 @@ export async function planActionsRemote({
     llmSettings,
     tasks,
     conversationID,
-    meta
+    meta,
+    isPrewarm
   }
   if (!deepResearch) {
     unset(payload, 'tasks')

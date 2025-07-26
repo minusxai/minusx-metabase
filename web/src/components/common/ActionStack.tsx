@@ -279,8 +279,19 @@ const PlanningActionStack: React.FC = () => {
   const dbId = useAppStore((state) => state.toolContext.dbId) || 0;
   const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
   const isAnalystmode = useSelector((state: RootState) => state.settings.analystMode) || false;
+  const lastWarmedOn = useSelector((state: RootState) => state.chat.last_warmed_on)
   const dbMetadata = get(metadataProcessingCache, [dbId, 'result'], null);
-  const planningActions = isEmpty(dbMetadata) && isAnalystmode? ['One time optimizations underway'] : ['Planning next steps', 'Thinking about the question', 'Understanding App state', 'Finalizing Actions', 'Validating Answers']
+  
+  // Check if warming is needed (only check last_warmed_on)
+  const HRS_THRESHOLD = 1 * 1000 * 60 * 60;
+  const now = Date.now();
+  
+  const isWarming = lastWarmedOn && lastWarmedOn > 0 && (((now - lastWarmedOn) > HRS_THRESHOLD) || (now - lastWarmedOn) < 10*1000);
+  
+  const planningActions = isEmpty(dbMetadata) && isAnalystmode
+      ? ['One time optimizations underway'] : isWarming 
+      ? ['Warming up cache, this will take a sec...']
+      : ['Planning next steps', 'Thinking about the question', 'Understanding App state', 'Finalizing Actions', 'Validating Answers']
   const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
   useEffect(() => {
     const intervalId = setInterval(() => {

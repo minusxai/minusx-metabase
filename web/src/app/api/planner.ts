@@ -5,9 +5,16 @@ import { toast } from '../toast';
 const url = `${configs.PLANNER_BASE_URL}/getLLMResponse`
 const dr_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_planner`
 const dr_tool_url = `${configs.BASE_SERVER_URL}/deepresearch/chat`
+const prewarm_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_plan_warm`
 
 export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepresearch = 'simple' ) => {
-    const remoteUrl = deepresearch === 'simple' ? url : dr_url
+    let remoteUrl = deepresearch === 'simple' ? url : dr_url
+    
+    // If this is a prewarm request, use the prewarm URL instead
+    if (payload.isPrewarm) {
+      remoteUrl = prewarm_url
+    }
+    
     return await axios.post(remoteUrl, payload, {
       headers: {
         'Content-Type': 'application/json',
@@ -42,3 +49,4 @@ export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepres
       }
     })
 }
+

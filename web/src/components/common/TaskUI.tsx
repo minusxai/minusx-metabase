@@ -23,11 +23,12 @@ import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmar
 import { ReviewBox } from './ReviewBox'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
-import { abortPlan, startNewThread } from '../../state/chat/reducer'
+import { abortPlan, startNewThread, updateLastWarmedOn } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, TableInfo, setSelectedModels } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
+import { simplePlan } from '../../planner/simplePlan'
 import { Thumbnails } from './Thumbnails'
 import { UserConfirmation } from './UserConfirmation'
 import { Clarification } from './Clarification'
@@ -64,7 +65,8 @@ import { ContextCatalog } from '../../helpers/utils';
 import { Markdown } from './Markdown'
 
 
-const useAppStore = getApp().useStore()
+const app = getApp()
+const useAppStore = app.useStore()
 const LOW_CREDITS_THRESHOLD = 15
 
 const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
@@ -77,6 +79,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const thumbnails = useSelector((state: RootState) => state.thumbnails.thumbnails)
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  const lastWarmedOn = useSelector((state: RootState) => state.chat.last_warmed_on)
   const totalThreads = useSelector((state: RootState) => state.chat.threads.length)
   const suggestQueries = useSelector((state: RootState) => state.settings.suggestQueries)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
@@ -170,6 +173,31 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   useEffect(() => {
     setInstructions(initialInstructions);
   }, [initialInstructions]);
+
+  // Prewarm logic
+  useEffect(() => {
+    if (instructions.length <= 5) {
+      return; // Don't prewarm if input too short or already prewarming
+    }
+
+    const HRS_THRESHOLD = 1 * 1000 * 60 * 60;
+    const now = Date.now();
+
+    // Check if we should prewarm (only check last_warmed_on)
+    const shouldPrewarm = lastWarmedOn && lastWarmedOn > 0 && (now - lastWarmedOn) > HRS_THRESHOLD;
+    console.log('Last warmed on:', lastWarmedOn, now - lastWarmedOn, 'ms, HRS_THRESHOLD:', HRS_THRESHOLD, 'ms');
+    console.log('Should warm?:', shouldPrewarm)
+
+    if (shouldPrewarm) {
+      dispatch(updateLastWarmedOn());
+      // Fire-and-forget prewarm request
+      app.getPlannerConfig().then(plannerConfig => {
+        simplePlan(new AbortController().signal, plannerConfig, true) // isPrewarm = true
+          .catch(error => console.warn('Prewarm failed:', error)); // Don't show error to user
+      });
+      // Update last_warmed_on immediately and reset prewarming state
+    }
+  }, [instructions, lastWarmedOn]);
 
   const clearMessages = () => {
     if (taskInProgress) {

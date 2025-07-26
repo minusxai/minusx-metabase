@@ -9,7 +9,7 @@ import { getApp } from '../helpers/app';
 
 const app = getApp()
 
-export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlannerConfig) {
+export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlannerConfig, isPrewarm: boolean = false) {
   // get messages and last message
   const startTime = Date.now()
   const state = getState()
@@ -34,8 +34,15 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
     deepResearch,
     tasks,
     conversationID,
-    meta
+    meta,
+    isPrewarm // Pass the prewarm flag through to planActions
   });
+  
+  if (isPrewarm) {
+    // For prewarm mode, just return early (last_warmed_on updated in TaskUI)
+    return;
+  }
+  
   const endTime = Date.now()
   let debugContent = {latency: endTime - startTime}
   //ToDo @Vivek: This is not relevant anymore. But we can add more debug info from the litellm response

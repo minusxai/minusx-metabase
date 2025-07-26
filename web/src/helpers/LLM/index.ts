@@ -15,6 +15,7 @@ export type PlanActionsParams = {
   tasks: Tasks,
   conversationID: string,
   meta?: LLMMetadata,
+  isPrewarm?: boolean,
 }
 export async function planActions(params: PlanActionsParams ) : Promise<LLMResponse> { 
   const { isLocal } = getState().settings
