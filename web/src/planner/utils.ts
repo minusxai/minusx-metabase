@@ -21,7 +21,15 @@ export function getLLMContextFromState(
   // search backwards for the index of the last user message
   const lastUserMessageIdx = messageHistory.findLastIndex((message) => message.role === 'user')
   if (lastUserMessageIdx === -1) {
-    throw new Error('No user message found')
+    return {
+      context: [{
+        role: 'user',
+        content: 'prewarm'
+      }],
+      meta: {
+        timeDelta: 0,
+      }
+    }
   }
   const earlierMessages = messageHistory.slice(0, lastUserMessageIdx)
   const lastUserMessage = messageHistory[lastUserMessageIdx] as UserChatMessage

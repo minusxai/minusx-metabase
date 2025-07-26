@@ -78,6 +78,11 @@ const SettingsPage = () => {
   const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
   const useV2States = useSelector((state: RootState) => state.settings.useV2States)
   const isSubscribedOrEnterpriseCustomer = billing.isSubscribed || billing.isEnterpriseCustomer
+  const resetStateFull= () => {
+    resetState()
+    setMinusxMode('open-sidepanel')
+  }
+
   const reloadBillingInfo = async () => {
     await getBillingInfo().then((billingInfo) => {
       if (billingInfo && billingInfo.subscribed) {
@@ -264,7 +269,7 @@ const SettingsPage = () => {
       {configs.IS_DEV ? <SettingsBlock title="Developer">
       <Stack direction='row' alignItems={"center"} justifyContent={"space-between"}>
           <Text color={"minusxBW.800"} fontSize="sm">Reset State</Text>
-          <Button size={"xs"} onClick={() => resetState()} colorScheme="minusxGreen">Reset</Button>
+          <Button size={"xs"} onClick={resetStateFull} colorScheme="minusxGreen">Reset</Button>
         </Stack>
         <DevToolsToggle size={"mini"}/>
       </SettingsBlock>: null}

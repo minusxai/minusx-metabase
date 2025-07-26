@@ -184,9 +184,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     const now = Date.now();
 
     // Check if we should prewarm (only check last_warmed_on)
-    const shouldPrewarm = lastWarmedOn && lastWarmedOn > 0 && (now - lastWarmedOn) > HRS_THRESHOLD;
-    console.log('Last warmed on:', lastWarmedOn, now - lastWarmedOn, 'ms, HRS_THRESHOLD:', HRS_THRESHOLD, 'ms');
-    console.log('Should warm?:', shouldPrewarm)
+    const shouldPrewarm = !lastWarmedOn || lastWarmedOn == 0 || (now - lastWarmedOn) > HRS_THRESHOLD;
 
     if (shouldPrewarm) {
       dispatch(updateLastWarmedOn());
