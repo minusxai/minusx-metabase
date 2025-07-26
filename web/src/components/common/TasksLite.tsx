@@ -23,6 +23,7 @@ import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
 import { get, last } from 'lodash';
 import { getActionTaskLiteLabels } from '../../helpers/utils';
+import { useSubmitMessageFeedbackMutation } from '../../app/api/userStateApi';
 
 interface TaskWithLevel extends Task {
   level: number;
@@ -226,6 +227,8 @@ export const TasksLite: React.FC = () => {
   const taskInProgress = !(activeThread.status === 'FINISHED')
   const taskInterrupted = activeThread.interrupted
   
+  const [submitMessageFeedback] = useSubmitMessageFeedbackMutation();
+  
   const [expandedRootTasks, setExpandedRootTasks] = useState<Set<string>>(new Set());
 
   const allTasks: TasksInfo = activeThread?.tasks || [];
@@ -269,17 +272,48 @@ export const TasksLite: React.FC = () => {
 
   const handlePositiveFeedback = () => {
     setFeedback('positive');
-    console.log('Positive feedback submitted');
+    
+    // Fire-and-forget API call for positive feedback
+    const lastAssistantMessage = activeThread.messages
+      .slice()
+      .reverse()
+      .find(msg => msg.role === 'assistant');
+    
+    if (lastAssistantMessage) {
+      submitMessageFeedback({
+        conversation_id: activeThread.id,
+        message_index: lastAssistantMessage.index,
+        feedback_type: 'positive',
+        feedback_text: null
+      }).catch(error => {
+        console.warn('Failed to submit positive feedback:', error);
+      });
+    }
   };
 
   const handleNegativeFeedback = () => {
     setFeedback('negative');
-    console.log('Negative feedback submitted');
   };
 
   const handleSubmitNegativeFeedback = () => {
-    console.log('Negative feedback submitted:', negativeText);
     setFeedbackSubmitted(true);
+    
+    // Fire-and-forget API call for negative feedback
+    const lastAssistantMessage = activeThread.messages
+      .slice()
+      .reverse()
+      .find(msg => msg.role === 'assistant');
+    
+    if (lastAssistantMessage) {
+      submitMessageFeedback({
+        conversation_id: activeThread.id,
+        message_index: lastAssistantMessage.index,
+        feedback_type: 'negative',
+        feedback_text: negativeText.trim() || null
+      }).catch(error => {
+        console.warn('Failed to submit negative feedback:', error);
+      });
+    }
   };
 
   const showFeedbackButtons = !isEmpty && !isLoading && !taskInProgress && (feedback === null);

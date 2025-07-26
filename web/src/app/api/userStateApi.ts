@@ -37,10 +37,28 @@ export const userStateApi = createApi({
         }
       },
     }),
+    
+    submitMessageFeedback: builder.mutation<any, {
+      conversation_id: string;
+      message_index: number;
+      feedback_type: string;
+      feedback_text?: string | null;
+    }>({
+      query: ({ conversation_id, message_index, feedback_type, feedback_text = null }) => ({
+        url: 'user_state/message_feedback',
+        method: 'POST',
+        body: { conversation_id, message_index, feedback_type, feedback_text },
+      }),
+      transformResponse: (response: any) => {
+        return response.success ? response.data : {}
+      },
+      // Fire-and-forget - don't need to handle response
+    }),
   }),
 })
 
 export const { 
   useGetUserStateQuery, 
-  useSubmitReviewMutation 
+  useSubmitReviewMutation,
+  useSubmitMessageFeedbackMutation
 } = userStateApi
