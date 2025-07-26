@@ -141,7 +141,10 @@ async function getDashcardInfoWithSQLAndOutputTableMd(
     return null;
 
   // replace parameters
-  sql = await substituteParameters(sql, dashcard, dashboardMetabaseState['dashboards'][dashboardId]?.param_fields, dashboardMetabaseState.parameterValues)
+  try {
+    sql = await substituteParameters(sql, dashcard, dashboardMetabaseState['dashboards'][dashboardId]?.param_fields, dashboardMetabaseState.parameterValues)
+  } catch (e) {
+  }
   const obj = {
     id,
     name,
