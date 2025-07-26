@@ -513,6 +513,21 @@ const migrations = {
     let newState = {...state}
     newState.settings.useV2States = true
     return newState
+  },
+  52: (state: RootState) => {
+    let newState = {...state}
+    // Set global last_warmed_on to the latest message's createdAt across all threads
+    let latestMessageTime = 0
+    newState.chat.threads.forEach((thread: any) => {
+      if (thread.messages && thread.messages.length > 0) {
+        const latestMessage = thread.messages[thread.messages.length - 1]
+        if (latestMessage.createdAt > latestMessageTime) {
+          latestMessageTime = latestMessage.createdAt
+        }
+      }
+    })
+    newState.chat.last_warmed_on = latestMessageTime
+    return newState
   }
 }
 
@@ -524,7 +539,7 @@ if (isEmbedded) {
 
 const persistConfig = {
   key: 'root',
-  version: 51,
+  version: 52,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
