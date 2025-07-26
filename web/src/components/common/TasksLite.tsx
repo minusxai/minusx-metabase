@@ -15,12 +15,9 @@ import {
     BiSolidErrorCircle,
 } from 'react-icons/bi';
 import { BiCircle } from 'react-icons/bi';
-<<<<<<< HEAD
 import { MdBlock } from 'react-icons/md';
 import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
-=======
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill } from 'react-icons/bs';
->>>>>>> bcca3be (add all ui for feedback)
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
@@ -232,13 +229,8 @@ export const TasksLite: React.FC = () => {
   const [expandedRootTasks, setExpandedRootTasks] = useState<Set<string>>(new Set());
 
   const allTasks: TasksInfo = activeThread?.tasks || [];
-<<<<<<< HEAD
   const flatTasks = useMemo(() => flattenTasks(allTasks, expandedRootTasks), [allTasks, expandedRootTasks]);
   
-=======
-  const flatTasks = useMemo(() => flattenTasks(allTasks), [allTasks]);
-
->>>>>>> bcca3be (add all ui for feedback)
   const rootTasks = useMemo(() => {
     if (!allTasks || allTasks.length === 0) return [];
     const taskMap = new Map(allTasks.map(t => [t.id, t]));
