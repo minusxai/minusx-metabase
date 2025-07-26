@@ -12,6 +12,7 @@ import {
     BiSolidErrorCircle,
 } from 'react-icons/bi';
 import { BiCircle } from 'react-icons/bi';
+import { MdBlock } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
@@ -26,14 +27,19 @@ interface TimelineNodeProps {
   task: TaskWithLevel;
   isLast: boolean;
   parentLevels: boolean[];
+  taskInterrupted?: boolean;
 }
 
 const TimelineNode: React.FC<TimelineNodeProps> = ({
     task,
     isLast,
-    parentLevels
+    parentLevels,
+    taskInterrupted = false
 }) => {
   const getStatusIcon = () => {
+    if (taskInterrupted) {
+      return <Icon as={MdBlock} color="orange.500" title="Interrupted" />;
+    }
     if (task.result != null) {
         const isError = (typeof task.result === 'object' && task.result !== null && (task.result as any).error);
         if (isError) {
@@ -171,6 +177,8 @@ export const TasksLite: React.FC = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread);
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
   const taskInProgress = !(activeThread.status === 'FINISHED')
+  const taskInterrupted = activeThread.interrupted
+
   const allTasks: TasksInfo = activeThread?.tasks || [];
   const flatTasks = useMemo(() => flattenTasks(allTasks), [allTasks]);
   
@@ -269,6 +277,7 @@ export const TasksLite: React.FC = () => {
                 task={flatTask.task}
                 isLast={flatTask.isLast}
                 parentLevels={flatTask.parentLevels}
+                taskInterrupted={taskInterrupted}
               />
             ))}
           </VStack>
