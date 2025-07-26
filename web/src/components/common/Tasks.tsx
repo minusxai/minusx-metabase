@@ -28,6 +28,7 @@ import {
     BiExpand,
     BiBarChart
 } from 'react-icons/bi';
+import { MdBlock } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store'; // Assuming this path is correct
 import ReactJson from 'react-json-view';
@@ -42,13 +43,15 @@ interface TreeNodeProps {
   allTasks: TasksInfo;
   level?: number;
   initiallyOpen?: boolean;
+  taskInterrupted?: boolean;
 }
 
 const TreeNode: React.FC<TreeNodeProps> = ({
     task,
     allTasks,
     level = 0,
-    initiallyOpen = level < 1
+    initiallyOpen = level < 1,
+    taskInterrupted = false
 }) => {
   const [isOpen, setIsOpen] = useState(initiallyOpen);
 
@@ -75,6 +78,9 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   };
 
   const getStatusIcon = () => {
+    if (taskInterrupted) {
+      return <Icon as={MdBlock} color="orange.500" title="Interrupted" />;
+    }
     if (task.result != null) {
         const isError = (typeof task.result === 'object' && task.result !== null && (task.result as any).error);
         if (isError) {
@@ -218,6 +224,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
                         level={level + 1}
                         // Expand first level children if parent was initially open in modal
                         initiallyOpen={initiallyOpen && level < 1}
+                        taskInterrupted={taskInterrupted}
                     />
                   ))}
               </VStack>
@@ -276,6 +283,7 @@ export const Tasks: React.FC = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread);
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
   const allTasks: TasksInfo = activeThread?.tasks || [];
+  const taskInterrupted = activeThread?.interrupted;
   const aggDebug = aggregateLlmDebugStats(allTasks);
   
   const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
@@ -335,6 +343,7 @@ export const Tasks: React.FC = () => {
              allTasks={allTasks}
              level={0}
              initiallyOpen={isModal ? true : rootTask.level < 1} // Expand root in modal
+             taskInterrupted={taskInterrupted}
           />
         ))}
       </VStack>
@@ -389,7 +398,7 @@ export const Tasks: React.FC = () => {
             <HStack justifyContent="space-between" px={1} mb={1}>
               <HStack>
                  <Text fontSize={"sm"} fontWeight={600} color={'minusxBW.700'}>Tasks</Text>
-                 {(isLoading || isStarting) && <Spinner size="xs" speed={'0.75s'} color="minusxBW.600" />}
+                 {(isLoading || isStarting) && !taskInterrupted && <Spinner size="xs" speed={'0.75s'} color="minusxBW.600" />}
               </HStack>
               <Tooltip label="Expand Tasks View" openDelay={300}>
                   <IconButton
@@ -419,7 +428,7 @@ export const Tasks: React.FC = () => {
              <HStack justifyContent="space-between">
                  <HStack>
                     <Text fontSize={"lg"} fontWeight={600} color={'minusxBW.800'}>Task Details</Text>
-                     {(isLoading || isStarting) && <Spinner size="sm" speed={'0.75s'} color="minusxBW.700" />}
+                     {(isLoading || isStarting) && !taskInterrupted && <Spinner size="sm" speed={'0.75s'} color="minusxBW.700" />}
                  </HStack>
              </HStack>
           </ModalHeader>
