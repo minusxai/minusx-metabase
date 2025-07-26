@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Box,
   HStack,
@@ -13,6 +13,7 @@ import {
 } from 'react-icons/bi';
 import { BiCircle } from 'react-icons/bi';
 import { MdBlock } from 'react-icons/md';
+import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
@@ -28,13 +29,19 @@ interface TimelineNodeProps {
   isLast: boolean;
   parentLevels: boolean[];
   taskInterrupted?: boolean;
+  isExpanded?: boolean;
+  onToggleExpand?: () => void;
+  hasChildren?: boolean;
 }
 
 const TimelineNode: React.FC<TimelineNodeProps> = ({
     task,
     isLast,
     parentLevels,
-    taskInterrupted = false
+    taskInterrupted = false,
+    isExpanded = true,
+    onToggleExpand,
+    hasChildren = false
 }) => {
   const getStatusIcon = () => {
     if (taskInterrupted) {
@@ -106,14 +113,43 @@ const TimelineNode: React.FC<TimelineNodeProps> = ({
         </Box>
       ))}
       
+      {/* Expand/collapse icon for root tasks with children */}
+      {task.level === 0 && hasChildren && (
+        <Box 
+          flexShrink={0} 
+          display="flex" 
+          alignItems="center" 
+          w="16px" 
+          justifyContent="center" 
+          mr={1}
+          cursor="pointer"
+          onClick={onToggleExpand}
+          _hover={{ bg: 'minusxBW.400' }}
+          borderRadius={2}
+          p={0.5}
+        >
+          <Icon 
+            as={isExpanded ? IoChevronDown : IoChevronForward} 
+            color="minusxBW.600"
+            boxSize={3}
+          />
+        </Box>
+      )}
+      
       {/* Status icon */}
       <Box flexShrink={0} display="flex" alignItems="center" w="20px" justifyContent="center" mr={2}>
         {getStatusIcon()}
       </Box>
 
       {/* Task name */}
-      <Text fontSize="sm" fontWeight="500" noOfLines={1} flexGrow={1} title={task.agent}>
-        {/* {task.agent} */}
+      <Text 
+        fontSize="sm" 
+        noOfLines={1} 
+        flexGrow={1} 
+        title={task.agent}
+        cursor={task.level === 0 && hasChildren ? "pointer" : "default"}
+        onClick={task.level === 0 && hasChildren ? onToggleExpand : undefined}
+      >
         {getActionTaskLiteLabels(task.agent)}
       </Text>
     </HStack>
@@ -126,11 +162,11 @@ interface FlattenedTask {
   parentLevels: boolean[];
 }
 
-const flattenTasks = (tasks: TasksInfo): FlattenedTask[] => {
+const flattenTasks = (tasks: TasksInfo, expandedRootTasks: Set<string> = new Set()): FlattenedTask[] => {
   const taskMap = new Map(tasks.map(t => [t.id, t]));
   const result: FlattenedTask[] = [];
   
-  const addTaskAndChildren = (task: Task, level: number = 0, parentLevels: boolean[] = [], isLastAtLevel: boolean = false) => {
+  const addTaskAndChildren = (task: Task, level: number = 0, parentLevels: boolean[] = [], isLastAtLevel: boolean = false, rootTaskId?: string) => {
     const taskWithLevel: TaskWithLevel = { ...task, level };
     
     result.push({
@@ -139,7 +175,11 @@ const flattenTasks = (tasks: TasksInfo): FlattenedTask[] => {
       parentLevels: [...parentLevels]
     });
     
-    if (Array.isArray(task.child_ids) && task.child_ids.length > 0) {
+    // Only show children if the root task is expanded (or if we're already in a subtree of an expanded root)
+    const currentRootId = rootTaskId || task.id;
+    const shouldShowChildren = level === 0 ? expandedRootTasks.has(currentRootId) : expandedRootTasks.has(rootTaskId!);
+    
+    if (shouldShowChildren && Array.isArray(task.child_ids) && task.child_ids.length > 0) {
       const childTasks = task.child_ids
         .map(childId => taskMap.get(childId))
         .filter((child): child is Task => child !== undefined);
@@ -148,7 +188,7 @@ const flattenTasks = (tasks: TasksInfo): FlattenedTask[] => {
       
       childTasks.forEach((childTask, index) => {
         const isLastChild = index === childTasks.length - 1;
-        addTaskAndChildren(childTask, level + 1, newParentLevels, isLastChild);
+        addTaskAndChildren(childTask, level + 1, newParentLevels, isLastChild, currentRootId);
       });
     }
   };
@@ -167,7 +207,7 @@ const flattenTasks = (tasks: TasksInfo): FlattenedTask[] => {
 
   rootTasks.forEach((rootTask, index) => {
     const isLastRoot = index === rootTasks.length - 1;
-    addTaskAndChildren(rootTask, 0, [], isLastRoot);
+    addTaskAndChildren(rootTask, 0, [], isLastRoot, rootTask.id);
   });
   
   return result;
@@ -178,9 +218,11 @@ export const TasksLite: React.FC = () => {
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
   const taskInProgress = !(activeThread.status === 'FINISHED')
   const taskInterrupted = activeThread.interrupted
+  
+  const [expandedRootTasks, setExpandedRootTasks] = useState<Set<string>>(new Set());
 
   const allTasks: TasksInfo = activeThread?.tasks || [];
-  const flatTasks = useMemo(() => flattenTasks(allTasks), [allTasks]);
+  const flatTasks = useMemo(() => flattenTasks(allTasks, expandedRootTasks), [allTasks, expandedRootTasks]);
   
   const rootTasks = useMemo(() => {
     if (!allTasks || allTasks.length === 0) return [];
@@ -195,6 +237,18 @@ export const TasksLite: React.FC = () => {
         !childIds.has(task.id) && (!task.parent_id || !taskMap.has(task.parent_id))
     );
   }, [allTasks]);
+  
+  const toggleRootTask = (taskId: string) => {
+    setExpandedRootTasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
+  };
   
   const isEmpty = allTasks.length === 0;
   const isLoading = !isEmpty && rootTasks.length > 0 && !last(rootTasks)?.result;
@@ -271,15 +325,23 @@ export const TasksLite: React.FC = () => {
 
         <Box background={'minusxBW.200'} borderRadius={5} p={2}>
           <VStack align="stretch" spacing={0} w="100%">
-            {flatTasks.map((flatTask, index) => (
-              <TimelineNode
-                key={`${flatTask.task.id}-${index}`}
-                task={flatTask.task}
-                isLast={flatTask.isLast}
-                parentLevels={flatTask.parentLevels}
-                taskInterrupted={taskInterrupted}
-              />
-            ))}
+            {flatTasks.map((flatTask, index) => {
+              const hasChildren = Array.isArray(flatTask.task.child_ids) && flatTask.task.child_ids.length > 0;
+              const isExpanded = expandedRootTasks.has(flatTask.task.id);
+              
+              return (
+                <TimelineNode
+                  key={`${flatTask.task.id}-${index}`}
+                  task={flatTask.task}
+                  isLast={flatTask.isLast}
+                  parentLevels={flatTask.parentLevels}
+                  taskInterrupted={taskInterrupted}
+                  hasChildren={hasChildren}
+                  isExpanded={isExpanded}
+                  onToggleExpand={() => toggleRootTask(flatTask.task.id)}
+                />
+              );
+            })}
           </VStack>
         </Box>
       </VStack>
