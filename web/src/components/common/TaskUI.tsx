@@ -23,7 +23,7 @@ import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmar
 import { ReviewBox } from './ReviewBox'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
-import { abortPlan, startNewThread, updateLastWarmedOn } from '../../state/chat/reducer'
+import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries, setDemoMode, DEFAULT_TABLES, TableInfo, setSelectedModels } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
@@ -322,6 +322,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         setMetaQuestion('')
       } 
       else {
+        dispatch(clearTasks())
         chat.addUserMessage({
           content: {
             type: "DEFAULT",
