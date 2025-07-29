@@ -191,8 +191,8 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
   const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
   
   if (!forceRefresh && cacheEntry) {
-    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-    const isStale = Date.now() - cacheEntry.timestamp > SEVEN_DAYS_MS
+    const ONE_HOUR_MS = 1 * 60 * 60 * 1000
+    const isStale = Date.now() - cacheEntry.timestamp > ONE_HOUR_MS
     
     if (!isStale) {
       console.log(`[minusx] Using cached metadata for database ${selectedDbId}`)

@@ -209,36 +209,56 @@ export async function getAllCardsAndModels(forceRefresh = false) {
   // Get selected database ID
   const selectedDbId = await getSelectedDbId();
   
-  // Calculate 3 months ago date
-  const threeMonthsAgo = new Date();
-  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-  const cutoffDate = threeMonthsAgo.toISOString();
+  console.log('[minusx] getAllCards - Total cards:', cards.length);
   
-  console.log('[minusx] getAllCards - Total cards:', cards);
-  
-  // Filter cards by database_id and last_used_at (last 3 months only)
+  // Filter cards by database_id only
   const filteredCardsAndModels = filter(cards, (card) => {
-    const lastUsedAt = get(card, 'last_used_at');
     const databaseId = get(card, 'database_id');
     
-    // Filter by selected database and last 3 months
-    const matchesDatabase = selectedDbId ? databaseId === selectedDbId : true;
-    const isRecent = lastUsedAt && lastUsedAt > cutoffDate;
+    // Filter by selected database only
+    const matchesDatabase = selectedDbId && databaseId? databaseId === selectedDbId : true;
 
-    return matchesDatabase && isRecent;
+    return matchesDatabase;
   });
+  console.log('[minusx] getAllCards - Filtered:', filteredCardsAndModels.length);
+  
   // split into cards and models
   const [filteredCards, filteredModels] = partition(filteredCardsAndModels, (card) => get(card, 'type') !== 'model');
-  // Sort by view_count descending
-  // if length > 1000, limit to 1000
-  const sortedCards = reverse(sortBy(filteredCards, 'view_count'));
+  
+  console.log('[minusx] Non model cards:', filteredCards.length);
+  console.log('[minusx] Model cards:', filteredModels.length);
+  // Calculate relevancy score and sort by it
+  const cardsWithRelevancy = filteredCards.map((card) => {
+    const viewCount = get(card, 'view_count') || 0;
+    const lastUsedAt = get(card, 'last_used_at');
+    
+    let daysAgo = 0;
+    if (lastUsedAt) {
+      const lastUsedDate = new Date(lastUsedAt);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - lastUsedDate.getTime());
+      daysAgo = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+    
+    const relevancy = viewCount - daysAgo;
+    
+    return {
+      ...card,
+      relevancy
+    };
+  });
+  
+  // Sort by relevancy descending
+  const sortedCards = reverse(sortBy(cardsWithRelevancy, 'relevancy'));
 
-  // Limit to 1000 cards
-  if (sortedCards.length > 1000) {
-    sortedCards.length = 1000;
+  // Limit to 2000 cards
+  if (sortedCards.length > 2000) {
+    sortedCards.length = 2000;
   }
 
-  const processedCards = map(sortedCards, processCard);
+  // Remove the relevancy property before processing since it's not part of the card schema
+  const cardsForProcessing = sortedCards.map(card => omit(card, ['relevancy']));
+  const processedCards = map(cardsForProcessing, processCard);
 
   const processedModelFields = filteredModels.flatMap((model) => {
     const result_metadata = get(model, 'result_metadata', [])
