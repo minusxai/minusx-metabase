@@ -962,7 +962,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       // table output
       let output = ""
       output = await getAndFormatOutputTable(_type);
-      actionContent.content = `${cardState}${parameterValuesState}<OUTPUT>${output}<OUTPUT>`;
+      actionContent.content = `${cardState}${parameterValuesState}<OUTPUT>${output}</OUTPUT>`;
     }
     return actionContent;
   }
