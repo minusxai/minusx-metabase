@@ -210,7 +210,9 @@ const Auth = () => {
   
 
   useEffect(() => {
-    setMinusxMode('open-sidepanel')
+    if (!isEmbedded){
+        setMinusxMode('open-sidepanel')
+    }
   }, [])
   const handleVerifyOtp = () => {
     if (!otp) {
