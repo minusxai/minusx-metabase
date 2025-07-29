@@ -234,7 +234,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   // updateDemoMode logic moved to ChatInputArea component
 
-  const runTask = async () => {
+  const runTask = async (instructions: string) => {
     let toastTitle = ''
     let toastDescription = ''
     let preventRunTask = false

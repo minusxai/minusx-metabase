@@ -18,7 +18,7 @@ import _ from 'lodash'
 
 interface ChatInputAreaProps {
   isRecording: boolean
-  runTask: () => void
+  runTask: (instructions: string) => void
   appEnabledStatus: {
     inputBox: boolean
     alert: {
@@ -59,7 +59,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
     const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
-        runTask()
+        runTask(instructions)
       }
     }
 
