@@ -27,6 +27,7 @@ export interface MetabaseAppStateSQLEditorV2 extends MetabaseAppStateBase {
   currentCard: Card
   outputMarkdown: string
   parameterValues: ParameterValues
+  sqlErrorMessage?: string
 }
 
 export interface MetabaseAppStateDashboardV2 extends MetabaseAppStateBase {

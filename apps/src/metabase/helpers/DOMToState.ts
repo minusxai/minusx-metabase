@@ -179,6 +179,8 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   );
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
+  const sqlErrorMessage = await getSqlErrorMessage();
+
   return {
     type: MetabaseAppStateType.SQLEditor,
     version: '2',
@@ -189,7 +191,8 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
     currentCard,
     outputMarkdown,
     parameterValues,
-    selectedDatabaseInfo
+    selectedDatabaseInfo,
+    sqlErrorMessage
   }
 }
 
