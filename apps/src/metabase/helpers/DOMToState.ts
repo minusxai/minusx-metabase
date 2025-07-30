@@ -23,7 +23,7 @@ import { MetabaseTableOrModel } from './metabaseAPITypes';
 
 const {modifySqlForMxModels} = catalogAsModels
 
-interface ExtractedDataBase {
+export interface ExtractedDataBase {
   name: string;
   description?: string;
   id: number;
@@ -106,7 +106,7 @@ export { type MetabasePageType } from '../defaultState'
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
 
-async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<FormattedTable[]> {
+async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<MetabaseTableOrModel[]> {
   const appSettings = RPCs.getAppSettings();
   
   // Early return if conditions not met
@@ -146,23 +146,22 @@ async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<Formatte
   const relevantModelsWithFields = await getModelsWithFields(relevantModels);
   
   // Transform and combine tables and models with type annotations
-  const relevantTablesWithFieldsAndType = relevantTablesWithFields.map(table => ({
-    ...table,
+  const relevantTablesWithFieldsAndType: MetabaseTableOrModel[] = relevantTablesWithFields.map(table => ({
     type: 'table',
+    id: table.id,
+    name: table.name,
+    schema: table.schema,
+    description: table.description,
   }));
   
-  const relevantModelsWithFieldsAndType = relevantModelsWithFields.map(model => ({
-    ...model,
+  const relevantModelsWithFieldsAndType: MetabaseTableOrModel[] = relevantModelsWithFields.map(model => ({
     type: 'model',
-    name: model.modelName || '',
     id: model.modelId || 0,
-    schema: '',
-    table: undefined,
-    modelId: undefined,
-    modelName: undefined,
+    name: model.name,
+    description: model.description,
   }));
   
-  return [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType] as FormattedTable[];
+  return [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
 }
 
 export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQLEditorV2> {
@@ -178,6 +177,8 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const limitedEntities = await getRelevantEntitiesWithFields(
     get(currentCard, 'dataset_query.native.query', '') || ''
   );
+  const dbId = await getSelectedDbId();
+  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   return {
     type: MetabaseAppStateType.SQLEditor,
     version: '2',
@@ -188,6 +189,7 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
     currentCard,
     outputMarkdown,
     parameterValues,
+    selectedDatabaseInfo
   }
 }
 
