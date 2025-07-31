@@ -23,7 +23,7 @@ function LinkRenderer(props: any) {
         return (
             <a href={props.href} target="_blank" rel="minusxapp">
                 {/* <Button leftIcon={<BsBarChartFill />} size={"xs"} colorScheme={"minusxGreen"}>{props.children}</Button> */}
-                <Tag size='sm' colorScheme='minusxGreen' variant='solid' border={"1px solid #fff"}>
+                <Tag size='sm' colorScheme='minusxGreen' variant='solid' border={"1px solid #fff"} aria-label='card-link'>
                     <TagLeftIcon as={BsBarChartFill} />
                     <TagLabel>{props.children}</TagLabel>
                 </Tag>
@@ -80,10 +80,10 @@ function ModifiedCode(props: any) {
         const text = props.children?.toString() || '';
         
         if (text.startsWith('[badge]')) {
-        return <Badge color={"minusxGreen.600"}>{text.replace('[badge]', '')}</Badge>;
+        return <Badge color={"minusxGreen.600"} aria-label='mx-badge'>{text.replace('[badge]', '')}</Badge>;
         }
         if (text.startsWith('[badge_mx]')) {
-        return <><br></br><Badge borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
+        return <><br></br><Badge aria-label='mx-badge' borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
         }
     }
     

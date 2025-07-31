@@ -122,6 +122,7 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           <ChatContent content={content} messageIndex={index} role={role}/>
           
           <Box
+            aria-label='message-arrow'
             position="absolute"
             bottom="-5px"
             left={role == 'user' ? 'auto' : '0px'}

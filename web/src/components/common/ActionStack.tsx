@@ -298,7 +298,7 @@ const PlanningActionStack: React.FC = () => {
   }, []);
 
   return (
-  <HStack aria-label={"planning"} className={'action-stack'} justifyContent={'start'} width={"100%"}> 
+  <HStack aria-label={"planning"} className={'action-stack'} justifyContent={'start'} width={"100%"}>
     <Box
       bg={'minusxGreen.800'}
       p={2}
@@ -307,12 +307,13 @@ const PlanningActionStack: React.FC = () => {
       width={"100%"}
       display={"flex"}
       justifyContent={"center"}
+      aria-label={"planning-bubble"}
     >
       <HStack>
         <Box>
           <Text key={currentTitleIndex} animation={currentTitleIndex > 0 ? `${scrollUp} 0.5s ease-in-out` : ""} >{planningActions[currentTitleIndex]}</Text>
         </Box>
-        <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" />
+        <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" aria-label={"planning-spinner"}/>
       </HStack>
     </Box>
   </HStack>
