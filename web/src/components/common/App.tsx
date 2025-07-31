@@ -27,11 +27,11 @@ import { BsFillPatchQuestionFill } from "react-icons/bs";
 
 import { useSelector } from 'react-redux'
 import { login, register } from '../../state/auth/reducer'
-import { dispatch, logoutState } from '../../state/dispatch'
-import {auth as authModule} from '../../app/api'
+import { dispatch, logoutState, resetState } from '../../state/dispatch'
+import {auth as authModule, setAxiosJwt} from '../../app/api'
 import Auth from './Auth'
 import _, { attempt } from 'lodash'
-import { updateAppMode, setAnalystMode, setDRMode } from '../../state/settings/reducer'
+import { updateAppMode, setAnalystMode, setDRMode, setCurrentEmail } from '../../state/settings/reducer'
 import { DevToolsBox } from '../devtools';
 import { RootState } from '../../state/store'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
@@ -42,7 +42,7 @@ import { setBillingInfo } from '../../state/billing/reducer'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
-import { setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
+import { getMXToken, setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
 
@@ -401,6 +401,40 @@ const AppBody = forwardRef((_props, ref) => {
   //   borderLeftColor={"minusxBW.500"} borderRightColor={"transparent"}
   //   borderTopColor={"minusxBW.500"} borderBottomColor={"minusxBW.500"}/>
   // )
+
+  useEffect(() => {
+    let tries = 1
+    const checkToken = async () => {
+      const mx_token = await getMXToken()
+      
+      if (mx_token) {
+        try {
+          const embedAuthResult = await authModule.embedAuth(mx_token)
+          const { session_jwt, profile_id, email } = embedAuthResult
+          if (email != currentEmail) {
+            resetState()
+          }
+          dispatch(login({
+            session_jwt,
+            profile_id,
+            email,
+          }))
+          setAxiosJwt(session_jwt)
+          dispatch(setCurrentEmail(email))
+          return
+        } catch (error) {
+          console.error('Failed to authenticate embed token:', error)
+        }
+      }
+      if (tries < 3) {
+        setTimeout(checkToken, (tries++) * 1000)
+      }
+    }
+    if (isEmbedded) {
+      checkToken()
+    }
+  }, [])
+
   if (!auth.is_authenticated) {
     return <Auth />
   }

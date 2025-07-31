@@ -179,40 +179,7 @@ const Auth = () => {
   const isOTPMode = authJWT ? true : false
   const helperMessage = useAppStore((state) => state.helperMessage)?.split('---')[1] || "Welcome to MinusX! You can ask us anything related to your data, and our agents will take care of the rest!"
   const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
-  const currentEmail = useSelector((state: RootState) => state.settings.currentEmail)
-
-  useEffect(() => {
-    let tries = 1
-    const checkToken = async () => {
-      const mx_token = await getMXToken()
-      
-      if (mx_token) {
-        try {
-          const embedAuthResult = await authModule.embedAuth(mx_token)
-          const { session_jwt, profile_id, email } = embedAuthResult
-          if (email != currentEmail) {
-            resetState()
-          }
-          dispatch(login({
-            session_jwt,
-            profile_id,
-            email,
-          }))
-          setAxiosJwt(session_jwt)
-          dispatch(setCurrentEmail(email))
-          return
-        } catch (error) {
-          console.error('Failed to authenticate embed token:', error)
-        }
-      }
-      if (tries < 3) {
-        setTimeout(checkToken, (tries++) * 1000)
-      }
-    }
-    if (isEmbedded) {
-      checkToken()
-    }
-  }, [])
+  const currentEmail = useSelector((state: RootState) => state.settings.currentEmail) 
   
 
   useEffect(() => {
