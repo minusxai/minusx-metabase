@@ -58,7 +58,7 @@ const FeatureHighlightBubble = ({items}: {items: HighlightItem[]}) => {
   
   return (
     isVisibile && <Box position="absolute"
-      top={items[hintIdx].top}
+      top={items[hintIdx].top} aria-label='login-highlights'
       >
       {
         items[hintIdx].arrow && 
@@ -368,8 +368,8 @@ const Auth = () => {
     <Box p={5} maxW="md" mx="auto" width={`${width}px`} height={"100%"} backgroundColor={"minusxBW.200"}
     borderWidth={1.5} borderLeftColor={"minusxBW.500"}>
       <Image src={logo} alt="MinusX" maxWidth='150px'/>
-      <VStack spacing={4} mt={5} position={"relative"}>
-        {isEmbedded && <Text>Logging you in...</Text>}
+      {isEmbedded && <Text>Logging you in...</Text>}
+      <VStack spacing={4} mt={5} position={"relative"} aria-label='login-form'>
         <Input
           type="email"
           placeholder="Enter work email ID"

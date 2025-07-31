@@ -58,7 +58,7 @@ export const DemoHelperMessage = ({url}: {url: string}) => {
     }
 
   const message = MESSAGES[demoIDX]
-  return <SettingsBlock title={MESSAGE_TITLES[demoIDX]}><Markdown content={message}/></SettingsBlock>
+  return <SettingsBlock title={MESSAGE_TITLES[demoIDX]} ariaLabel="welcome-message"><Markdown content={message}/></SettingsBlock>
 
 }
 

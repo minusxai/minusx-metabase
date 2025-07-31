@@ -22,7 +22,7 @@ export const Suggestions = ({ title, suggestions, onSuggestionClick }: {title: s
         onSuggestionClick?.(suggestion)
     };
   return (
-    <Flex wrap="wrap" gap={2}>
+    <Flex wrap="wrap" gap={2} aria-label='suggestions'>
       <HStack justifyContent={"space-between"} width={"100%"}>
         <HStack color="minusxGreen.500">
           <HiMiniSparkles/>
