@@ -28,6 +28,7 @@ export interface MetabaseAppStateSQLEditorV2 extends MetabaseAppStateBase {
   outputMarkdown: string
   parameterValues: ParameterValues
   sqlErrorMessage?: string
+  relevantTablesWithFields?: FormattedTable[]
 }
 
 export interface MetabaseAppStateDashboardV2 extends MetabaseAppStateBase {

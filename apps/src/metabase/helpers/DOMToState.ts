@@ -1,6 +1,6 @@
 import { getParsedIframeInfo, RPCs } from 'web'
-import { getTablesWithFields } from './getDatabaseSchema';
-import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases } from './metabaseAPIHelpers';
+import { getAllRelevantTablesForSelectedDb, getRelevantTablesForSelectedDb, getTablesWithFields, validateTablesInDB } from './getDatabaseSchema';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases, getTableData } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
@@ -106,7 +106,8 @@ export { type MetabasePageType } from '../defaultState'
 
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
 
-async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<MetabaseTableOrModel[]> {
+// no need to fetch fields since we don't want that in limited entities
+async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTableOrModel[]> {
   const appSettings = RPCs.getAppSettings();
   
   // Early return if conditions not met
@@ -143,7 +144,6 @@ async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<Metabase
   
   const allModels = dbId ? await getAllRelevantModelsForSelectedDb(dbId) : [];
   const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "", appSettings.selectedModels, allModels);
-  const relevantModelsWithFields = await getModelsWithFields(relevantModels);
   
   // Transform and combine tables and models with type annotations
   const relevantTablesWithFieldsAndType: MetabaseTableOrModel[] = relevantTablesWithFields.map(table => ({
@@ -154,7 +154,7 @@ async function getRelevantEntitiesWithFields(sqlQuery: string): Promise<Metabase
     description: table.description,
   }));
   
-  const relevantModelsWithFieldsAndType: MetabaseTableOrModel[] = relevantModelsWithFields.map(model => ({
+  const relevantModelsWithFieldsAndType: MetabaseTableOrModel[] = relevantModels.map(model => ({
     type: 'model',
     id: model.modelId || 0,
     name: model.name,
@@ -174,13 +174,29 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const currentCard = processCard(currentCardRaw);
   const metabaseOrigin = new URL(metabaseUrl).origin;
   const isEmbedded = getParsedIframeInfo().isEmbedded
-  const limitedEntities = await getRelevantEntitiesWithFields(
-    get(currentCard, 'dataset_query.native.query', '') || ''
-  );
+  const sqlQuery =  get(currentCard, 'dataset_query.native.query', '') || ''
+  const limitedEntities = await getLimitedEntities(sqlQuery);
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const sqlErrorMessage = await getSqlErrorMessage();
-
+  // add tables in the sql as relevant tables, after fetching their fields
+  let relevantTablesWithFields: FormattedTable[] = []
+  {
+      const dbTables = await getAllRelevantTablesForSelectedDb(dbId || 0)
+      const sqlTables = await getTablesFromSqlRegex(sqlQuery)
+      const defaultSchema = selectedDatabaseInfo?.default_schema
+      // Apply default schema to tables if needed
+      if (defaultSchema) {
+        sqlTables.forEach((table) => {
+          if (table.schema === undefined || table.schema === '') {
+            table.schema = defaultSchema;
+          }
+        });
+      }
+      const validSqlTables = validateTablesInDB(sqlTables, dbTables, defaultSchema)
+      const sqlTablesWithFields = (await Promise.all(validSqlTables.map(table => getTableData(table.id)))).filter(table => table !== "missing")
+      relevantTablesWithFields = sqlTablesWithFields
+  }
   return {
     type: MetabaseAppStateType.SQLEditor,
     version: '2',
@@ -192,7 +208,8 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
     outputMarkdown,
     parameterValues,
     selectedDatabaseInfo,
-    sqlErrorMessage
+    sqlErrorMessage,
+    relevantTablesWithFields
   }
 }
 

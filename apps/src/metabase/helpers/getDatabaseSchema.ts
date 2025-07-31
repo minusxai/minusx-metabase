@@ -37,7 +37,7 @@ function lowerAndDefaultSchemaAndDedupe(tables: TableAndSchema[]): TableAndSchem
   return dedupeAndCountTables(lowered);
 }
 
-const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTable[], default_schema?: string) => {
+export const validateTablesInDB = (tables: TableAndSchema[], allDBTables: FormattedTable[], default_schema?: string) => {
   const allTablesAsMap = _.fromPairs(allDBTables.map(tableInfo => [getTableKey(tableInfo), tableInfo]));
   if (default_schema) {
     tables = tables.map(tableInfo => {
@@ -66,7 +66,7 @@ const addTableJoins = (tables: FormattedTable[], tableMap: Record<number | strin
   })
 }
 
-const getAllRelevantTablesForSelectedDb = async (dbId: number): Promise<FormattedTable[]> => {
+export const getAllRelevantTablesForSelectedDb = async (dbId: number): Promise<FormattedTable[]> => {
   const [userTables, {tables: allDBTables, default_schema}] = await Promise.all([
     getUserTables(dbId),
     handlePromise(getDatabaseTablesAndModelsWithoutFields(dbId), "Failed to get database tables", {
