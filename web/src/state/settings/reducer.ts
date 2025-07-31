@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { MetabaseModel } from 'apps/types';
 import type { PayloadAction } from '@reduxjs/toolkit'
-import { defaultIframeInfoWeb, IframeInfoWeb } from '../../helpers/origin'
+import { defaultIframeInfoWeb, getParsedIframeInfo, IframeInfoWeb } from '../../helpers/origin'
 import { ContextCatalog, MxModel } from '../../helpers/utils'
 
 export interface MetadataProcessingResult {
@@ -21,8 +21,9 @@ export type SidePanelTabName = 'chat' | 'settings' | 'context'
 export type DevToolsTabName = 'Context' | 'History' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization' | 'Debug Tools'
 
 export const DEFAULT_TABLES = 'Default Tables'
+const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
 
-export const DEFAULT_MINUSXMD = `
+export const DEFAULT_MINUSXMD = isEmbedded ? '' : `
 # minusx.md
 
 This is a user-specific reference guide for MinusX. It contains user preferences wrt. essential data sources, common conventions, key business concepts, important metrics and terminologies. The general notes are written by the user. It also includes notable memories that are automatically updated by the agent.
