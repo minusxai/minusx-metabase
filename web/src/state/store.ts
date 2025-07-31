@@ -18,7 +18,7 @@ import { userStateApi } from '../app/api/userStateApi'
 import { get } from 'lodash'
 import { getParsedIframeInfo } from '../helpers/origin'
 
-const combinedReducer = combineReducers({
+const combineReducerInput = {
   chat,
   auth,
   settings,
@@ -28,7 +28,9 @@ const combinedReducer = combineReducers({
   cache,
   notifications,
   [userStateApi.reducerPath]: userStateApi.reducer
-});
+}
+
+const combinedReducer = combineReducers(combineReducerInput);
 
 const rootReducer = (state: any, action: any) => {
   let updatedState = state;
@@ -532,7 +534,7 @@ const migrations = {
 }
 
 const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
-const BLACKLIST = isEmbedded ? [] : ['billing', 'cache', userStateApi.reducerPath]
+const BLACKLIST = isEmbedded ? Object.keys(combineReducerInput) : ['billing', 'cache', userStateApi.reducerPath]
 
 const persistConfig = {
   key: 'root',
