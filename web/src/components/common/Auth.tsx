@@ -3,7 +3,7 @@ import { Button, Input, Box, VStack, Image, CloseButton, HStack, Text, Progress 
 import { Select, CreatableSelect } from "chakra-react-select";
 import { login } from '../../state/auth/reducer'
 import { dispatch, logoutState, resetState } from '../../state/dispatch'
-import {auth, auth as authModule} from '../../app/api'
+import {auth, auth as authModule, setAxiosJwt} from '../../app/api'
 import { useSelector } from 'react-redux';
 import logo from '../../assets/img/logo.svg'
 import { BsLightbulbFill, BsArrowRight } from "react-icons/bs";
@@ -198,6 +198,7 @@ const Auth = () => {
             profile_id,
             email,
           }))
+          setAxiosJwt(session_jwt)
           dispatch(setCurrentEmail(email))
           return
         } catch (error) {
