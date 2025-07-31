@@ -531,11 +531,8 @@ const migrations = {
   }
 }
 
-const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath]
 const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
-if (isEmbedded) {
-  BLACKLIST.push('auth')
-}
+const BLACKLIST = isEmbedded ? [] : ['billing', 'cache', userStateApi.reducerPath]
 
 const persistConfig = {
   key: 'root',
