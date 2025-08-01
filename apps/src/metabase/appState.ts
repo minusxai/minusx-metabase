@@ -128,6 +128,69 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
 
+  private async triggerMetabaseStateUpdate(url: string, elements: DOMQueryMapResponse) {
+    const state = this.useStore().getState();
+    const getState = this.useStore().getState
+    const dbId = await getSelectedDbId();
+    let toolEnabledNew = shouldEnable(elements, url);
+    if (dbId === undefined || dbId === null) {
+      toolEnabledNew = {
+        value: false,
+        reason: "Unable to detect correct database. Please navigate to a SQL query page to enable MinusX."
+      }
+    }
+    const pageType: MetabasePageType = determineMetabasePageType(elements, url);
+    getState().update((oldState) => ({
+      ...oldState,
+      isEnabled: toolEnabledNew,
+      toolContext: {
+        ...oldState.toolContext,
+        pageType,
+        url
+      }
+    }));
+    const currentToolContext = getState().toolContext
+    const oldDbId = get(currentToolContext, 'dbId')
+    if (dbId && dbId !== oldDbId) {
+      getState().update((oldState) => ({
+        ...oldState,
+        toolContext: {
+          ...oldState.toolContext,
+          dbId
+        }
+      }))
+      runStoreTasks(async (taskStatus) => {
+        state.update((oldState) => ({
+          ...oldState,
+          toolContext: {
+            ...oldState.toolContext,
+            loading: true
+          }
+        }))
+        const isCancelled = () => taskStatus.status === 'cancelled';
+        const [relevantTables, dbInfo] = await Promise.all([
+          handlePromise(abortable(getRelevantTablesForSelectedDb(), isCancelled), "Failed to get relevant tables", []),
+          handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
+        ])
+        state.update((oldState) => ({
+          ...oldState,
+          toolContext: {
+            ...oldState.toolContext,
+            relevantTables,
+            dbInfo,
+            loading: false
+          }
+        }))
+        // Perf caching
+        if (!isCancelled() && dbId !== oldDbId) {
+          console.log('Running perf caching')
+          processAllMetadata()
+          getDatabaseInfo(dbId)
+        }
+      })
+    }
+  }
+
   public async setup() {
     const state = this.useStore().getState();
     const whitelistQuery = state.whitelistQuery
@@ -152,65 +215,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     //   console.log('Current qb card value:', value);
     // })
     subscribe(whitelistQuery, async ({elements, url}) => {
-      const getState = this.useStore().getState
-      const dbId = await getSelectedDbId();
-      let toolEnabledNew = shouldEnable(elements, url);
-      if (dbId === undefined || dbId === null) {
-        toolEnabledNew = {
-          value: false,
-          reason: "Unable to detect correct database. Please navigate to a SQL query page to enable MinusX."
-        }
-      }
-      const pageType: MetabasePageType = determineMetabasePageType(elements, url);
-      getState().update((oldState) => ({
-        ...oldState,
-        isEnabled: toolEnabledNew,
-        toolContext: {
-          ...oldState.toolContext,
-          pageType,
-          url
-        }
-      }));
-      const currentToolContext = getState().toolContext
-      const oldDbId = get(currentToolContext, 'dbId')
-      if (dbId && dbId !== oldDbId) {
-        getState().update((oldState) => ({
-          ...oldState,
-          toolContext: {
-            ...oldState.toolContext,
-            dbId
-          }
-        }))
-        runStoreTasks(async (taskStatus) => {
-          state.update((oldState) => ({
-            ...oldState,
-            toolContext: {
-              ...oldState.toolContext,
-              loading: true
-            }
-          }))
-          const isCancelled = () => taskStatus.status === 'cancelled';
-          const [relevantTables, dbInfo] = await Promise.all([
-            handlePromise(abortable(getRelevantTablesForSelectedDb(), isCancelled), "Failed to get relevant tables", []),
-            handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
-          ])
-          state.update((oldState) => ({
-            ...oldState,
-            toolContext: {
-              ...oldState.toolContext,
-              relevantTables,
-              dbInfo,
-              loading: false
-            }
-          }))
-          // Perf caching
-          if (!isCancelled() && dbId !== oldDbId) {
-            console.log('Running perf caching')
-            processAllMetadata()
-            getDatabaseInfo(dbId)
-          }
-        })
-      }
+      await this.triggerMetabaseStateUpdate(url, elements)
     })
 
     const appSettings = await RPCs.getAppSettings()
@@ -488,6 +493,12 @@ Here's what I need modified:
       return internalState.llmConfigs.semanticQuery;
     }
     return internalState.llmConfigs.default;
+  }
+
+  public async triggerStateUpdate() {
+    const url = await RPCs.queryURL();
+    const elements = await RPCs.queryDOMMap(this.useStore().getState().whitelistQuery || {});
+    return await this.triggerMetabaseStateUpdate(url, elements);
   }
 }
 

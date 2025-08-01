@@ -104,7 +104,7 @@ export interface MetabaseSemanticQueryAppState {
 
 export { type MetabasePageType } from '../defaultState'
 
-export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor;
+export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor | MetabaseAppStateSQLEditorV2;
 
 // no need to fetch fields since we don't want that in limited entities
 async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTableOrModel[]> {
