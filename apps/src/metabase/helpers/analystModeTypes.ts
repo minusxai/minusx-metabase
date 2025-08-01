@@ -8,7 +8,8 @@ export enum MetabaseAppStateType {
     SQLEditor = 'metabaseSQLEditor',
     Dashboard = 'metabaseDashboard',
     SemanticQuery = 'metabaseSemanticQuery',
-    MBQLEditor = 'metabaseMBQLEditor'
+    MBQLEditor = 'metabaseMBQLEditor',
+    RandomPage = 'metabaseRandomPage'
 }
 
 interface MetabaseAppStateBase {
@@ -22,7 +23,7 @@ interface MetabaseAppStateBase {
 }
 
 export interface MetabaseAppStateSQLEditorV2 extends MetabaseAppStateBase {
-  type: MetabaseAppStateType.SQLEditor
+  type: MetabaseAppStateType.SQLEditor | MetabaseAppStateType.RandomPage
   version: '2'
   currentCard: Card
   outputMarkdown: string
