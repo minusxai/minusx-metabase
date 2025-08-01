@@ -61,7 +61,14 @@ export async function getSelectedDbId(): Promise<number | undefined> {
     dbId = await getMetabaseState('qb.card.dataset_query.database');
     if (!dbId) {
         const entity_dbs = await getMetabaseState('entities.databases') as object;
-        dbId = _.find(entity_dbs, (db: any) => !db.is_sample)?.id || Object.keys(entity_dbs)[0];
+        const non_sample_dbs = Object.entries(entity_dbs).filter(([key, value]) => !value.is_sample)
+        console.log('Non-sample databases found:', non_sample_dbs);
+        if (non_sample_dbs.length > 1) {
+            console.log('More than one DB found', non_sample_dbs);
+        }
+        else {
+            dbId = non_sample_dbs[0][1].id;
+        }
     }
   }
   
