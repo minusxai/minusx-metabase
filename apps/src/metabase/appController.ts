@@ -294,7 +294,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
       const asMarkdown = metabaseToCSV(response.data);
-      actionContent.content = asMarkdown;
+      if (!asMarkdown) {
+        actionContent.content = `<OUTPUT>EMPTY_RESULTS</OUTPUT>`;
+      } else {
+        actionContent.content = `<OUTPUT>${asMarkdown}</OUTPUT>`;
+      }
     }
     return actionContent;
   }
