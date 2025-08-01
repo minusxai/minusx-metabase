@@ -74,6 +74,10 @@ export class GoogleAppState extends DefaultAppState<GoogleState> {
         // DOM to state
         return await RPCs.gsheetGetState()
     }
+
+    public async triggerStateUpdate() {
+      return
+    }
 }
 
 export class GoogleController extends AppController<GoogleState> {

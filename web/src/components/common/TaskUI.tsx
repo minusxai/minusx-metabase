@@ -133,6 +133,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   }, [])
 
   useEffect(() => {
+    app.triggerStateUpdate()
+  }, [])
+
+  useEffect(() => {
     const currentDbId = dbInfo.id
     if (!isEmpty(relevantTables) && currentDbId) {
       const isCurrentDbChanged = isChangedByDb[currentDbId] || false

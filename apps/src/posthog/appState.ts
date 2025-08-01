@@ -43,6 +43,10 @@ export class PosthogState extends DefaultAppState<PosthogAppState> {
             outputTableMarkdown, 
         }
     }
+
+    public async triggerStateUpdate() {
+      return
+    }
 }
 
 
