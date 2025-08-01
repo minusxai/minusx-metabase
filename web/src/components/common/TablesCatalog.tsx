@@ -51,6 +51,30 @@ export const TablesCatalog: React.FC<null> = () => {
   const allTables = dbInfo.tables || []
   const allModels = dbInfo.models|| []
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
+  const syncModels = async () => {
+    const currentDbId = toolContext.dbId
+    if (!currentDbId) return
+
+    const appState = useAppStore.getState()
+
+    try {
+      const updatedDbInfo = await getDatabaseTablesAndModelsWithoutFields(currentDbId, true)
+      
+      appState.update((oldState) => ({
+        ...oldState,
+        toolContext: {
+          ...oldState.toolContext,
+          dbInfo: updatedDbInfo,
+          loading: false
+        }
+      }))
+      // invalidate cache for model info as well
+      const modelIds = updatedDbInfo.models.map((model) => model.modelId)
+      const allPromises = modelIds.map((modelId) => fetchModelInfo.invalidate({model_id: modelId}))
+      await Promise.all(allPromises)
+    } catch (error) {
+    }
+  }
   const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
 
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
@@ -142,7 +166,10 @@ export const TablesCatalog: React.FC<null> = () => {
     </Tabs>
     <HStack justifyContent={"flex-end"}>
         { isEmpty(metadataProcessingCache[dbInfo.id]) ? <Text>Syncing...</Text> : <Text fontSize={"xs"} color={"minusxGreen.600"}>Last synced: {new Date(metadataProcessingCache[dbInfo.id].timestamp).toLocaleString()}</Text> }
-        <Button size={'xs'} colorScheme="minusxGreen" onClick={() => processAllMetadata(true)}>Resync</Button>
+        <Button size={'xs'} colorScheme="minusxGreen" onClick={() => {
+          syncModels()
+          processAllMetadata(true)
+        }}>Resync</Button>
     </HStack>
     {/* {
       isModelView ? (
