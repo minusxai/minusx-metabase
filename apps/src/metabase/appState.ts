@@ -527,30 +527,6 @@ function determineMetabasePageType(elements: DOMQueryMapResponse, url: string): 
 }
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
-  const hash = btoa(JSON.stringify({
-        "dataset_query": {
-            "database": null,
-            "type": "native",
-            "native": {
-                "query": "",
-                "template-tags": {}
-            }
-        },
-        "display": "table",
-        "parameters": [],
-        "visualization_settings": {},
-        "type": "question"
-    }))
-  const SQLQueryURL = new URL(url).origin + '/question#' + hash;
-  const MBQLURL = new URL(url).origin + '/question/notebook';
-  const reason = `To use MinusX on Metabase, head over to the [SQL query](${SQLQueryURL}), [Question Builder](${MBQLURL}) or any of your Dashboard pages!`
-  const metabasePageType = determineMetabasePageType(elements, url);
-  if (metabasePageType === 'unknown') {
-    return {
-        value: false,
-        reason: reason
-    };
-  }
   return {
     value: true,
     reason: "",
