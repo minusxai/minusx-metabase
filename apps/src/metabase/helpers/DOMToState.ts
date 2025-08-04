@@ -17,6 +17,7 @@ import { catalogAsModels } from 'web';
 import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 import { getMBQLAppState } from './mbql/appState';
 import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
+import { isSQLPageUrl } from './sql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
 import { MetabaseTableOrModel } from './metabaseAPITypes';
@@ -181,6 +182,7 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const sqlErrorMessage = await getSqlErrorMessage();
   // add tables in the sql as relevant tables, after fetching their fields
   let relevantTablesWithFields: FormattedTable[] = []
+  const pageType = isSQLPageUrl(metabaseUrl) ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
   {
       const dbTables = await getAllRelevantTablesForSelectedDb(dbId || 0)
       const sqlTables = await getTablesFromSqlRegex(sqlQuery)
@@ -198,7 +200,7 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
       relevantTablesWithFields = sqlTablesWithFields
   }
   return {
-    type: MetabaseAppStateType.SQLEditor,
+    type: pageType,
     version: '2',
     metabaseOrigin,
     metabaseUrl,
@@ -346,10 +348,6 @@ export async function convertDOMtoState() {
   if (isMBQLPageUrl(url) || (qlType === 'query')) {
     return await convertDOMtoStateMBQLQuery();
   }
-//   const appSettings = RPCs.getAppSettings()
-//   if(appSettings.semanticPlanner) {
-//     return await semanticQueryState();
-//   }
   const appSettings = RPCs.getAppSettings()
   if (appSettings.useV2States && appSettings.analystMode) {
     return await convertDOMtoStateSQLQueryV2();
