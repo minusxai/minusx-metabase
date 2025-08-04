@@ -6,7 +6,7 @@ import ChakraContext from '../components/common/ChakraContext';
 import App from '../components/common/App';
 import { persistStore } from 'redux-persist';
 import { RootState, store } from '../state/store';
-import { setAppRecording, setIframeInfo, updateIsAppOpen } from '../state/settings/reducer';
+import { setAppRecording, setIframeInfo, updateIsAppOpen, setEmbedConfigs } from '../state/settings/reducer';
 import { dispatch } from '../state/dispatch';
 import { log, queryDOMMap, setMinusxMode, toggleMinusXRoot, queryURL, forwardToTab, gdocRead, gdocWrite, gdocImage, gdocReadSelected, captureVisibleTab, getPendingMessage, gsheetSetUserToken} from './rpc';
 import _, { get, isEqual, pick, set } from 'lodash';
@@ -184,6 +184,23 @@ function ProviderApp() {
                 link.href = `${iframeInfo.origin}/minusx.css`
                 document.head.appendChild(link)
             }
+            
+            // Fetch JSON configuration
+            fetch(`${iframeInfo.origin}/minusx.json`)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json()
+                    }
+                    throw new Error('Failed to fetch minusx.json')
+                })
+                .then(config => {
+                    if (config && typeof config === 'object') {
+                        dispatch(setEmbedConfigs(config))
+                    }
+                })
+                .catch(error => {
+                    console.warn('Could not fetch embed configuration:', error)
+                })
             
             return () => {
                 const link = document.getElementById(linkId)

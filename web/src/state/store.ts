@@ -530,6 +530,12 @@ const migrations = {
     })
     newState.chat.last_warmed_on = latestMessageTime
     return newState
+  },
+  53: (state: RootState) => {
+    let newState = {...state}
+    // Add embed_configs to settings
+    newState.settings.embed_configs = {}
+    return newState
   }
 }
 
@@ -537,7 +543,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath]
 
 const persistConfig = {
   key: 'root',
-  version: 52,
+  version: 53,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

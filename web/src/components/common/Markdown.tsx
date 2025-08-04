@@ -12,6 +12,7 @@ import { getApp } from '../../helpers/app'
 import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
 import { getAllTemplateTagsInQuery, replaceLLMFriendlyIdentifiersInSqlWithModels } from 'apps'
 import type { MetabaseModel } from 'apps/types'
+import type { EmbedConfigs } from '../../state/settings/reducer'
 import { Badge } from "@chakra-ui/react";
 import { CodeBlock } from './CodeBlock';
 import { BiChevronDown, BiChevronRight } from 'react-icons/bi';
@@ -166,10 +167,11 @@ function ImageComponent(props: any) {
   return <ZoomableImage src={props.src} alt={props.alt}/>
 }
 
-function generateMetabaseQuestionURL(origin: string, sql: string, databaseId: number | null = null) {
-  // Get all template tags in the query (we don't have access to snippets here, so pass undefined)
+function generateMetabaseQuestionURL(sql: string, databaseId: number | null = null, embedConfigs: EmbedConfigs = {}) {
+  // Get Metabase origin from embed_configs if available, otherwise use iframe info
   const templateTags = getAllTemplateTagsInQuery(sql);
   
+  // Get all template tags in the query (we don't have access to snippets here, so pass undefined)
   const cardData = {
     "dataset_query": {
       "database": databaseId,
@@ -186,7 +188,11 @@ function generateMetabaseQuestionURL(origin: string, sql: string, databaseId: nu
   };
   
   const hash = btoa(JSON.stringify(cardData));
-  return `${origin}/question#${hash}`;
+  const origin = embedConfigs.embed_host;
+  if (!origin) {
+     return `${getOrigin()}/question#${hash}`;
+  }
+  return `${origin}/question?hash=${hash}`;
 }
 
 function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number): string | null {
@@ -232,7 +238,8 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   const settings = useSelector((state: RootState) => ({
     selectedCatalog: state.settings.selectedCatalog,
     availableCatalogs: state.settings.availableCatalogs,
-    modelsMode: state.settings.modelsMode
+    modelsMode: state.settings.modelsMode,
+    embed_configs: state.settings.embed_configs
   }));
   const mxModels = useSelector((state: RootState) => state.cache.mxModels);
   
@@ -250,13 +257,10 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
         }
         
         if (lastSQL) {
-          // Get Metabase origin from iframe info
-          const metabaseOrigin = getOrigin();
-          
           // Get current database ID from app state
           const databaseId = toolContext?.dbId || null;
           
-          const questionURL = generateMetabaseQuestionURL(metabaseOrigin, lastSQL, databaseId);
+          const questionURL = generateMetabaseQuestionURL(lastSQL, databaseId, settings.embed_configs);
           
           return renderString(content, {
             'MX_LAST_SQL_URL': `\n\n --- \n\n Continue your analysis [here](${questionURL})`
