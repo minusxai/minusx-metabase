@@ -133,12 +133,12 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const getState = this.useStore().getState
     const dbId = await getSelectedDbId();
     let toolEnabledNew = shouldEnable(elements, url);
-    if (dbId === undefined || dbId === null) {
-      toolEnabledNew = {
-        value: false,
-        reason: "Unable to detect correct database. Please navigate to a SQL query page to enable MinusX."
-      }
-    }
+    // if (dbId === undefined || dbId === null) {
+    //   toolEnabledNew = {
+    //     value: false,
+    //     reason: "Unable to detect correct database. Please navigate to a SQL query page to enable MinusX."
+    //   }
+    // }
     const pageType: MetabasePageType = determineMetabasePageType(elements, url);
     getState().update((oldState) => ({
       ...oldState,
@@ -527,30 +527,6 @@ function determineMetabasePageType(elements: DOMQueryMapResponse, url: string): 
 }
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
-  const hash = btoa(JSON.stringify({
-        "dataset_query": {
-            "database": null,
-            "type": "native",
-            "native": {
-                "query": "",
-                "template-tags": {}
-            }
-        },
-        "display": "table",
-        "parameters": [],
-        "visualization_settings": {},
-        "type": "question"
-    }))
-  const SQLQueryURL = new URL(url).origin + '/question#' + hash;
-  const MBQLURL = new URL(url).origin + '/question/notebook';
-  const reason = `To use MinusX on Metabase, head over to the [SQL query](${SQLQueryURL}), [Question Builder](${MBQLURL}) or any of your Dashboard pages!`
-  const metabasePageType = determineMetabasePageType(elements, url);
-  if (metabasePageType === 'unknown') {
-    return {
-        value: false,
-        reason: reason
-    };
-  }
   return {
     value: true,
     reason: "",

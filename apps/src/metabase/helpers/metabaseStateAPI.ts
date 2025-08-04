@@ -57,11 +57,26 @@ export async function getSelectedDbId(): Promise<number | undefined> {
       dbId = parseInt(dbId);
     } catch (e) {}
   } else {
-    // this works for both MBQL and SQL pages
+    // this works for all pages
+    // if there is only one database, it will return the id
+    // else if there is only one non-sample database, it will return the id
+    // else (0 dbs, or >1 non sample dbs) it will return undefined
     dbId = await getMetabaseState('qb.card.dataset_query.database');
     if (!dbId) {
         const entity_dbs = await getMetabaseState('entities.databases') as object;
-        dbId = _.find(entity_dbs, (db: any) => !db.is_sample)?.id || Object.keys(entity_dbs)[0];
+        const all_dbs = Object.entries(entity_dbs)
+        if (all_dbs.length === 1) {
+            dbId = all_dbs[0][1].id;
+        }
+        else {
+            const non_sample_dbs = all_dbs.filter(([key, value]) => !value.is_sample)
+            if (non_sample_dbs.length > 1) {
+                console.log('More than one DB found', non_sample_dbs);
+            }
+            else {
+                dbId = non_sample_dbs[0][1].id;
+            }
+        }
     }
   }
   

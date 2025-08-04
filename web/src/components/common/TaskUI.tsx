@@ -248,9 +248,24 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "Please enter a valid message/question"
         preventRunTask = true
     }
-    else if (isUndefined(get(toolContext, 'dbId'))) {
+    else if (isUndefined(get(toolContext, 'dbId')) && toolContext.pageType == 'sql') {
         toastTitle = 'No database selected'
-        toastDescription = "Please select a database"
+        toastDescription = "You can select a specific database to use in the top left corner of the SQL editor"
+        preventRunTask = true
+    }
+    else if (isUndefined(get(toolContext, 'dbId')) && toolContext.pageType == 'mbql') {
+        toastTitle = 'No database selected'
+        toastDescription = "You can select a specific database by selecting any table / model as data source"
+        preventRunTask = true
+    }
+    else if (isUndefined(get(toolContext, 'dbId')) && toolContext.pageType == 'dashboard') {
+        toastTitle = 'No database selected'
+        toastDescription = "We can't tell which database to use! You can select a database either in the SQL editor or by selecting a table or model in the MBQL editor"
+        preventRunTask = true
+    }
+    else if (isUndefined(get(toolContext, 'dbId')) && toolContext.pageType == 'unknown') {
+        toastTitle = 'No database selected'
+        toastDescription = "We can't tell which database to use! You can select a database by navigating to a dashboard, the SQL editor, or the MBQL editor"
         preventRunTask = true
     }
     else if (toolContext.pageType === 'dashboard' && (!drMode)) {

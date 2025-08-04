@@ -426,7 +426,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             // return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
         // }
     }
-    else if (pageType === 'dashboard') {
+    else if ((pageType === 'dashboard') || (pageType === 'unknown')) {
         // if (hasTemplateTagsOrParams) {
             return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });
         // } else {
