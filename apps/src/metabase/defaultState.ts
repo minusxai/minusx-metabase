@@ -49,8 +49,8 @@ interface MetabaseInternalState extends InternalState {
 
 export const metabaseInternalState: MetabaseInternalState = {
   isEnabled: {
-    value: false,
-    reason: "Loading...",
+    value: true,
+    reason: "",
   },
   llmConfigs: {
     default: {
