@@ -17,7 +17,7 @@ import { catalogAsModels } from 'web';
 import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 import { getMBQLAppState } from './mbql/appState';
 import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
-import { isSQLPageUrl } from './sql/utils';
+import { isSQLPageUrl, isModelPageUrl } from './sql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
 import { MetabaseTableOrModel } from './metabaseAPITypes';
@@ -180,9 +180,9 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const sqlErrorMessage = await getSqlErrorMessage();
-  // add tables in the sql as relevant tables, after fetching their fields
+  const qlType = await getQLType();
+  const pageType = (isSQLPageUrl(metabaseUrl) || (isModelPageUrl(metabaseUrl) && qlType == 'native')) ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
   let relevantTablesWithFields: FormattedTable[] = []
-  const pageType = isSQLPageUrl(metabaseUrl) ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
   {
       const dbTables = await getAllRelevantTablesForSelectedDb(dbId || 0)
       const sqlTables = await getTablesFromSqlRegex(sqlQuery)
