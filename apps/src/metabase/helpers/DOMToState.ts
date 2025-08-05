@@ -2,7 +2,6 @@ import { getParsedIframeInfo, RPCs } from 'web'
 import { getAllRelevantTablesForSelectedDb, getRelevantTablesForSelectedDb, getTablesWithFields, validateTablesInDB } from './getDatabaseSchema';
 import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases, getTableData } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
-import { isDashboardPageUrl } from './dashboard/util';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
 import { visualizationSettings, Card, ParameterValues, FormattedTable } from './types';
@@ -16,11 +15,11 @@ import { getTableContextYAML } from './catalog';
 import { catalogAsModels } from 'web';
 import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 import { getMBQLAppState } from './mbql/appState';
-import { isMBQLPageUrl, MBQLInfo } from './mbql/utils';
-import { isSQLPageUrl, isModelPageUrl } from './sql/utils';
+import { MBQLInfo } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
 import { MetabaseTableOrModel } from './metabaseAPITypes';
+import { determineMetabasePageType, MetabasePageType } from './utils';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -103,8 +102,6 @@ export interface MetabaseSemanticQueryAppState {
   isEmbedded: boolean;
 }
 
-export { type MetabasePageType } from '../defaultState'
-
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor | MetabaseAppStateSQLEditorV2;
 
 // no need to fetch fields since we don't want that in limited entities
@@ -165,7 +162,7 @@ async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTableOrMode
   return [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
 }
 
-export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQLEditorV2> {
+export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType) : Promise<MetabaseAppStateSQLEditorV2> {
   const [metabaseUrl, currentCardRaw, outputMarkdown, parameterValues] = await Promise.all([
     RPCs.queryURL(),
     getCurrentCard() as Promise<Card>,
@@ -180,8 +177,7 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
   const dbId = await getSelectedDbId();
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const sqlErrorMessage = await getSqlErrorMessage();
-  const qlType = await getQLType();
-  const pageType = (isSQLPageUrl(metabaseUrl) || (isModelPageUrl(metabaseUrl) && qlType == 'native')) ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
+  const appStateType = pageType === 'sql' ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
   let relevantTablesWithFields: FormattedTable[] = []
   {
       const dbTables = await getAllRelevantTablesForSelectedDb(dbId || 0)
@@ -200,7 +196,7 @@ export async function convertDOMtoStateSQLQueryV2() : Promise<MetabaseAppStateSQ
       relevantTablesWithFields = sqlTablesWithFields
   }
   return {
-    type: pageType,
+    type: appStateType,
     version: '2',
     metabaseOrigin,
     metabaseUrl,
@@ -342,15 +338,16 @@ export async function semanticQueryState() {
 export async function convertDOMtoState() {
   const url = await queryURL();
   const qlType = await getQLType();
-  if (isDashboardPageUrl(url)) {
+  const metabasePageType = determineMetabasePageType({}, url, qlType);
+  if (metabasePageType === 'dashboard') {
     return await convertDOMtoStateDashboard();
   }
-  if (isMBQLPageUrl(url) || (qlType === 'query')) {
+  if (metabasePageType === 'mbql') {
     return await convertDOMtoStateMBQLQuery();
   }
   const appSettings = RPCs.getAppSettings()
   if (appSettings.useV2States && appSettings.analystMode) {
-    return await convertDOMtoStateSQLQueryV2();
+    return await convertDOMtoStateSQLQueryV2(metabasePageType);
   }
   return await convertDOMtoStateSQLQuery();
 }

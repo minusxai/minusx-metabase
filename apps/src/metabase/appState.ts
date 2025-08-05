@@ -2,9 +2,7 @@ import { addNativeEventListener, RPCs, configs, renderString, getParsedIframeInf
 import { DefaultAppState } from "../base/appState";
 import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
-import { convertDOMtoState, MetabaseAppState, MetabasePageType } from "./helpers/DOMToState";
-import { isDashboardPageUrl } from "./helpers/dashboard/util";
-import { isMBQLPageUrl } from "./helpers/mbql/utils";
+import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, setInstructions, dispatch } from "web";
@@ -14,6 +12,7 @@ import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
 import { subscribeMB } from "./helpers/stateSubscriptions";
+import { MetabasePageType, determineMetabasePageType } from "./helpers/utils";
 
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
@@ -129,6 +128,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   actionController = new MetabaseController(this);
 
   private async triggerMetabaseStateUpdate(url: string, elements: DOMQueryMapResponse) {
+    const queryType = await RPCs.getMetabaseState('qb.card.dataset_query.type') as string;
     const state = this.useStore().getState();
     const getState = this.useStore().getState
     const dbId = await getSelectedDbId();
@@ -139,7 +139,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     //     reason: "Unable to detect correct database. Please navigate to a SQL query page to enable MinusX."
     //   }
     // }
-    const pageType: MetabasePageType = determineMetabasePageType(elements, url);
+    const pageType: MetabasePageType = determineMetabasePageType(elements, url, queryType);
     getState().update((oldState) => ({
       ...oldState,
       isEnabled: toolEnabledNew,
@@ -502,29 +502,6 @@ Here's what I need modified:
   }
 }
 
-
-function determineMetabasePageType(elements: DOMQueryMapResponse, url: string): MetabasePageType {
-    try {
-      const hash = new URL(url).hash.slice(1);
-      const parsedHash = JSON.parse(atob(hash));
-      if (get(parsedHash, 'dataset_query.type') == 'query') {
-        return 'mbql'
-      }
-    } catch (e) {}
-    if (isDashboardPageUrl(url)) {
-        return 'dashboard';
-    }
-    if (isMBQLPageUrl(url)) {
-        return 'mbql';
-    }
-    if (elements.editor && !isEmpty(elements.editor)) {
-        return 'sql';
-    }
-    if (elements.mbql && (!isEmpty(elements.mbql) || !isEmpty(elements.mbql_embedded))) {
-        return 'mbql';
-    }
-    return 'unknown';
-}
 
 function shouldEnable(elements: DOMQueryMapResponse, url: string) {
   return {

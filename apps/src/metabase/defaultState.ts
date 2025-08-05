@@ -7,6 +7,7 @@ import {
 import { DatabaseInfoWithTablesAndModels } from "./helpers/metabaseAPITypes";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { FormattedTable } from "./helpers/types";
+import { MetabasePageType } from "./helpers/utils";
 
 import {
   DASHBOARD_PLANNER_SYSTEM_PROMPT,
@@ -32,8 +33,6 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTablesAndModels = {
   tables: [],
   models: []
 }
-
-export type MetabasePageType = 'sql' | 'dashboard' | 'mbql' | 'unknown';
 
 export interface MetabaseContext {
   pageType: MetabasePageType
