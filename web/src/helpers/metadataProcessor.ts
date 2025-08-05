@@ -264,7 +264,7 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
       
       console.log('[minusx] Filtering fields for', validTableNames.size, 'valid tables...')
       
-      const filteredFields = cards.length < 100 ? allFields : allFields.filter((field: any) => {
+      const filteredFields = cards.length < 100 || allFields.length < 20000 ? allFields : allFields.filter((field: any) => {
         const tableName = get(field, 'table_name')
         const tableSchema = get(field, 'schema')
         const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName
