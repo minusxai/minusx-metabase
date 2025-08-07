@@ -13,6 +13,9 @@ import { getTableContextYAML } from '../catalog';
 import { getModelsFromSql, getModelsWithFields, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from '../metabaseModels';
 import { MetabaseAppStateType } from '../analystModeTypes';
 import { MetabaseTableOrModel } from '../metabaseAPITypes';
+import { processCard } from '../analystModeTypes';
+import { Card, SavedCard } from '../types';
+import { getLimitedEntitiesFromQueries, getLimitedEntitiesFromMBQLQueries } from '../utils';
 
 // Removed: const { getMetabaseState } = RPCs - using centralized state functions instead
 
@@ -77,14 +80,7 @@ export type DashboardInfoForModelling = {
     type: string,
     value?: string | null
   }[];
-  cards: {
-    id: number,
-    name: string,
-    sql: string,
-    databaseId: number,
-    description?: string | undefined,
-    outputTableMarkdown?: string,
-  }[]
+  cards: SavedCard[]
 }
 
 function substituteParameterMappings(
@@ -103,65 +99,30 @@ function substituteParameterMappings(
   return sql
 }
 
-async function getDashcardInfoWithSQLAndOutputTableMd(
+async function getDashcardwithOutputTableMd(
   dashboardMetabaseState: DashboardMetabaseState, 
   dashcardId: number,
   dashboardId: number): Promise<DashboardInfoForModelling['cards'][number] | null> {
-  const dashcard = dashboardMetabaseState.dashcards[dashcardId];
+  const dashcard = dashboardMetabaseState.dashcards[dashcardId].card;
   if (!dashcard) {
     return null;
   }
-  const cardId = _.get(dashcard, 'card_id', '');
-  const databaseId = _.get(dashcard, 'card.database_id', 0);
-  const id = _.get(dashcard, 'id');
-  const query_type = _.get(dashcard, 'card.query_type', 'unknown');
-  const name = _.get(dashcard, 'card.name', '');
-  const description = _.get(dashcard, 'card.description', '');
-  const visualizationType = _.get(dashcard, 'card.display', '');
-  if (!name)
+  const cardID = _.get(dashcard, 'id', null);
+  if (!cardID) {
     return null;
-  let sql = ''
-  if (query_type == 'native'){
-    sql = _.get(dashcard, 'card.dataset_query.native.query', '');
   }
-  else if (query_type == 'query'){
-    // mbql query
-    const mbqlQuery = _.get(dashcard, 'card.dataset_query.query', {});
-    if (mbqlQuery) {
-      const sql_from_mbql = await getSQLFromMBQL({
-        database: databaseId,
-        type: 'query',
-        query: mbqlQuery
-      });
-      sql = sql_from_mbql.query || '';
-    }
-  }
-  
-  if (!sql || sql == '')
-    return null;
+  const card = processCard(dashcard) as SavedCard;
+  card.id = cardID;
 
-  // replace parameters
-  try {
-    sql = await substituteParameters(sql, dashcard, dashboardMetabaseState['dashboards'][dashboardId]?.param_fields, dashboardMetabaseState.parameterValues)
-  } catch (e) {
-  }
-  const obj = {
-    id,
-    name,
-    sql,
-    databaseId,
-    visualizationType,
-    ...(description ? { description } : {}),
-  }
   // dashcardData
-  const data = _.get(dashboardMetabaseState, ['dashcardData', dashcardId, cardId, 'data']);
+  const data = _.get(dashboardMetabaseState, ['dashcardData', dashcardId, card.id, 'data']);
   if (!data) {
-    return obj
+    return card
   }
   const dataAsMarkdown = metabaseToMarkdownTable(data, 1000);
   return {
-   ...obj,
-   outputTableMarkdown: dataAsMarkdown
+    ...card,
+    outputTableMarkdown: dataAsMarkdown
   }
 }
 /* 
@@ -278,75 +239,32 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   }
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
 //   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
-  const allModels = dbId ?  await getAllRelevantModelsForSelectedDb(dbId) : []
-  const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardInfoWithSQLAndOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId, allModels)))
+  const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardwithOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
   let filteredCards = _.compact(cards);
-  let sqlTables: TableAndSchema[] = []
-  forEach(filteredCards, (card) => {
-    if (card) {
-      getTablesFromSqlRegex(card.sql).forEach((table) => {
-        if (defaultSchema) {
-          if (table.schema === undefined || table.schema === '') {
-            table.schema = defaultSchema
-          }
-        }
-        sqlTables.push(table)
-      })
-    }
-  })
-
-
-  sqlTables = _.uniqBy(sqlTables, (table) => `${table.schema}::${table.name}`)
-  const relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, [])
-  // find a list of models from each native card using getModelsFromSql, and then merge them to get relevantModels
-  const modelsFromAllCards = (await Promise.all(filteredCards.map(async card => {
-    if (card.sql) {
-      return await getModelsFromSql(card.sql, allModels)
-    }
-    return []
-  }))).flat()
-  const dedupedCardAndSelectedModels = _.uniqBy([...modelsFromAllCards, ...appSettings.selectedModels], 'modelId')
-  const relevantModelsWithFields = await getModelsWithFields(dedupedCardAndSelectedModels)
-  const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFields]
-  const tableContextYAML = getTableContextYAML(allFormattedTables, selectedCatalog, appSettings.drMode);
-  filteredCards = filteredCards.map(card => {
-    // replace model identifiers with model ids
-    card.sql = modifySqlForMetabaseModels(card.sql, allModels)
-    return card
-  })
-  dashboardInfo.cards = filteredCards
-  // filter out dashcards with null names or ids
-  .filter(dashcard => dashcard.name !== null && dashcard.id !== null);
-  // remove description if it's null or undefined
-  if (!dashboardInfo.description) {
-    delete dashboardInfo.description;
-  }
+    const limitedEntitiesSQL = await getLimitedEntitiesFromQueries(
+        filteredCards.flatMap(card => 
+            card?.dataset_query?.native?.query ? [card.dataset_query.native.query] : []
+        )
+    );
+    const limitedEntitiesMBQL = await getLimitedEntitiesFromMBQLQueries(
+        filteredCards.flatMap(card => 
+            card?.dataset_query?.query ? [card.dataset_query.query] : []
+        )
+    );
+    const limitedEntities = [...limitedEntitiesSQL, ...limitedEntitiesMBQL];
+    // remove duplicates based on id and type
+    const uniqueEntities = Array.from(new Map(limitedEntities.map(entity => [entity.id, entity])).values());
   const dashboardAppState: MetabaseAppStateDashboard = {
     ...dashboardInfo,
     type: MetabaseAppStateType.Dashboard,
-    tableContextYAML,
     selectedDatabaseInfo,
     metabaseOrigin: url,
     metabaseUrl: fullUrl,
     isEmbedded: getParsedIframeInfo().isEmbedded,
   };
-  if (appSettings.analystMode && appSettings.manuallyLimitContext) {
-    const limitToTables: MetabaseTableOrModel[] = relevantTablesWithFields.map(table => ({
-      type: 'table',
-      id: table.id,
-      name: table.name,
-      schema: table.schema,
-      description: table.description,
-    }))
-    const limitToModels: MetabaseTableOrModel[] = dedupedCardAndSelectedModels.map(model => ({
-      type: 'model',
-      id: model.modelId,
-      name: model.name,
-      description: model.description,
-    }))
-    dashboardAppState.limitedEntities = [...limitToTables, ...limitToModels];
-  }
-  return dashboardAppState
+  dashboardAppState.cards = filteredCards as SavedCard[];
+  dashboardAppState.limitedEntities = uniqueEntities;
+  return dashboardAppState;
 }
 
 

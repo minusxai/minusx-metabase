@@ -43,19 +43,25 @@ export interface QBTemplateTags {
 }
 // qb.card
 export interface Card {
-  dataset_query: {
-    database: number;
+    dataset_query: {
+        database: number;
+        type: string;
+        native?: {
+            query: string
+            'template-tags': QBTemplateTags
+        };
+        query?: object; // MBQL query object
+    };
+    display: VisualizationTypeLower;
+    displayIsLocked: boolean;
+    visualization_settings: visualizationSettings;
     type: string;
-    native: {
-      query: string
-      'template-tags': QBTemplateTags
-    }
-  };
-  display: VisualizationTypeLower;
-  displayIsLocked: boolean;
-  visualization_settings: visualizationSettings;
-  type: string;
-  parameters?: QBParameters;
+    parameters?: QBParameters;
+}
+
+export interface SavedCard extends Card {
+    id: number;
+    outputTableMarkdown?: any;
 }
 
 // qb.parameterValues

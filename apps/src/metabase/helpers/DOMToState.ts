@@ -19,7 +19,7 @@ import { MBQLInfo } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
 import { MetabaseTableOrModel } from './metabaseAPITypes';
-import { determineMetabasePageType, MetabasePageType } from './utils';
+import { determineMetabasePageType, MetabasePageType, getLimitedEntities } from './utils';
 
 const {modifySqlForMxModels} = catalogAsModels
 
@@ -105,62 +105,6 @@ export interface MetabaseSemanticQueryAppState {
 export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashboard | MetabaseSemanticQueryAppState | MetabaseAppStateMBQLEditor | MetabaseAppStateSQLEditorV2;
 
 // no need to fetch fields since we don't want that in limited entities
-async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTableOrModel[]> {
-  const appSettings = RPCs.getAppSettings();
-  
-  // Early return if conditions not met
-  if (!appSettings.analystMode || !appSettings.manuallyLimitContext) {
-    return [];
-  }
-  
-  const dbId = await getSelectedDbId();
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
-  const defaultSchema = selectedDatabaseInfo?.default_schema;
-  
-  const sqlTables = getTablesFromSqlRegex(sqlQuery);
-  const selectedCatalogObj = find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog });
-  const selectedCatalog = get(selectedCatalogObj, 'content');
-  
-  // Apply default schema to tables if needed
-  if (defaultSchema) {
-    sqlTables.forEach((table) => {
-      if (table.schema === undefined || table.schema === '') {
-        table.schema = defaultSchema;
-      }
-    });
-  }
-  
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, []);
-  
-  // Add defaultSchema back to relevantTablesWithFields
-  relevantTablesWithFields = relevantTablesWithFields.map(table => {
-    if (table.schema === undefined || table.schema === '') {
-      table.schema = defaultSchema || 'unknown';
-    }
-    return table;
-  });
-  
-  const allModels = dbId ? await getAllRelevantModelsForSelectedDb(dbId) : [];
-  const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "", appSettings.selectedModels, allModels);
-  
-  // Transform and combine tables and models with type annotations
-  const relevantTablesWithFieldsAndType: MetabaseTableOrModel[] = relevantTablesWithFields.map(table => ({
-    type: 'table',
-    id: table.id,
-    name: table.name,
-    schema: table.schema,
-    description: table.description,
-  }));
-  
-  const relevantModelsWithFieldsAndType: MetabaseTableOrModel[] = relevantModels.map(model => ({
-    type: 'model',
-    id: model.modelId || 0,
-    name: model.name,
-    description: model.description,
-  }));
-  
-  return [...relevantTablesWithFieldsAndType, ...relevantModelsWithFieldsAndType];
-}
 
 export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType) : Promise<MetabaseAppStateSQLEditorV2> {
   const [metabaseUrl, currentCardRaw, outputMarkdown, parameterValues] = await Promise.all([

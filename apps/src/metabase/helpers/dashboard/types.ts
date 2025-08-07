@@ -1,6 +1,7 @@
 // this is the shape of the .dashboard key from sample-metabase-state.json
 
 import { MetabaseStateTable } from "../operations";
+import { SavedCard } from "../types";
 
 // actually only a subset of it that i care about
 
@@ -129,16 +130,6 @@ export interface DashboardMetabaseState {
   };
 }
 
-export interface DashcardInfo {
-  id: number,
-  name: string,
-  databaseId: number,
-  description?: string | null,
-  sql?: string,
-  outputTableMarkdown?: string
-  visualizationType?: string,
-}
-
 export interface DashboardInfo  {
   id: number,
   name?: string,
@@ -148,7 +139,7 @@ export interface DashboardInfo  {
     id: number,
     name: string
   }[],
-  cards: DashcardInfo[]
+  cards: SavedCard[]
   // removing parameters altogether from dashboard state for now.
   // parameters: {
   //   name: string,
