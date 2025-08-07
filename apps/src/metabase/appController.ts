@@ -163,7 +163,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: `Using ${Object.keys(template_tags || {}).length} template tags and ${(parameters || []).length} parameters`, code: sql, oldCode: sqlQuery}
     }
   })
-  async updateSQLQueryWithParams({ sql, template_tags = {}, parameters = [], executeImmediately = true, _type = "markdown", ctes = [] }: { sql: string, template_tags?: object, parameters?: any[], executeImmediately?: boolean, _type?: string, ctes: CTE[] }) {
+  async updateSQLQueryWithParams({ sql, template_tags = {}, parameters = [], parameterValues = [], executeImmediately = true, _type = "markdown", ctes = [] }: { sql: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}>, executeImmediately?: boolean, _type?: string, ctes: CTE[] }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
@@ -215,6 +215,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
     await RPCs.dispatchMetabaseAction('metabase/qb/TOGGLE_TEMPLATE_TAGS_EDITOR');
     await RPCs.dispatchMetabaseAction('metabase/qb/TOGGLE_TEMPLATE_TAGS_EDITOR');
+    
+    // Set parameter values if provided
+    if (parameterValues && Array.isArray(parameterValues) && parameterValues.length > 0) {
+      await Promise.all(parameterValues.map(async ({id, value}) => {
+        return RPCs.dispatchMetabaseAction('metabase/qb/SET_PARAMETER_VALUE', { id, value });
+      }));
+    }
     
     if (executeImmediately) {
       return await this._executeSQLQueryInternal(_type);
@@ -371,7 +378,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelRunning: "Setting parameter values for a query",
     labelDone: "Parameter values set",
     labelTask: "Parameter values set",
-    description: "Sets parameter values for a query in the Metabase SQL editor and execute.",
+    description: "Sets parameter values for a query in the Metabase SQL editor and execute. Use ExecuteQuery with parameterValues argument instead unless solely updating parameter values.",
     renderBody: ({ parameterValues }: { parameterValues: Array<{id: string, value: string[]}> }) => {
       return {text: null, code: JSON.stringify({ parameterValues })}
     }
@@ -388,14 +395,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelDone: "Executed query",
     labelTask: "Kick off SQL query",
     description: "Executes the SQL query in the Metabase SQL editor with support for template tags and parameters.",
-    renderBody: ({ sql, explanation, template_tags={}, parameters=[] }: { sql: string, explanation: string, template_tags?: object, parameters?: any[] }, appState: MetabaseAppStateSQLEditor | MetabaseAppStateSQLEditorV2) => {
+    renderBody: ({ sql, explanation, template_tags={}, parameters=[], parameterValues=[] }: { sql: string, explanation: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}> }, appState: MetabaseAppStateSQLEditor | MetabaseAppStateSQLEditorV2) => {
       const currentQuery = appState?.currentCard?.dataset_query?.native?.query || appState?.sqlQuery || "";
       const currentTemplateTags = appState?.currentCard?.dataset_query?.native?.['template-tags'] || {};
       const currentParameters = appState?.currentCard?.parameters || [];
-      return {text: explanation, code: sql, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters}}}
+      const paramValuesInfo = parameterValues && parameterValues.length > 0 ? ` with ${parameterValues.length} parameter values` : '';
+      return {text: `${explanation}${paramValuesInfo}`, code: sql, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
     }
   })
-  async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
+  async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[], parameterValues=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}> }) {
     // console.log('Template tags are', template_tags)
     // console.log('Parameters are', parameters)
     // Try parsing template_tags and parameters if they are strings
@@ -413,6 +421,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     } catch (error) {
       console.error('Error parsing parameters:', error);
     }
+    try {
+      if (typeof parameterValues === 'string') {
+        parameterValues = JSON.parse(parameterValues);
+      }
+    } catch (error) {
+      console.error('Error parsing parameterValues:', error);
+    }
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     
@@ -421,7 +436,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     
     if (pageType === 'sql') {
         // if (hasTemplateTagsOrParams) {
-            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, executeImmediately: true, _type: "csv", ctes: _ctes });
+            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "csv", ctes: _ctes });
         // } else {
             // return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
         // }
