@@ -311,7 +311,7 @@ const PlanningActionStack: React.FC = () => {
     >
       <HStack>
         <Box>
-          <Text key={currentTitleIndex} animation={currentTitleIndex > 0 ? `${scrollUp} 0.5s ease-in-out` : ""} >{planningActions[currentTitleIndex]}</Text>
+          <Text key={currentTitleIndex} animation={currentTitleIndex > 0 ? `${scrollUp} 0.5s ease-in-out` : ""} >{planningActions[currentTitleIndex % planningActions.length]}</Text>
         </Box>
         <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" aria-label={"planning-spinner"}/>
       </HStack>
