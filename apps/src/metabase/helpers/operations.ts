@@ -51,6 +51,10 @@ export function metabaseToMarkdownTable(table: MetabaseStateTable, truncateLengt
   return md;
 }
 
+function areRowsEmpty(rows: (string | number | null | boolean)[][]): boolean {
+  return rows.every(row => row.every(cell => cell === null || cell === ''));
+}
+
 export function metabaseToCSV(table: MetabaseStateTable, truncateLength: number = 2000): string {
   const { rows, cols } = table;
   const headerRow = cols.map(col => `"${col.display_name}"`).join(',');
@@ -61,7 +65,7 @@ export function metabaseToCSV(table: MetabaseStateTable, truncateLength: number 
   );
   const allRows = [headerRow, ...dataRows]
   let csv = allRows.slice(0, truncateLength).join('\n');
-  if (dataRows.length === 0) {
+  if (dataRows.length === 0 || areRowsEmpty(rows)) {
     csv = csv + '\n' + '<Empty results, no data returned>';
   }
   return csv;
