@@ -59,6 +59,73 @@ function extractSQLFromAction(action: Action): string | null {
 }
 
 /**
+ * Extracts MBQL from tool call arguments, handling ExecuteMBQLQuery
+ */
+function extractMBQLFromAction(action: Action): string | null {
+  try {
+    const functionName = action.function.name;
+    const args = JSON.parse(action.function.arguments);
+    
+    if (functionName === 'ExecuteMBQLQuery') {
+      return args.mbql ? JSON.stringify(args.mbql) : null;
+    }
+    
+    return null;
+  } catch (error) {
+    console.warn('Error extracting MBQL from action:', error);
+    return null;
+  }
+}
+
+/**
+ * Scans thread history for a matching MBQL query
+ * Returns the first match found (most recent threads searched first)
+ */
+export function scanThreadsForMBQL(
+  threads: ChatThread[], 
+  normalizedCurrentMBQL: string
+): ThreadScanResult | null {
+  if (!normalizedCurrentMBQL || !threads || threads.length === 0) {
+    return null;
+  }
+  
+  // Scan threads backwards (most recent first)
+  for (let threadIndex = threads.length - 1; threadIndex >= 0; threadIndex--) {
+    const thread = threads[threadIndex];
+    if (!thread.messages) continue;
+    
+    // Scan messages backwards within each thread
+    for (let messageIndex = thread.messages.length - 1; messageIndex >= 0; messageIndex--) {
+      const message = thread.messages[messageIndex];
+      
+      // Only check tool messages with ExecuteMBQLQuery actions
+      if (message.role === 'tool' && message.action) {
+        const extractedMBQL = extractMBQLFromAction(message.action);
+        if (extractedMBQL) {
+          // Normalize extracted MBQL for comparison
+          let normalizedExtractedMBQL: string;
+          try {
+            normalizedExtractedMBQL = JSON.stringify(JSON.parse(extractedMBQL));
+          } catch {
+            continue; // Skip invalid MBQL
+          }
+          
+          if (normalizedExtractedMBQL === normalizedCurrentMBQL) {
+            return {
+              threadIndex,
+              messageIndex,
+              matchingSQL: extractedMBQL // Using matchingSQL field for consistency
+            };
+          }
+        }
+      }
+    }
+  }
+  
+  return null;
+}
+
+/**
  * Result of scanning threads for matching SQL
  */
 export interface ThreadScanResult {
@@ -126,15 +193,21 @@ export async function intelligentThreadStart(getState: () => RootState): Promise
     // Get current SQL from the page
     const currentURL = await queryURL()
     let currentSQL = ''
+    let currentMBQL = ''
     try {
       const url = new URL(currentURL);
       const hash = url.hash;
-      currentSQL = JSON.parse(atob(decodeURIComponent(hash.slice(1)))).dataset_query.native.query;
+      const dataset_query = JSON.parse(atob(decodeURIComponent(hash.slice(1)))).dataset_query
+      if (dataset_query.type == 'query') {
+        currentMBQL = JSON.stringify(dataset_query.query);
+      } else {
+        currentSQL = dataset_query.native.query;
+      }
     } catch {
       console.warn('Failed to extract SQL from URL hash, using getCurrentQuery');
     }
-    if (!currentSQL) {
-      // No SQL on page, start new thread normally
+    if (!currentSQL && !currentMBQL) {
+      // No SQL or MBQL on page, start new thread normally
       dispatch(startNewThread());
       return { restored: false };
     }
@@ -150,7 +223,7 @@ export async function intelligentThreadStart(getState: () => RootState): Promise
     }
 
     // Scan for matching SQL in thread history
-    const matchResult = scanThreadsForSQL(threads, currentSQL);
+    const matchResult = currentSQL ? scanThreadsForSQL(threads, currentSQL) : scanThreadsForMBQL(threads, currentMBQL);
     
     if (matchResult) {
       // Found a match! Clone the thread up to that message
