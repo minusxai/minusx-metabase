@@ -455,18 +455,19 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelDone: "Edited query",
     labelTask: "Edited SQL query",
     description: "Edits the SQL query in the Metabase SQL editor with support for template tags and parameters.",
-    renderBody: ({ explanation, sql_edits, template_tags={}, parameters=[] }: { explanation: string, sql_edits: SQLEdits, template_tags?: object, parameters?: any[]}, appState: MetabaseAppStateSQLEditor | MetabaseAppStateSQLEditorV2) => {
+    renderBody: ({ explanation, sql_edits, template_tags={}, parameters=[], parameterValues=[] }: { explanation: string, sql_edits: SQLEdits, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}> }, appState: MetabaseAppStateSQLEditor | MetabaseAppStateSQLEditorV2) => {
       const currentQuery = appState?.currentCard?.dataset_query?.native?.query || appState?.sqlQuery || "";
       const currentTemplateTags = appState?.currentCard?.dataset_query?.native?.['template-tags'] || {};
       const currentParameters = appState?.currentCard?.parameters || [];
       const newQuery = applySQLEdits(currentQuery, sql_edits);
-      return {text: explanation, code: newQuery, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters}}}
+      const paramValuesInfo = parameterValues && parameterValues.length > 0 ? ` with ${parameterValues.length} parameter values` : '';
+      return {text: `${explanation}${paramValuesInfo}`, code: newQuery, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
     }
   })
-  async EditAndExecuteQuery({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[] }) {
+  async EditAndExecuteQuery({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[], parameterValues=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}> }) {
     let sql = await getCurrentQuery() || ""
     sql = applySQLEdits(sql, sql_edits);
-    return await this.ExecuteQuery({ sql, _ctes, explanation, template_tags, parameters });
+    return await this.ExecuteQuery({ sql, _ctes, explanation, template_tags, parameters, parameterValues });
   }
 
   @Action({
