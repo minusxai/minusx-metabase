@@ -23,7 +23,7 @@ import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmar
 import { ReviewBox } from './ReviewBox'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
-import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn } from '../../state/chat/reducer'
+import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn, cloneThreadFromHistory } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setSuggestQueries, DEFAULT_TABLES, TableInfo, setSelectedModels } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
@@ -194,6 +194,14 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       dispatch(abortPlan())
     }
     dispatch(startNewThread())
+  }
+
+  const continueThread = () => {
+    // Clone the current thread (excluding the active one) and make it the active thread
+    dispatch(cloneThreadFromHistory({
+      sourceThreadIndex: thread,
+      upToMessageIndex: messages.length - 1
+    }))
   }
 
   const toggleSuggestions = (value: boolean) => {
@@ -435,7 +443,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 alert: {
                     message: "You're viewing an older thread. Please start a new thread to continue.",
                     type: "warning",
-                    title: "Previous Thread"
+                    title: "Previous Thread",
+                    showContinueButton: true
                 }
             };
         }
@@ -644,9 +653,21 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         {
             appEnabledStatus.alert.type && 
             <Notify title={appEnabledStatus.alert.title} notificationType={appEnabledStatus.alert.type}>
-                <Text fontSize="xs" lineHeight={"1rem"}>
-                    <Markdown content={appEnabledStatus.alert.message} />
-                </Text>
+                <VStack spacing={2} alignItems="stretch">
+                    <Text fontSize="xs" lineHeight={"1rem"}>
+                        <Markdown content={appEnabledStatus.alert.message} />
+                    </Text>
+                    {appEnabledStatus.alert.showContinueButton && (
+                        <Button
+                            size="xs"
+                            colorScheme="minusxGreen"
+                            variant="solid"
+                            onClick={continueThread}
+                        >
+                            Continue this thread
+                        </Button>
+                    )}
+                </VStack>
             </Notify>
         }
         {   !taskInProgress &&
