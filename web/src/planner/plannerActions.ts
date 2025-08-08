@@ -96,6 +96,9 @@ export const performActions = async (signal: AbortSignal) => {
     if (message.role != 'tool')
       return
     const action = message.action
+    // Skip actions that are already finished (completed tasks)
+    if (action.finished)
+      return
     actions.push({
       index: messageID,
       function: action.function.name,

@@ -215,6 +215,34 @@ const getActiveThread = (state: ChatState) => state.threads[state.activeThread]
 
 const getMessages = (state: ChatState) => getActiveThread(state).messages
 
+/**
+ * Converts a Task to a ChatCompletionMessageToolCall for display purposes
+ */
+const taskToToolCall = (task: Task): ChatCompletionMessageToolCall => ({
+  id: `task_${task.id}`,
+  type: 'function',
+  function: {
+    name: task.agent,
+    arguments: JSON.stringify(task.args)
+  }
+})
+
+/**
+ * Converts a Task result to ActionChatMessageContent
+ * Assumes task.result is always a string
+ */
+const taskResultToContent = (task: Task): ActionChatMessageContent => {
+  return {
+    type: 'BLANK',
+    content: task.result as string,
+    renderInfo: {
+      text: '',
+      code: undefined,
+      oldCode: undefined
+    }
+  }
+}
+
 export const chatSlice = createSlice({
   name: 'chat',
   initialState,
@@ -260,12 +288,32 @@ export const chatSlice = createSlice({
       state,
       action: PayloadAction<{llmResponse: LLMResponse, debug: any}>
     ) => {
-      // const actions: Array<OngoingAction> = 
       const messages = getMessages(state)
       const latestMessageIndex = messages.length
       const toolCalls = action.payload.llmResponse.tool_calls
       const messageContent = action.payload.llmResponse.content
-      const actionMessageIDs = [...Array(toolCalls.length).keys()].map((value) => value+1+latestMessageIndex)
+      const newTasks = action.payload.llmResponse.tasks || []
+      const currentTasks = getActiveThread(state).tasks || []
+      
+      // Defensive programming: ensure we have valid arrays and lengths
+      const currentTasksLength = Array.isArray(currentTasks) ? currentTasks.length : 0
+      const newTasksLength = Array.isArray(newTasks) ? newTasks.length : 0
+      
+      // Find completed tasks from task diff (excluding first task which is main agent)
+      // Only proceed if we have new tasks beyond the current ones
+      const completedTasks = newTasksLength > currentTasksLength 
+        ? newTasks
+            .slice(Math.max(currentTasksLength, 1)) // Get only new tasks, skip main agent
+            .filter(task => task && task.result !== null && task.result !== undefined)
+        : []
+      
+      // Convert completed tasks to tool calls for display
+      const completedToolCalls = completedTasks.map(taskToToolCall)
+      
+      // Calculate total action message IDs for both completed and pending tool calls
+      const totalToolCalls = completedToolCalls.length + toolCalls.length
+      const actionMessageIDs = [...Array(totalToolCalls).keys()].map((value) => value+1+latestMessageIndex)
+      
       const timestamp = Date.now()
       const actionPlanMessage: ActionPlanChatMessage = {
         role: 'assistant',
@@ -276,18 +324,47 @@ export const chatSlice = createSlice({
         content: {
           type: 'ACTIONS',
           actionMessageIDs: actionMessageIDs,
-          toolCalls,
+          toolCalls: [...completedToolCalls, ...toolCalls], // Completed first, then pending
           messageContent,
           finishReason: action.payload.llmResponse.finish_reason,
-          finished: false
+          finished: completedTasks.length === totalToolCalls // Only finished if all are completed
         },
         createdAt: timestamp,
         updatedAt: timestamp,
         debug: action.payload.debug
       }
       messages.push(actionPlanMessage)
-      toolCalls.forEach((toolCall, index) => {
-        const actionMessageID = index+1+latestMessageIndex
+      
+      let messageIndex = 1
+      
+      // Add completed tasks as SUCCESS messages first
+      completedTasks.forEach((task) => {
+        const actionMessageID = messageIndex + latestMessageIndex
+        const timestamp = Date.now()
+        const actionMessage: ActionChatMessage = {
+          role: 'tool',
+          action: {
+            ...taskToToolCall(task),
+            planID: latestMessageIndex,
+            status: 'SUCCESS',
+            finished: true,
+          },
+          feedback: {
+            reaction: "unrated"
+          },
+          index: actionMessageID,
+          content: taskResultToContent(task),
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          debug: {}
+        }
+        messages.push(actionMessage)
+        messageIndex++
+      })
+      
+      // Add pending tool calls as TODO messages
+      toolCalls.forEach((toolCall) => {
+        const actionMessageID = messageIndex + latestMessageIndex
         const timestamp = Date.now()
         const actionMessage: ActionChatMessage = {
           role: 'tool',
@@ -304,9 +381,9 @@ export const chatSlice = createSlice({
           content: {
             type: 'BLANK',
             renderInfo: {
-              text: null,
-              code: null,
-              oldCode: null
+              text: undefined,
+              code: undefined,
+              oldCode: undefined
             }
           },
           createdAt: timestamp,
@@ -314,10 +391,11 @@ export const chatSlice = createSlice({
           debug: {}
         }
         messages.push(actionMessage)
+        messageIndex++
       })
 
-      const tasks = action.payload.llmResponse.tasks || []
-      getActiveThread(state).tasks = tasks
+      // Update tasks array with new tasks
+      getActiveThread(state).tasks = newTasks
       
     },
     startAction: (

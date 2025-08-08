@@ -44,7 +44,7 @@ export const ActionsView: React.FC<null> = () => {
   })
   const actionButtons = allActions.map((actions, index) => {
     const actionDisplay = actions.map((action, jindex) => {
-      let jsonOutput = action.output.content
+      let jsonOutput = action.output?.content
       try {
         jsonOutput = JSON.parse(action.output.content.content)
       } catch (e) {}
