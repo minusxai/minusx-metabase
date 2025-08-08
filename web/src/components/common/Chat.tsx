@@ -208,15 +208,17 @@ export const ChatSection = () => {
   // tool call in each assistant message, add the status from the corresponding
   // tool message
   const messagesWithStatus = addToolInfoToActionPlanMessages(messages)
-  messagesWithStatus.forEach(message => {
-    if (message.role == 'assistant' && message.content.toolCalls.length == 0) {
-      message.content = {
-        type: 'DEFAULT',
-        text: message.content.messageContent,
-        images: []
-      }
-    }
-  })
+  // messagesWithStatus.forEach(message => {
+  //   // if (message.role == 'assistant' && message.content.toolCalls.length == 0) {
+  //   if (message.role == 'assistant' && message.content.messageContent && message.content.messageContent.length > 0) {
+  //     message.content = {
+  //       type: 'DEFAULT',
+  //       text: message.content.messageContent,
+  //       toolCalls: message.content.toolCalls || [],
+  //       images: []
+  //     }
+  //   }
+  // })
   const Chats = isEmpty(messagesWithStatus) ?
     (getDemoIDX(url) == -1 ? <HelperMessage /> : <DemoHelperMessage url={url}/>) :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
