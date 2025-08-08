@@ -19,8 +19,20 @@ const explainSQLTasks = createRunner()
 const highlightTasks = createRunner()
 
 const getBaseStyles = () => `
+  .minusx_style_explain_button {
+    background-color: var(--mb-color-brand);
+    color: white;
+    font-size: 12px;
+    padding: 5px;
+    margin-top: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   .minusx_style_error_button {
-    background-color: #519ee4;
+    background-color: var(--mb-color-brand);
     color: white;
     font-size: 15px;
     padding: 5px 10px;
@@ -29,7 +41,7 @@ const getBaseStyles = () => `
     cursor: pointer;
   }
   .minusx_style_explain_sql_button {
-    background-color: #519ee4;
+    background-color: var(--mb-color-brand);
     color: white;
     padding: 5px 10px;
     margin-left: 5px;
@@ -110,13 +122,13 @@ const getHighlightStyles = () => `
   }
 
   #explain-snippet {
-    background-color: #519ee4;
+    background-color: var(--mb-color-brand);
     color: white;
     cursor: pointer;
     pointer-events: auto !important;
   }
   #modify-snippet {
-    background-color: #519ee4;
+    background-color: var(--mb-color-brand);
     color: white;
     cursor: pointer;
     pointer-events: auto !important;
@@ -221,38 +233,81 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const appSettings = await RPCs.getAppSettings()
     const enableHighlightHelpers = appSettings.enable_highlight_helpers
 
+    // await RPCs.addNativeElements({
+    //     type: 'CSS',
+    //     selector: '[data-testid="legend-caption-title"], [data-testid="scalar-title"]',
+    // }, {
+    //   tag: 'button',
+    //   attributes: {
+    //     class: 'Button Button--primary minusx_style_error_button',
+    //   },
+    //   children: ['⚡']
+    // })
+    const uniqueIDOverview = await RPCs.addNativeElements({
+        type: 'CSS',
+        selector: '[role="heading"]',
+    }, {
+      tag: 'button',
+      attributes: {
+        class: 'Button Button--primary minusx_style_explain_button',
+        title: 'Get a quick overview of this dashboard with MinusX AI'
+      },
+      children: [{
+        tag: 'img',
+        attributes: {
+          src: 'https://web.minusxapi.com/logo_x_light.svg',
+          alt: 'MinusX icon',
+          style: 'width: 16px; height: 16px; margin-right: 5px;'
+        }
+      }, 'Quick Overview']
+    })
+    addNativeEventListener({
+        type: "CSS",
+        selector: `button#${uniqueIDOverview}`,
+      }, async (event) => {
+        RPCs.createNewThreadIfNeeded();
+        RPCs.toggleMinusXRoot('closed', false)
+        RPCs.addUserMessage({
+          content: {
+            type: "DEFAULT",
+            text: `Give me a quick overview of this dashboard. I want to understand both:
+1. the cards and how to understand them
+2. what the data indicates`, images: []}});
+      }, ['mousedown'])
+      
+
     if (enableHighlightHelpers) {
       const explainButtonJSON = {
-      tag: 'div',
-      attributes: {
-        style: 'position: absolute; bottom: -10px; z-index: 5;',
-        class: 'minusx_highlight_button'
-      },
-      children: [{
-        tag: 'button',
+        tag: 'div',
         attributes: {
-          style: 'position: absolute; opacity: 1; font-weight: bold; padding: 5px 10px; border-radius: 5px; cursor: pointer; border-radius: 5px; width: 100px;',
-          id: 'explain-snippet'
+            style: 'position: absolute; bottom: -10px; z-index: 5;',
+            class: 'minusx_highlight_button'
         },
-        children: ['🔎 Explain']
-      }]
-    }
+        children: [{
+            tag: 'button',
+            attributes: {
+            style: 'position: absolute; opacity: 1; font-weight: bold; padding: 5px 10px; border-radius: 5px; cursor: pointer; border-radius: 5px; width: 100px;',
+            id: 'explain-snippet'
+            },
+            children: ['🔎 Explain']
+        }]
+        }
 
-    const modifyButtonJSON = {
-      tag: 'div',
-      attributes: {
-        style: 'position: absolute; bottom: -10px; z-index: 5;',
-        class: 'minusx_highlight_button'
-      },
-      children: [{
-        tag: 'button',
+        const modifyButtonJSON = {
+        tag: 'div',
         attributes: {
-          style: 'position: absolute; opacity: 1; font-weight: bold; padding: 5px 10px; border-radius: 5px; cursor: pointer; border-radius: 5px; width: 100px; left: 105px;',
-          id: 'modify-snippet'
+            style: 'position: absolute; bottom: -10px; z-index: 5;',
+            class: 'minusx_highlight_button'
         },
-        children: ['🪄 Modify']
-      }]
-    }
+        children: [{
+            tag: 'button',
+            attributes: {
+            style: 'position: absolute; opacity: 1; font-weight: bold; padding: 5px 10px; border-radius: 5px; cursor: pointer; border-radius: 5px; width: 100px; left: 105px;',
+            id: 'modify-snippet'
+            },
+            children: ['🪄 Modify']
+        }]
+        }
 
       await RPCs.addNativeElements({
         type: 'CSS',
@@ -271,6 +326,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         type: 'CSS',
         selector: '.ace_selection:last-of-type',
       }, modifyButtonJSON);
+
 
       let _currentlySelectedText = '';
       await subscribe({
