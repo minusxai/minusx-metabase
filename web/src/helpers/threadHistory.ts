@@ -113,54 +113,6 @@ export function scanThreadsForSQL(
   return null;
 }
 
-/**
- * Clones a thread up to a specific message index, including the assistant response
- * that follows the matching tool call for context
- */
-export function cloneThreadUpToMessage(
-  sourceThread: ChatThread, 
-  upToMessageIndex: number,
-  newThreadId: string
-): Partial<ChatThread> {
-  // Include the assistant response after the tool call for context
-  const endIndex = Math.min(upToMessageIndex + 1, sourceThread.messages.length - 1);
-  
-  // Deep clone the messages up to the end index
-  const clonedMessages: ChatMessage[] = sourceThread.messages
-    .slice(0, endIndex + 1)
-    .map(message => ({
-      ...message,
-      // Update message indices to be sequential
-      index: message.index,
-      // Reset feedback to default
-      feedback: { reaction: 'unrated' as const },
-      // Update timestamps
-      createdAt: message.createdAt,
-      updatedAt: Date.now()
-    }));
-  
-  return {
-    index: -1, // Will be set by reducer
-    debugChatIndex: -1,
-    messages: clonedMessages,
-    status: 'FINISHED' as const,
-    userConfirmation: {
-      show: false,
-      content: '',
-      userInput: 'NULL'
-    },
-    clarification: {
-      show: false,
-      questions: [],
-      answers: [],
-      currentQuestionIndex: 0,
-      isCompleted: false
-    },
-    interrupted: false,
-    tasks: [], // Start with empty tasks
-    id: newThreadId
-  };
-}
 
 /**
  * Intelligent thread start function that checks for matching SQL in history
