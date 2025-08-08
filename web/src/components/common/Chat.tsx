@@ -3,7 +3,7 @@ import { Box, HStack, VStack, IconButton, Stack, Text } from '@chakra-ui/react'
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, deleteUserMessage, ActionChatMessage } from '../../state/chat/reducer'
-import _, { isEmpty } from 'lodash'
+import _, { cloneDeep, isEmpty } from 'lodash'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { ActionStack, ActionStatusView, OngoingActionStack } from './ActionStack';
@@ -207,18 +207,21 @@ export const ChatSection = () => {
   // just create a map of all role='tool' messages by their id, and for each
   // tool call in each assistant message, add the status from the corresponding
   // tool message
-  const messagesWithStatus = addToolInfoToActionPlanMessages(messages)
-  // messagesWithStatus.forEach(message => {
-  //   // if (message.role == 'assistant' && message.content.toolCalls.length == 0) {
-  //   if (message.role == 'assistant' && message.content.messageContent && message.content.messageContent.length > 0) {
-  //     message.content = {
-  //       type: 'DEFAULT',
-  //       text: message.content.messageContent,
-  //       toolCalls: message.content.toolCalls || [],
-  //       images: []
-  //     }
-  //   }
-  // })
+  const messagesWithStatusInfo = addToolInfoToActionPlanMessages(messages)
+  const messagesWithStatus = messagesWithStatusInfo.flatMap(message => {
+    // if (message.role == 'assistant' && message.content.toolCalls.length == 0) {
+    const returnValue = [message]
+    if (message.role == 'assistant' && message.content.messageContent && message.content.messageContent.length > 0) {
+      const newMessage = cloneDeep(message)
+      newMessage.content = {
+        type: 'DEFAULT',
+        text: message.content.messageContent,
+        images: []
+      }
+      returnValue.push(newMessage)
+    }
+    return returnValue
+  })
   const Chats = isEmpty(messagesWithStatus) ?
     (getDemoIDX(url) == -1 ? <HelperMessage /> : <DemoHelperMessage url={url}/>) :
     messagesWithStatus.map((message, key) => (<Chat key={key} {...message} />))
