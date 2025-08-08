@@ -22,7 +22,7 @@ function shouldContinue(getState: () => RootState) {
     return false
   }
   // check if the last tool was respondToUser and check what its params were
-  if (lastMessage.role == 'tool' && lastMessage.action.function.name == 'markTaskDone') {
+  if (lastMessage.role == 'tool' && (lastMessage.action.function.name == 'markTaskDone' || lastMessage.action.function.name == 'UpdateTaskStatus')) {
     return false;
   } else {
     // if last tool was not respondToUser, we continue anyway. not sure if we should keep it this way? 
