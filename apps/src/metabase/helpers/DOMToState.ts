@@ -80,6 +80,7 @@ export interface MetabaseAppStateDashboard extends DashboardInfo {
   metabaseUrl?: string;
   isEmbedded: boolean;
   limitedEntities?: MetabaseTableOrModel[];
+  parameterValues?: ParameterValues;
 }
 
 export interface MetabaseAppStateMBQLEditor extends MBQLInfo {

@@ -264,6 +264,7 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
   };
   dashboardAppState.cards = filteredCards as SavedCard[];
   dashboardAppState.limitedEntities = uniqueEntities;
+  dashboardAppState.parameterValues = dashboardMetabaseState.parameterValues || {};
   return dashboardAppState;
 }
 
