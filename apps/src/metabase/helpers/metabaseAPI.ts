@@ -195,6 +195,16 @@ export const executeDatasetQuery = createAPI<{
   'POST'
 );
 
+// Dataset Operations - For running SQL queries
+export const executeMBQLDatasetQuery = createAPI<{
+  database: number;
+  type: string;
+  query: object;
+}>(
+  '/api/dataset',
+  'POST'
+);
+
 
 export const getSQLFromMBQL = createAPI<{
   database: number;

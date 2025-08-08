@@ -24,6 +24,7 @@ import {
   fetchDatabaseWithTables,
   fetchFieldInfo,
   executeDatasetQuery,
+  executeMBQLDatasetQuery,
   fetchSearchByQuery,
   fetchFieldUniqueValues,
   fetchTableMetadata,
@@ -472,6 +473,18 @@ export async function executeQuery(sql: string, databaseId: number, templateTags
       'template-tags': templateTags
     }
   });
+}
+
+/**
+ * Execute MBQL query with standardized error handling
+ * This is used for running MBQL queries in dashboard or unknown pages
+ */
+export async function executeMBQLQuery(mbql: any, databaseId: number) {
+    return await executeMBQLDatasetQuery({
+        database: databaseId,
+        type: "query",
+        query: mbql
+    });
 }
 
 /**
