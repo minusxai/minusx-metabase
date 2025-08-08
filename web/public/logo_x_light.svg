@@ -1,0 +1,10 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 65 65" width="65" height="65">
+	<title>logo2</title>
+	<style>
+		.s0 { fill: #ffffff } 
+		.s1 { fill: #1abc9c } 
+	</style>
+	<path id="x" class="s0" aria-label="x"  d="m43.5 63h20.5l-20.5-29.6 19.9-30h-19.7l-9.6 16.5-11.5-16.5h-20.5l20.2 29.2-19.6 30.4h19.7l9.6-16.6z"/>
+	<path id="Layer 2" class="s1" d="m51.2 27.1l-4.1 5.9 4 5.8 11.9-5.8z"/>
+	<path id="Layer 3" class="s1" d="m3 10.8l15.7 22.2-15.7 22.9v-15.5l6.2-7.4-6.2-7.4z"/>
+</svg>
