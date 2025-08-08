@@ -111,9 +111,18 @@ export function scanThreadsForMBQL(
           }
           
           if (normalizedExtractedMBQL === normalizedCurrentMBQL) {
+            // Find the last message before the next user message
+            let lastMessageIndex = messageIndex;
+            for (let i = messageIndex + 1; i < thread.messages.length; i++) {
+              if (thread.messages[i].role === 'user') {
+                break; // Stop before user message
+              }
+              lastMessageIndex = i;
+            }
+            
             return {
               threadIndex,
-              messageIndex,
+              messageIndex: lastMessageIndex,
               matchingSQL: extractedMBQL // Using matchingSQL field for consistency
             };
           }
@@ -166,9 +175,18 @@ export function scanThreadsForSQL(
         if (extractedSQL) {
           const normalizedExtractedSQL = normalizeSQL(extractedSQL);
           if (normalizedExtractedSQL === normalizedCurrentSQL) {
+            // Find the last message before the next user message
+            let lastMessageIndex = messageIndex;
+            for (let i = messageIndex + 1; i < thread.messages.length; i++) {
+              if (thread.messages[i].role === 'user') {
+                break; // Stop before user message
+              }
+              lastMessageIndex = i;
+            }
+            
             return {
               threadIndex,
-              messageIndex,
+              messageIndex: lastMessageIndex,
               matchingSQL: extractedSQL
             };
           }

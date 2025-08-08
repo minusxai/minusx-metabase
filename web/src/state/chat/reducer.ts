@@ -654,8 +654,8 @@ export const chatSlice = createSlice({
         const previousID = state.threads[state.threads.length - 1].id
         const newID = generateNextThreadID(previousID)
         
-        // Clone messages up to and including the assistant response after the tool call
-        const endIndex = Math.min(upToMessageIndex + 1, sourceThread.messages.length - 1);
+        // Clone messages up to and including the specified index (threadHistory already calculated the correct endpoint)
+        const endIndex = Math.min(upToMessageIndex, sourceThread.messages.length - 1);
         const clonedMessages = sourceThread.messages
           .slice(0, endIndex + 1)
           .map((message, index) => ({
