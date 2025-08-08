@@ -4,7 +4,7 @@ import { RPCs, utils } from "web";
 import { ActionRenderInfo, DefaultMessageContent } from "web/types"
 import 'reflect-metadata';
 
-interface App<T> {
+export interface App<T> {
   getState: () => Promise<T>;
   getQuerySelectorMap: () => Promise<QuerySelectorMap>;
 }

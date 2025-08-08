@@ -7,8 +7,9 @@ import {
   MetabaseAppStateSQLEditor,
   MetabaseSemanticQueryAppState,
   MetabaseAppStateMBQLEditor,
-  MetabasePageType,
 } from "./helpers/DOMToState";
+
+import { MetabasePageType } from "./helpers/utils";
 
 import { MetabaseAppStateSQLEditorV2 } from "./helpers/analystModeTypes";
 
@@ -45,7 +46,7 @@ import {
 } from "./helpers/sqlQuery";
 import axios from 'axios'
 import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCurrentCard, getDashboardState, getCurrentQuery, getParameterValues } from "./helpers/metabaseStateAPI";
-import { runSQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
+import { runSQLQueryFromDashboard, runMBQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
 import { fetchTableMetadata } from "./helpers/metabaseAPI";
@@ -257,6 +258,20 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
     const response = await runSQLQueryFromDashboard(sql, dbID, allTemplateTags);
+    if (response.error) {
+      actionContent.content = `<ERROR>${response.error}</ERROR>`;
+    } else {
+      const asMarkdown = metabaseToCSV(response.data);
+      actionContent.content = asMarkdown;
+    }
+    return actionContent;
+  }
+
+  async runMBQLQuery({ mbql, dbID }: { mbql: any, dbID: number }) {
+    const actionContent: BlankMessageContent = {
+      type: "BLANK",
+    };
+    const response = await runMBQLQueryFromDashboard(mbql, dbID);
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
@@ -558,6 +573,64 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return actionContent;
     }
     return actionContent;
+  }
+
+  @Action({
+    labelRunning: "Constructs the MBQL query",
+    labelDone: "MBQL built",
+    labelTask: "Built MBQL query",
+    description: "Constructs the MBQL query in the GUI editor",
+    renderBody: ({ mbql, explanation }: { mbql: any, explanation: string }) => {
+        if (isEmpty(mbql)) {
+            return {text: "This MBQL query has errors", code: null, language: "markdown"}
+        }
+      return {text: explanation, code: JSON.stringify(mbql), language: "json"}
+    }
+  })
+  async ExecuteMBQLQuery({ mbql, explanation }: { mbql: any, explanation: string }) {
+    const actionContent: BlankMessageContent = {
+        type: "BLANK",
+    };
+    const state = (await this.app.getState()) as MetabaseAppStateMBQLEditor;
+    const dbID = state?.selectedDatabaseInfo?.id as number
+    if (!dbID) {
+      actionContent.content = "No database selected";
+      return actionContent;
+    }
+    if (isEmpty(mbql)) {
+        actionContent.content = "This MBQL query has errors: " + explanation;
+        return actionContent;
+    }
+
+    if (mbql) {
+        const table_ids = getSourceTableIds(mbql);
+        await updateMBEntities(table_ids)
+    }
+
+    const finCard = {
+        type: "question",
+        visualization_settings: {},
+        display: "table",
+        dataset_query: {
+            database: dbID,
+            type: "query",
+            query: mbql
+        }
+    };
+
+    const metabaseState = this.app as App<MetabaseAppState>;
+    const pageType = metabaseState.useStore().getState().toolContext?.pageType as MetabasePageType;
+    if (pageType === 'mbql') {
+      // # Ensure you're in mbql editor mode
+      await RPCs.dispatchMetabaseAction('metabase/qb/SET_UI_CONTROLS', {
+        queryBuilderMode: "notebook",
+      });
+      await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', {card: finCard});
+      return await this._executeMBQLQueryInternal()
+    }
+    else if ((pageType === 'dashboard') || (pageType === 'unknown')) {
+        return await this.runMBQLQuery({mbql, dbID});
+    }
   }
 
   @Action({
