@@ -139,7 +139,7 @@ export interface Task {
 
 export type Tasks = Array<Task>
 
-interface ChatThread {
+export interface ChatThread {
   index: number
   debugChatIndex: number
   messages: Array<ChatMessage>
@@ -536,11 +536,93 @@ export const chatSlice = createSlice({
     clearTasks: (state) => {
         const activeThread = getActiveThread(state)
         activeThread.tasks = []
+    },
+    cloneThreadFromHistory: (state, action: PayloadAction<{
+      sourceThreadIndex: number,
+      upToMessageIndex: number
+    }>) => {
+      try {
+        const { sourceThreadIndex, upToMessageIndex } = action.payload
+        
+        // Validate source thread exists
+        if (sourceThreadIndex < 0 || sourceThreadIndex >= state.threads.length) {
+          console.error('Invalid source thread index:', sourceThreadIndex)
+          return
+        }
+        
+        const sourceThread = state.threads[sourceThreadIndex]
+        if (!sourceThread || !sourceThread.messages) {
+          console.error('Source thread or messages not found')
+          return
+        }
+        
+        // Validate message index
+        if (upToMessageIndex < 0 || upToMessageIndex >= sourceThread.messages.length) {
+          console.error('Invalid message index:', upToMessageIndex)
+          return
+        }
+        
+        // Handle thread limit (remove oldest if at max)
+        if (state.threads.length >= MAX_THREADS) {
+          const excessThreads = state.threads.length - MAX_THREADS + 1;
+          state.threads.splice(0, excessThreads);
+          
+          state.threads.forEach((thread, index) => {
+            thread.index = index;
+          });
+        }
+        
+        // Generate new thread ID
+        const previousID = state.threads[state.threads.length - 1].id
+        const newID = generateNextThreadID(previousID)
+        
+        // Clone messages up to and including the assistant response after the tool call
+        const endIndex = Math.min(upToMessageIndex + 1, sourceThread.messages.length - 1);
+        const clonedMessages = sourceThread.messages
+          .slice(0, endIndex + 1)
+          .map((message, index) => ({
+            ...message,
+            index,
+            feedback: { reaction: 'unrated' as const },
+            updatedAt: Date.now()
+          }));
+        
+        // Create new thread
+        const newThread: ChatThread = {
+          index: state.threads.length,
+          debugChatIndex: -1,
+          messages: clonedMessages,
+          status: 'FINISHED',
+          userConfirmation: {
+            show: false,
+            content: '',
+            userInput: 'NULL'
+          },
+          clarification: {
+            show: false,
+            questions: [],
+            answers: [],
+            currentQuestionIndex: 0,
+            isCompleted: false
+          },
+          interrupted: false,
+          tasks: [],
+          id: newID
+        }
+        
+        // Add thread and switch to it
+        state.threads.push(newThread)
+        state.activeThread = state.threads.length - 1
+        
+      } catch (error) {
+        console.error('Error cloning thread from history:', error)
+        // Don't change state on error - let existing thread remain active
+      }
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory } = chatSlice.actions
 
 export default chatSlice.reducer

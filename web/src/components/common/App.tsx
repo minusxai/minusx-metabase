@@ -33,7 +33,7 @@ import Auth from './Auth'
 import _, { attempt } from 'lodash'
 import { updateAppMode, setAnalystMode, setDRMode, setCurrentEmail } from '../../state/settings/reducer'
 import { DevToolsBox } from '../devtools';
-import { RootState } from '../../state/store'
+import { RootState, store } from '../../state/store'
 import { getPlatformShortcut } from '../../helpers/platformCustomization'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
@@ -45,6 +45,7 @@ import { Markdown } from './Markdown'
 import { getMXToken, setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
 import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
+import { intelligentThreadStart } from '../../helpers/threadHistory'
 
 // Agent constants
 const AGENTS = {
@@ -191,9 +192,14 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Update thread id on start
   useEffect(() => {
     // dispatch(updateThreadID())
-    if (!configs.IS_DEV) {
-      dispatch(startNewThread())
-    }
+    intelligentThreadStart(store.getState).then(result => {
+      if (result.restored) {
+        console.log('Restored thread context for SQL:', result.matchingSQL);
+        // Show subtle notification that context was restored
+      }
+    }).catch(error => {
+      console.error('Error in intelligent thread start:', error);
+    });
   }, []) 
 
   useEffect(() => {
@@ -255,6 +261,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     if (taskInProgress) {
       dispatch(abortPlan())
     }
+    // For clear messages, always start a fresh thread (no intelligent restore)
     dispatch(startNewThread())
   }
 
