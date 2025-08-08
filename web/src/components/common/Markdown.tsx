@@ -167,26 +167,41 @@ function ImageComponent(props: any) {
   return <ZoomableImage src={props.src} alt={props.alt}/>
 }
 
-function generateMetabaseQuestionURL(sql: string, databaseId: number | null = null, embedConfigs: EmbedConfigs = {}) {
+function generateMetabaseQuestionURL(query: any, queryType: string, databaseId: number | null = null, embedConfigs: EmbedConfigs = {}) {
   // Get Metabase origin from embed_configs if available, otherwise use iframe info
-  const templateTags = getAllTemplateTagsInQuery(sql);
-  const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
-  
-  // Get all template tags in the query (we don't have access to snippets here, so pass undefined)
-  const cardData = {
-    "dataset_query": {
-      "database": databaseId,
-      "type": "native",
-      "native": {
-        "query": sql,
-        "template-tags": templateTags
-      }
-    },
-    "display": "table",
-    "parameters": [],
-    "visualization_settings": {},
-    "type": "question"
-  };
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+    let cardData: any = {};
+    if (queryType === 'sql') {
+        const templateTags = getAllTemplateTagsInQuery(query);
+        // Get all template tags in the query (we don't have access to snippets here, so pass undefined)
+        cardData = {
+            "dataset_query": {
+            "database": databaseId,
+            "type": "native",
+            "native": {
+                "query": query,
+                "template-tags": templateTags
+            }
+            },
+            "display": "table",
+            "parameters": [],
+            "visualization_settings": {},
+            "type": "question"
+        };
+        
+    }
+    else if (queryType === 'mbql') {
+           cardData = {
+            "dataset_query": {
+            "database": databaseId,
+            "type": "query",
+            "query": query,
+            },
+            "display": "table",
+            "visualization_settings": {},
+            "type": "question"
+        };     
+    }
   
   const hash = btoa(JSON.stringify(cardData));
   const origin = embedConfigs.embed_host;
@@ -196,7 +211,12 @@ function generateMetabaseQuestionURL(sql: string, databaseId: number | null = nu
   return `${origin}/question?hash=${encodeURIComponent(hash)}`;
 }
 
-function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number): string | null {
+interface LastQuery {
+    query: string;
+    queryType: 'sql' | 'mbql';
+}
+
+function extractLastQueryFromMessages(messages: any[], currentMessageIndex: number, toolContext: any): LastQuery | null {
   // Look backwards from the message before the current one
   for (let i = currentMessageIndex - 1; i >= 0; i--) {
     const message = messages[i];
@@ -214,15 +234,32 @@ function extractLastSQLFromMessages(messages: any[], currentMessageIndex: number
               // Use the same logic as in the controller to process SQL + CTEs
               const ctes: [string, string][] = args._ctes || args.ctes || [];
               
-              return processSQLWithCtesOrModels(args.sql, ctes);
+              let lastSQL = processSQLWithCtesOrModels(args.sql, ctes);
+                const allModels: MetabaseModel[] = toolContext?.dbInfo?.models || []
+                lastSQL = replaceLLMFriendlyIdentifiersInSqlWithModels(lastSQL, allModels)
+                return {query: lastSQL, queryType: 'sql'};
             }
           } catch (e) {
             // Ignore parsing errors
           }
         }
-      }
+        else if (toolCall.function?.name === 'ExecuteMBQLQuery' ||
+                 toolCall.function?.name === 'ExecuteMBQLClient' ||
+                 toolCall.function?.name === 'runMBQLQuery') {
+          // Handle MBQL queries
+            try {
+            const args = JSON.parse(toolCall.function.arguments);
+            if (args.mbql) {
+                // Return the MBQL query directly
+                return {query: args.mbql, queryType: 'mbql'};
+            }
+            } catch (e) {
+                // Ignore parsing errors
+            }
+        }
     }
   }
+}
   return null;
 }
 
@@ -244,34 +281,30 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   const embedConfigs = useSelector((state: RootState) => state.configs.embed);
   const mxModels = useSelector((state: RootState) => state.cache.mxModels);
   
-  // Process template variables like {{MX_LAST_SQL_URL}}
+  // Process template variables like {{MX_LAST_QUERY_URL}}
   const processedContent = React.useMemo(() => {
-    if (content.includes('{{MX_LAST_SQL_URL}}')) {
+    if (content.includes('{{MX_LAST_QUERY_URL}}')) {
       try {
         // Extract last SQL from messages before the current message
-        let lastSQL = messageIndex !== undefined 
-          ? extractLastSQLFromMessages(currentThread?.messages || [], messageIndex)
+        let lastQuery = messageIndex !== undefined 
+          ? extractLastQueryFromMessages(currentThread?.messages || [], messageIndex, toolContext)
           : null;
-        if (lastSQL) {
-          const allModels: MetabaseModel[] = toolContext?.dbInfo?.models || []
-          lastSQL = replaceLLMFriendlyIdentifiersInSqlWithModels(lastSQL, allModels)
-        }
         
-        if (lastSQL) {
+        if (lastQuery) {
           // Get current database ID from app state
           const databaseId = toolContext?.dbId || null;
-          
-          const questionURL = generateMetabaseQuestionURL(lastSQL, databaseId, embedConfigs);
-          
+
+          const questionURL = generateMetabaseQuestionURL(lastQuery.query, lastQuery.queryType, databaseId, embedConfigs);
+
           return renderString(content, {
-            'MX_LAST_SQL_URL': `\n\n --- \n\n Continue your analysis [here](${questionURL})`
+            'MX_LAST_QUERY_URL': `\n\n --- \n\n Continue your analysis [here](${questionURL})`
           });
         } 
         else {
-            return content.replace('{{MX_LAST_SQL_URL}}', ''); // Remove if no SQL found
+            return content.replace('{{MX_LAST_QUERY_URL}}', ''); // Remove if no SQL found
         }
       } catch (error) {
-        console.warn('Failed to generate MX_LAST_SQL_URL:', error);
+        console.warn('Failed to generate MX_LAST_QUERY_URL:', error);
       }
     }
     
