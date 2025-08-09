@@ -38,5 +38,6 @@ export type ActionRenderInfo = {
   code?: string
   oldCode?: string
   language?: string
+  hidden?: boolean
   extraArgs?: Record<string, any>
 }

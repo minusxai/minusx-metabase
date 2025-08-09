@@ -131,6 +131,9 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     setIsExpanded(!isExpanded)
   }
 
+  if (isEmpty(actions)) {
+    return null;
+  }
   return (
     <HStack aria-label="thinking-block" className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
       <Box
@@ -262,7 +265,7 @@ export const OngoingActionStack: React.FC = () => {
     const actions: ActionStatusView[] = []
     actionPlan.content.actionMessageIDs.forEach((messageID: string) => {
       const message = messages[messageID]
-      if (message.role == 'tool') {
+      if (message.role == 'tool' && !message.action.renderInfo?.hidden) {
         actions.push(message.action)
       }
     })

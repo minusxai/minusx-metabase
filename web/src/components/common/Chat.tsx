@@ -84,12 +84,14 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
     }
     const actions: ActionStatusView[] = []
     content.toolCalls.forEach(toolCall => {
-      actions.push({
-        finished: true,
-        function: toolCall.function,
-        status: toolCall.status,
-        renderInfo: toolCall.renderInfo
-      })
+      if (!toolCall.renderInfo.hidden) {
+        actions.push({
+          finished: true,
+          function: toolCall.function,
+          status: toolCall.status,
+          renderInfo: toolCall.renderInfo
+        })
+      }
     })
     const latency = ('latency' in debug)? Math.round(debug.latency as number /100)/10 : 0
     return <ActionStack content={content.messageContent} actions={actions} status={'FINISHED'} index={index} latency={latency}/>

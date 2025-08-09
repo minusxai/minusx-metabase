@@ -238,7 +238,8 @@ const taskResultToContent = (task: Task): ActionChatMessageContent => {
     renderInfo: {
       text: '',
       code: undefined,
-      oldCode: undefined
+      oldCode: undefined,
+      hidden: true
     }
   }
 }
