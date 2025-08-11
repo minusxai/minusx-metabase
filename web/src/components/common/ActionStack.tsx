@@ -26,6 +26,7 @@ import { get, isEmpty, last } from 'lodash';
 // Todo: Vivek: Hardcoding here, need to fix this later
 // This is a list of actions that are undo/redoable
 const UNDO_REDO_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery']
+const TABLE_OUTPUT_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteMBQLQuery']
 
 
 function removeThinkingTags(input: string): string {
@@ -38,7 +39,8 @@ function extractMessageContent(input: string): string {
 }
 
 export type ActionStatusView = Pick<Action, 'finished' | 'function' | 'status'> & {
-  renderInfo: ActionRenderInfo
+  renderInfo: ActionRenderInfo,
+  output?: string
 }
 
 const useAppStore = getApp().useStore()
@@ -87,6 +89,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     return processModelToUIText(text || '', origin, embedConfigs)
   }).filter(text => text !== '')
 
+
 //   const preExpanderText = preExpanderTextArr.length > 1 
 //       ? preExpanderTextArr.map((text, i) => {
 //           return `\n\n **Query ${i+1}**: ${text} \n\n  ---`;
@@ -127,6 +130,16 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 )
             })
 
+    const tableOutputsArr = actions.map(action => {
+                const output = action.output || ''
+                return TABLE_OUTPUT_ACTIONS.includes(action.function.name) && (
+                    <HStack w={"100%"} justify={"center"} mb={2} overflowX={'scroll'}>
+                        <Markdown content={processModelToUIText(output, origin, embedConfigs)} />
+                    </HStack>
+                )
+            })
+
+
   const toggleExpand = () => {
     setIsExpanded(!isExpanded)
   }
@@ -135,6 +148,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     return null;
   }
   return (
+    <VStack maxWidth={"100%"} width={isExpanded ? "100%" : ""}>
     <HStack aria-label="thinking-block" className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
       <Box
         aria-label="thinking-block-container"
@@ -239,6 +253,14 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         )} */}
       </Box>
     </HStack>
+    <VStack maxWidth={"100%"} width={isExpanded ? "100%" : ""} overflow={"scroll"}>
+    {tableOutputsArr.length > 0 && 
+        // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
+        tableOutputsArr.map((text, i) => {
+            return (<>{text}</>)
+    })}
+    </VStack>
+            </VStack>
   )
 }
 

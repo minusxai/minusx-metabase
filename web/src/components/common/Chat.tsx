@@ -40,6 +40,7 @@ function addToolInfoToActionPlanMessages(messages: Array<ChatMessage>) {
           return {
             ...toolCall,
             status: toolMessage.action.status,
+            content: toolMessage.content.content,
             renderInfo: toolMessage.content.renderInfo
           }
         } else {
@@ -89,7 +90,8 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           finished: true,
           function: toolCall.function,
           status: toolCall.status,
-          renderInfo: toolCall.renderInfo
+          renderInfo: toolCall.renderInfo,
+          output: toolCall.content,
         })
       }
     })

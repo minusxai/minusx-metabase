@@ -86,6 +86,7 @@ export interface ActionPlanChatMessage extends BaseChatMessage {
 
 export type ActionChatMessageContent = Subset<ChatMessageContent, DefaultMessageContent | BlankMessageContent> & {
   renderInfo: ActionRenderInfo
+  content?: string
 }
 export interface ActionChatMessage extends BaseChatMessage {
   role: 'tool'

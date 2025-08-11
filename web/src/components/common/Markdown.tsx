@@ -150,6 +150,85 @@ function ModifiedH4(props: any) {
     )
 }
 
+function ModifiedTable(props: any) {
+    return (
+        <div style={{
+            maxHeight: '200px',
+            overflowY: 'auto',
+            overflowX: 'auto',
+            border: '1px solid #e2e8f0',
+            borderRadius: '6px',
+            margin: '10px 0'
+        }}>
+            <table style={{
+                width: '100%',
+                minWidth: 'max-content',
+                borderCollapse: 'collapse',
+                fontSize: '0.9em'
+            }}>
+                {props.children}
+            </table>
+        </div>
+    )
+}
+
+function ModifiedThead(props: any) {
+    return (
+        <thead style={{
+            backgroundColor: '#f7fafc',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1
+        }}>
+            {props.children}
+        </thead>
+    )
+}
+
+function ModifiedTbody(props: any) {
+    return (
+        <tbody>
+            {props.children}
+        </tbody>
+    )
+}
+
+function ModifiedTr(props: any) {
+    return (
+        <tr style={{
+            borderBottom: '1px solid #e2e8f0'
+        }}>
+            {props.children}
+        </tr>
+    )
+}
+
+function ModifiedTh(props: any) {
+    return (
+        <th style={{
+            padding: '12px 16px',
+            textAlign: 'left',
+            fontWeight: '600',
+            color: '#2d3748',
+            borderBottom: '2px solid #e2e8f0'
+        }}>
+            {props.children}
+        </th>
+    )
+}
+
+function ModifiedTd(props: any) {
+    return (
+        <td style={{
+            padding: '12px 16px',
+            color: '#4a5568',
+            wordBreak: 'break-word'
+        }}>
+            {props.children}
+        </td>
+    )
+}
+
 function ZoomableImage({src, alt}: {src: string, alt: string}) {
   return <div style={{cursor: "grabbing"}}>
     <TransformWrapper initialScale={1} doubleClick={{disabled: true}}>
@@ -312,6 +391,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode, hr: HorizontalLine, h1: ModifiedH1, h2: ModifiedH2, h3: ModifiedH3, h4: ModifiedH4 }}>{processedContent}</MarkdownComponent>
+    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode, hr: HorizontalLine, h1: ModifiedH1, h2: ModifiedH2, h3: ModifiedH3, h4: ModifiedH4, table: ModifiedTable, thead: ModifiedThead, tbody: ModifiedTbody, tr: ModifiedTr, th: ModifiedTh, td: ModifiedTd }}>{processedContent}</MarkdownComponent>
   )
 }

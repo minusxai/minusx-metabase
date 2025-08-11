@@ -17,6 +17,7 @@ import {
   getAndFormatOutputTable,
   getSqlErrorMessage,
   metabaseToCSV,
+  metabaseToMarkdownTable,
   waitForQueryExecution,
 } from "./helpers/operations";
 import {
@@ -261,7 +262,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
-      const asMarkdown = metabaseToCSV(response.data);
+    //   const asMarkdown = metabaseToCSV(response.data);
+        const asMarkdown = metabaseToMarkdownTable(response.data);
       actionContent.content = asMarkdown;
     }
     return actionContent;
@@ -275,7 +277,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
-      const asMarkdown = metabaseToCSV(response.data);
+    //   const asMarkdown = metabaseToCSV(response.data);
+        const asMarkdown = metabaseToMarkdownTable(response.data);
       actionContent.content = asMarkdown;
     }
     return actionContent;
@@ -315,7 +318,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (response.error) {
       actionContent.content = `<ERROR>${response.error}</ERROR>`;
     } else {
-      const asMarkdown = metabaseToCSV(response.data);
+    //   const asMarkdown = metabaseToCSV(response.data);
+        const asMarkdown = metabaseToMarkdownTable(response.data);
+
       if (!asMarkdown) {
         actionContent.content = `<OUTPUT>EMPTY_RESULTS</OUTPUT>`;
       } else {
