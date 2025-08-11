@@ -262,10 +262,92 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     metabaseUrl: fullUrl,
     isEmbedded: getParsedIframeInfo().isEmbedded,
   };
+  const mainObj = filteredCards[9]
+  const cardIds = getSourceTableIdsFromObject(mainObj)
+  const [mainSQLRaw, childSQLsRaw] = await Promise.all([
+    getSQLFromMBQL({
+      database: dbId,
+      type: 'query',
+      query: mainObj.dataset_query.query,
+    }),
+    Promise.all(cardIds.map(id => getSQLFromMBQL({
+      database: dbId,
+      type: 'query',
+      query: {
+        'source-table': id
+      },
+    })))
+  ])
+  // const mainSQL = mainSQLRaw
+  // const childSQLs = childSQLsRaw
+  const mainSQL = splitAndTrimSQL(mainSQLRaw.query)
+  const childSQLs = childSQLsRaw.map(i => splitAndTrimSQL(i.query)).map(getOutermostParenthesesContent)
+  // console.log('Main dashboard card is', mainObj, cardIds)
+  // console.log('Main query', mainSQL)
+  // console.log('Child queries', childSQLs)
+  // if main query contains childSQL, replace with {{#cardId-card-cardId}} syntax Eg: {{#40-card-40}}
+  const mainSQLWithCards = childSQLs.reduce((sql, childSql, index) => {
+    let cardId = cardIds[index];
+    if (typeof cardId === 'string'){
+      cardId = cardId.slice(6)
+    }
+    if (sql.includes(childSql)) {
+      return sql.replace(childSql, `{{#${cardId}-card-${cardId}}}`);
+    }
+    return sql;
+  }, mainSQL);
+  mainObj.dataset_query.native = {
+    'query': mainSQLWithCards,
+    'template-tags': {}
+  }
+  console.log('Main card is', mainObj)
   dashboardAppState.cards = filteredCards as SavedCard[];
   dashboardAppState.limitedEntities = uniqueEntities;
   dashboardAppState.parameterValues = dashboardMetabaseState.parameterValues || {};
   return dashboardAppState;
+}
+
+function splitAndTrimSQL(sql: string): string {
+  return sql.split('\n').map(part => part.trim()).join('\n')
+}
+
+// This function extracts the contents of the outermost round brackets in a SQL string. i.e: The contents within the outermost ()
+function getOutermostParenthesesContent(sql: string): string {
+  let depth = 0;
+  let start = -1;
+  
+  for (let i = 0; i < sql.length; i++) {
+    if (sql[i] === '(') {
+      if (depth === 0) start = i + 1; // mark after '('
+      depth++;
+    } else if (sql[i] === ')') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        return sql.slice(start, i).trim(); // return without outer ()
+      }
+    }
+  }
+  return sql
+}
+
+// function that goes through a nested object and returns all values for key "source-table"
+function getSourceTableIdsFromObject(obj: any): any[] {
+  let ids: number[] = [];
+  if (Array.isArray(obj)) {
+    for (const item of obj) {
+      ids = ids.concat(getSourceTableIdsFromObject(item));
+    }
+  } else if (typeof obj === 'object' && obj !== null) {
+    if (obj.hasOwnProperty('source-table')) {
+      ids.push(obj['source-table']);
+    }
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        ids = ids.concat(getSourceTableIdsFromObject(obj[key]));
+      }
+    }
+  }
+  return ids;
 }
 
 
