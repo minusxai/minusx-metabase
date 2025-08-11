@@ -5,7 +5,7 @@ import { getTablesWithFields } from '../getDatabaseSchema';
 import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
 import { getParsedIframeInfo, RPCs } from 'web';
-import { getSQLFromMBQL } from '../metabaseAPI';
+import { getSQLFromMBQL, fetchCard } from '../metabaseAPI';
 import { metabaseToMarkdownTable } from '../operations';
 import { find, get } from 'lodash';
 import { getTablesFromSqlRegex, TableAndSchema } from '../parseSql';
@@ -18,6 +18,126 @@ import { Card, SavedCard } from '../types';
 import { getLimitedEntitiesFromQueries, getLimitedEntitiesFromMBQLQueries } from '../utils';
 
 // Removed: const { getMetabaseState } = RPCs - using centralized state functions instead
+
+// Helper function to generate clean slugs from card names
+function generateCardSlug(cardName: string, cardId: number): string {
+  if (!cardName) return `card-${cardId}`;
+  
+  // Convert to lowercase, replace spaces and special characters with hyphens
+  const slug = cardName
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special characters except hyphens and spaces
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+    .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+  
+  return `${cardId}-${slug}`;
+}
+
+// Helper function to generate UUID-like strings for template tags
+function generateUUID(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Helper function to create template tag object
+function createTemplateTag(cardId: number, cardName: string, cardType?: string): any {
+  const slug = generateCardSlug(cardName, cardId);
+  const templateTagName = `#${slug}`;
+  const entityType = cardType === 'model' ? 'Model' : 'Card';
+  const displayName = `#${cardId} ${cardName || `${entityType} ${cardId}`}`;
+  
+  return {
+    type: "card", // Metabase uses 'card' type for both cards and models in template tags
+    name: templateTagName,
+    id: generateUUID(),
+    "display-name": displayName,
+    "card-id": cardId
+  };
+}
+
+// Helper function to process MBQL cards and convert them to native SQL with template tags
+async function processMBQLCard(
+  card: SavedCard, 
+  dbId: number, 
+  cardDetailsMap: Map<number, any>
+): Promise<SavedCard> {
+  // Only process MBQL cards
+  if (card.dataset_query?.type !== 'query') {
+    return card;
+  }
+
+  try {
+    // Get source table IDs from the MBQL query
+    const sourceTableIds = getSourceTableIdsFromObject(card.dataset_query.query);
+    
+    // Get SQL for the main query and child queries
+    const [mainSQLRaw, childSQLsRaw] = await Promise.all([
+      getSQLFromMBQL({
+        database: dbId,
+        type: 'query',
+        query: card.dataset_query.query,
+      }),
+      Promise.all(sourceTableIds.map(id => getSQLFromMBQL({
+        database: dbId,
+        type: 'query',
+        query: {
+          'source-table': id
+        },
+      })))
+    ]);
+
+    // Process SQL strings
+    const mainSQL = splitAndTrimSQL(mainSQLRaw.query);
+    const childSQLs = childSQLsRaw.map(i => splitAndTrimSQL(i.query)).map(getOutermostParenthesesContent);
+    
+    // Create template tags map
+    const templateTags: Record<string, any> = {};
+    
+    // Replace child SQL queries with template tag references
+    const mainSQLWithCards = childSQLs.reduce((sql, childSql, index) => {
+      let cardId = sourceTableIds[index];
+      if (typeof cardId === 'string' && cardId.startsWith('card__')) {
+        cardId = parseInt(cardId.slice(6));
+      }
+      
+      // Get the referenced card details from the fetched card info
+      const referencedCard = cardDetailsMap.get(cardId);
+      const cardName = referencedCard?.name || `Card ${cardId}`;
+      const cardType = referencedCard?.type;
+      
+      // Create template tag
+      const templateTag = createTemplateTag(cardId, cardName, cardType);
+      templateTags[templateTag.name] = templateTag;
+      
+      // Replace SQL with template tag reference
+      if (sql.includes(childSql)) {
+        return sql.replace(childSql, `{{${templateTag.name}}}`);
+      }
+      return sql;
+    }, mainSQL);
+
+    // Create the processed card with native SQL
+    const processedCard: SavedCard = {
+      ...card,
+      dataset_query: {
+        ...card.dataset_query,
+        native: {
+          query: mainSQLWithCards,
+          'template-tags': templateTags
+        }
+      }
+    };
+
+    return processedCard;
+  } catch (error) {
+    console.error(`Error processing MBQL card ${card.id}:`, error);
+    return card;
+  }
+}
 
 function getSelectedTabDashcardIds(dashboardMetabaseState: DashboardMetabaseState) {
   const currentDashboardData = dashboardMetabaseState.dashboards?.[dashboardMetabaseState.dashboardId];
@@ -262,45 +382,54 @@ export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard 
     metabaseUrl: fullUrl,
     isEmbedded: getParsedIframeInfo().isEmbedded,
   };
-  const mainObj = filteredCards[9]
-  const cardIds = getSourceTableIdsFromObject(mainObj)
-  const [mainSQLRaw, childSQLsRaw] = await Promise.all([
-    getSQLFromMBQL({
-      database: dbId,
-      type: 'query',
-      query: mainObj.dataset_query.query,
-    }),
-    Promise.all(cardIds.map(id => getSQLFromMBQL({
-      database: dbId,
-      type: 'query',
-      query: {
-        'source-table': id
-      },
-    })))
-  ])
-  // const mainSQL = mainSQLRaw
-  // const childSQLs = childSQLsRaw
-  const mainSQL = splitAndTrimSQL(mainSQLRaw.query)
-  const childSQLs = childSQLsRaw.map(i => splitAndTrimSQL(i.query)).map(getOutermostParenthesesContent)
-  // console.log('Main dashboard card is', mainObj, cardIds)
-  // console.log('Main query', mainSQL)
-  // console.log('Child queries', childSQLs)
-  // if main query contains childSQL, replace with {{#cardId-card-cardId}} syntax Eg: {{#40-card-40}}
-  const mainSQLWithCards = childSQLs.reduce((sql, childSql, index) => {
-    let cardId = cardIds[index];
-    if (typeof cardId === 'string'){
-      cardId = cardId.slice(6)
+  // Process all MBQL cards and convert them to native SQL with template tags
+  if (dbId) {
+    try {
+      // Collect all card IDs from MBQL queries
+      const allCardIds = new Set<number>();
+      for (const card of filteredCards) {
+        if (card.dataset_query?.type === 'query') {
+          const sourceTableIds = getSourceTableIdsFromObject(card.dataset_query.query);
+          sourceTableIds.forEach(id => {
+            // Convert string card IDs (like "card__123") to numbers
+            if (typeof id === 'string' && id.startsWith('card__')) {
+              allCardIds.add(parseInt(id.slice(6)));
+            } else if (typeof id === 'number' && id > 0) {
+              // Assuming card IDs are positive numbers (tables are usually negative)
+              allCardIds.add(id);
+            }
+          });
+        }
+      }
+
+      // Fetch card details for all referenced cards
+      const cardDetailsMap = new Map<number, any>();
+      if (allCardIds.size > 0) {
+        const cardDetails = await Promise.all(
+          Array.from(allCardIds).map(async cardId => {
+            try {
+              const cardDetail = await fetchCard({ card_id: cardId });
+              return { id: cardId, detail: cardDetail };
+            } catch (error) {
+              console.warn(`Failed to fetch card ${cardId}:`, error);
+              return { id: cardId, detail: null };
+            }
+          })
+        );
+        
+        cardDetails.forEach(({ id, detail }) => {
+          if (detail) cardDetailsMap.set(id, detail);
+        });
+      }
+
+      filteredCards = await Promise.all(
+        filteredCards.map(card => processMBQLCard(card, dbId, cardDetailsMap))
+      );
+      
+    } catch (error) {
+      console.error('Error processing MBQL cards:', error);
     }
-    if (sql.includes(childSql)) {
-      return sql.replace(childSql, `{{#${cardId}-card-${cardId}}}`);
-    }
-    return sql;
-  }, mainSQL);
-  mainObj.dataset_query.native = {
-    'query': mainSQLWithCards,
-    'template-tags': {}
   }
-  console.log('Main card is', mainObj)
   dashboardAppState.cards = filteredCards as SavedCard[];
   dashboardAppState.limitedEntities = uniqueEntities;
   dashboardAppState.parameterValues = dashboardMetabaseState.parameterValues || {};
