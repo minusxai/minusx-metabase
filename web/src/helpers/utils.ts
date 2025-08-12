@@ -127,7 +127,7 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
         if (match) {
             text = match[1];
         }
-        return text;
+        return `> ${text}. Fixing it!`;
     }
     return text
 }

@@ -109,9 +109,36 @@ function ModifiedCode(props: any) {
     );
 };
 
+// Helper function to extract text content from React children
+function getTextFromChildren(children: any): string {
+    if (typeof children === 'string') {
+        return children;
+    }
+    if (typeof children === 'number') {
+        return children.toString();
+    }
+    if (Array.isArray(children)) {
+        return children.map(getTextFromChildren).join('');
+    }
+    if (children && typeof children === 'object' && children.props) {
+        return getTextFromChildren(children.props.children);
+    }
+    return '';
+}
+
 function ModifiedBlockquote(props: any) {
+    const textContent = getTextFromChildren(props.children);
+    const isError = textContent.toLowerCase().includes('error');
+    
     return (
-        <blockquote style={{borderLeft: '4px solid #14a085', paddingLeft: '0px', fontStyle: 'italic', margin: '10px'}}>
+        <blockquote style={{
+            borderLeft: '4px solid', 
+            borderLeftColor: isError ? '#e53e3e' : '#14a085', 
+            borderRadius: '2px 0 0 2px',
+            paddingLeft: '16px', 
+            margin: '0px',
+            fontStyle: 'italic'
+        }}>
             {props.children}
         </blockquote>
     )
