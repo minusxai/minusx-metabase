@@ -456,7 +456,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     
     if (pageType === 'sql') {
         // if (hasTemplateTagsOrParams) {
-            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "csv", ctes: _ctes });
+            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "markdown", ctes: _ctes });
         // } else {
             // return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
         // }
@@ -505,7 +505,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     
     if (pageType === 'sql') {
-        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
+        return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "markdown", ctes: _ctes });
     }
     else if (pageType === 'dashboard') {
         return await this.runSQLQuery({ sql, ctes: _ctes });
