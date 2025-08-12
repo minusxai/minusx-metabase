@@ -120,7 +120,10 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
         if (match) {
             text = match[1];
         }
-        return text;
+        if (text.includes("---")) {
+            return text;
+        }
+        return '';
     }
     if (text.includes("<ERROR>")) {
         const match = text.match(/<ERROR>(.*?)<\/ERROR>/s);

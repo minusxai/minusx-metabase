@@ -292,7 +292,7 @@ function ModifiedTable(props: any) {
                 <tr key="more-rows-indicator-modal" style={{ borderBottom: 'none' }}>
                     <td colSpan={100} style={{ 
                         padding: '8px 16px', 
-                        textAlign: 'right', 
+                        textAlign: 'left', 
                         fontSize: '0.8em', 
                         color: '#718096',
                         fontStyle: 'italic'
