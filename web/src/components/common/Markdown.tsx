@@ -17,6 +17,9 @@ import { Badge } from "@chakra-ui/react";
 import { CodeBlock } from './CodeBlock';
 import { BiChevronDown, BiChevronRight, BiExpand } from 'react-icons/bi';
 import { BsBarChartFill } from "react-icons/bs";
+import { dispatch } from '../../state/dispatch';
+import { updateIsDevToolsOpen  } from '../../state/settings/reducer';
+import { setMinusxMode } from '../../app/rpc';
 
 
 function LinkRenderer(props: any) {
@@ -181,8 +184,21 @@ function ModifiedTable(props: any) {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     
     const handleModalOpen = () => {
+        console.log('Tasks modal opened');
+        dispatch(updateIsDevToolsOpen(true));
+        setMinusxMode('open-sidepanel-devtools')
         onModalOpen();
-    };
+      };
+    
+      const handleModalClose = () => {
+        console.log('Tasks modal closed');
+        dispatch(updateIsDevToolsOpen(false));
+        setMinusxMode('open-sidepanel')
+        onModalClose();
+      };
+    
+    
+    
 
     const isEmpty = !props.children || (Array.isArray(props.children) && props.children.length === 0);
     const isStarting = false; // Tables don't have a "starting" state like tasks
@@ -329,7 +345,7 @@ function ModifiedTable(props: any) {
             </Box>
 
             {/* Modal View */}
-            <Modal isOpen={isModalOpen} onClose={onModalClose} size="6xl" scrollBehavior="inside">
+            <Modal isOpen={isModalOpen} onClose={handleModalClose} size="6xl" scrollBehavior="inside">
                 <ModalOverlay bg="blackAlpha.700" />
                 <ModalContent maxW="90vw" h="90vh" bg="minusxBW.200">
                     <ModalHeader pb={2} pt={4} px={4}>
