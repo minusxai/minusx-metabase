@@ -3,7 +3,7 @@ import MarkdownComponent from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ChatContent.css'
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-import { Image, Box, Collapse, Tag, TagLabel, TagLeftIcon, Button } from "@chakra-ui/react"
+import { Image, Box, Collapse, Tag, TagLabel, TagLeftIcon, Button, IconButton, Icon, HStack, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, useDisclosure, Tooltip } from "@chakra-ui/react"
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import { renderString } from '../../helpers/templatize'
@@ -15,7 +15,7 @@ import type { MetabaseModel } from 'apps/types'
 import { type EmbedConfigs } from '../../state/configs/reducer'
 import { Badge } from "@chakra-ui/react";
 import { CodeBlock } from './CodeBlock';
-import { BiChevronDown, BiChevronRight } from 'react-icons/bi';
+import { BiChevronDown, BiChevronRight, BiExpand } from 'react-icons/bi';
 import { BsBarChartFill } from "react-icons/bs";
 
 
@@ -151,24 +151,194 @@ function ModifiedH4(props: any) {
 }
 
 function ModifiedTable(props: any) {
+    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+    
+    const handleModalOpen = () => {
+        onModalOpen();
+    };
+
+    const isEmpty = !props.children || (Array.isArray(props.children) && props.children.length === 0);
+    const isStarting = false; // Tables don't have a "starting" state like tasks
+
+    // Calculate rows for display limiting
+    const getProcessedTableChildren = () => {
+        if (!props.children || isEmpty) return props.children;
+        
+        const children = Array.isArray(props.children) ? props.children : [props.children];
+        let thead: any = null;
+        let tbody: any = null;
+        let totalRows = 0;
+        
+        // Find thead and tbody
+        children.forEach((child: any) => {
+            if (child?.type?.name === 'ModifiedThead') {
+                thead = child;
+            } else if (child?.type?.name === 'ModifiedTbody') {
+                tbody = child;
+                if (tbody?.props?.children) {
+                    const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
+                    totalRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').length;
+                }
+            }
+        });
+        
+        if (!tbody || totalRows <= 3) {
+            return props.children;
+        }
+        
+        // Limit tbody to first 3 rows
+        const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
+        const visibleRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').slice(0, 3);
+        const hiddenRowsCount = totalRows - 3;
+        
+        // Create modified tbody with limited rows
+        const modifiedTbody = React.cloneElement(tbody, {
+            children: [
+                ...visibleRows,
+                <tr key="more-rows-indicator" style={{ borderBottom: 'none' }}>
+                    <td colSpan={100} style={{ 
+                        padding: '2px', 
+                        textAlign: 'left', 
+                        fontSize: '0.8em', 
+                        color: '#718096',
+                    }}>
+                        +{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}
+                    </td>
+                </tr>
+            ]
+        });
+        
+        return [thead, modifiedTbody].filter(Boolean);
+    };
+
+    // Calculate rows for modal display limiting (10 rows)
+    const getModalTableChildren = () => {
+        if (!props.children || isEmpty) return props.children;
+        
+        const children = Array.isArray(props.children) ? props.children : [props.children];
+        let thead: any = null;
+        let tbody: any = null;
+        let totalRows = 0;
+        
+        // Find thead and tbody
+        children.forEach((child: any) => {
+            if (child?.type?.name === 'ModifiedThead') {
+                thead = child;
+            } else if (child?.type?.name === 'ModifiedTbody') {
+                tbody = child;
+                if (tbody?.props?.children) {
+                    const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
+                    totalRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').length;
+                }
+            }
+        });
+        
+        if (!tbody || totalRows <= 10) {
+            return props.children;
+        }
+        
+        // Limit tbody to first 10 rows
+        const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
+        const visibleRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').slice(0, 10);
+        const hiddenRowsCount = totalRows - 10;
+        
+        // Create modified tbody with limited rows
+        const modifiedTbody = React.cloneElement(tbody, {
+            children: [
+                ...visibleRows,
+                <tr key="more-rows-indicator-modal" style={{ borderBottom: 'none' }}>
+                    <td colSpan={100} style={{ 
+                        padding: '8px 16px', 
+                        textAlign: 'right', 
+                        fontSize: '0.8em', 
+                        color: '#718096',
+                        fontStyle: 'italic'
+                    }}>
+                        +{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}
+                    </td>
+                </tr>
+            ]
+        });
+        
+        return [thead, modifiedTbody].filter(Boolean);
+    };
+
     return (
-        <div style={{
-            maxHeight: '200px',
-            overflowY: 'auto',
-            overflowX: 'auto',
-            border: '1px solid #e2e8f0',
-            borderRadius: '6px',
-            margin: '10px 0'
-        }}>
-            <table style={{
-                width: '100%',
-                minWidth: 'max-content',
-                borderCollapse: 'collapse',
-                fontSize: '0.9em'
-            }}>
-                {props.children}
-            </table>
-        </div>
+        <>
+            <Box position="relative">
+                <HStack justifyContent="space-between" alignItems="center" mb={2}>
+                    <h4 style={{ marginTop: '3px', fontWeight: '600', color: '#2d3748' }}>
+                        Results
+                    </h4>
+                    <Tooltip label="Expand Results" openDelay={300}>
+                        <IconButton
+                            icon={<Icon as={BiExpand} />}
+                            size="xs"
+                            variant="ghost"
+                            color="minusxBW.600"
+                            aria-label="Expand Results"
+                            onClick={handleModalOpen}
+                            isDisabled={isEmpty && !isStarting}
+                        />
+                    </Tooltip>
+                </HStack>
+                <div style={{
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    overflowX: 'auto',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '6px',
+                    margin: '10px 0'
+                }}>
+                    <table style={{
+                        width: '100%',
+                        minWidth: 'max-content',
+                        borderCollapse: 'collapse',
+                        fontSize: '0.9em'
+                    }}>
+                        {getProcessedTableChildren()}
+                    </table>
+                </div>
+            </Box>
+
+            {/* Modal View */}
+            <Modal isOpen={isModalOpen} onClose={onModalClose} size="6xl" scrollBehavior="inside">
+                <ModalOverlay bg="blackAlpha.700" />
+                <ModalContent maxW="90vw" h="90vh" bg="minusxBW.200">
+                    <ModalHeader pb={2} pt={4} px={4}>
+                        <HStack justifyContent="space-between">
+                            <HStack>
+                                <span style={{fontSize: '1.125rem', fontWeight: 600, color: '#2d3748'}}>Results</span>
+                            </HStack>
+                        </HStack>
+                    </ModalHeader>
+                    <ModalCloseButton top={4} right={4}/>
+                    <ModalBody p={4} sx={{
+                        '&::-webkit-scrollbar': { width: '10px' },
+                        '&::-webkit-scrollbar-track': { background: 'minusxBW.300', borderRadius: '5px' },
+                        '&::-webkit-scrollbar-thumb': { background: 'minusxBW.500', borderRadius: '5px' },
+                        '&::-webkit-scrollbar-thumb:hover': { background: 'minusxBW.600' },
+                    }}>
+                        <div style={{
+                            overflowY: 'auto',
+                            overflowX: 'auto',
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '6px',
+                            backgroundColor: 'white'
+                        }}>
+                            <table style={{
+                                width: '100%',
+                                minWidth: 'max-content',
+                                borderCollapse: 'collapse',
+                                fontSize: '0.9em'
+                            }}>
+                                {getModalTableChildren()}
+                            </table>
+                        </div>
+                    </ModalBody>
+                </ModalContent>
+            </Modal>
+        </>
     )
 }
 

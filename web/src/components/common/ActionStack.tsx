@@ -253,7 +253,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         )} */}
       </Box>
     </HStack>
-    <VStack maxWidth={"100%"} width={isExpanded ? "100%" : ""} overflow={"scroll"}>
+    <VStack maxWidth={"100%"} width={"100%"} overflow={"scroll"}>
     {tableOutputsArr.length > 0 && 
         // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
         tableOutputsArr.map((text, i) => {
