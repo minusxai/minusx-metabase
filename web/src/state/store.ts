@@ -16,6 +16,7 @@ import cache from './cache/reducer'
 import notifications from './notifications/reducer'
 import configsReducer from './configs/reducer'
 import { userStateApi } from '../app/api/userStateApi'
+import { atlasApi } from '../app/api/atlasApi'
 import { get } from 'lodash'
 import { getParsedIframeInfo } from '../helpers/origin'
 
@@ -29,7 +30,8 @@ const combineReducerInput = {
   cache,
   notifications,
   configs: configsReducer,
-  [userStateApi.reducerPath]: userStateApi.reducer
+  [userStateApi.reducerPath]: userStateApi.reducer,
+  [atlasApi.reducerPath]: atlasApi.reducer
 }
 
 const combinedReducer = combineReducers(combineReducerInput);
@@ -542,7 +544,7 @@ const migrations = {
   }
 }
 
-const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath]
+const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reducerPath]
 
 const persistConfig = {
   key: 'root',
@@ -568,6 +570,7 @@ export const store = configureStore({
       .prepend(plannerListener.middleware)
       .prepend(catalogsListener.middleware)
       .concat(userStateApi.middleware)
+      .concat(atlasApi.middleware)
     if (configs.IS_DEV) {
       return withPlannerAndCatalogListener.concat(logger)
     }

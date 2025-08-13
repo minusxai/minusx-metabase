@@ -3,6 +3,7 @@ import { MetabaseModel } from 'apps/types';
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, getParsedIframeInfo, IframeInfoWeb } from '../../helpers/origin'
 import { ContextCatalog, MxModel } from '../../helpers/utils'
+import { AssetInfo } from '../../app/api/atlasApi'
 
 export interface MetadataProcessingResult {
   cardsHash?: string;
@@ -137,6 +138,9 @@ interface Settings {
   manuallyLimitContext: boolean
   useV2States: boolean
   currentEmail?: string
+  availableAssets: AssetInfo[]
+  selectedAssetId: string | null
+  assetsLoading: boolean
 }
 
 const initialState: Settings = {
@@ -178,6 +182,9 @@ const initialState: Settings = {
   metadataProcessingCache: {},
   manuallyLimitContext: false,
   useV2States: true,
+  availableAssets: [],
+  selectedAssetId: null,
+  assetsLoading: false,
 }
 
 export const settingsSlice = createSlice({
@@ -412,6 +419,15 @@ export const settingsSlice = createSlice({
     setUseV2States: (state, action: PayloadAction<boolean>) => {
       state.useV2States = action.payload
     },
+    setAvailableAssets: (state, action: PayloadAction<AssetInfo[]>) => {
+      state.availableAssets = action.payload
+    },
+    setSelectedAssetId: (state, action: PayloadAction<string | null>) => {
+      state.selectedAssetId = action.payload
+    },
+    setAssetsLoading: (state, action: PayloadAction<boolean>) => {
+      state.assetsLoading = action.payload
+    },
   },
 })
 
@@ -423,7 +439,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode, setSelectedCatalog, saveCatalog, deleteCatalog, setMemberships,
   setGroupsEnabled, resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection, setUseV2States, setCurrentEmail
+  updateManualContextSelection, setUseV2States, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

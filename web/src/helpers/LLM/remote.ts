@@ -35,8 +35,10 @@ export async function planActionsRemote({
 
   // Add metadata hashes for analyst mode (when both drMode and analystMode are enabled)
   if (deepResearch !== 'simple') {
-    // Check if analyst mode is enabled by getting current state
+    // Get current state once
     const currentState = getState();
+    
+    // Check if analyst mode is enabled
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
         const { cardsHash, dbSchemaHash, fieldsHash, modelFieldsHash } = await getAllMetadataPromise;
@@ -53,6 +55,14 @@ export async function planActionsRemote({
         console.warn('[minusx] Failed to fetch metadata for analyst mode:', error);
         // Continue without metadata rather than failing the request
       }
+    }
+    
+    // Add selected asset_id if available
+    const selectedAssetId = currentState.settings.selectedAssetId;
+    if (selectedAssetId) {
+      // @ts-ignore
+      payload.asset_id = selectedAssetId;
+      console.log('[minusx] Added asset_id to request for enhanced context:', selectedAssetId);
     }
   }
 

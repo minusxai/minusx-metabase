@@ -1,7 +1,7 @@
-import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge } from '@chakra-ui/react';
+import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge, Select, Spinner } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setAnalystMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setUseV2States } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setAnalystMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setUseV2States, setSelectedAssetId } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -77,6 +77,9 @@ const SettingsPage = () => {
   const enableUserDebugTools = useSelector((state: RootState) => state.settings.enableUserDebugTools)
   const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
   const useV2States = useSelector((state: RootState) => state.settings.useV2States)
+  const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
+  const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
+  const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
   const isSubscribedOrEnterpriseCustomer = billing.isSubscribed || billing.isEnterpriseCustomer
   const resetStateFull= () => {
     resetState()
@@ -153,6 +156,9 @@ const SettingsPage = () => {
   const updateUseV2States = (value: boolean) => {
     dispatch(setUseV2States(value))
   }
+  const updateSelectedAssetId = (value: string | null) => {
+    dispatch(setSelectedAssetId(value === '' ? null : value))
+  }
   
   // const CURRENT_ACTION_TESTS = ACTION_TESTS[tool];
   return (
@@ -203,6 +209,41 @@ const SettingsPage = () => {
         </VStack>
       </SettingsBlock> */}
       {groupsEnabled && <GroupViewer />}
+      <SettingsBlock title="Asset Context">
+        <VStack alignItems={"stretch"}>
+          <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
+            <Text color={"minusxBW.800"} fontSize="sm">Selected Asset</Text>
+            {assetsLoading ? (
+              <Spinner size="sm" color="minusxGreen.500" />
+            ) : (
+              <Select 
+                placeholder="No asset selected"
+                value={selectedAssetId || ''}
+                onChange={(e) => updateSelectedAssetId(e.target.value)}
+                size="sm"
+                maxWidth="200px"
+                color={"minusxBW.800"}
+              >
+                {availableAssets.map((asset) => (
+                  <option key={asset.slug} value={asset.slug}>
+                    {asset.name} ({asset.company_slug} &gt; {asset.team_slug})
+                  </option>
+                ))}
+              </Select>
+            )}
+          </Stack>
+          {selectedAssetId && (
+            <Text color={"minusxBW.600"} fontSize="xs">
+              Selected asset will be included in AI requests for enhanced context.
+            </Text>
+          )}
+          {availableAssets.length === 0 && !assetsLoading && (
+            <Text color={"minusxBW.600"} fontSize="xs">
+              No assets available. Contact MinusX to set up your organization.
+            </Text>
+          )}
+        </VStack>
+      </SettingsBlock>
       <SettingsBlock title="Features" >
         <VStack alignItems="">
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>

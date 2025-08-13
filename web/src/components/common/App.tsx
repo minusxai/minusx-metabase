@@ -40,6 +40,8 @@ import { getApp } from '../../helpers/app'
 import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
+import { useGetAtlasMeQuery } from '../../app/api/atlasApi'
+import { setAvailableAssets, setAssetsLoading } from '../../state/settings/reducer'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { getMXToken, setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
@@ -139,6 +141,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const toolVersion = getParsedIframeInfo().toolVersion
   const isSheets = tool == 'google' && toolVersion == 'sheets'
   const { data: userState, isLoading } = useGetUserStateQuery({})
+  const { data: atlasData, isLoading: atlasLoading, error: atlasError } = useGetAtlasMeQuery()
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const taskInProgress = !(activeThread.status == 'FINISHED')
@@ -170,6 +173,21 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         dispatch(setAnalystMode(false))
     }
   };
+
+  // Handle atlas data loading and updates
+  useEffect(() => {
+    dispatch(setAssetsLoading(atlasLoading))
+    
+    if (atlasData && atlasData.accessible_assets) {
+      console.log('[minusx] Loaded assets from Atlas API:', atlasData.accessible_assets.length)
+      dispatch(setAvailableAssets(atlasData.accessible_assets))
+    }
+    
+    if (atlasError) {
+      console.warn('[minusx] Failed to load assets from Atlas API:', atlasError)
+      dispatch(setAvailableAssets([]))
+    }
+  }, [atlasData, atlasLoading, atlasError])
 
   // Disabling sockets for now
   // useSocketIO({
