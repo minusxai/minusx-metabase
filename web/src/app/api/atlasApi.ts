@@ -7,6 +7,7 @@ export interface AssetInfo {
   slug: string
   name: string
   type: 'main_doc' | 'playbook' | 'notes' | 'context'
+  content: object
   team_slug: string
   company_slug: string
   permission: 'edit' | 'view'

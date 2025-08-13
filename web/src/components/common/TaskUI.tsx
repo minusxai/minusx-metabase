@@ -19,7 +19,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard, BiGroup } from 'react-icons/bi'
 import { ReviewBox } from './ReviewBox'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
@@ -665,6 +665,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Context</Button> }
                 { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> }
                 { <Button size="xs" leftIcon={<BiMemoryCard size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Memory")}>Memory</Button> }
+                { <Button size="xs" leftIcon={<BiGroup size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Team Context")}>Team Context</Button> }
                 {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
                 {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
                 <SupportButton email={email} />
