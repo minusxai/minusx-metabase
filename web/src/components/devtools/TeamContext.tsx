@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from "react"
-import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon } from "@chakra-ui/react";
-import { BiChevronDown, BiCheck, BiTime, BiBuildings, BiGroup } from "react-icons/bi";
+import { Text, Box, HStack, Badge, VStack, Select, Spinner } from "@chakra-ui/react";
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
 import { setSelectedAssetId } from '../../state/settings/reducer';
-import { Notify } from '../common/Notify';
-import { CodeBlock } from '../common/CodeBlock';
 
 export const TeamContext: React.FC = () => {
     const tool = getParsedIframeInfo().tool
@@ -41,83 +38,38 @@ export const TeamContext: React.FC = () => {
         
         {/* Asset Selection Section */}
         <VStack align="stretch" spacing={4} mb={4}>
-            <VStack align="stretch" spacing={2}>
-                {assetsLoading ? (
-                    <Box textAlign="center">
+            <Text fontSize="md" fontWeight="semibold" color="minusxBW.800">
+                Organization Asset Selection
+            </Text>
+            
+            <Box>
+                <HStack justify="space-between" align="center" mb={3}>
+                    <Text fontSize="sm" color="minusxBW.800">
+                        Select Asset:
+                    </Text>
+                    {assetsLoading ? (
                         <Spinner size="sm" color="minusxGreen.500" />
-                    </Box>
-                ) : availableAssets.length > 0 ? (
-                    <Menu>
-                        <MenuButton
-                            as={Button}
-                            rightIcon={<BiChevronDown />}
+                    ) : availableAssets.length > 0 ? (
+                        <Select 
+                            value={selectedAssetId || availableAssets[0].slug}
+                            onChange={(e) => handleAssetSelection(e.target.value)}
                             size="sm"
-                            width="100%"
-                            bg="white"
-                            border="1px solid"
-                            borderColor="gray.200"
+                            maxWidth="300px"
                             color="minusxBW.800"
-                            _hover={{
-                                bg: "gray.50",
-                                borderColor: "gray.300"
-                            }}
-                            _active={{
-                                bg: "gray.100",
-                                borderColor: "gray.400"
-                            }}
-                            fontWeight="normal"
-                            textAlign="left"
-                            justifyContent="space-between"
-                        >
-                            {selectedAsset?.name || availableAssets[0]?.name}
-                        </MenuButton>
-                        <MenuList
-                            bg="white"
-                            border="1px solid"
-                            borderColor="gray.200"
-                            boxShadow="lg"
-                            borderRadius="md"
-                            py={1}
-                            width={"100%"}
                         >
                             {availableAssets.map((asset) => (
-                                <MenuItem
-                                    key={asset.slug}
-                                    onClick={() => handleAssetSelection(asset.slug)}
-                                    bg="white"
-                                    _hover={{
-                                        bg: "gray.50"
-                                    }}
-                                    _focus={{
-                                        bg: "gray.50"
-                                    }}
-                                    py={2}
-                                    px={3}
-                                    color="minusxBW.800"
-                                    fontSize="sm"
-                                    display="flex"
-                                    justifyContent="space-between"
-                                    alignItems="center"
-                                    width={"100%"}
-                                >
-                                    <Text>{asset.name}</Text>
-                                    {(selectedAssetId || availableAssets[0].slug) === asset.slug && (
-                                        <Icon 
-                                            as={BiCheck} 
-                                            boxSize={4} 
-                                            color="minusxGreen.500"
-                                        />
-                                    )}
-                                </MenuItem>
+                                <option key={asset.slug} value={asset.slug}>
+                                    {asset.name}
+                                </option>
                             ))}
-                        </MenuList>
-                    </Menu>
-                ) : (
-                    <Text fontSize="sm" color="gray.500">
-                        No assets available
-                    </Text>
-                )}
-            </VStack>
+                        </Select>
+                    ) : (
+                        <Text fontSize="sm" color="gray.500">
+                            No assets available
+                        </Text>
+                    )}
+                </HStack>
+            </Box>
             
             {/* Selected Asset Details */}
             {selectedAsset && (
@@ -133,29 +85,37 @@ export const TeamContext: React.FC = () => {
                             {selectedAsset.name}
                         </Text>
                         
-                        <HStack spacing={2} wrap="wrap">
-                            <Badge colorScheme="gray" variant="subtle">
+                        <HStack spacing={2}>
+                            <Badge colorScheme="blue" variant="subtle">
                                 {selectedAsset.type}
                             </Badge>
-                            <Badge variant="subtle" colorScheme="gray">
-                                <HStack spacing={2}>
-                                    <Icon as={BiGroup} boxSize={3} />
-                                    <Text fontSize="xs">{selectedAsset.team_slug}</Text>
-                                </HStack>
-                            </Badge>
-                            <Badge variant="subtle" colorScheme="gray">
-                                <HStack spacing={2}>
-                                    <Icon as={BiBuildings} boxSize={3} />
-                                    <Text fontSize="xs">{selectedAsset.company_slug}</Text>
-                                </HStack>
-                            </Badge>
-                            <Badge variant="subtle" colorScheme="gray">
-                                <HStack spacing={2}>
-                                    <Icon as={BiTime} boxSize={3} />
-                                    <Text fontSize="xs">{new Date(selectedAsset.updated_at).toLocaleDateString()}</Text>
-                                </HStack>
+                            <Badge colorScheme="green" variant="subtle">
+                                {selectedAsset.permission}
                             </Badge>
                         </HStack>
+                        
+                        <VStack align="stretch" spacing={2}>
+                            <HStack justify="space-between">
+                                <Text fontSize="sm" fontWeight="medium" color="gray.700">Team:</Text>
+                                <Text fontSize="sm" color="gray.600">{selectedAsset.team_slug}</Text>
+                            </HStack>
+                            <HStack justify="space-between">
+                                <Text fontSize="sm" fontWeight="medium" color="gray.700">Company:</Text>
+                                <Text fontSize="sm" color="gray.600">{selectedAsset.company_slug}</Text>
+                            </HStack>
+                            <HStack justify="space-between">
+                                <Text fontSize="sm" fontWeight="medium" color="gray.700">Created:</Text>
+                                <Text fontSize="sm" color="gray.600">
+                                    {new Date(selectedAsset.created_at).toLocaleDateString()}
+                                </Text>
+                            </HStack>
+                            <HStack justify="space-between">
+                                <Text fontSize="sm" fontWeight="medium" color="gray.700">Updated:</Text>
+                                <Text fontSize="sm" color="gray.600">
+                                    {new Date(selectedAsset.updated_at).toLocaleDateString()}
+                                </Text>
+                            </HStack>
+                        </VStack>
                         
                         <AssetContentDisplay asset={selectedAsset} />
                     </VStack>
@@ -244,26 +204,42 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
         } else {
             // For other types, display full content as JSON
             return (
-                <CodeBlock 
-                    code={JSON.stringify(asset.content, null, 2)} 
-                    tool="json"
-                    language="json"
-                />
+                <Box 
+                    bg="gray.900" 
+                    p={3} 
+                    borderRadius="md" 
+                    border="1px solid" 
+                    borderColor="gray.300"
+                    maxHeight="400px"
+                    overflowY="auto"
+                >
+                    <Text 
+                        fontSize="xs" 
+                        color="green.300" 
+                        fontFamily="mono"
+                        whiteSpace="pre-wrap"
+                        lineHeight="1.4"
+                    >
+                        {JSON.stringify(asset.content, null, 2)}
+                    </Text>
+                </Box>
             );
         }
     };
 
     return (
         <VStack align="stretch" spacing={2}>
-            {renderContent()}
+            <Box bg="blue.50" p={3} borderRadius="md" border="1px solid" borderColor="blue.200">
+                <Text fontSize="xs" color="blue.700" fontWeight="medium" mb={1}>
+                    Enhanced Context
+                </Text>
+                <Text fontSize="xs" color="blue.600" lineHeight="1.4">
+                    This asset's context will be included in AI requests to provide more relevant 
+                    and accurate responses based on your organization's specific information.
+                </Text>
+            </Box>
             
-            <Notify 
-                title="Team Context" 
-                notificationType="info"
-            >
-                This asset's context will be included in AI requests to provide more relevant 
-                and accurate responses based on your organization's specific information.
-            </Notify>
+            {renderContent()}
         </VStack>
     );
 };

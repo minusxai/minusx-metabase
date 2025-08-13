@@ -130,8 +130,7 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
         if (match) {
             text = match[1];
         }
-        const truncated = text.length > 100 ? text.slice(0, 100) + '...' : text;
-        return `> Error: ${truncated}.\n\nFixing it!`;
+        return `> ${text}. Fixing it!`;
     }
     return text
 }
