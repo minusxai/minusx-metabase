@@ -12,8 +12,6 @@ import { getSelectedDbId, getCurrentQuery, hasQueryResults, isNativeEditorOpen, 
 import { add, assignIn, find, get, keyBy, map } from 'lodash';
 import { getTablesFromSqlRegex } from './parseSql';
 import { getTableContextYAML } from './catalog';
-import { catalogAsModels } from 'web';
-import { canUseModelsModeForCatalog } from '../../../../web/src/helpers/catalogAsModels';
 import { getMBQLAppState } from './mbql/appState';
 import { MBQLInfo } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
@@ -21,7 +19,6 @@ import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from '
 import { MetabaseTableOrModel } from './metabaseAPITypes';
 import { determineMetabasePageType, MetabasePageType, getLimitedEntities } from './utils';
 
-const {modifySqlForMxModels} = catalogAsModels
 
 export interface ExtractedDataBase {
   name: string;
@@ -169,8 +166,6 @@ export async function convertDOMtoStateSQLQuery() {
   const appSettings = RPCs.getAppSettings()
   const cache = RPCs.getCache()
   const sqlTables = getTablesFromSqlRegex(sqlQuery)
-  const selectedCatalogObj = find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog })
-  const selectedCatalog = get(selectedCatalogObj, 'content')
   if (defaultSchema) {
     sqlTables.forEach((table) => {
       if (table.schema === undefined || table.schema === '') {
@@ -178,7 +173,7 @@ export async function convertDOMtoStateSQLQuery() {
       }
     })
   }
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, [])
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, false, sqlTables, [])
   // add defaultSchema back to relevantTablesWithFields. kind of hacky but whatever
   relevantTablesWithFields = relevantTablesWithFields.map(table => {
     if (table.schema === undefined || table.schema === '') {
@@ -190,7 +185,7 @@ export async function convertDOMtoStateSQLQuery() {
   const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "", appSettings.selectedModels, allModels)
   const relevantModelsWithFields = await getModelsWithFields(relevantModels)
   const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFields]
-  const tableContextYAML = getTableContextYAML(allFormattedTables, selectedCatalog, appSettings.drMode);
+  const tableContextYAML = getTableContextYAML(allFormattedTables, null, appSettings.drMode);
   sqlQuery = modifySqlForMetabaseModels(sqlQuery || "", relevantModels)
   const queryExecuted = await hasQueryResults();
   const nativeEditorOpen = await isNativeEditorOpen()
@@ -223,9 +218,6 @@ export async function convertDOMtoStateSQLQuery() {
   if (appSettings.drMode) {
     metabaseAppStateSQLEditor.tableContextYAML = tableContextYAML;
     metabaseAppStateSQLEditor.relevantTables = []
-    if (appSettings.modelsMode && selectedCatalogObj && canUseModelsModeForCatalog(selectedCatalogObj, cache.mxModels)) {
-      metabaseAppStateSQLEditor.sqlQuery = modifySqlForMxModels(metabaseAppStateSQLEditor.sqlQuery, get(selectedCatalog, 'entities', []), appSettings.selectedCatalog, cache.mxModels)
-    }
   }
   if (sqlErrorMessage) {
     metabaseAppStateSQLEditor.sqlErrorMessage = sqlErrorMessage;

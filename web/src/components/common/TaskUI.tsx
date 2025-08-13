@@ -25,7 +25,7 @@ import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
 import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn, cloneThreadFromHistory } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, DEFAULT_TABLES, TableInfo, setSelectedModels } from '../../state/settings/reducer'
+import { setSuggestQueries, TableInfo, setSelectedModels } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { simplePlan } from '../../planner/simplePlan'
@@ -59,9 +59,7 @@ import { getApp } from '../../helpers/app';
 import { applyTableDiffs, getCurrentQuery, getSelectedAndRelevantModels } from "apps";
 import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
-import { setupCollectionsAndModels } from '../../state/settings/availableCatalogsListener'
 import { Notify } from './Notify'
-import { ContextCatalog } from '../../helpers/utils';
 import { Markdown } from './Markdown'
 import ChatInputArea from './ChatInputArea'
 
@@ -90,9 +88,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const email = useSelector((state: RootState) => state.auth.email)
   const tabName = useSelector((state: RootState) => state.settings.devToolsTabName)
   
-  const selectedCatalog = useSelector((state: RootState) => state.settings.selectedCatalog)
-  const availableCatalogs: ContextCatalog[] = useSelector((state: RootState) => state.settings.availableCatalogs);
-  const currentCatalogEntities = availableCatalogs.find(catalog => catalog.name === selectedCatalog)?.content.entities || [] ;
+  const currentCatalogEntities: any[] = [];
     
     
   const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
@@ -128,9 +124,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   
   const [isChangedByDb, setIsChangedByDb] = React.useState<Record<number, boolean>>({}) 
 
-  useEffect(() => {
-    dispatch(setupCollectionsAndModels())
-  }, [])
 
   useEffect(() => {
     app.triggerStateUpdate()
@@ -286,14 +279,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         toastDescription = "You can enable either agent in settings"
         preventRunTask = true
     }
-    else if (toolContext.pageType === 'mbql' && (selectedCatalog != DEFAULT_TABLES)) {
-        toastTitle = 'MBQL Editor is supported only in Default Tables catalog'
-        toastDescription = "You can switch to Default Tables catalog in settings"
-        preventRunTask = true
-    }
-    else if (selectedCatalog === DEFAULT_TABLES && isEmpty(validAddedTables) && isEmpty(validSelectedModels) && !analystMode) {
-        toastTitle = 'No Table in Default Tables'
-        toastDescription = "Please select at least one table in Default Tables catalog"
+    else if (isEmpty(validAddedTables) && isEmpty(validSelectedModels) && !analystMode) {
+        toastTitle = 'No Tables Selected'
+        toastDescription = "Please select at least one table"
         preventRunTask = true
     }
     else if (creditsExhausted()) {
@@ -706,23 +694,9 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     <Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>Everything in context</Text>
                 </Tooltip>
             :
-            <>
-                <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Entities can be Base Tables, Metabase Models or MinusX Catalog Entities">
+                <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Entities can be Base Tables and Metabase Models">
                     <Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text>
                 </Tooltip>
-                <Button 
-                    size="xs" 
-                    colorScheme="minusxGreen" 
-                    variant="outline" 
-                    fontSize="xs"
-                    fontWeight="medium"
-                    py={0}
-                    px={3}
-                    onClick={()=>openDevtoolTab("Context")}
-                >
-                    {selectedCatalog.slice(0, 15)}{selectedCatalog.length > 12 ? '...' : ''}
-                </Button>
-            </>
           }
         </HStack>
         }

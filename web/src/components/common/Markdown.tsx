@@ -9,7 +9,6 @@ import { RootState } from '../../state/store'
 import { renderString } from '../../helpers/templatize'
 import { getOrigin, getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
-import { processSQLWithCtesOrModels } from '../../helpers/catalogAsModels'
 import { getAllTemplateTagsInQuery, replaceLLMFriendlyIdentifiersInSqlWithModels } from 'apps'
 import type { MetabaseModel } from 'apps/types'
 import { type EmbedConfigs } from '../../state/configs/reducer'
@@ -566,8 +565,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   
   // Get settings and cache for dependencies
   const settings = useSelector((state: RootState) => ({
-    selectedCatalog: state.settings.selectedCatalog,
-    availableCatalogs: state.settings.availableCatalogs,
     modelsMode: state.settings.modelsMode
   }));
   const embedConfigs = useSelector((state: RootState) => state.configs.embed);

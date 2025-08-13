@@ -1,7 +1,7 @@
-import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge, Select, Spinner } from '@chakra-ui/react';
+import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setAnalystMode, setGroupsEnabled, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setUseV2States, setSelectedAssetId } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setAnalystMode, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setUseV2States } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -14,7 +14,6 @@ import { setBillingInfo } from '../../state/billing/reducer';
 import { captureEvent, GLOBAL_EVENTS } from '../../tracking';
 import CreditsPill from '../common/CreditsPill';
 import { SettingsBlock } from '../common/SettingsBlock';
-import { GroupViewer } from '../common/GroupViewer';
 import { getApp } from '../../helpers/app';
 import { SupportButton } from '../common/Support'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
@@ -61,7 +60,6 @@ const SettingsPage = () => {
   const discordLink = 'https://discord.gg/jtFeyPMDcH'
   const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
   const demoMode = useSelector((state: RootState) => state.settings.demoMode)
-  const groupsEnabled = useSelector((state: RootState) => state.settings.groupsEnabled)
   const modelsMode = useSelector((state: RootState) => state.settings.modelsMode)
   const viewAllCatalogs = useSelector((state: RootState) => state.settings.viewAllCatalogs)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
@@ -77,9 +75,6 @@ const SettingsPage = () => {
   const enableUserDebugTools = useSelector((state: RootState) => state.settings.enableUserDebugTools)
   const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
   const useV2States = useSelector((state: RootState) => state.settings.useV2States)
-  const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
-  const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
-  const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
   const isSubscribedOrEnterpriseCustomer = billing.isSubscribed || billing.isEnterpriseCustomer
   const resetStateFull= () => {
     resetState()
@@ -119,9 +114,6 @@ const SettingsPage = () => {
   const updateDemoMode = (value: boolean) => {
     dispatch(setDemoMode(value))
   }
-  const updateGroupsEnabled = (value: boolean) => {
-    dispatch(setGroupsEnabled(value))
-  }
   const updateModelsMode = (value: boolean) => {
     dispatch(setModelsMode(value))
   }
@@ -155,9 +147,6 @@ const SettingsPage = () => {
   }
   const updateUseV2States = (value: boolean) => {
     dispatch(setUseV2States(value))
-  }
-  const updateSelectedAssetId = (value: string | null) => {
-    dispatch(setSelectedAssetId(value === '' ? null : value))
   }
   
   // const CURRENT_ACTION_TESTS = ACTION_TESTS[tool];
@@ -208,42 +197,6 @@ const SettingsPage = () => {
           ))}
         </VStack>
       </SettingsBlock> */}
-      {groupsEnabled && <GroupViewer />}
-      <SettingsBlock title="Asset Context">
-        <VStack alignItems={"stretch"}>
-          <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
-            <Text color={"minusxBW.800"} fontSize="sm">Selected Asset</Text>
-            {assetsLoading ? (
-              <Spinner size="sm" color="minusxGreen.500" />
-            ) : (
-              <Select 
-                placeholder="No asset selected"
-                value={selectedAssetId || ''}
-                onChange={(e) => updateSelectedAssetId(e.target.value)}
-                size="sm"
-                maxWidth="200px"
-                color={"minusxBW.800"}
-              >
-                {availableAssets.map((asset) => (
-                  <option key={asset.slug} value={asset.slug}>
-                    {asset.name} ({asset.company_slug} &gt; {asset.team_slug})
-                  </option>
-                ))}
-              </Select>
-            )}
-          </Stack>
-          {selectedAssetId && (
-            <Text color={"minusxBW.600"} fontSize="xs">
-              Selected asset will be included in AI requests for enhanced context.
-            </Text>
-          )}
-          {availableAssets.length === 0 && !assetsLoading && (
-            <Text color={"minusxBW.600"} fontSize="xs">
-              No assets available. Contact MinusX to set up your organization.
-            </Text>
-          )}
-        </VStack>
-      </SettingsBlock>
       <SettingsBlock title="Features" >
         <VStack alignItems="">
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
@@ -253,10 +206,6 @@ const SettingsPage = () => {
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Demo Mode</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={demoMode} onChange={(e) => updateDemoMode(e.target.checked)} />
-          </HStack>}
-          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
-            <Text color={"minusxBW.800"} fontSize="sm">View Groups</Text>
-            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={groupsEnabled} onChange={(e) => updateGroupsEnabled(e.target.checked)} />
           </HStack>}
           {/* {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Enable Catalog-as-Models</Text>

@@ -11,7 +11,6 @@ import { configs } from '../constants'
 import { plannerListener } from '../planner/planner'
 import billing from './billing/reducer'
 import semanticLayer from './semantic-layer/reducer'
-import { catalogsListener } from './settings/availableCatalogsListener'
 import cache from './cache/reducer'
 import notifications from './notifications/reducer'
 import configsReducer from './configs/reducer'
@@ -272,37 +271,16 @@ const migrations = {
       return newState
   },
   23: (state: RootState) => {
-    let newState = {...state}
-    newState.settings.availableCatalogs.forEach((catalog: any) => {
-      catalog.allowWrite = true
-    })
-    newState.settings.defaultTableCatalog.allowWrite = true
-    newState.settings.users = {}
-    newState.settings.groups = {}
-    newState.settings.groupsEnabled = false
-    return newState
+    // Legacy migration - deprecated catalog/groups functionality removed
+    return {...state}
   },
   24: (state: RootState) => {
-    let newState = {...state}
-    const selectedCatalog = newState.settings.selectedCatalog
-    if (selectedCatalog == '' || selectedCatalog == 'tables') {
-      newState.settings.selectedCatalog = DEFAULT_TABLES
-    }
-    if (!newState.settings.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
-      newState.settings.selectedCatalog = DEFAULT_TABLES
-    }
-    return newState
+    // Legacy migration - deprecated catalog functionality removed
+    return {...state}
   },
   25: (state: RootState) => {
-    let newState = {...state}
-    const selectedCatalog = newState.settings.selectedCatalog
-    if (selectedCatalog == '' || selectedCatalog == 'tables') {
-      newState.settings.selectedCatalog = DEFAULT_TABLES
-    }
-    if (!newState.settings.availableCatalogs.some((catalog: ContextCatalog) => catalog.name == selectedCatalog)) {
-      newState.settings.selectedCatalog = DEFAULT_TABLES
-    }
-    return newState
+    // Legacy migration - deprecated catalog functionality removed
+    return {...state}
   },
   26: (state: any) => {
     let newState = {...state}
@@ -348,23 +326,8 @@ const migrations = {
     return newState
   },
   30: (state: RootState) => {
-    let newState = {...state}
-    // Remove primaryGroup field from availableCatalogs
-    if (newState.settings?.availableCatalogs) {
-      newState.settings.availableCatalogs = newState.settings.availableCatalogs.map((catalog: any) => {
-        const { primaryGroup, ...catalogWithoutPrimaryGroup } = catalog
-        return catalogWithoutPrimaryGroup
-      })
-    }
-    // Add assets array to existing groups if they don't have it
-    if (newState.settings?.groups) {
-      Object.keys(newState.settings.groups).forEach(groupId => {
-        if (!newState.settings.groups[groupId].assets) {
-          newState.settings.groups[groupId].assets = []
-        }
-      })
-    }
-    return newState
+    // Legacy migration - deprecated catalog/groups functionality removed
+    return {...state}
   },
   31: (state: RootState) => {
     let newState = {...state}
@@ -372,28 +335,8 @@ const migrations = {
     return newState
   },
   32: (state: RootState) => {
-    // migrate all catalogs to remove from_ field
-    // and replace with sql or sql_table
-    let newState = {...state}
-    let newCatalogs = newState.settings.availableCatalogs.map((catalog: any) => {
-      let entities = get(catalog, 'content.entities', [])
-      entities = entities.map((entity: any) => {
-        let from_ = get(entity, 'from_')
-        if (from_) {
-          if (typeof from_ === 'string') {
-            entity.sql_table = from_
-          } else {
-            entity.sql = get(from_, 'sql', '')
-          }
-          delete entity.from_
-        }
-        return entity
-      })
-      catalog.content.entities = entities
-      return catalog
-    })
-    newState.settings.availableCatalogs = newCatalogs
-    return newState
+    // Legacy migration - deprecated catalog functionality removed
+    return {...state}
   },
   33: (state: RootState) => {
     let newState = {...state}
@@ -568,7 +511,6 @@ export const store = configureStore({
     const withPlannerAndCatalogListener = defaults
       .prepend(eventListener.middleware)
       .prepend(plannerListener.middleware)
-      .prepend(catalogsListener.middleware)
       .concat(userStateApi.middleware)
       .concat(atlasApi.middleware)
     if (configs.IS_DEV) {

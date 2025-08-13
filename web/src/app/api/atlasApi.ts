@@ -57,7 +57,7 @@ export const atlasApi = createApi({
   endpoints: (builder) => ({
     getAtlasMe: builder.query<MeResponse, void>({
       query: () => ({
-        url: '/me',
+        url: 'me',
         method: 'GET',
       }),
       transformResponse: (response: AtlasApiResponse<MeResponse>) => {

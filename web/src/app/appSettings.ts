@@ -11,8 +11,6 @@ export const getAppSettings = () => {
     tableDiff: settings.tableDiff,
     drMode: settings.drMode,
     analystMode: settings.analystMode,
-    selectedCatalog: settings.selectedCatalog,
-    availableCatalogs: settings.availableCatalogs,
     modelsMode: settings.modelsMode,
     selectedModels: settings.selectedModels,
     enable_highlight_helpers: settings.enable_highlight_helpers,
