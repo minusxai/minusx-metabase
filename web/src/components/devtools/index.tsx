@@ -23,13 +23,13 @@ const Monitors: MonitorDef[] = [
     tags: ['production']
   },
   {
-    title: "Context",
-    component: Context,
+    title: "Memory",
+    component: MinusXMD,
     tags: ['production']
   },
   {
-    title: "Memory",
-    component: MinusXMD,
+    title: "Context",
+    component: Context,
     tags: ['production']
   },
   {
