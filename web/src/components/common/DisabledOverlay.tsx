@@ -11,7 +11,7 @@ import { Markdown } from './Markdown'
 import { BsFillLightningFill } from 'react-icons/bs'
 
 
-export function DisabledOverlay({ toolEnabledReason }: { toolEnabledReason: string }) {
+export function DisabledOverlay({ toolEnabledReason, local = false }: { toolEnabledReason: string, local?: boolean }) {
   const isDevToolsOpen = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const width = getParsedIframeInfo().width
 
@@ -20,8 +20,9 @@ export function DisabledOverlay({ toolEnabledReason }: { toolEnabledReason: stri
     <Box
       position="absolute"
       top={0}
-      right={0}
-      width={isDevToolsOpen ? '850px' : `${width}px`}
+      right={local ? undefined : 0}
+      left={local ? 0 : undefined}
+      width={local ? "100%" : (isDevToolsOpen ? '850px' : `${width}px`)}
       height="100%"
       bg="rgba(255, 255, 255, 0.5)"
       backdropFilter="blur(4px)"
