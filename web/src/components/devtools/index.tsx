@@ -8,7 +8,7 @@ import Settings from './Settings'
 import { configs } from '../../constants';
 import { Context } from './Context';
 import { MinusXMD } from './Memory';
-import { TeamContext } from './TeamContext';
+import { TeamMemory } from './TeamMemory';
 import CSSCustomization from './CSSCustomization';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -23,18 +23,18 @@ const Monitors: MonitorDef[] = [
     tags: ['production']
   },
   {
-    title: "Memory",
-    component: MinusXMD,
-    tags: ['production']
-  },
-  {
     title: "Context",
     component: Context,
     tags: ['production']
   },
   {
-    title: "Team Context",
-    component: TeamContext,
+    title: "Memory",
+    component: MinusXMD,
+    tags: ['production']
+  },
+  {
+    title: "Team Memory",
+    component: TeamMemory,
     tags: ['production']
   },
   {

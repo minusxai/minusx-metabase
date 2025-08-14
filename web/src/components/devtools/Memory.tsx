@@ -1,7 +1,8 @@
 import React from "react"
-import { Text, HStack, Switch } from "@chakra-ui/react";
+import { Text, HStack, Switch, Box } from "@chakra-ui/react";
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { AdditionalContext } from '../common/AdditionalContext';
+import { DisabledOverlay } from '../common/DisabledOverlay';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
@@ -37,6 +38,14 @@ export const MinusXMD: React.FC = () => {
             </HStack>
         </HStack>
         
-        <AdditionalContext />
+        <Box position="relative">
+            <AdditionalContext />
+            {!useMemory && (
+                <DisabledOverlay 
+                    toolEnabledReason="Turn on the **USE MEMORY** switch above to let MinusX use your memories and preferences in context." 
+                    local={true}
+                />
+            )}
+        </Box>
     </>
 }

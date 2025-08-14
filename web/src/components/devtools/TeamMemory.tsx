@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from "react"
-import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon } from "@chakra-ui/react";
+import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch } from "@chakra-ui/react";
 import { BiChevronDown, BiCheck, BiTime, BiBuildings, BiGroup } from "react-icons/bi";
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
-import { setSelectedAssetId } from '../../state/settings/reducer';
+import { setSelectedAssetId, setUseMemory } from '../../state/settings/reducer';
 import { Notify } from '../common/Notify';
 import { CodeBlock } from '../common/CodeBlock';
+import { DisabledOverlay } from '../common/DisabledOverlay';
+import { Markdown } from '../common/Markdown';
 
-export const TeamContext: React.FC = () => {
+export const TeamMemory: React.FC = () => {
     const tool = getParsedIframeInfo().tool
     const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
     const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
     const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
+    const useMemory = useSelector((state: RootState) => state.settings.useMemory)
     
     // Auto-select first asset when assets are loaded and none is selected
     React.useEffect(() => {
@@ -26,6 +29,10 @@ export const TeamContext: React.FC = () => {
         dispatch(setSelectedAssetId(assetSlug === '' ? null : assetSlug))
     }
     
+    const handleMemoryToggle = (checked: boolean) => {
+        dispatch(setUseMemory(checked))
+    }
+    
     // Find the selected asset for display, fallback to first asset if available
     const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
                          (availableAssets.length > 0 ? availableAssets[0] : null)
@@ -36,11 +43,25 @@ export const TeamContext: React.FC = () => {
 
     return <>
         <HStack justify="space-between" align="center" mb={4}>
-            <Text fontSize="2xl" fontWeight="bold">Team Context</Text>
+            <Text fontSize="2xl" fontWeight="bold">Team Memory</Text>
+            <HStack spacing={3} align="center">
+                <HStack spacing={2} align="center">
+                    <Text fontSize="xs" color="minusxGreen.600" fontWeight="bold">
+                        USE TEAM MEMORY
+                    </Text>
+                    <Switch 
+                        colorScheme="minusxGreen" 
+                        size="sm" 
+                        isChecked={useMemory} 
+                        onChange={(e) => handleMemoryToggle(e.target.checked)}
+                    />
+                </HStack>
+            </HStack>
         </HStack>
         
         {/* Asset Selection Section */}
-        <VStack align="stretch" spacing={4} mb={4}>
+        <Box position="relative">
+            <VStack align="stretch" spacing={4} mb={4}>
             <VStack align="stretch" spacing={2}>
                 {assetsLoading ? (
                     <Box textAlign="center">
@@ -199,7 +220,14 @@ export const TeamContext: React.FC = () => {
                     </VStack>
                 </Box>
             )}
-        </VStack>
+            </VStack>
+            {!useMemory && (
+                <DisabledOverlay 
+                    toolEnabledReason="Turn on the **USE TEAM MEMORY** switch above to let MinusX use your organization's assets and team context." 
+                    local={true}
+                />
+            )}
+        </Box>
     </>
 }
 
@@ -224,8 +252,73 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
 
     const renderContent = () => {
         if (asset.type === 'context') {
-            // For context type, display the 'content' field as string
-            const contentString = asset.content.content || '';
+            // Check if content has the new structure with 'text' and 'entities'
+            if (asset.content && typeof asset.content === 'object' && asset.content.text && asset.content.entities) {
+                return (
+                    <VStack align="stretch" spacing={3}>
+                        {/* Render text as markdown */}
+                        <Box 
+                            bg="white" 
+                            p={3} 
+                            borderRadius="md" 
+                            border="1px solid" 
+                            borderColor="gray.200"
+                            maxHeight="200px"
+                            overflowY="auto"
+                        >
+                            <Markdown content={asset.content.text} />
+                        </Box>
+                        
+                        {/* Render entities as a list */}
+                        {asset.content.entities && asset.content.entities.length > 0 && (
+                            <Box 
+                                bg="gray.50" 
+                                p={3} 
+                                borderRadius="md" 
+                                border="1px solid" 
+                                borderColor="gray.200"
+                            >
+                                <Text fontSize="sm" fontWeight="semibold" color="gray.700" mb={2}>
+                                    Entities ({asset.content.entities.length})
+                                </Text>
+                                <VStack align="stretch" spacing={2} maxHeight="200px" overflowY="auto">
+                                    {asset.content.entities.map((entity: any, index: number) => (
+                                        <HStack 
+                                            key={index}
+                                            bg="white" 
+                                            p={2} 
+                                            borderRadius="sm" 
+                                            border="1px solid" 
+                                            borderColor="gray.200"
+                                            spacing={2}
+                                            justify="flex-start"
+                                        >
+                                            {entity.name && (
+                                                <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                    {entity.name}
+                                                </Text>
+                                            )}
+                                            {entity.id && (
+                                                <Badge colorScheme="blue" variant="subtle" fontSize="xs">
+                                                    ID: {entity.id}
+                                                </Badge>
+                                            )}
+                                            {entity.type && (
+                                                <Badge colorScheme="gray" variant="outline" fontSize="xs">
+                                                    {entity.type}
+                                                </Badge>
+                                            )}
+                                        </HStack>
+                                    ))}
+                                </VStack>
+                            </Box>
+                        )}
+                    </VStack>
+                );
+            }
+            
+            // Fallback for context type without new structure
+            const contentString = JSON.stringify(asset.content, null, 2) || '';
             return (
                 <Box 
                     bg="white" 
@@ -258,7 +351,7 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
             {renderContent()}
             
             <Notify 
-                title="Team Context" 
+                title="Team Memory" 
                 notificationType="info"
             >
                 This asset's context will be included in AI requests to provide more relevant 
