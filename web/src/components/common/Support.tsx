@@ -58,7 +58,7 @@ export const SupportButton = ({email} : {email: string}) => {
   `;
   return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
       <Box position="relative" display="inline-block">
-      <Button leftIcon={<BiSupport size={14}/>} size="xs" colorScheme="minusxGreen" onClick={toggleSupport} py={0}>Live Support</Button>
+      <Button leftIcon={<BiSupport size={14}/>} size="xs" colorScheme="minusxGreen" onClick={toggleSupport} py={0}>Support</Button>
       {hasNotification && (
         <Box
           position="absolute"

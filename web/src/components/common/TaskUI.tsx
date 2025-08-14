@@ -665,7 +665,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiTable size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Context")}>Context</Button> }
                 { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> }
                 { <Button size="xs" leftIcon={<BiMemoryCard size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Memory")}>Memory</Button> }
-                { <Button size="xs" leftIcon={<BiGroup size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Team Context")}>Team Context</Button> }
+                { <Button size="xs" leftIcon={<BiGroup size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Team Context")}>Team</Button> }
                 {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
                 {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
                 <SupportButton email={email} />
@@ -675,7 +675,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         <VStack width={"100%"} alignItems={"stretch"} gap={0}>
-        { currentTool == 'metabase'  && !taskInProgress && appEnabledStatus.inputBox &&
+        {/* { currentTool == 'metabase'  && !taskInProgress && appEnabledStatus.inputBox &&
         <HStack 
           mb={-2} 
           p={2} 
@@ -700,7 +700,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 </Tooltip>
           }
         </HStack>
-        }
+        } */}
 
         <ReviewBox />
         { !taskInProgress && 
