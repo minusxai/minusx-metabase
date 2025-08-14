@@ -77,6 +77,7 @@ MinusX is organized as a yarn workspace monorepo with 3 main packages:
 - **Settings Access**: `web/src/app/appSettings.ts` exposes a curated subset of Redux settings to apps workspace via `RPCs.getAppSettings()`
 
 ### Development Best Practices
+- **CRITICAL - Redux State Migrations**: ANY change to Redux reducer state structure MUST include a corresponding migration in `web/src/state/store.ts`. This is non-negotiable - missing migrations cause production crashes for existing users with persisted state. Always increment the version number and add migration logic to initialize new fields.
 - **Concurrency Control**: Batch API calls to prevent resource exhaustion when fetching data for multiple entities
 - **Settings Pattern**: New settings require updates in reducer, settings UI, and `appSettings.ts` for cross-workspace access
 - **Code Reuse**: When implementing similar logic in multiple places, extract reusable functions to shared modules rather than duplicating code

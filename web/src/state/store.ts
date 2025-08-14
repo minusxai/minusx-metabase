@@ -484,6 +484,12 @@ const migrations = {
     // Add embed_configs to settings
     newState.settings.embed_configs = {}
     return newState
+  },
+  54: (state: RootState) => {
+    let newState = {...state}
+    // Add availableAssets to settings
+    newState.settings.availableAssets = []
+    return newState
   }
 }
 
@@ -491,7 +497,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 53,
+  version: 54,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
