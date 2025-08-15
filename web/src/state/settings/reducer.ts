@@ -10,6 +10,7 @@ export interface MetadataProcessingResult {
   dbSchemaHash?: string;
   fieldsHash?: string;
   modelFieldsHash?: string;
+  selectedDbId?: number;
 }
 
 interface MetadataProcessingCacheEntry {

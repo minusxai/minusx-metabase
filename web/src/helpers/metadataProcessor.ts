@@ -179,7 +179,6 @@ async function processMetadataWithCaching(
     console.warn(`[minusx] No data found for ${metadataType}, skipping upload`)
     return undefined; // No data to process
   }
-  console.log('Retrieved data for metadata type', metadataType, data)
 
   // Calculate hash of current data
   const currentHash = await calculateMetadataHash(metadataType, { [metadataType]: data }, '1.0')
@@ -283,7 +282,8 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
         cardsHash,
         dbSchemaHash, 
         fieldsHash,
-        modelFieldsHash
+        modelFieldsHash,
+        selectedDbId
       }
   
       // Cache the result for this database ID
