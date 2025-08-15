@@ -13,6 +13,12 @@ export interface MetadataProcessingResult {
   selectedDbId?: number;
 }
 
+export interface MetadataHashInfo {
+  timestamp: number;
+  metadataType: string;
+  database_id: number;
+}
+
 interface MetadataProcessingCacheEntry {
   result: MetadataProcessingResult;
   timestamp: number;
@@ -97,7 +103,7 @@ interface Settings {
   enableStyleCustomization: boolean,
   enableUserDebugTools: boolean
   enableReviews: boolean
-  metadataHashes: Record<string, number>
+  metadataHashes: Record<string, MetadataHashInfo>
   metadataProcessingCache: Record<number, MetadataProcessingCacheEntry>
   manuallyLimitContext: boolean
   useV2States: boolean
@@ -274,8 +280,12 @@ export const settingsSlice = createSlice({
     setEnableReviews: (state, action: PayloadAction<boolean>) => {
         state.enableReviews = action.payload
     },
-    setMetadataHash: (state, action: PayloadAction<string>) => {
-        state.metadataHashes[action.payload] = Date.now()
+    setMetadataHash: (state, action: PayloadAction<{hash: string, metadataType: string, database_id: number}>) => {
+        state.metadataHashes[action.payload.hash] = {
+          timestamp: Date.now(),
+          metadataType: action.payload.metadataType,
+          database_id: action.payload.database_id
+        }
     },
     setMetadataProcessingCache: (state, action: PayloadAction<{dbId: number, result: MetadataProcessingResult}>) => {
         state.metadataProcessingCache[action.payload.dbId] = {

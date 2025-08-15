@@ -496,6 +496,23 @@ const migrations = {
     // Add teamMemory
     newState.settings.useTeamMemory = true
     return newState
+  },
+  56: (state: RootState) => {
+    let newState = {...state}
+    // Migrate metadataHashes from Record<string, number> to Record<string, MetadataHashInfo>
+    const oldHashes = newState.settings.metadataHashes as any
+    if (oldHashes && typeof Object.values(oldHashes)[0] === 'number') {
+      const newHashes: Record<string, any> = {}
+      for (const [hash, timestamp] of Object.entries(oldHashes)) {
+        newHashes[hash] = {
+          timestamp: timestamp as number,
+          metadataType: 'unknown',
+          database_id: -1
+        }
+      }
+      newState.settings.metadataHashes = newHashes
+    }
+    return newState
   }
 }
 
@@ -503,7 +520,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 55,
+  version: 56,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

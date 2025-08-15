@@ -9,7 +9,7 @@ import axios from 'axios';
 import { configs } from '../constants';
 import { getOrigin } from './origin';
 import { get, isEmpty } from 'lodash';
-import { MetadataProcessingResult, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
+import { MetadataProcessingResult, MetadataHashInfo, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
 import { getAllCardsAndModels, getAllCardsLegacy, getDatabaseTablesAndModelsWithoutFields, getAllFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
@@ -80,6 +80,31 @@ async function calculateMetadataHash(metadataType: string, metadataValue: any, v
     return calculateMetadataHashFallback(content);
   }
   
+}
+
+/**
+ * Finds the most recent hash for a given metadataType and database_id
+ * @param metadataType The type of metadata (e.g., 'cards', 'dbSchema')
+ * @param database_id The database ID
+ * @returns The most recent hash or undefined if none found
+ */
+function findMostRecentHash(metadataType: string, database_id: number): string | undefined {
+  const currentState = getState()
+  const storedHashes = currentState.settings.metadataHashes
+  
+  let mostRecentHash: string | undefined = undefined
+  let mostRecentTimestamp = 0
+  
+  for (const [hash, info] of Object.entries(storedHashes)) {
+    if (info.metadataType === metadataType && info.database_id === database_id) {
+      if (info.timestamp > mostRecentTimestamp) {
+        mostRecentTimestamp = info.timestamp
+        mostRecentHash = hash
+      }
+    }
+  }
+  
+  return mostRecentHash
 }
 
 // Global map to track ongoing uploads by hash
@@ -196,12 +221,24 @@ async function processMetadataWithCaching(
       // Store the new hash in Redux
       if (!serverHash) {
         console.warn(`[minusx] No hash returned for ${metadataType} metadata upload`)
-        return undefined; // Return undefined when upload failed
+        // Try to return the most recent hash for this metadataType and database_id
+        const fallbackHash = findMostRecentHash(metadataType, database_id)
+        if (fallbackHash) {
+          console.log(`[minusx] Using fallback hash for ${metadataType} on database ${database_id}: ${fallbackHash}`)
+          return fallbackHash
+        }
+        return undefined; // Return undefined when upload failed and no fallback available
       }
-      dispatch(setMetadataHash(serverHash))
+      dispatch(setMetadataHash({ hash: serverHash, metadataType, database_id }))
       console.log(`[minusx] ${metadataType} metadata uploaded and hash updated`)
     } catch (error) {
       console.warn(`[minusx] Failed to upload ${metadataType} metadata:`, error)
+      // Try to return the most recent hash for this metadataType and database_id
+      const fallbackHash = findMostRecentHash(metadataType, database_id)
+      if (fallbackHash) {
+        console.log(`[minusx] Using fallback hash for ${metadataType} on database ${database_id}: ${fallbackHash}`)
+        return fallbackHash
+      }
       return undefined
       // Continue without failing the entire request
     }
