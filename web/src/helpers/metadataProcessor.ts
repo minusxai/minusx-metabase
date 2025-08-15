@@ -94,6 +94,15 @@ const ongoingMetadataProcessing = new Map<number, Promise<MetadataProcessingResu
  * @param metadataHash The calculated hash to send to server
  * @returns The hash returned from the server
  */
+
+async function gzipBase64(obj: any): Promise<string> {
+  const json = JSON.stringify(obj);
+  const enc = new TextEncoder().encode(json);
+  const stream = new Blob([enc]).stream().pipeThrough(new CompressionStream('gzip'));
+  const gzBytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  return btoa(String.fromCharCode(...gzBytes));
+}
+
 async function uploadMetadata(metadataType: string, data: any, metadataHash: string): Promise<string | undefined> {
   // Check if this hash is already being uploaded
   if (ongoingUploads.has(metadataHash)) {
@@ -103,9 +112,21 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
 
   // Create and store the upload promise
   const uploadPromise = (async () => {
+    // Stringify data, gzip it, and base64 encode
+    let metadata_value = { [metadataType]: data }
+    try {
+      const compressedData = await gzipBase64(data);
+      metadata_value = {
+        type: 'gzip',
+        [metadataType]: compressedData
+      }
+    } catch (error) {
+      console.warn(`Failed to compress ${metadataType} data, using uncompressed version`, error);
+    }
+    
     const metadataItem: MetadataItem = {
       metadata_type: metadataType,
-      metadata_value: { [metadataType]: data },
+      metadata_value,
       version: '1.0',
       metadata_hash: metadataHash
     };
