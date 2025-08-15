@@ -253,9 +253,9 @@ export async function getAllCardsAndModels(forceRefresh = false) {
   const sortedCards = reverse(sortBy(cardsWithRelevancy, 'relevancy'));
 
   // Limit to 2000 cards
-  if (sortedCards.length > 2000) {
-    sortedCards.length = 2000;
-  }
+  // if (sortedCards.length > 2000) {
+  //   sortedCards.length = 2000;
+  // }
 
   // Remove the relevancy property before processing since it's not part of the card schema
   const cardsForProcessing = sortedCards.map(card => omit(card, ['relevancy']));

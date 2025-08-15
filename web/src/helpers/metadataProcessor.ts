@@ -245,56 +245,7 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
       ])
       console.log('[minusx] All API calls completed. Processing data...')
       
-      // Step 2: Create sets for efficient lookup of existing tables
-      const existingTableNames = new Set<string>()
-      
-      // Add tables from dbSchema
-      if (dbSchema.tables) {
-        dbSchema.tables.forEach((table: any) => {
-          const tableName = table.name
-          const schemaName = table.schema || dbSchema.default_schema
-          const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
-          
-          existingTableNames.add(tableName)
-          existingTableNames.add(fullName)
-        })
-      }
-      
-      // Add models from dbSchema
-      if (dbSchema.models) {
-        dbSchema.models.forEach((model: any) => {
-          existingTableNames.add(model.name)
-        })
-      }
-      
-      console.log('[minusx] Found existing tables/models:', existingTableNames.size)
-      
-      // Step 3: Find intersection of referenced tables that actually exist
-      const validReferencedTables = referencedTables.filter((table: any) => {
-        const tableName = table.name
-        const schemaName = table.schema
-        const fullName = schemaName ? `${schemaName}.${tableName}` : tableName
-        
-        return existingTableNames.has(tableName) || existingTableNames.has(fullName)
-      })
-      
-      console.log('[minusx] Valid referenced tables:', validReferencedTables.length, 'out of', referencedTables.length)
-      
-      // Step 4: Filter fields in-memory using table names
-      const validTableNames = new Set(validReferencedTables.map((table: any) => {
-        const schemaName = table.schema
-        return schemaName ? `${schemaName}.${table.name}` : table.name
-      }))
-      
-      console.log('[minusx] Filtering fields for', validTableNames.size, 'valid tables...')
-      
-      const filteredFields = cards.length < 100 || allFields.length < 20000 ? allFields : allFields.filter((field: any) => {
-        const tableName = get(field, 'table_name')
-        const tableSchema = get(field, 'schema')
-        const fullTableName = tableSchema ? `${tableSchema}.${tableName}` : tableName
-        
-        return validTableNames.has(tableName) || validTableNames.has(fullTableName)
-      })
+      const filteredFields = allFields // Not filtering in new flow
       
       console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
       
