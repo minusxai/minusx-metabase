@@ -96,12 +96,29 @@ const ongoingMetadataProcessing = new Map<number, Promise<MetadataProcessingResu
  * @returns The hash returned from the server
  */
 
+// async function gzipBase64(obj: any): Promise<string> {
+//   const json = JSON.stringify(obj);
+//   const enc = new TextEncoder().encode(json);
+//   const stream = new Blob([enc]).stream().pipeThrough(new CompressionStream('gzip'));
+//   const gzBytes = new Uint8Array(await new Response(stream).arrayBuffer());
+//   return btoa(String.fromCharCode(...gzBytes));
+// }
+
 async function gzipBase64(obj: any): Promise<string> {
   const json = JSON.stringify(obj);
   const enc = new TextEncoder().encode(json);
+
   const stream = new Blob([enc]).stream().pipeThrough(new CompressionStream('gzip'));
-  const gzBytes = new Uint8Array(await new Response(stream).arrayBuffer());
-  return btoa(String.fromCharCode(...gzBytes));
+  const blob = await new Response(stream).blob();
+
+  // Produces a data URL; strip the prefix
+  const b64 = await new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve((r.result as string).split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+  return b64;
 }
 
 async function uploadMetadata(metadataType: string, data: any, metadataHash: string, database_id: number): Promise<string | undefined> {
