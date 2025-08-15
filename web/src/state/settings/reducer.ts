@@ -19,7 +19,7 @@ interface MetadataProcessingCacheEntry {
 
 export type AppMode = 'sidePanel' | 'selection'
 export type SidePanelTabName = 'chat' | 'settings' | 'context'
-export type DevToolsTabName = 'Context' | 'History' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization' | 'Debug Tools' | 'Team Context'
+export type DevToolsTabName = 'Context' | 'History' | 'Action History' | 'Prompts' | 'Available Actions' | 'Planner Configs' | 'Context History' | 'Testing Tools' | 'Custom Instructions' | 'General Settings' | 'Data Catalog' | 'Dev Context' | 'Memory' | 'CSS Customization' | 'Debug Tools' | 'Team Memory'
 
 export const DEFAULT_TABLES = 'Default Tables'
 const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
@@ -104,6 +104,7 @@ interface Settings {
   availableAssets: AssetInfo[]
   selectedAssetId: string | null
   assetsLoading: boolean
+  useTeamMemory: boolean
 }
 
 const initialState: Settings = {
@@ -143,6 +144,7 @@ const initialState: Settings = {
   availableAssets: [],
   selectedAssetId: null,
   assetsLoading: false,
+  useTeamMemory: true,
 }
 
 export const settingsSlice = createSlice({
@@ -253,6 +255,9 @@ export const settingsSlice = createSlice({
     setUseMemory: (state, action: PayloadAction<boolean>) => {
       state.useMemory = action.payload
     },
+    setUseTeamMemory: (state, action: PayloadAction<boolean>) => {
+        state.useTeamMemory = action.payload
+    },
     setEnableHighlightHelpers: (state, action: PayloadAction<boolean>) => {
       state.enable_highlight_helpers = action.payload
     },
@@ -306,7 +311,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode,
   resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection, setUseV2States, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading
+  updateManualContextSelection, setUseV2States, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

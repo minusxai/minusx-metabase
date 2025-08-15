@@ -16,8 +16,24 @@ export const Context: React.FC = () => {
     }
 
     return (
-        <VStack spacing={6} align="stretch" pt={6}>
-            <Text fontSize="2xl" fontWeight="bold">Context</Text>
+        <VStack spacing={6} align="stretch">
+            <HStack justify="space-between" align="center">
+                <Text fontSize="2xl" fontWeight="bold">Context</Text>
+                <HStack spacing={3} align="center">
+                    <HStack spacing={2} align="center">
+                        <Text fontSize="xs" color="minusxGreen.600" fontWeight="bold">
+                            MANUALLY SELECT TABLES/MODELS
+                        </Text>
+                        <Switch 
+                            colorScheme="minusxGreen" 
+                            size="sm" 
+                            isChecked={manualContext} 
+                            onChange={updateSelection}
+                        />
+                    </HStack>
+                </HStack>
+            </HStack>
+            
             <Box position="relative">
                 <TablesCatalog />
                 {!manualContext && (
@@ -27,15 +43,6 @@ export const Context: React.FC = () => {
                     />
                 )}
             </Box>
-            <HStack justify="center" mt={4}>
-                <Text fontSize="sm" color="gray.600">Manually select tables/models</Text>
-                <Switch 
-                    isChecked={manualContext} 
-                    onChange={updateSelection}
-                    colorScheme="minusxGreen"
-                    size="md"
-                />
-            </HStack>
         </VStack>
     )
 }
