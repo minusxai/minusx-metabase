@@ -196,12 +196,13 @@ async function processMetadataWithCaching(
       // Store the new hash in Redux
       if (!serverHash) {
         console.warn(`[minusx] No hash returned for ${metadataType} metadata upload`)
-        return serverHash; // Return current hash even if upload failed
+        return undefined; // Return undefined when upload failed
       }
       dispatch(setMetadataHash(serverHash))
       console.log(`[minusx] ${metadataType} metadata uploaded and hash updated`)
     } catch (error) {
       console.warn(`[minusx] Failed to upload ${metadataType} metadata:`, error)
+      return undefined
       // Continue without failing the entire request
     }
   } else {
