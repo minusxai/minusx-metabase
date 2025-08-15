@@ -23,6 +23,7 @@ export interface MetadataItem {
   metadata_value: any;
   version: string;
   metadata_hash: string;
+  database_id?: string;
 }
 
 export interface MetadataRequest {
@@ -103,7 +104,7 @@ async function gzipBase64(obj: any): Promise<string> {
   return btoa(String.fromCharCode(...gzBytes));
 }
 
-async function uploadMetadata(metadataType: string, data: any, metadataHash: string): Promise<string | undefined> {
+async function uploadMetadata(metadataType: string, data: any, metadataHash: string, database_id: number): Promise<string | undefined> {
   // Check if this hash is already being uploaded
   if (ongoingUploads.has(metadataHash)) {
     console.log(`[minusx] Upload already in progress for hash ${metadataHash}, waiting...`)
@@ -128,7 +129,8 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
       metadata_type: metadataType,
       metadata_value,
       version: '1.0',
-      metadata_hash: metadataHash
+      metadata_hash: metadataHash,
+      database_id: `${database_id}`
     };
 
     try {
@@ -152,7 +154,8 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
 
 async function processMetadataWithCaching(
   metadataType: string,
-  dataFetcher: () => Promise<any>): Promise<string | undefined> {
+  dataFetcher: () => Promise<any>,
+  database_id: number): Promise<string | undefined> {
   // Fetch the data
   const data = await dataFetcher()
   if (isEmpty(data)) {
@@ -172,7 +175,7 @@ async function processMetadataWithCaching(
   if (!storedHashes[currentHash]) {
     try {
       console.log(`[minusx] ${metadataType} data changed, uploading to metadata endpoint`)
-      const serverHash = await uploadMetadata(metadataType, data, currentHash)
+      const serverHash = await uploadMetadata(metadataType, data, currentHash, database_id)
 
       // Store the new hash in Redux
       if (!serverHash) {
@@ -300,10 +303,10 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
       console.log('[minusx] Processing metadata with filtered data...')
       
       const [cardsHash, dbSchemaHash, fieldsHash, modelFieldsHash] = await Promise.all([
-        processMetadataWithCaching('cards', async () => cards),
-        processMetadataWithCaching('dbSchema', async () => dbSchema),
-        processMetadataWithCaching('fields', async () => filteredFields),
-        processMetadataWithCaching('modelFields', async () => modelFields)
+        processMetadataWithCaching('cards', async () => cards, selectedDbId),
+        processMetadataWithCaching('dbSchema', async () => dbSchema, selectedDbId),
+        processMetadataWithCaching('fields', async () => filteredFields, selectedDbId),
+        processMetadataWithCaching('modelFields', async () => modelFields, selectedDbId)
       ])
       
       console.log('[minusx] Coordinated metadata processing complete')
