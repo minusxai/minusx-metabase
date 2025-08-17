@@ -12,9 +12,11 @@ import AbortTaskButton from './AbortTaskButton'
 import AutosizeTextarea from './AutosizeTextarea'
 import { abortPlan } from '../../state/chat/reducer'
 import { setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setDemoMode } from '../../state/settings/reducer'
+import { setConfirmChanges } from '../../state/settings/reducer'
 import { configs } from '../../constants'
 import _ from 'lodash'
+import { MetabaseContext } from 'apps/types'
+import { getApp } from '../../helpers/app'
 
 interface ChatInputAreaProps {
   isRecording: boolean
@@ -27,17 +29,22 @@ interface ChatInputAreaProps {
   }
 }
 
+const app = getApp()
+const useAppStore = app.useStore()
+
 const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
   ({ isRecording, runTask, appEnabledStatus }, ref) => {
     const dispatch = useDispatch()
     const reduxInstructions = useSelector((state: RootState) => state.thumbnails.instructions)
     const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
-    const demoMode = useSelector((state: RootState) => state.settings.demoMode)
+    const confirmChanges = useSelector((state: RootState) => state.settings.confirmChanges)
     const taskInProgress = !(activeThread.status == 'FINISHED')
     const [instructions, setInstructions] = useState<string>(reduxInstructions)
 
-    const updateDemoMode = (value: boolean) => {
-      dispatch(setDemoMode(value))
+    // Tool context access for SQL page
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const updateConfirmChanges = (value: boolean) => {
+      dispatch(setConfirmChanges(value))
     }
 
     // Sync with redux instructions when they change
@@ -80,7 +87,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
             <HStack aria-label="chat-controls" position={"absolute"} bottom={0} width={"100%"} p={2}>
               <HStack justify={"space-between"} width={"100%"}>
                 <HStack gap={0}>
-                  {configs.IS_DEV && false && (
+                  {(toolContext.pageType === 'sql') && (
                     <Checkbox 
                       sx={{
                         '& input:not(:checked) + span': {
@@ -98,10 +105,10 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
                           marginLeft: 1,
                         }
                       }}
-                      isChecked={demoMode}
-                      onChange={(e) => updateDemoMode(e.target.checked)}
+                      isChecked={confirmChanges}
+                      onChange={(e) => updateConfirmChanges(e.target.checked)}
                     >
-                      <Text fontSize="xs">Advanced Mode</Text>
+                      <Text fontSize="xs">Review SQL Edits</Text>
                     </Checkbox>
                   )}
                 </HStack>
