@@ -199,7 +199,7 @@ const SettingsPage = () => {
       </SettingsBlock> */}
       <SettingsBlock title="Features" >
         <VStack alignItems="">
-          {configs.IS_DEV && <HStack justifyContent={"space-between"}>
+          {<HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">User Confirmation</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={confirmChanges} onChange={(e) => updateConfirmChanges(e.target.checked)} />
           </HStack>}

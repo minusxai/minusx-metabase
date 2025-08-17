@@ -118,7 +118,7 @@ export const UserConfirmation = () => {
         </ModalHeader>
         <ModalCloseButton top={4} right={4} onClick={() => handleClose('REJECT')} />
         <ModalBody p={0} display="flex" flexDirection="column" bg="minusxBW.200" overflow="hidden">
-          <div style={{ flex: 1, overflow: "auto", padding: "24px" }}>
+          <div style={{ flex: 1, overflow: "auto", padding: "24px", height: "100%" }}>
             <ReactDiffViewer 
               oldValue={userConfirmation.oldContent ?? ''}
               newValue={userConfirmation.content ?? ''}
@@ -126,6 +126,9 @@ export const UserConfirmation = () => {
               disableWordDiff={true}
               renderContent={(line: string) => <HighlightLine code={line} />}
               useDarkTheme={true}
+              leftTitle={<Text fontSize="sm" color="minusxBW.100" textAlign={"center"}>SQL in the Editor</Text>}
+              rightTitle={<Text fontSize="sm" color="minusxBW.100" textAlign={"center"}>SQL to be executed</Text>}
+              showDiffOnly={false}
             />
           </div>
           

@@ -117,10 +117,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
-    if (!userApproved) {
-      throw new Error("Action (and subsequent plan) cancelled!");
-    }
     if (state.sqlEditorState == "closed") {
       await this.toggleSQLEditor("open");
     }
@@ -383,10 +379,6 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async executeSQLQuery() {
-    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: "Execute query", contentTitle: "Accept below action?", oldContent: undefined});
-    if (!userApproved) {
-      throw new Error("Action (and subsequent plan) cancelled!");
-    }
     return await this._executeSQLQueryInternal();
   }
 
