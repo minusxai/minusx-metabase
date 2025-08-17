@@ -131,11 +131,12 @@ function getTextFromChildren(children: any): string {
 function ModifiedBlockquote(props: any) {
     const textContent = getTextFromChildren(props.children);
     const isError = textContent.toLowerCase().includes('error');
-    
+    const isWarning = textContent.toLowerCase().includes('user cancellation');
+
     return (
         <blockquote style={{
             borderLeft: '4px solid', 
-            borderLeftColor: isError ? '#e53e3e' : '#14a085', 
+            borderLeftColor: isError ? '#e53e3e' : isWarning ? '#d69e2e' : '#14a085', 
             borderRadius: '2px 0 0 2px',
             paddingLeft: '16px', 
             margin: '0px',

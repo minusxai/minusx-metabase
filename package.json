@@ -16,6 +16,7 @@
   },
   "packageManager": "yarn@4.3.1",
   "dependencies": {
+    "react-diff-viewer-continued": "^3.4.0",
     "react-syntax-highlighter": "^15.5.0",
     "react-window": "^1.8.11"
   }

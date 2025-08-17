@@ -117,7 +117,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
+    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query?", oldContent: state.sqlQuery});
     if (!userApproved) {
       throw new Error("Action (and subsequent plan) cancelled!");
     }
@@ -169,15 +169,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    // sql = processSQLWithCtesOrModels(sql, ctes);
-    // const metabaseState = this.app as App<MetabaseAppState>;
-    // const allModels = metabaseState.useStore().getState().toolContext?.dbInfo?.models || [];
-    // use allModels for this replacement
-    // sql = replaceLLMFriendlyIdentifiersInSqlWithModels(sql, allModels)
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    const userApproved = await RPCs.getUserConfirmation({content: sql, contentTitle: "Update SQL query with parameters?", oldContent: state.sqlQuery});
+    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: sql, contentTitle: "Approve SQL Query?", oldContent: state.currentCard?.dataset_query?.native?.query || state.sqlQuery || ''});
     if (!userApproved) {
-      throw new Error("Action (and subsequent plan) cancelled!");
+      actionContent.content = '<UserCancelled>Reason: ' + (userFeedback === '' ?  'No particular reason given' : userFeedback) + '</UserCancelled>';
+      return actionContent;
     }
     if (state.sqlEditorState == "closed") {
       await this.toggleSQLEditor("open");
@@ -363,7 +359,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
-    const userApproved = await RPCs.getUserConfirmation({content: memory, contentTitle: "Shall I add this to memory?", oldContent: undefined, override: true});
+    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: memory, contentTitle: "Shall I add this to memory?", oldContent: undefined, override: true});
     if (userApproved) {
         dispatch(addMemory(memory));
         dispatch(updateIsDevToolsOpen(true))
@@ -387,7 +383,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async executeSQLQuery() {
-    const userApproved = await RPCs.getUserConfirmation({content: "Execute query", contentTitle: "Accept below action?", oldContent: undefined});
+    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: "Execute query", contentTitle: "Accept below action?", oldContent: undefined});
     if (!userApproved) {
       throw new Error("Action (and subsequent plan) cancelled!");
     }
@@ -451,22 +447,11 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     
-    // Check if template_tags or parameters are provided and non-empty
-    const hasTemplateTagsOrParams = (template_tags && Object.keys(template_tags).length > 0) || (parameters && Array.isArray(parameters) && parameters.length > 0);
-    
     if (pageType === 'sql') {
-        // if (hasTemplateTagsOrParams) {
-            return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "markdown", ctes: _ctes });
-        // } else {
-            // return await this.updateSQLQuery({ sql, executeImmediately: true, _type: "csv", ctes: _ctes });
-        // }
+        return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "markdown", ctes: _ctes });
     }
     else if ((pageType === 'dashboard') || (pageType === 'unknown')) {
-        // if (hasTemplateTagsOrParams) {
-            return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });
-        // } else {
-            // return await this.runSQLQuery({ sql, ctes: _ctes });
-        // }
+        return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });
     }
   }
 

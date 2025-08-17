@@ -107,6 +107,7 @@ export interface UserConfirmationState {
   contentTitle?: string // optional title for the prompt that's shown to the user
   oldContent?: string // optional existing content to show diff for code
   userInput: UserConfirmationInput
+  userFeedback?: string // optional feedback from user if they reject
 }
 
 export interface ClarificationQuestion {
@@ -569,10 +570,15 @@ export const chatSlice = createSlice({
       userConfirmation.contentTitle = contentTitle
       userConfirmation.oldContent = oldContent
       userConfirmation.userInput = 'NULL'
+      userConfirmation.userFeedback = ''
     },
     setUserConfirmationInput: (state, action: PayloadAction<UserConfirmationInput>) => {
       const userConfirmation = state.threads[state.activeThread].userConfirmation
       userConfirmation.userInput = action.payload
+    },
+    setUserConfirmationFeedback: (state, action: PayloadAction<string>) => {
+      const userConfirmation = state.threads[state.activeThread].userConfirmation
+      userConfirmation.userFeedback = action.payload
     },
     toggleClarification: (state, action: PayloadAction<{
       show: boolean
@@ -703,6 +709,6 @@ export const chatSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback } = chatSlice.actions
 
 export default chatSlice.reducer
