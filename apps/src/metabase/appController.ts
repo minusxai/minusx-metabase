@@ -168,7 +168,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
     const oldContent = state.currentCard?.dataset_query?.native?.query || state.sqlQuery || ''
     const isContentUnchanged = sql == oldContent
-    const override = skipConfirmation || isContentUnchanged? false : undefined
+    const override = skipConfirmation || isContentUnchanged || !oldContent ? false : undefined
     const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: sql, contentTitle: "Approve SQL Query?", oldContent, override});
     if (!userApproved) {
       actionContent.content = '<UserCancelled>Reason: ' + (userFeedback === '' ?  'No particular reason given' : userFeedback) + '</UserCancelled>';

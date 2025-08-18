@@ -139,10 +139,10 @@ export const metabaseInternalState: MetabaseInternalState = {
 
 ---
 
-\`[badge]✨New Agent Launch✨\`  \n #### **[Explorer Agent 🗺️ (Docs)](https://docs.minusx.ai/en/articles/11813453-explorer-agent)**
+\`[badge]✨Product Update✨\`  \n #### Launching: **Review Mode**
+Review Mode allows you to precisely control what updates MinusX makes to your SQL queries. Accept or suggest changes to MinusX through a side-by-side comparison to iterate on your complex queries faster!
 
-
-[![img](https://minusx.ai/app_assets/explorer_gif.gif)](https://docs.minusx.ai/en/articles/11813453-explorer-agent)
+![img](https://minusx.ai/app_assets/side-by-side.png)
 
 `,
 };
