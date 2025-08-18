@@ -2,7 +2,8 @@ import {
   HStack,
   Stack,
   Checkbox,
-  Text
+  Text,
+  Badge
 } from '@chakra-ui/react'
 import React, { forwardRef, useState, useEffect, useCallback } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -108,7 +109,10 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
                       isChecked={confirmChanges}
                       onChange={(e) => updateConfirmChanges(e.target.checked)}
                     >
-                      <Text fontSize="xs">Review SQL Edits</Text>
+                      <HStack spacing={1} align="start">
+                        <Text fontSize="xs">Review Mode</Text>
+                        <Badge size="sm" colorScheme="blue" fontSize="xs">NEW</Badge>
+                      </HStack>
                     </Checkbox>
                   )}
                 </HStack>

@@ -193,7 +193,12 @@ export const UserConfirmation = () => {
                 colorScheme="red"
                 minWidth={"120px"}
               >
-                {showRejectFeedback ? 'Submit' : 'Reject'}
+                <HStack spacing={1} align="end">
+                  <Text>{showRejectFeedback ? 'Submit' : 'Reject'}</Text>
+                  {!showRejectFeedback && (
+                    <Text fontSize="xs" opacity={0.6}>(with feedback)</Text>
+                  )}
+                </HStack>
               </Button>
               
               {showRejectFeedback && (
