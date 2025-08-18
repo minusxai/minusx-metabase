@@ -107,7 +107,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             executeAction({
                 index: -1,
                 function: 'ExecuteQuery',
-                args: {sql: sql, template_tags: extraArgs?.template_tags || {}, parameters: extraArgs?.parameters || []},
+                args: {sql: sql, template_tags: extraArgs?.template_tags || {}, parameters: extraArgs?.parameters || [], skipConfirmation: true},
             });
         };
         
