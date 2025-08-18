@@ -77,7 +77,6 @@ export const UserConfirmation = () => {
   }
 
   const handleClose = (verdict: VERDICT) => {
-    setMinusxMode('open-sidepanel')
     console.log('Modal closing with verdict:', verdict)
     if ((verdict === 'REJECT') && (rejectFeedback.trim() != '')) {
         dispatch(setUserConfirmationFeedback(rejectFeedback))
@@ -90,6 +89,9 @@ export const UserConfirmation = () => {
     setShowRejectFeedback(false)
     setDontAskAgain(false)
     onClose()
+    setTimeout(() => {
+      setMinusxMode('open-sidepanel')
+    }, 100)
   }
 
   useEffect(() => {
