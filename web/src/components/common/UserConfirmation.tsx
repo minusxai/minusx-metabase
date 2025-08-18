@@ -130,7 +130,7 @@ export const UserConfirmation = () => {
               useDarkTheme={true}
               leftTitle={<Text fontSize="sm" color="minusxBW.100" textAlign={"center"}>SQL in the Editor</Text>}
               rightTitle={<Text fontSize="sm" color="minusxBW.100" textAlign={"center"}>SQL to be executed</Text>}
-              showDiffOnly={false}
+              showDiffOnly={true}
             />
           </div>
           
