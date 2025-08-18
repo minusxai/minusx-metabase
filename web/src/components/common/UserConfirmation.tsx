@@ -130,7 +130,7 @@ export const UserConfirmation = () => {
               useDarkTheme={true}
               leftTitle={<Text fontSize="sm" color="minusxBW.100" textAlign={"center"}>SQL in the Editor</Text>}
               rightTitle={<Text fontSize="sm" color="minusxBW.100" textAlign={"center"}>SQL to be executed</Text>}
-              showDiffOnly={false}
+              showDiffOnly={true}
             />
           </div>
           
@@ -193,7 +193,12 @@ export const UserConfirmation = () => {
                 colorScheme="red"
                 minWidth={"120px"}
               >
-                {showRejectFeedback ? 'Submit' : 'Reject'}
+                <HStack spacing={1} align="end">
+                  <Text>{showRejectFeedback ? 'Submit' : 'Reject'}</Text>
+                  {!showRejectFeedback && (
+                    <Text fontSize="xs" opacity={0.6}>(with feedback)</Text>
+                  )}
+                </HStack>
               </Button>
               
               {showRejectFeedback && (

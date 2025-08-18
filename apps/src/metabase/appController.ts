@@ -161,12 +161,15 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: `Using ${Object.keys(template_tags || {}).length} template tags and ${(parameters || []).length} parameters`, code: sql, oldCode: sqlQuery}
     }
   })
-  async updateSQLQueryWithParams({ sql, template_tags = {}, parameters = [], parameterValues = [], executeImmediately = true, _type = "markdown", ctes = [] }: { sql: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}>, executeImmediately?: boolean, _type?: string, ctes: CTE[] }) {
+  async updateSQLQueryWithParams({ sql, template_tags = {}, parameters = [], parameterValues = [], executeImmediately = true, _type = "markdown", ctes = [], skipConfirmation=false }: { sql: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}>, executeImmediately?: boolean, _type?: string, ctes: CTE[], skipConfirmation?: boolean }) {
     const actionContent: BlankMessageContent = {
       type: "BLANK",
     };
     const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
-    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: sql, contentTitle: "Approve SQL Query?", oldContent: state.currentCard?.dataset_query?.native?.query || state.sqlQuery || ''});
+    const oldContent = state.currentCard?.dataset_query?.native?.query || state.sqlQuery || ''
+    const isContentUnchanged = sql == oldContent
+    const override = skipConfirmation || isContentUnchanged? false : undefined
+    const { userApproved, userFeedback } = await RPCs.getUserConfirmation({content: sql, contentTitle: "Approve SQL Query?", oldContent, override});
     if (!userApproved) {
       actionContent.content = '<UserCancelled>Reason: ' + (userFeedback === '' ?  'No particular reason given' : userFeedback) + '</UserCancelled>';
       return actionContent;
@@ -411,7 +414,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       return {text: `${explanation}${paramValuesInfo}`, code: sql, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
     }
   })
-  async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[], parameterValues=[] }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}> }) {
+  async ExecuteQuery({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[], parameterValues=[], skipConfirmation=false }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}>, skipConfirmation?: boolean }) {
     // console.log('Template tags are', template_tags)
     // console.log('Parameters are', parameters)
     // Try parsing template_tags and parameters if they are strings
@@ -440,7 +443,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     const pageType = metabaseState.useStore().getState().toolContext?.pageType;
     
     if (pageType === 'sql') {
-        return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "markdown", ctes: _ctes });
+        return await this.updateSQLQueryWithParams({ sql, template_tags, parameters, parameterValues, executeImmediately: true, _type: "markdown", ctes: _ctes, skipConfirmation });
     }
     else if ((pageType === 'dashboard') || (pageType === 'unknown')) {
         return await this.runSQLQueryWithParams({ sql, template_tags, parameters, ctes: _ctes });

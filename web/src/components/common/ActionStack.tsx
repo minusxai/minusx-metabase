@@ -59,6 +59,8 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   const url = useAppStore((state) => state.toolContext.url) || '';
   const origin = url ? new URL(url).origin : '';
   const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+  const taskInProgress = !(activeThread.status == 'FINISHED')
   const totalThreads = useSelector((state: RootState) => state.chat.threads.length)
   const embedConfigs = useSelector((state: RootState) => state.configs.embed);
 
@@ -105,7 +107,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
             executeAction({
                 index: -1,
                 function: 'ExecuteQuery',
-                args: {sql: sql, template_tags: extraArgs?.template_tags || {}, parameters: extraArgs?.parameters || []},
+                args: {sql: sql, template_tags: extraArgs?.template_tags || {}, parameters: extraArgs?.parameters || [], skipConfirmation: true},
             });
         };
         
@@ -186,7 +188,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
                 return (
                     <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'} w={"100%"}>
                         <Markdown content={text}></Markdown>
-                        {pageType && pageType == 'sql' && undoRedoArr[i]}
+                        {pageType && pageType == 'sql' && !taskInProgress && undoRedoArr[i]}
                     </Box>
                 )
             })}
