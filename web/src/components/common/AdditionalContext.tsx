@@ -47,7 +47,7 @@ export const AdditionalContext = () => {
     flex={1}
     height={'100%'}
     width={"100%"}
-    overflow={"scroll"}
+    overflow={"auto"}
     pt={2}
     >
       <VStack alignItems={"start"} gap={1}> 

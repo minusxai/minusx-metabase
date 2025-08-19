@@ -157,7 +157,7 @@ const SettingsPage = () => {
     flex={1}
     // height={'80vh'}
     width={"100%"}
-    overflow={"scroll"}
+    overflow={"auto"}
     // pt={2}
     >
       <SettingsBlock title="Profile">
