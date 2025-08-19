@@ -4,5 +4,5 @@
 
 .markdown {
   width: 100%;
-  overflow: scroll;
+  overflow: auto;
 }

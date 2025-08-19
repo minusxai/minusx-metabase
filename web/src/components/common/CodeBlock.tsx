@@ -86,7 +86,7 @@ export const CodeBlock = ({ code, tool, oldCode, language }: { code: string, too
         <Tab>Diff</Tab>
       </TabList> }
 
-      <TabPanels bg={"#1e1e1e"} borderRadius={5} mt={0} maxHeight={"500px"} overflow={"scroll"}>
+      <TabPanels bg={"#1e1e1e"} borderRadius={5} mt={0} maxHeight={"500px"} overflow={"auto"}>
         <TabPanel p={0}>
           <SyntaxHighlighter codeTagProps={{}} language={language} style={vsd} showLineNumbers={true} wrapLines={true} lineProps={linePropsFn} lineNumberStyle={{display: 'none'}}>
             {code}

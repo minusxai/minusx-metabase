@@ -135,7 +135,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     const tableOutputsArr = actions.map(action => {
                 const output = action.output || ''
                 return TABLE_OUTPUT_ACTIONS.includes(action.function.name) && (
-                    <HStack w={"100%"} justify={"center"} mb={2} overflowX={'scroll'}>
+                    <HStack w={"100%"} justify={"center"} mb={2} overflowX={'auto'}>
                         <Markdown content={processModelToUIText(output, origin, embedConfigs)} />
                     </HStack>
                 )
@@ -255,7 +255,7 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
         )} */}
       </Box>
     </HStack>
-    <VStack maxWidth={"100%"} width={"100%"} overflow={"scroll"}>
+    <VStack maxWidth={"100%"} width={"100%"} overflow={"auto"}>
     {tableOutputsArr.length > 0 && 
         // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
         tableOutputsArr.map((text, i) => {

@@ -326,7 +326,7 @@ function ModifiedTable(props: any) {
                     </Tooltip>
                 </HStack>
                 <div style={{
-                    maxHeight: '200px',
+                    // maxHeight: '200px',
                     overflowY: 'auto',
                     overflowX: 'auto',
                     border: '1px solid #e2e8f0',
