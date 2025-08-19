@@ -522,7 +522,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
       pt={2}
     >
       
-      <VStack overflowY={'scroll'} height={"100%"}>
+      <VStack overflowY={'auto'} height={"100%"}>
         {
           metaQuestion &&
           <>
