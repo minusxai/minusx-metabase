@@ -523,13 +523,7 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
           try {
             const args = JSON.parse(toolCall.function.arguments);
             if (args.sql) {
-              // Use the same logic as in the controller to process SQL + CTEs
-              const ctes: [string, string][] = args._ctes || args.ctes || [];
-              
-              let lastSQL = processSQLWithCtesOrModels(args.sql, ctes);
-                const allModels: MetabaseModel[] = toolContext?.dbInfo?.models || []
-                lastSQL = replaceLLMFriendlyIdentifiersInSqlWithModels(lastSQL, allModels)
-                return {query: lastSQL, queryType: 'sql'};
+              return {query: args.sql, queryType: 'sql'};
             }
           } catch (e) {
             // Ignore parsing errors
@@ -579,7 +573,6 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
         let lastQuery = messageIndex !== undefined 
           ? extractLastQueryFromMessages(currentThread?.messages || [], messageIndex, toolContext)
           : null;
-        
         if (lastQuery) {
           // Get current database ID from app state
           const databaseId = toolContext?.dbId || null;
