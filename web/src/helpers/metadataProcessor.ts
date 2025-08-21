@@ -326,8 +326,7 @@ export async function processAllMetadata(forceRefresh = false) : Promise<Metadat
   
       // Cache the result for this database ID
       if (!result.cardsHash) {
-        console.warn('[minusx] Cardshash is undefined, not caching result')
-        return result; // Return even if some hashes are missing
+        console.warn('[minusx] Cardshash is undefined')
       }
       dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
       console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
