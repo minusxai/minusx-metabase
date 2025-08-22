@@ -347,12 +347,13 @@ Here's what I need modified:
       children: [getBaseStyles() + (enableHighlightHelpers ? getHighlightStyles() : '')]
     });
     const errorMessageSelector = querySelectorMap['error_message_head']
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
     const uniqueID = await RPCs.addNativeElements(errorMessageSelector, {
       tag: 'button',
       attributes: {
         class: 'Button Button--primary minusx_style_error_button',
       },
-      children: ['✨ Fix with MinusX']
+      children: [(isEmbedded ? '✨ Fix with AI' : '✨ Fix with MinusX')]
     })
     addNativeEventListener({
       type: "CSS",
