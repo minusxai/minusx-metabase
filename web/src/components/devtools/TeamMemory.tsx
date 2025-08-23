@@ -5,7 +5,7 @@ import { getParsedIframeInfo } from "../../helpers/origin"
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
-import { setSelectedAssetId, setUseMemory } from '../../state/settings/reducer';
+import { setSelectedAssetId, setUseTeamMemory } from '../../state/settings/reducer';
 import { Notify } from '../common/Notify';
 import { CodeBlock } from '../common/CodeBlock';
 import { DisabledOverlay } from '../common/DisabledOverlay';
@@ -16,8 +16,8 @@ export const TeamMemory: React.FC = () => {
     const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
     const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
     const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
-    const useMemory = useSelector((state: RootState) => state.settings.useMemory)
-    
+    const useTeamMemory = useSelector((state: RootState) => state.settings.useTeamMemory)
+
     // Auto-select first asset when assets are loaded and none is selected
     React.useEffect(() => {
         if (availableAssets.length > 0 && !selectedAssetId) {
@@ -30,7 +30,7 @@ export const TeamMemory: React.FC = () => {
     }
     
     const handleMemoryToggle = (checked: boolean) => {
-        dispatch(setUseMemory(checked))
+        dispatch(setUseTeamMemory(checked))
     }
     
     // Find the selected asset for display, fallback to first asset if available
@@ -52,7 +52,7 @@ export const TeamMemory: React.FC = () => {
                     <Switch 
                         colorScheme="minusxGreen" 
                         size="sm" 
-                        isChecked={useMemory} 
+                        isChecked={useTeamMemory} 
                         onChange={(e) => handleMemoryToggle(e.target.checked)}
                     />
                 </HStack>
@@ -221,7 +221,7 @@ export const TeamMemory: React.FC = () => {
                 </Box>
             )}
             </VStack>
-            {!useMemory && (
+            {!useTeamMemory && (
                 <DisabledOverlay 
                     toolEnabledReason="Turn on the **USE TEAM MEMORY** switch above to let MinusX use your organization's assets and team context." 
                     local={true}

@@ -2,7 +2,9 @@ import {
   Tooltip,
   Button,
   Box,
-  keyframes
+  keyframes,
+  Stack,
+  Text
 } from '@chakra-ui/react'
 
 import { useIntercom } from 'react-use-intercom'
@@ -56,22 +58,28 @@ export const SupportButton = ({email} : {email: string}) => {
     70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 82, 82, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
   `;
-  return <Tooltip hasArrow label="Support" placement='left' borderRadius={5} openDelay={500}>
-      <Box position="relative" display="inline-block">
-      <Button leftIcon={<BiSupport size={14}/>} size="xs" colorScheme="minusxGreen" onClick={toggleSupport} py={0}>Support</Button>
-      {hasNotification && (
-        <Box
-          position="absolute"
-          top="-1"
-          right="-1"
-          width="2"
-          height="2"
-          bg="red.500"
-          borderRadius="full"
-          animation={`${pulseAnimation} 1.5s infinite`}
-        />
-      )}
-    </Box>
-    
-  </Tooltip>
+  return (
+    <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0} aria-label='support-button'>
+      <Text color={"minusxBW.800"} fontSize="xs">Support</Text>
+      <Tooltip hasArrow label="Contact Support" placement='left' borderRadius={5} openDelay={500}>
+        <Box position="relative" display="inline-block">
+          <Button size="xs" colorScheme="minusxBW" onClick={toggleSupport} py={0} px={2}>
+            <BiSupport size={14}/>
+          </Button>
+          {hasNotification && (
+            <Box
+              position="absolute"
+              top="-1"
+              right="-1"
+              width="2"
+              height="2"
+              bg="red.500"
+              borderRadius="full"
+              animation={`${pulseAnimation} 1.5s infinite`}
+            />
+          )}
+        </Box>
+      </Tooltip>
+    </Stack>
+  )
 }

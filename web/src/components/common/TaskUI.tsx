@@ -12,14 +12,16 @@ import {
   Spinner,
   Button,
   Checkbox,
-  Link
+  Link,
+  Box,
+  Badge
 } from '@chakra-ui/react'
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard, BiGroup } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
 import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn, cloneThreadFromHistory } from '../../state/chat/reducer'
@@ -99,6 +101,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
 
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
+  const useMemory = useSelector((state: RootState) => state.settings.useMemory)
+  const useTeamMemory = useSelector((state: RootState) => state.settings.useTeamMemory)
+  const manuallyLimitContext = useSelector((state: RootState) => state.settings.manuallyLimitContext)
+  const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
+  const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
+  const selectedAssetName = availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None'
+      
 
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
@@ -657,7 +666,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 </VStack>
             </Notify>
         }
-        {   !taskInProgress &&
+        {/* {   !taskInProgress &&
             <SettingsBlock title='Quick Actions' ariaLabel='quick-actions'>
                 <HStack justifyContent={"center"} flexWrap={"wrap"} gap={1}>
                 { currentTool == 'metabase' && <Button size="xs" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
@@ -665,10 +674,110 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 { <Button size="xs" leftIcon={<BiMessageAdd size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearMessages}>New Chat</Button> }
                 { <Button size="xs" leftIcon={<BiMemoryCard size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Memory")}>Memory</Button> }
                 { <Button size="xs" leftIcon={<BiGroup size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Team Memory")}>Team</Button> }
-                {/* { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> } */}
-                {/* { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> } */}
+                { currentTool == 'metabase'  && <Button size="xs" leftIcon={<BiEdit size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={()=>openDevtoolTab("Custom Instructions")}>Custom Instructions</Button> }
+                { currentTool == 'metabase' && configs.IS_DEV && <Button size="xs" leftIcon={<BiTrash size={14}/>} colorScheme="minusxGreen" variant="solid" onClick={clearSQL}>Clear SQL</Button> }
                 <SupportButton email={email} />
 
+                </HStack>
+            </SettingsBlock>
+        } */}
+
+        {   !taskInProgress &&
+            <SettingsBlock title='Context' ariaLabel='context-info'>
+                <HStack justifyContent="space-around" fontSize="sm" gap={1}>
+                    <Tooltip 
+                        hasArrow 
+                        placement='right' 
+                        borderRadius={5} 
+                        label={`${manuallyLimitContext ? 'manual' : 'automatic'} table selection`}
+                    >
+                        <Box 
+                            bg="minusxBW.200" 
+                            px={2} 
+                            py={1} 
+                            borderRadius="md" 
+                            cursor="pointer" 
+                            _hover={{bg: "minusxBW.100"}}
+                            onClick={()=>openDevtoolTab("Context")}
+                        >
+                            <VStack spacing={0} alignItems="center" justifyContent={"center"}>
+                                <HStack spacing={1}>
+                                    <Icon as={BiTable} size={12} color="gray.600" />
+                                    <Text fontSize="xs" fontWeight="medium">Tables</Text>
+                                </HStack>
+                                <HStack spacing={1} alignItems="center">
+                                    <Text fontSize="xs" color="gray.500">{manuallyLimitContext ? 'Manual' : 'Auto'}</Text>
+                                    <Icon 
+                                        as={manuallyLimitContext ? BiSolidHand : BiSolidMagicWand} 
+                                        size={10} 
+                                        color={manuallyLimitContext ? "red.500" : "minusxGreen.500"}
+                                    />
+                                </HStack>
+                            </VStack>
+                        </Box>
+                    </Tooltip>
+                    <Tooltip 
+                        hasArrow 
+                        placement='top' 
+                        borderRadius={5} 
+                        label={`Personal memory is ${useMemory ? 'enabled' : 'disabled'}`}
+                    >
+                        <Box 
+                            bg="minusxBW.200" 
+                            px={2} 
+                            py={1} 
+                            borderRadius="md" 
+                            cursor="pointer" 
+                            _hover={{bg: "minusxBW.100"}}
+                            onClick={()=>openDevtoolTab("Memory")}
+                        >
+                            <VStack spacing={0} alignItems="center" justifyContent={"center"}>
+                                <HStack spacing={1}>
+                                    <Icon as={BiMemoryCard} size={12} color="gray.600" />
+                                    <Text fontSize="xs" fontWeight="medium">Memory</Text>
+                                </HStack>
+                                <HStack spacing={1} alignItems="center">
+                                    <Text fontSize="xs" color="gray.500">{useMemory ? 'Enabled' : 'Disabled'}</Text>
+                                    <Icon 
+                                        as={useMemory ? BiSolidCheckCircle : BiSolidXCircle} 
+                                        size={10} 
+                                        color={useMemory ? "minusxGreen.500" : "red.500"} 
+                                    />
+                                </HStack>
+                            </VStack>
+                        </Box>
+                    </Tooltip>
+                    <Tooltip 
+                        hasArrow 
+                        placement='top' 
+                        borderRadius={5} 
+                        label={`Team memory is ${useTeamMemory ? 'enabled' : 'disabled'}`}
+                    >
+                        <Box 
+                            bg="minusxBW.200"
+                            px={2} 
+                            py={1} 
+                            borderRadius="md" 
+                            cursor="pointer" 
+                            _hover={{bg: "minusxBW.100"}}
+                            onClick={()=>openDevtoolTab("Team Memory")}
+                        >
+                            <VStack spacing={0} alignItems="center" justifyContent={"center"}>
+                                <HStack spacing={1}>
+                                    <Icon as={BiGroup} size={12} color="gray.600" />
+                                    <Text fontSize="xs" fontWeight="medium">Team Memory</Text>
+                                </HStack>
+                                <HStack spacing={1} alignItems="center">
+                                    <Text fontSize="xs" color="gray.500">{useTeamMemory ? selectedAssetName : 'Disabled'}</Text>
+                                    <Icon 
+                                        as={useTeamMemory ? BiSolidCheckCircle : BiSolidXCircle}
+                                        size={10} 
+                                        color={useTeamMemory ? "minusxGreen.500" : "red.500"} 
+                                    />
+                                </HStack>
+                            </VStack>
+                        </Box>
+                    </Tooltip>
                 </HStack>
             </SettingsBlock>
         }

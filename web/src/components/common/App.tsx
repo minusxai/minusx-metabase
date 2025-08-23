@@ -154,6 +154,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const drMode = useSelector((state: RootState) => state.settings.drMode)
   const currentAgent: AgentType = analystMode ? AGENTS.EXPLORER : drMode ? AGENTS.SIMPLE : AGENTS.CLASSIC
   const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+  const email = useSelector((state: RootState) => state.auth.email)
 
   const agentIconMap: Record<AgentType, any> = {
     [AGENTS.EXPLORER]: BiSolidMapAlt,
@@ -385,7 +386,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         { !isSheets && !isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
         {/* {isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{"Powered by MinusX"}</Text>} */}
         {/* { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>} */}
-        {/* <SupportButton email={email} /> */}
+        <SupportButton email={email} />
       </HStack>
     </VStack>
   )
