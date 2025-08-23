@@ -34,12 +34,18 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTablesAndModels = {
   models: []
 }
 
+export interface MinifiedDB {
+    id: number;
+    name: string;
+}
+
 export interface MetabaseContext {
   pageType: MetabasePageType
   dbId?: number;
   relevantTables: FormattedTable[]
   dbInfo: DatabaseInfoWithTablesAndModels
-  loading: boolean
+  loading: boolean,
+  allDBs?: MinifiedDB[]
 }
 
 interface MetabaseInternalState extends InternalState {
