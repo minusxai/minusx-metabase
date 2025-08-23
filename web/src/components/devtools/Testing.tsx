@@ -85,7 +85,7 @@ export const Testing: React.FC<null> = () => {
 
   return (
     <Box>
-      <Text fontSize="lg" fontWeight="bold">Testing Tools</Text>
+      <Text fontSize="2xl" fontWeight="bold">Testing Tools</Text>
       <Box mt={4} backgroundColor="minusxBW.300" p={2} borderRadius={5}>
         <HStack alignItems={"center"} marginTop={0} justifyContent={"space-between"}>
           <Text fontSize="sm">Redux State</Text>

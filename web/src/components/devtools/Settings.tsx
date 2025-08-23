@@ -161,6 +161,7 @@ const SettingsPage = () => {
     overflow={"auto"}
     // pt={2}
     >
+      <Text fontSize="2xl" fontWeight="bold">General Settings</Text>
       <SettingsBlock title="Profile">
         <VStack alignItems={"stretch"}>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>

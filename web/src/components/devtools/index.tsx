@@ -1,5 +1,17 @@
 import React from 'react';
 import { HStack, VStack, Text } from '@chakra-ui/react'
+import { 
+  BiCog, 
+  BiTable, 
+  BiMemoryCard, 
+  BiGroup, 
+  BiHistory, 
+  BiWrench, 
+  BiPalette,
+  BiBot,
+  BiListUl,
+  BiTestTube
+} from 'react-icons/bi'
 import { DockSwitcher, MonitorDef } from './DockSwitcher';
 import { LLMContext } from './LLMContext'
 import { Testing } from './Testing'
@@ -20,49 +32,59 @@ const Monitors: MonitorDef[] = [
   {
     title: "General Settings",
     component: Settings,
+    icon: BiCog,
     tags: ['production']
   },
   {
     title: "Context",
     component: Context,
+    icon: BiTable,
     tags: ['production']
   },
   {
     title: "Memory",
     component: MinusXMD,
+    icon: BiMemoryCard,
     tags: ['production']
   },
   {
     title: "Team Memory",
     component: TeamMemory,
+    icon: BiGroup,
     tags: ['production']
   },
   {
     title: "History",
     component: History,
+    icon: BiHistory,
     tags: ['production']
   },
   {
     title: "Debug Tools",
     component: UserDebugTools,
+    icon: BiWrench,
     tags: ['production']
   },
   {
     title: "CSS Customization",
     component: CSSCustomization,
+    icon: BiPalette,
     tags: ['production']
   },
   {
     title: "Dev Context",
     component: LLMContext,
+    icon: BiBot,
   },
   {
     title: "Action History",
     component: ActionsView,
+    icon: BiListUl,
   },
   {
     title: "Testing Tools",
-    component: Testing
+    component: Testing,
+    icon: BiTestTube
   },
 ]
 
@@ -96,8 +118,8 @@ export const DevToolsBox: React.FC = () => {
   console.log("Load assets here")
   return (
     <VStack
-      px="4"
-      pt="4"
+    //   px="4"
+    //   pt="4"
       fontSize="sm"
       w="500px"
       height="100%"

@@ -210,7 +210,7 @@ export const LLMContext: React.FC<null> = () => {
     const activeThreadIdx = useSelector((state: RootState) => state.chat.activeThread)
     return (
       <Box>
-        <Text fontSize="lg" fontWeight="bold">LLM Context</Text>
+        <Text fontSize="2xl" fontWeight="bold">LLM Context</Text>
         <Text fontSize="xs" fontWeight="bold" color="minusxGreen.800">Total Tokens: {getTokenTokenPercs('totalTokens')}</Text>
         <Box mt={4} backgroundColor="minusxBW.300" p={2} borderRadius={5} width={"100%"}>
           {/* show selection to choose active thread */}

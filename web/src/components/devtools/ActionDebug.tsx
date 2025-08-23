@@ -84,7 +84,7 @@ export const ActionsView: React.FC<null> = () => {
   })
   return (
     <Box>
-      <Text fontSize="lg" fontWeight="bold">Action History</Text>
+      <Text fontSize="2xl" fontWeight="bold">Action History</Text>
       {actionButtons}
       <Text fontSize="lg" fontWeight="bold">Custom Actions</Text>
       {customActions}
