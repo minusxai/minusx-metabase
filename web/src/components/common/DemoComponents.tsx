@@ -10,7 +10,7 @@ const DEMO_SLUGS = [
     "/138-demo-sql",
     "/139-demo-mbql",
     "/1-e-commerce-insights",
-    "/34-us-green-card"
+    "/35-us-green-card",
 ]
 
 const MESSAGES = [
