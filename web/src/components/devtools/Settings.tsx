@@ -5,7 +5,7 @@ import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTa
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
-import { BiLinkExternal } from 'react-icons/bi'
+import { BiCode, BiLinkExternal, BiWorld } from 'react-icons/bi'
 import { setMinusxMode } from '../../app/rpc';
 import { BsDiscord } from "react-icons/bs";
 import { PortalButton, SubscribeButton, PricingPlans } from '../common/Subscription';
@@ -17,6 +17,7 @@ import { SettingsBlock } from '../common/SettingsBlock';
 import { getApp } from '../../helpers/app';
 import { SupportButton } from '../common/Support'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
+import { BiBookBookmark } from 'react-icons/bi'
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
@@ -169,7 +170,7 @@ const SettingsPage = () => {
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
             <Text color={"minusxBW.800"} fontSize="sm">Subscription</Text>
             <Tag colorScheme={isSubscribedOrEnterpriseCustomer ? 'minusxGreen' : 'minusxBW'} size="md" variant='solid'>
-              <TagLabel color={isSubscribedOrEnterpriseCustomer ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : billing.isEnterpriseCustomer ? 'Enterprise Plan' : 'Basic Plan'}</TagLabel>
+              <TagLabel fontSize="xs" color={isSubscribedOrEnterpriseCustomer ? 'minusxBW.100' : 'minusxBW.600'}>{billing.isSubscribed ? 'Pro Plan' : billing.isEnterpriseCustomer ? 'Enterprise Plan' : 'Basic Plan'}</TagLabel>
             </Tag>
           </Stack>
           <Stack direction='row' alignItems={"center"} justifyContent={"space-between"} marginTop={0}>
@@ -187,6 +188,13 @@ const SettingsPage = () => {
           </Text>
         </VStack>
       </SettingsBlock>
+      <SettingsBlock title='Quick Links' ariaLabel='quick-actions'>
+            <HStack justifyContent={"center"} flexWrap={"wrap"} gap={1}>
+            { <Button size="sm" leftIcon={<BiBookBookmark size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase" target="_blank">Docs</Button> }
+            { <Button size="sm" leftIcon={<BiWorld size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://atlas.minusx.ai" target="_blank">Atlas</Button> }
+            { <Button size="sm" leftIcon={<BiCode size={14}/>} colorScheme="minusxGreen" variant="solid" as="a" href="https://minusx.ai/blog" target="_blank">Blog</Button> }
+            </HStack>
+        </SettingsBlock>
       {/* <SettingsBlock title="Analytics Tools">
         <VStack alignItems={"stretch"}>
           {Object.entries(ACTIVE_TOOLS).map(([tool, isActive], index) => (
