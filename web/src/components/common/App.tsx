@@ -386,7 +386,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         { !isSheets && !isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{platformShortcut} to toggle</Text>}
         {/* {isEmbedded && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>{"Powered by MinusX"}</Text>} */}
         {/* { tool==='metabase' && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[-{metabaseMode} Mode-]</Text>} */}
-        <SupportButton email={email} />
+        {!isEmbedded && <SupportButton email={email} />}
       </HStack>
     </VStack>
   )
