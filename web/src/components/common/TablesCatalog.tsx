@@ -7,11 +7,10 @@ import { applyTableDiff, TableInfo, resetDefaultTablesDB, setSelectedModels, cle
 import { dispatch, } from '../../state/dispatch';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { applyTableDiffs, fetchModelInfo, getDatabaseTablesAndModelsWithoutFields } from "apps";
-import { isEmpty, sortBy } from "lodash";
+import { applyTableDiffs } from "apps";
+import { sortBy } from "lodash";
 import { BiSolidMagicWand } from "react-icons/bi";
 import { ModelView } from "./ModelView";
-import { processAllMetadata } from "../../helpers/metadataProcessor";
 
 const useAppStore = getApp().useStore()
 
@@ -51,31 +50,6 @@ export const TablesCatalog: React.FC<null> = () => {
   const allTables = dbInfo.tables || []
   const allModels = dbInfo.models|| []
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
-  const syncModels = async () => {
-    const currentDbId = toolContext.dbId
-    if (!currentDbId) return
-
-    const appState = useAppStore.getState()
-
-    try {
-      const updatedDbInfo = await getDatabaseTablesAndModelsWithoutFields(currentDbId, true)
-      
-      appState.update((oldState) => ({
-        ...oldState,
-        toolContext: {
-          ...oldState.toolContext,
-          dbInfo: updatedDbInfo,
-          loading: false
-        }
-      }))
-      // invalidate cache for model info as well
-      const modelIds = updatedDbInfo.models.map((model) => model.modelId)
-      const allPromises = modelIds.map((modelId) => fetchModelInfo.invalidate({model_id: modelId}))
-      await Promise.all(allPromises)
-    } catch (error) {
-    }
-  }
-  const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
 
   const validAddedTables = applyTableDiffs(allTables, tableDiff, dbInfo.id)
   // only take models for the current db id
@@ -164,17 +138,5 @@ export const TablesCatalog: React.FC<null> = () => {
             </TabPanel>
         </TabPanels>
     </Tabs>
-    <HStack justifyContent={"flex-end"}>
-        { isEmpty(metadataProcessingCache[dbInfo.id]) ? <Text>Syncing...</Text> : <Text fontSize={"xs"} color={"minusxGreen.600"}>Last synced: {new Date(metadataProcessingCache[dbInfo.id].timestamp).toLocaleString()}</Text> }
-        <Button size={'xs'} colorScheme="minusxGreen" onClick={() => {
-          syncModels()
-          processAllMetadata(true)
-        }}>Resync</Button>
-    </HStack>
-    {/* {
-      isModelView ? (
-        <ModelView tables={validAddedTables} />
-      ) : <FilteredTable dbId={dbInfo.id} data={allTables} selectedData={validAddedTables} addFn={updateAddTables} removeFn={updateRemoveTables}/>
-    } */}
   </>
 }

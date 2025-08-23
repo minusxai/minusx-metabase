@@ -1,19 +1,58 @@
 import React from "react"
-import { Text, VStack, Switch, Box, HStack } from "@chakra-ui/react";
+import { Text, VStack, Switch, Box, HStack, Button } from "@chakra-ui/react";
 import { TablesCatalog } from '../common/TablesCatalog';
 import { DisabledOverlay } from '../common/DisabledOverlay';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
 import { updateManualContextSelection } from '../../state/settings/reducer';
+import { isEmpty } from "lodash";
+import { MetabaseContext } from 'apps/types';
+import { getApp } from '../../helpers/app';
+import { fetchModelInfo, getDatabaseTablesAndModelsWithoutFields } from "apps";
+import { processAllMetadata } from "../../helpers/metadataProcessor";
+
+
+const useAppStore = getApp().useStore()
 
 export const Context: React.FC = () => {
     const manualContext = useSelector((state: RootState) => state.settings.manuallyLimitContext)
+    const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
 
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const dbInfo = toolContext.dbInfo
+    
+    
     const updateSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
         const isChecked = e.target.checked
         dispatch(updateManualContextSelection(isChecked))
     }
+
+     const syncModels = async () => {
+        const currentDbId = toolContext.dbId
+        if (!currentDbId) return
+    
+        const appState = useAppStore.getState()
+    
+        try {
+          const updatedDbInfo = await getDatabaseTablesAndModelsWithoutFields(currentDbId, true)
+          
+          appState.update((oldState) => ({
+            ...oldState,
+            toolContext: {
+              ...oldState.toolContext,
+              dbInfo: updatedDbInfo,
+              loading: false
+            }
+          }))
+          // invalidate cache for model info as well
+          const modelIds = updatedDbInfo.models.map((model) => model.modelId)
+          const allPromises = modelIds.map((modelId) => fetchModelInfo.invalidate({model_id: modelId}))
+          await Promise.all(allPromises)
+        } catch (error) {
+        }
+      }
+      
 
     return (
         <VStack spacing={6} align="stretch">
@@ -43,6 +82,13 @@ export const Context: React.FC = () => {
                     />
                 )}
             </Box>
+            <VStack justifyContent={"flex-end"}>
+                { isEmpty(metadataProcessingCache[dbInfo.id]) ? <Text>Syncing...</Text> : <Text fontSize={"xs"} color={"minusxGreen.600"}>Last synced: {new Date(metadataProcessingCache[dbInfo.id].timestamp).toLocaleString()}</Text> }
+                <Button size={'sm'} colorScheme="minusxGreen" onClick={() => {
+                syncModels()
+                processAllMetadata(true)
+                }}>Resync</Button>
+            </VStack>
         </VStack>
     )
 }
