@@ -1,8 +1,11 @@
 import React from 'react'
-import { VStack, Box, Flex, Tooltip } from '@chakra-ui/react'
+import { VStack, Box, Flex, Tooltip, IconButton } from '@chakra-ui/react'
+import { BsArrowRight } from 'react-icons/bs'
 import { RootState } from '../../state/store'
-import { DevToolsTabName, updateDevToolsTabName } from '../../state/settings/reducer' 
+import { DevToolsTabName, updateDevToolsTabName, updateIsDevToolsOpen } from '../../state/settings/reducer' 
 import { useDispatch, useSelector } from 'react-redux';
+import { setMinusxMode } from '../../app/rpc';
+
 
 export type MonitorDef = {
   component: React.FC<any>
@@ -21,6 +24,13 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
     
     const handleTabClick = (tabName: DevToolsTabName) => {
       dispatch(updateDevToolsTabName(tabName))
+    }
+
+    const handleClosePanel = async () => {
+      console.log('Close settings panel')
+      await setMinusxMode('open-sidepanel')
+        dispatch(updateIsDevToolsOpen(false))
+
     }
     
     const activeMonitor = monitors.find(monitor => monitor.title === activeTabName)
@@ -76,6 +86,27 @@ export const DockSwitcher: React.FC<{monitors: MonitorDef[]}> = ({ monitors }) =
               </Tooltip>
             )
           })}
+          
+          {/* Close Panel Button */}
+          <Tooltip 
+            label="Close Settings Panel" 
+            placement="right" 
+            hasArrow
+            bg="gray.700"
+            color="white"
+            fontSize="sm"
+          >
+            <IconButton
+              aria-label="Close panel"
+              icon={<BsArrowRight />}
+              onClick={handleClosePanel}
+              variant="solid"
+              size="sm"
+              mt="auto"
+              colorScheme="minusxGreen"
+              w="100%"
+            />
+          </Tooltip>
         </VStack>
         
         {/* Content Panel */}
