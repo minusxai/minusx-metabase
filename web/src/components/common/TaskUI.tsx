@@ -14,14 +14,18 @@ import {
   Checkbox,
   Link,
   Box,
-  Badge
+  Badge,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem
 } from '@chakra-ui/react'
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand } from 'react-icons/bi'
+import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand, BiChevronDown } from 'react-icons/bi'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
 import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn, cloneThreadFromHistory } from '../../state/chat/reducer'
@@ -98,6 +102,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const selectedModels = useSelector((state: RootState) => state.settings.selectedModels)
   // only take models for the current db id
   const validSelectedModels = selectedModels.filter(model => model.dbId === dbInfo.id)
+
+  const handleDatabaseSelect = useCallback(async (dbId: number) => {
+    await app.manuallySelectDb(dbId)
+  }, [])
 
   const tableDiff = useSelector((state: RootState) => state.settings.tableDiff)
   const drMode = useSelector((state: RootState) => state.settings.drMode)
@@ -689,7 +697,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                         hasArrow 
                         placement='right' 
                         borderRadius={5} 
-                        label={`${manuallyLimitContext ? 'manual' : 'automatic'} table selection`}
+                        label={`${manuallyLimitContext ? 'Manual' : 'Automatic'} table selection`}
                     >
                         <Box 
                             bg="minusxBW.200" 
@@ -810,13 +818,40 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         </HStack>
         } */}
 
-        { !taskInProgress && 
+        { !taskInProgress && (!isUndefined(get(toolContext, 'dbId'))) && 
           <ChatInputArea
             ref={ref}
             isRecording={isRecording}
             runTask={runTask}
             appEnabledStatus={appEnabledStatus}
           />
+        }
+        {
+            isUndefined(get(toolContext, 'dbId')) && 
+            <Box p={4} bg={"minusxBW.200"} borderRadius={"8px"} textAlign={"center"}>
+                <Text fontSize={"sm"} color={"gray.500"} mb={3}>We're unable to auto-select your Database. Pick one to get started</Text>
+                <Box display="flex" justifyContent="center">
+                    <Menu placement="bottom">
+                        <MenuButton as={Button} rightIcon={<BiChevronDown />} size="xs" variant="solid" colorScheme='minusxGreen'>
+                            Choose a Database
+                        </MenuButton>
+                        <MenuList maxH="200px" overflowY="auto">
+                            {get(toolContext, 'allDBs', []).map((db: any) => (
+                                <MenuItem 
+                                    key={db.id} 
+                                    onClick={() => handleDatabaseSelect(db.id)}
+                                    display="flex"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                >
+                                    <Text fontWeight="medium">{db.name}</Text>
+                                    <Text fontSize="xs" color="gray.500">ID: {db.id}</Text>
+                                </MenuItem>
+                            ))}
+                        </MenuList>
+                    </Menu>
+                </Box>
+            </Box>
         }
         {taskInProgress && (
           <HStack aria-label="stop-task-area" justifyContent="center" width="100%" py={2}>

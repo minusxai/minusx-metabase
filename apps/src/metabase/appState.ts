@@ -132,6 +132,9 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     const state = this.useStore().getState();
     const getState = this.useStore().getState
     const dbId = await getSelectedDbId();
+    const allDBs = await RPCs.getMetabaseState('entities.databases') as object;
+    const minifiedDBs = Object.values(allDBs || {}).map((db: any) => ({ id: db.id, name: db.name }))
+    
     let toolEnabledNew = shouldEnable(elements, url);
     // if (dbId === undefined || dbId === null) {
     //   toolEnabledNew = {
@@ -146,7 +149,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
       toolContext: {
         ...oldState.toolContext,
         pageType,
-        url
+        url,
+        allDBs: minifiedDBs
       }
     }));
     const currentToolContext = getState().toolContext
@@ -156,38 +160,10 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
         ...oldState,
         toolContext: {
           ...oldState.toolContext,
-          dbId
+          dbId,
         }
       }))
-      runStoreTasks(async (taskStatus) => {
-        state.update((oldState) => ({
-          ...oldState,
-          toolContext: {
-            ...oldState.toolContext,
-            loading: true
-          }
-        }))
-        const isCancelled = () => taskStatus.status === 'cancelled';
-        const [relevantTables, dbInfo] = await Promise.all([
-          handlePromise(abortable(getRelevantTablesForSelectedDb(), isCancelled), "Failed to get relevant tables", []),
-          handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
-        ])
-        state.update((oldState) => ({
-          ...oldState,
-          toolContext: {
-            ...oldState.toolContext,
-            relevantTables,
-            dbInfo,
-            loading: false
-          }
-        }))
-        // Perf caching
-        if (!isCancelled() && dbId !== oldDbId) {
-          console.log('Running perf caching')
-          processAllMetadata()
-          getDatabaseInfo(dbId)
-        }
-      })
+      await this.loadDatabaseData(dbId, oldDbId)
     }
   }
 
@@ -500,6 +476,54 @@ Here's what I need modified:
     const url = await RPCs.queryURL();
     const elements = await RPCs.queryDOMMap(this.useStore().getState().whitelistQuery || {});
     return await this.triggerMetabaseStateUpdate(url, elements);
+  }
+
+  private async loadDatabaseData(dbId: number, oldDbId?: number) {
+    const state = this.useStore();
+    runStoreTasks(async (taskStatus) => {
+      state.getState().update((oldState) => ({
+        ...oldState,
+        toolContext: {
+          ...oldState.toolContext,
+          loading: true
+        }
+      }))
+      const isCancelled = () => taskStatus.status === 'cancelled';
+      const [relevantTables, dbInfo] = await Promise.all([
+        handlePromise(abortable(getRelevantTablesForSelectedDb(), isCancelled), "Failed to get relevant tables", []),
+        handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
+      ])
+      state.getState().update((oldState) => ({
+        ...oldState,
+        toolContext: {
+          ...oldState.toolContext,
+          relevantTables,
+          dbInfo,
+          loading: false
+        }
+      }))
+      // Perf caching
+      if (!isCancelled() && dbId !== oldDbId) {
+        console.log('Running perf caching')
+        processAllMetadata()
+        getDatabaseInfo(dbId)
+      }
+    })
+  }
+
+  public async manuallySelectDb(dbId: number) {
+    const state = this.useStore();
+    const currentDbId = state.getState().toolContext.dbId;
+    
+    state.getState().update((oldState) => ({
+      ...oldState,
+      toolContext: {
+        ...oldState.toolContext,
+        dbId
+      }
+    }));
+    
+    await this.loadDatabaseData(dbId, currentDbId);
   }
 }
 
