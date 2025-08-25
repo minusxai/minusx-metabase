@@ -1,7 +1,6 @@
 import { FormattedTable } from './types';
 import { getTablesFromSqlRegex, TableAndSchema } from './parseSql';
 import _ from 'lodash';
-import { getSelectedDbId } from './metabaseStateAPI';
 import { getUserTables, searchUserQueries, getDatabaseTablesAndModelsWithoutFields } from './metabaseAPIHelpers';
 import { applyTableDiffs, handlePromise } from '../../common/utils';
 import { TableDiff } from 'web/types';

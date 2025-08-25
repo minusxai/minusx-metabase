@@ -128,11 +128,13 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   actionController = new MetabaseController(this);
 
   private async triggerMetabaseStateUpdate(url: string, elements: DOMQueryMapResponse) {
-    const queryType = await RPCs.getMetabaseState('qb.card.dataset_query.type') as string;
-    const state = this.useStore().getState();
+    const [queryType, dbId, allDBs] = await Promise.all([
+      RPCs.getMetabaseState('qb.card.dataset_query.type') as Promise<string>,
+      getSelectedDbId(),
+      RPCs.getMetabaseState('entities.databases')
+    ]);
+    
     const getState = this.useStore().getState
-    const dbId = await getSelectedDbId();
-    const allDBs = await RPCs.getMetabaseState('entities.databases') as object;
     const minifiedDBs = Object.values(allDBs || {}).map((db: any) => ({ id: db.id, name: db.name }))
     
     let toolEnabledNew = shouldEnable(elements, url);
