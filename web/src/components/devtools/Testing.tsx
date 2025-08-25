@@ -11,8 +11,6 @@ import { fetchData } from '../../app/rpc';
 import { HttpMethod } from 'extension/types';
 import ReactJson from 'react-json-view';
 import { forwardToTab } from '../../app/rpc';
-import DashboardModelling from './DashboardModelling';
-import DashboardCrossValidation from './DashboardCrossValidation';
 import { resetCache } from '../../cache/indexedDb';
 
 const jsonStyle = {fontSize: "12px", lineHeight: 1, marginTop: "10px"}
@@ -150,8 +148,6 @@ export const Testing: React.FC<null> = () => {
               <span>{jupyterResponse}</span>
             </VStack>
           </HStack>
-          <DashboardModelling />
-          <DashboardCrossValidation />
         </VStack>
       </Box>
   )

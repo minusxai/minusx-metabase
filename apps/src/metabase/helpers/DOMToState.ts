@@ -104,7 +104,7 @@ export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashb
 
 // no need to fetch fields since we don't want that in limited entities
 
-export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, currentDBId?: number) : Promise<MetabaseAppStateSQLEditorV2> {
+export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, currentDBId: number) : Promise<MetabaseAppStateSQLEditorV2> {
   const [metabaseUrl, currentCardRaw, outputMarkdown, parameterValues] = await Promise.all([
     RPCs.queryURL(),
     getCurrentCard() as Promise<Card>,
@@ -153,7 +153,7 @@ export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, cu
   }
 }
 
-export async function convertDOMtoStateSQLQuery(currentDBId?: number) {
+export async function convertDOMtoStateSQLQuery(currentDBId: number) {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const fullUrl = await RPCs.queryURL();
@@ -241,12 +241,12 @@ export async function convertDOMtoStateSQLQuery(currentDBId?: number) {
   return metabaseAppStateSQLEditor;
 }
 
-export async function convertDOMtoStateMBQLQuery(currentDBId?: number): Promise<MetabaseAppStateMBQLEditor> {
+export async function convertDOMtoStateMBQLQuery(currentDBId: number): Promise<MetabaseAppStateMBQLEditor> {
     return await getMBQLAppState(currentDBId) as MetabaseAppStateMBQLEditor;
 }
 
 // check if on dashboard page
-export async function convertDOMtoStateDashboard(currentDBId?: number): Promise<MetabaseAppStateDashboard> {
+export async function convertDOMtoStateDashboard(currentDBId: number): Promise<MetabaseAppStateDashboard> {
     const dashboardInfo = await getDashboardAppState(currentDBId);
     return dashboardInfo as MetabaseAppStateDashboard;
 };
@@ -272,7 +272,7 @@ export async function semanticQueryState() {
   return metabaseSemanticQueryAppState;
 }
 
-export async function convertDOMtoState(currentDBId?: number) {
+export async function convertDOMtoState(currentDBId: number) {
   const url = await queryURL();
   const qlType = await getQLType();
   const metabasePageType = determineMetabasePageType({}, url, qlType);

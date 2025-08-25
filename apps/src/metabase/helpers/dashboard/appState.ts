@@ -332,7 +332,7 @@ async function substituteParameters(
   return sql;
 };
 
-export async function getDashboardAppState(currentDBId?: number): Promise<MetabaseAppStateDashboard | null> {
+export async function getDashboardAppState(currentDBId: number): Promise<MetabaseAppStateDashboard | null> {
   const fullUrl = await RPCs.queryURL();
   const url = new URL(fullUrl).origin;
   const dbId = currentDBId

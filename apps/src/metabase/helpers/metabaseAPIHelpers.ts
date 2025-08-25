@@ -200,7 +200,7 @@ type ResultMetadataElm = {
   field_ref: [string, string, { "base-type": string }];
 };
 
-export async function getAllCardsAndModels(forceRefresh = false, currentDBId?: number) {
+export async function getAllCardsAndModels(forceRefresh = false, currentDBId: number) {
   const cards = await handlePromise(
     forceRefresh ? fetchCards.refresh({}) : fetchCards({}),
     "[minusx] Error getting all cards",
@@ -297,11 +297,6 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId?: n
   console.log('Tables from cards:', relevantTables);
   
   return { cards: processedCards, tables: relevantTables, modelFields: processedModelFields };
-}
-
-export async function getAllCardsLegacy() {
-  const result = await getAllCardsAndModels();
-  return result.cards;
 }
 
 export async function getAllFields(currentDBId?: number) {

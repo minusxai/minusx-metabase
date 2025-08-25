@@ -11,7 +11,7 @@ import { getAndFormatOutputTable } from '../operations';
 import { MetabaseAppStateType } from '../analystModeTypes';
 
 
-export async function getMBQLAppState(currentDBId?: number): Promise<MetabaseAppStateMBQLEditor | null> {
+export async function getMBQLAppState(currentDBId: number): Promise<MetabaseAppStateMBQLEditor | null> {
   const fullUrl = await RPCs.queryURL();
   const url = new URL(fullUrl).origin;
 
