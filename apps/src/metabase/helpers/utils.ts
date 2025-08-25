@@ -52,7 +52,7 @@ export function determineMetabasePageType(elements: DOMQueryMapResponse, url: st
     return 'unknown';
 }
 
-export async function getLimitedEntitiesFromMBQLQueries(mbqlQueries: any, currentDBId?: number): Promise<MetabaseTableOrModel[]> {
+export async function getLimitedEntitiesFromMBQLQueries(mbqlQueries: any, currentDBId: number): Promise<MetabaseTableOrModel[]> {
     const entities : MetabaseTableOrModel[] = [];
     for (const mbqlQuery of mbqlQueries) {
         const limitedEntities = await getLimitedMBQLEntities(mbqlQuery, currentDBId);
@@ -63,7 +63,7 @@ export async function getLimitedEntitiesFromMBQLQueries(mbqlQueries: any, curren
     return uniqueEntities;
 }
 
-async function getLimitedMBQLEntities(mbqlQuery: any, currentDBId?: number): Promise<MetabaseTableOrModel[]> {
+async function getLimitedMBQLEntities(mbqlQuery: any, currentDBId: number): Promise<MetabaseTableOrModel[]> {
     const appSettings = RPCs.getAppSettings();
   if (!appSettings.analystMode || !appSettings.manuallyLimitContext) {
     return [];
@@ -97,7 +97,7 @@ async function getLimitedMBQLEntities(mbqlQuery: any, currentDBId?: number): Pro
 }
 
 
-export async function getLimitedEntitiesFromQueries(sqlQueries: string[], currentDBId?: number): Promise<MetabaseTableOrModel[]> {
+export async function getLimitedEntitiesFromQueries(sqlQueries: string[], currentDBId: number): Promise<MetabaseTableOrModel[]> {
     const entities : MetabaseTableOrModel[] = [];
     for (const sqlQuery of sqlQueries) {
         const limitedEntities = await getLimitedEntities(sqlQuery, currentDBId);
@@ -108,7 +108,7 @@ export async function getLimitedEntitiesFromQueries(sqlQueries: string[], curren
     return uniqueEntities;
 }
 
-export async function getLimitedEntities(sqlQuery: string, currentDBId?: number): Promise<MetabaseTableOrModel[]> {
+export async function getLimitedEntities(sqlQuery: string, currentDBId: number): Promise<MetabaseTableOrModel[]> {
   const appSettings = RPCs.getAppSettings();
   
   // Early return if conditions not met

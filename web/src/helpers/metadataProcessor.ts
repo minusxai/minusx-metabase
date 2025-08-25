@@ -12,7 +12,7 @@ import { get, isEmpty } from 'lodash';
 import { MetadataProcessingResult, MetadataHashInfo, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
-import { getAllCardsAndModels, getDatabaseTablesAndModelsWithoutFields, getAllFields } from '../../../apps/src/metabase/helpers/metabaseAPIHelpers';
+import { getAllCardsAndModels, getDatabaseTablesAndModelsWithoutFields, getAllFields } from 'apps'
 import { fetchDatabaseFields } from '../../../apps/src/metabase/helpers/metabaseAPI';
 import { getSelectedDbId } from '../../../apps/src/metabase/helpers/metabaseStateAPI';
 import { getModelsWithFields } from '../../../apps/src/metabase/helpers/metabaseModels';
@@ -250,7 +250,7 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
-export async function processAllMetadata(forceRefresh:boolean = false, currentDBId?: number) : Promise<MetadataProcessingResult> {
+export async function processAllMetadata(forceRefresh:boolean = false, currentDBId: number) : Promise<MetadataProcessingResult> {
   console.log('[minusx] Starting coordinated metadata processing with parallel API calls...') 
   
   // Step 1: Start all expensive API calls in parallel

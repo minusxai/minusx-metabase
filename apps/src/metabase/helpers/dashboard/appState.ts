@@ -1,7 +1,6 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { forEach, reduce, template, values } from 'lodash';
 import { MetabaseAppStateDashboard} from '../DOMToState';
-import { getTablesWithFields } from '../getDatabaseSchema';
 import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
 import { getParsedIframeInfo, RPCs } from 'web';

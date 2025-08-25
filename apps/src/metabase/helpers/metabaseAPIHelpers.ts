@@ -299,7 +299,7 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
   return { cards: processedCards, tables: relevantTables, modelFields: processedModelFields };
 }
 
-export async function getAllFields(currentDBId?: number) {
+export async function getAllFields(currentDBId: number) {
   // Get selected database ID
   const selectedDbId = currentDBId;
   
@@ -324,7 +324,7 @@ export async function getAllFields(currentDBId?: number) {
   return limitedFields;
 }
 
-export async function getAllFieldsFiltered(tableNames: string[], currentDBId?: number) {
+export async function getAllFieldsFiltered(tableNames: string[], currentDBId: number) {
   if (!tableNames || tableNames.length === 0) {
     console.log('[minusx] getAllFieldsFiltered - No table names provided, returning empty array');
     return [];
