@@ -164,6 +164,15 @@ export const TeamMemory: React.FC = () => {
                                         </Text>
                                     </HStack>
                                 </VStack>
+                                
+{selectedAsset.content && !selectedAsset.content.isActive && (
+                                    <VStack align="start" spacing={0}>
+                                        <Text fontSize="xs" color="gray.500" fontWeight="medium">STATUS</Text>
+                                        <Text fontSize="sm" fontWeight="medium" color="orange.600">
+                                            Draft
+                                        </Text>
+                                    </VStack>
+                                )}
                             </HStack>
                             
                             <VStack align="end" spacing={0}>
