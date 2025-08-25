@@ -104,7 +104,7 @@ export type MetabaseAppState = MetabaseAppStateSQLEditor | MetabaseAppStateDashb
 
 // no need to fetch fields since we don't want that in limited entities
 
-export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType) : Promise<MetabaseAppStateSQLEditorV2> {
+export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, currentDBId?: number) : Promise<MetabaseAppStateSQLEditorV2> {
   const [metabaseUrl, currentCardRaw, outputMarkdown, parameterValues] = await Promise.all([
     RPCs.queryURL(),
     getCurrentCard() as Promise<Card>,
@@ -116,7 +116,7 @@ export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType) : 
   const isEmbedded = getParsedIframeInfo().isEmbedded
   const sqlQuery =  get(currentCard, 'dataset_query.native.query', '') || ''
   const limitedEntities = await getLimitedEntities(sqlQuery);
-  const dbId = await getSelectedDbId();
+  const dbId = currentDBId
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const sqlErrorMessage = await getSqlErrorMessage();
   const appStateType = pageType === 'sql' ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
@@ -153,19 +153,19 @@ export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType) : 
   }
 }
 
-export async function convertDOMtoStateSQLQuery() {
+export async function convertDOMtoStateSQLQuery(currentDBId?: number) {
   // CAUTION: This one does not update when changed via ui for some reason
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const fullUrl = await RPCs.queryURL();
   const url = new URL(fullUrl).origin;
   const availableDatabases = (await getDatabases())?.data?.map(({ name }) => name);
-  const dbId = await getSelectedDbId();
+  const dbId = currentDBId;
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const defaultSchema = selectedDatabaseInfo?.default_schema;
-  let sqlQuery = await getCurrentQuery()
-  const appSettings = RPCs.getAppSettings()
-  const cache = RPCs.getCache()
-  const sqlTables = getTablesFromSqlRegex(sqlQuery)
+  let sqlQuery = await getCurrentQuery();
+  const appSettings = RPCs.getAppSettings();
+  const cache = RPCs.getCache();
+  const sqlTables = getTablesFromSqlRegex(sqlQuery);
   if (defaultSchema) {
     sqlTables.forEach((table) => {
       if (table.schema === undefined || table.schema === '') {
@@ -241,13 +241,13 @@ export async function convertDOMtoStateSQLQuery() {
   return metabaseAppStateSQLEditor;
 }
 
-export async function convertDOMtoStateMBQLQuery() {
-    return await getMBQLAppState() as MetabaseAppStateMBQLEditor;
+export async function convertDOMtoStateMBQLQuery(currentDBId?: number): Promise<MetabaseAppStateMBQLEditor> {
+    return await getMBQLAppState(currentDBId) as MetabaseAppStateMBQLEditor;
 }
 
 // check if on dashboard page
-export async function convertDOMtoStateDashboard(): Promise<MetabaseAppStateDashboard> {
-    const dashboardInfo = await getDashboardAppState();
+export async function convertDOMtoStateDashboard(currentDBId?: number): Promise<MetabaseAppStateDashboard> {
+    const dashboardInfo = await getDashboardAppState(currentDBId);
     return dashboardInfo as MetabaseAppStateDashboard;
 };
 
@@ -272,21 +272,21 @@ export async function semanticQueryState() {
   return metabaseSemanticQueryAppState;
 }
 
-export async function convertDOMtoState() {
+export async function convertDOMtoState(currentDBId?: number) {
   const url = await queryURL();
   const qlType = await getQLType();
   const metabasePageType = determineMetabasePageType({}, url, qlType);
   if (metabasePageType === 'dashboard') {
-    return await convertDOMtoStateDashboard();
+    return await convertDOMtoStateDashboard(currentDBId);
   }
   if (metabasePageType === 'mbql') {
-    return await convertDOMtoStateMBQLQuery();
+    return await convertDOMtoStateMBQLQuery(currentDBId);
   }
   const appSettings = RPCs.getAppSettings()
   if (appSettings.useV2States && appSettings.analystMode) {
-    return await convertDOMtoStateSQLQueryV2(metabasePageType);
+    return await convertDOMtoStateSQLQueryV2(metabasePageType, currentDBId);
   }
-  return await convertDOMtoStateSQLQuery();
+  return await convertDOMtoStateSQLQuery(currentDBId);
 }
 
 async function getSqlVariables() {

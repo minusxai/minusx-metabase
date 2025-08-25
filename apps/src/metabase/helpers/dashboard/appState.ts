@@ -332,14 +332,11 @@ async function substituteParameters(
   return sql;
 };
 
-export async function getDashboardAppState(): Promise<MetabaseAppStateDashboard | null> {
+export async function getDashboardAppState(currentDBId?: number): Promise<MetabaseAppStateDashboard | null> {
   const fullUrl = await RPCs.queryURL();
   const url = new URL(fullUrl).origin;
-  const appSettings = RPCs.getAppSettings();
-  const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
-  const dbId = await getSelectedDbId();
+  const dbId = currentDBId
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
-  const defaultSchema = selectedDatabaseInfo?.default_schema;
   const dashboardMetabaseState: DashboardMetabaseState = await getDashboardState() as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
     console.warn('Could not get dashboard info');

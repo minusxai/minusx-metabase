@@ -460,7 +460,8 @@ Here's what I need modified:
   }
 
   public async getState(): Promise<MetabaseAppState> {
-    return await convertDOMtoState();
+    const currentDBId = this.useStore().getState().toolContext?.dbId || undefined;
+    return await convertDOMtoState(currentDBId);
   }
 
   public async getPlannerConfig() {
