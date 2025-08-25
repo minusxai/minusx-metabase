@@ -7,8 +7,6 @@ import { getState } from '../../state/store'
 import { unset } from 'lodash'
 import { processAllMetadata } from '../metadataProcessor'
 
-
-const useAppStore = getApp().useStore()
   
 export async function planActionsRemote({
   messages,
@@ -33,7 +31,7 @@ export async function planActionsRemote({
   if (!deepResearch) {
     unset(payload, 'tasks')
   }
-  const dbId = useAppStore((state) => state.toolContext)?.dbId || undefined
+  const dbId = getApp().useStore().getState().toolContext?.dbId || undefined
   const getAllMetadataPromise = processAllMetadata(false, dbId)
 
   // Add metadata hashes for analyst mode (when both drMode and analystMode are enabled)
