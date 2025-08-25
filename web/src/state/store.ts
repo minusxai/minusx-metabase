@@ -513,6 +513,12 @@ const migrations = {
       newState.settings.metadataHashes = newHashes
     }
     return newState
+  },
+  57: (state: RootState) => {
+    let newState = {...state}
+    // Migrate metadataHashes from Record<string, number> to Record<string, MetadataHashInfo>
+    newState.settings.selectedAssetId = null
+    return newState
   }
 }
 
@@ -520,7 +526,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 56,
+  version: 57,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
