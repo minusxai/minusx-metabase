@@ -294,7 +294,7 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
       
       const [dbSchema, { cards, tables: referencedTables, modelFields }, allFields] = await Promise.all([
         getDatabaseTablesAndModelsWithoutFields(selectedDbId, forceRefresh, forceRefresh),
-        getAllCardsAndModels(forceRefresh),
+        getAllCardsAndModels(forceRefresh, selectedDbId),
         forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId })
       ])
       console.log('[minusx] All API calls completed. Processing data...')
