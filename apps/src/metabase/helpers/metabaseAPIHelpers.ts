@@ -200,7 +200,7 @@ type ResultMetadataElm = {
   field_ref: [string, string, { "base-type": string }];
 };
 
-export async function getAllCardsAndModels(forceRefresh = false) {
+export async function getAllCardsAndModels(forceRefresh = false, currentDBId?: number) {
   const cards = await handlePromise(
     forceRefresh ? fetchCards.refresh({}) : fetchCards({}),
     "[minusx] Error getting all cards",
@@ -208,8 +208,8 @@ export async function getAllCardsAndModels(forceRefresh = false) {
   );
   
   // Get selected database ID
-  const selectedDbId = await getSelectedDbId();
-  
+  const selectedDbId = currentDBId;
+
   console.log('[minusx] getAllCards - Total cards:', cards.length);
   
   // Filter cards by database_id only
@@ -304,9 +304,9 @@ export async function getAllCardsLegacy() {
   return result.cards;
 }
 
-export async function getAllFields() {
+export async function getAllFields(currentDBId?: number) {
   // Get selected database ID
-  const selectedDbId = await getSelectedDbId();
+  const selectedDbId = currentDBId;
   
   if (!selectedDbId) {
     console.log('[minusx] getAllFields - No database selected');
@@ -329,14 +329,14 @@ export async function getAllFields() {
   return limitedFields;
 }
 
-export async function getAllFieldsFiltered(tableNames: string[]) {
+export async function getAllFieldsFiltered(tableNames: string[], currentDBId?: number) {
   if (!tableNames || tableNames.length === 0) {
     console.log('[minusx] getAllFieldsFiltered - No table names provided, returning empty array');
     return [];
   }
 
   // Get selected database ID
-  const selectedDbId = await getSelectedDbId();
+  const selectedDbId = currentDBId
   
   if (!selectedDbId) {
     console.log('[minusx] getAllFieldsFiltered - No database selected');

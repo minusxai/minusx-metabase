@@ -32,7 +32,7 @@ export async function getMBQLAppState(currentDBId?: number): Promise<MetabaseApp
   const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels, sourceTableModelIds)
   const relevantModelsWithFields = await getModelsWithFields(relevantModels)
   
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds)
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds, dbId);
   relevantTablesWithFields = relevantTablesWithFields.map(table => {
     if (table.schema === undefined || table.schema === '') {
       table.schema = defaultSchema || 'unknown'

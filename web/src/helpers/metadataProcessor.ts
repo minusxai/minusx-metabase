@@ -250,12 +250,12 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
-export async function processAllMetadata(forceRefresh = false) : Promise<MetadataProcessingResult> {
+export async function processAllMetadata(forceRefresh:boolean = false, currentDBId?: number) : Promise<MetadataProcessingResult> {
   console.log('[minusx] Starting coordinated metadata processing with parallel API calls...') 
   
   // Step 1: Start all expensive API calls in parallel
   console.log('[minusx] Initiating parallel API calls...')
-  const selectedDbId = await getSelectedDbId()
+  const selectedDbId = currentDBId
   
   if (!selectedDbId) {
     throw new Error('No database selected for metadata processing')

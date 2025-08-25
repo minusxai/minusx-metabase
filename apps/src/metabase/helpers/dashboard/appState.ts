@@ -361,12 +361,14 @@ export async function getDashboardAppState(currentDBId?: number): Promise<Metaba
     const limitedEntitiesSQL = await getLimitedEntitiesFromQueries(
         filteredCards.flatMap(card => 
             card?.dataset_query?.native?.query ? [card.dataset_query.native.query] : []
-        )
+        ),
+        dbId
     );
     const limitedEntitiesMBQL = await getLimitedEntitiesFromMBQLQueries(
         filteredCards.flatMap(card => 
             card?.dataset_query?.query ? [card.dataset_query.query] : []
-        )
+        ),
+        dbId
     );
     const limitedEntities = [...limitedEntitiesSQL, ...limitedEntitiesMBQL];
     // remove duplicates based on id and type

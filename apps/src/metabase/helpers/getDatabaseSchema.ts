@@ -102,8 +102,8 @@ export const searchTables = async (userId: number, dbId: number, query: string):
   return dedupedTables
 }
 
-export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, isCatalogSelected: boolean = false, sqlTables: TableAndSchema[] = [], mbqlTableIds: number[] = []) => {
-  const dbId = await getSelectedDbId();
+export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false, isCatalogSelected: boolean = false, sqlTables: TableAndSchema[] = [], mbqlTableIds: number[] = [], currentDBId?: number) => {
+  const dbId = currentDBId;
   if (!dbId) {
     console.warn("[minusx] No database selected when getting tables with fields");
     return [];
@@ -128,8 +128,8 @@ export const getTablesWithFields = async (tableDiff?: TableDiff, drMode = false,
 
 
 
-export const getRelevantTablesForSelectedDb = async (): Promise<FormattedTable[]> => {
-  const dbId = await getSelectedDbId();
+export const getRelevantTablesForSelectedDb = async (currentDBId?: number): Promise<FormattedTable[]> => {
+  const dbId = currentDBId;
   if (!dbId) {
     console.warn("[minusx] No database selected when getting relevant tables");
     return [];

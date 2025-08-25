@@ -491,7 +491,7 @@ Here's what I need modified:
       }))
       const isCancelled = () => taskStatus.status === 'cancelled';
       const [relevantTables, dbInfo] = await Promise.all([
-        handlePromise(abortable(getRelevantTablesForSelectedDb(), isCancelled), "Failed to get relevant tables", []),
+        handlePromise(abortable(getRelevantTablesForSelectedDb(dbId), isCancelled), "Failed to get relevant tables", []),
         handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
       ])
       state.getState().update((oldState) => ({
@@ -506,7 +506,7 @@ Here's what I need modified:
       // Perf caching
       if (!isCancelled() && dbId !== oldDbId) {
         console.log('Running perf caching')
-        processAllMetadata()
+        processAllMetadata(false, dbId)
         getDatabaseInfo(dbId)
       }
     })

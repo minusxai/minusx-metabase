@@ -52,10 +52,10 @@ export function determineMetabasePageType(elements: DOMQueryMapResponse, url: st
     return 'unknown';
 }
 
-export async function getLimitedEntitiesFromMBQLQueries(mbqlQueries: any): Promise<MetabaseTableOrModel[]> {
+export async function getLimitedEntitiesFromMBQLQueries(mbqlQueries: any, currentDBId?: number): Promise<MetabaseTableOrModel[]> {
     const entities : MetabaseTableOrModel[] = [];
     for (const mbqlQuery of mbqlQueries) {
-        const limitedEntities = await getLimitedMBQLEntities(mbqlQuery);
+        const limitedEntities = await getLimitedMBQLEntities(mbqlQuery, currentDBId);
         entities.push(...limitedEntities);
     }
     // Remove duplicates based on id and type
@@ -63,12 +63,12 @@ export async function getLimitedEntitiesFromMBQLQueries(mbqlQueries: any): Promi
     return uniqueEntities;
 }
 
-async function getLimitedMBQLEntities(mbqlQuery: any): Promise<MetabaseTableOrModel[]> {
+async function getLimitedMBQLEntities(mbqlQuery: any, currentDBId?: number): Promise<MetabaseTableOrModel[]> {
     const appSettings = RPCs.getAppSettings();
   if (!appSettings.analystMode || !appSettings.manuallyLimitContext) {
     return [];
   }
-  const dbId = await getSelectedDbId();
+  const dbId = currentDBId;
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   const selectedCatalogObj = find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog });
@@ -80,7 +80,7 @@ async function getLimitedMBQLEntities(mbqlQuery: any): Promise<MetabaseTableOrMo
     const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels, sourceTableModelIds)
     const relevantModelsWithFields = await getModelsWithFields(relevantModels)
     
-    let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds)
+    let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds, dbId)
     relevantTablesWithFields = relevantTablesWithFields.map(table => {
       if (table.schema === undefined || table.schema === '') {
         table.schema = defaultSchema || 'unknown'
@@ -97,10 +97,10 @@ async function getLimitedMBQLEntities(mbqlQuery: any): Promise<MetabaseTableOrMo
 }
 
 
-export async function getLimitedEntitiesFromQueries(sqlQueries: string[]): Promise<MetabaseTableOrModel[]> {
+export async function getLimitedEntitiesFromQueries(sqlQueries: string[], currentDBId?: number): Promise<MetabaseTableOrModel[]> {
     const entities : MetabaseTableOrModel[] = [];
     for (const sqlQuery of sqlQueries) {
-        const limitedEntities = await getLimitedEntities(sqlQuery);
+        const limitedEntities = await getLimitedEntities(sqlQuery, currentDBId);
         entities.push(...limitedEntities);
     }
     // Remove duplicates based on id and type
@@ -108,7 +108,7 @@ export async function getLimitedEntitiesFromQueries(sqlQueries: string[]): Promi
     return uniqueEntities;
 }
 
-export async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTableOrModel[]> {
+export async function getLimitedEntities(sqlQuery: string, currentDBId?: number): Promise<MetabaseTableOrModel[]> {
   const appSettings = RPCs.getAppSettings();
   
   // Early return if conditions not met
@@ -116,7 +116,7 @@ export async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTabl
     return [];
   }
   
-  const dbId = await getSelectedDbId();
+  const dbId = currentDBId;
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   
@@ -133,7 +133,7 @@ export async function getLimitedEntities(sqlQuery: string): Promise<MetabaseTabl
     });
   }
   
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, []);
+  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, sqlTables, [], dbId);
   
   // Add defaultSchema back to relevantTablesWithFields
   relevantTablesWithFields = relevantTablesWithFields.map(table => {

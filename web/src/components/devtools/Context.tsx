@@ -86,7 +86,7 @@ export const Context: React.FC = () => {
                 { isEmpty(metadataProcessingCache[dbInfo.id]) ? <Text>Syncing...</Text> : <Text fontSize={"xs"} color={"minusxGreen.600"}>Last synced: {new Date(metadataProcessingCache[dbInfo.id].timestamp).toLocaleString()}</Text> }
                 <Button size={'sm'} colorScheme="minusxGreen" onClick={() => {
                 syncModels()
-                processAllMetadata(true)
+                processAllMetadata(true, toolContext?.dbId || undefined)
                 }}>Resync</Button>
             </VStack>
         </VStack>
