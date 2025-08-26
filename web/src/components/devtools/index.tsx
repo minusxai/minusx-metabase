@@ -27,6 +27,7 @@ import { RootState } from '../../state/store';
 import { UserDebugTools } from './UserDebugTools';
 import { History } from './History';
 import { getParsedIframeInfo } from '../../helpers/origin'
+import { useGetUserStateQuery } from '../../app/api/userStateApi';
 
 const Monitors: MonitorDef[] = [
   {
@@ -89,6 +90,8 @@ const Monitors: MonitorDef[] = [
 ]
 
 export const DevToolsBox: React.FC = () => {
+  const { data: userState, isLoading } = useGetUserStateQuery({})
+  const isInfoPageEnabled = userState?.flags?.isInfoPageEnabled || false
   const enableStyleCustomization = useSelector((state: RootState) => state.settings.enableStyleCustomization)
   const enableUserDebugTools = useSelector((state: RootState) => state.settings.enableUserDebugTools)
   const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
@@ -100,6 +103,9 @@ export const DevToolsBox: React.FC = () => {
     if (isEmbedded && !configs.IS_DEV) {
         if (Monitor.title === 'History' || Monitor.title === 'Memory') {
             return true
+        }
+        if (isInfoPageEnabled && Monitor.title == 'Debug Tools') {
+          return true
         }
         return false    
     }

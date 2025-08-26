@@ -4,6 +4,9 @@ import { SettingsBlock } from "../common/SettingsBlock";
 import { getApp } from "../../helpers/app";
 import { getDashboardState } from "apps";
 import { get, set } from "lodash";
+import { getParsedIframeInfo } from "../../helpers/origin";
+import { useSelector } from "react-redux";
+import { RootState } from "../../state/store";
 
 
 const useAppStore = getApp().useStore()
@@ -61,6 +64,21 @@ const downloadState = async (pageType: string) => {
 
 export const UserDebugTools: React.FC = () => {
     const pageType = useAppStore((state) => state.toolContext.pageType)
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+    const activeThread = useSelector((state: RootState) => state.chat.threads[state.chat.activeThread])
+    const conversationID = activeThread.id
+    // In embedded mode, just display converstaion ID
+    if (isEmbedded) {
+        return <>
+            <VStack mb={4} alignItems={"stretch"} spacing={2} width="100%">
+                <Text fontSize="2xl" fontWeight="bold">User Debug Tools</Text>
+                <Text > Tools for users to debug and look into Metabase internal workings</Text>
+                <SettingsBlock title="Conversation ID">
+                    <Text>{conversationID}</Text>
+                </SettingsBlock>
+            </VStack>
+        </>
+    }
     return <>
         <VStack mb={4} alignItems={"stretch"} spacing={2} width="100%">
             <Text fontSize="2xl" fontWeight="bold">User Debug Tools</Text>
