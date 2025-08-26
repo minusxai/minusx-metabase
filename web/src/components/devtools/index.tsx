@@ -107,6 +107,9 @@ export const DevToolsBox: React.FC = () => {
         if (isInfoPageEnabled && Monitor.title == 'Debug Tools') {
           return true
         }
+        if (isInfoPageEnabled && Monitor.title == 'Context') {
+          return true
+        }
         return false    
     }
     

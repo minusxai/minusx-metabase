@@ -18,6 +18,7 @@ import { getApp } from '../../helpers/app';
 import { SupportButton } from '../common/Support'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
 import { BiBookBookmark } from 'react-icons/bi'
+import { getParsedIframeInfo } from '../../helpers/origin'
 
 export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'}) => {
   const uploadLogs = useSelector((state: RootState) => state.settings.uploadLogs)
@@ -35,12 +36,16 @@ export const TelemetryToggle = ({color}:{color: 'minusxBW.800' | 'minusxBW.50'})
 const useAppStore = getApp().useStore()
 
 export const DevToolsToggle: React.FC<{size: 'micro' | 'mini'}> = ({size}) => {
+  const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
   const devTools = useSelector((state: RootState) => state.settings.isDevToolsOpen)
   const setshowDevTools = async (value: boolean) => {
     console.log('Show Devtools', value)
     dispatch(updateIsDevToolsOpen(value))
     if (value) {
       await setMinusxMode('open-sidepanel-devtools')
+      if (isEmbedded) {
+        dispatch(updateDevToolsTabName('Memory'))
+      }
     } else {
       await setMinusxMode('open-sidepanel')
     }
