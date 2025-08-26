@@ -231,12 +231,16 @@ const taskToToolCall = (task: Task): ChatCompletionMessageToolCall => ({
 
 /**
  * Converts a Task result to ActionChatMessageContent
- * Assumes task.result is always a string
+ * Ensures task.result is converted to string before adding to content
  */
 const taskResultToContent = (task: Task): ActionChatMessageContent => {
+  const content = typeof task.result === 'string' 
+    ? task.result 
+    : JSON.stringify(task.result)
+    
   return {
     type: 'BLANK',
-    content: task.result as string,
+    content,
     renderInfo: {
       text: '',
       code: undefined,

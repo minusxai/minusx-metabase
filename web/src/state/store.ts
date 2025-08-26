@@ -523,6 +523,21 @@ const migrations = {
     let newState = {...state}
     newState.settings.useTeamMemory = false
     return newState
+  },
+  59: (state: RootState) => {
+    let newState = {...state}
+    // Ensure all tool call responses in chat messages are strings
+    newState.chat.threads.forEach((thread) => {
+      thread.messages.forEach((message) => {
+        if (message.role === 'tool' && message.content && message.content.content !== undefined) {
+          // If content is not already a string, convert it to string
+          if (typeof message.content.content !== 'string') {
+            message.content.content = JSON.stringify(message.content.content)
+          }
+        }
+      })
+    })
+    return newState
   }
 }
 
@@ -530,7 +545,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 57,
+  version: 59,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
