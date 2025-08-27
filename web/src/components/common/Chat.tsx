@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, HStack, VStack, IconButton, Stack, Text } from '@chakra-ui/react'
-import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle } from 'react-icons/bs';
+import { Box, HStack, VStack, IconButton, Stack, Text, Tooltip } from '@chakra-ui/react'
+import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle, BsPlusCircleFill, BsStarFill } from 'react-icons/bs';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, deleteUserMessage, ActionChatMessage } from '../../state/chat/reducer'
+import { addSavedQuestion, updateIsDevToolsOpen, updateDevToolsTabName } from '../../state/settings/reducer'
 import _, { cloneDeep, isEmpty } from 'lodash'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -16,6 +17,7 @@ import { TasksLite } from './TasksLite'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { DemoHelperMessage, DemoSuggestions, getDemoIDX } from './DemoComponents';
 import { configs } from '../../constants'
+import { setMinusxMode } from '../../app/rpc'
 
 // adds tool information like execution status and rendering info
 // this stuff is in the 'tool' messages, but we're ony rendering 'assistant' messages
@@ -73,10 +75,15 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const reaction = feedback?.reaction
-  const addPositiveReaction = () => dispatch(addReaction({index, reaction: "positive"}))
-  const addNegativeReaction = () => dispatch(addReaction({index, reaction: "negative"}))
-  const clearReactions = () => dispatch(removeReaction({index}))
   const clearMessages = () => dispatch(deleteUserMessage(index))
+  const saveQuestion = async () => {
+    if (content.type === 'DEFAULT' && content.text) {
+      dispatch(addSavedQuestion(content.text))
+      dispatch(updateIsDevToolsOpen(true))
+      dispatch(updateDevToolsTabName('Memory'))
+      await setMinusxMode('open-sidepanel-devtools')
+    }
+  }
   if (content.type == 'BLANK') {
     return null
   } else if (content.type == 'ACTIONS') {
@@ -166,15 +173,32 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
         )} */}
         {(isHovered || (reaction !== "unrated")) && (role == 'user') && (
           <Box aria-label="message-actions" position="absolute" bottom={-1} right={0}>
-            <IconButton
-              aria-label="Delete"
-              isRound={true}
-              icon={<BsDashCircle />}
-              size="xs"
-              colorScheme={ reaction === "positive" ? "minusxGreen" : "minusxBW" }
-              mr={1}
-              onClick={clearMessages}
-            />
+            <Tooltip label="Delete message" placement="top">
+              <IconButton
+                aria-label="Delete"
+                isRound={true}
+                icon={<BsDashCircle />}
+                size="xs"
+                colorScheme={ reaction === "positive" ? "minusxGreen" : "minusxBW" }
+                mr={1}
+                onClick={clearMessages}
+              />
+            </Tooltip>
+          </Box>
+        )}
+        {(isHovered) && (role == 'user') && (
+          <Box aria-label="message-actions" position="absolute" bottom={-1} right={7}>
+            <Tooltip label="Save question" placement="top">
+              <IconButton
+                aria-label="Save"
+                isRound={true}
+                icon={<BsStarFill />}
+                size="xs"
+                colorScheme={ "minusxGreen" }
+                mr={1}
+                onClick={saveQuestion}
+              />
+            </Tooltip>
           </Box>
         )}
       </Box>

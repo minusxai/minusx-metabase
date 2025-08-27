@@ -538,6 +538,12 @@ const migrations = {
       })
     })
     return newState
+  },
+  60: (state: RootState) => {
+    let newState = {...state}
+    // Add savedQuestions to settings
+    newState.settings.savedQuestions = []
+    return newState
   }
 }
 
@@ -545,7 +551,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 59,
+  version: 60,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
