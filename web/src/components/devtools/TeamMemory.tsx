@@ -269,7 +269,7 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
                         {/* Render entities as a list */}
                         {asset.content.entities && asset.content.entities.length > 0 && (
                             <VStack align="stretch" spacing={3}>
-                                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                <Text fontSize="sm" fontWeight="semibold" color="gray.700" borderTop="1px solid" borderColor="gray.300" pt={5}>
                                     Entities ({asset.content.entities.length})
                                 </Text>
                                 <VStack align="stretch" spacing={2} maxHeight="200px" overflowY="auto">
@@ -303,6 +303,32 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
                                 </VStack>
                             </VStack>
                         )}
+
+                        {
+                            asset.content.questions && asset.content.questions.length > 0 && (
+                                <VStack align="stretch" spacing={3} borderTop="1px solid" borderColor="gray.300" pt={5}>
+                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                        Saved Questions ({asset.content.questions.length})
+                                    </Text>
+                                    {asset.content.questions.map((question: any, index: number) => (
+                                        <HStack 
+                                            key={index}
+                                            p={3}
+                                            border="1px solid" 
+                                            borderColor="gray.200"
+                                            borderRadius="md"
+                                            spacing={3}
+                                            justify="flex-start"
+                                        >
+                                            {question && (
+                                                <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                    {question}
+                                                </Text>
+                                            )}
+                                        </HStack>
+                                    ))}
+                                </VStack>
+                            )}
                     </VStack>
                 );
             }
