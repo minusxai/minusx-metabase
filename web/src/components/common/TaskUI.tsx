@@ -50,7 +50,6 @@ import { addThumbnail } from '../../state/thumbnails/reducer'
 import { startSelection } from '../../helpers/Selection'
 import { ImageContext } from '../../state/chat/types'
 import { QuickActionButton } from './QuickActionButton'
-import { ChatSuggestions } from './ChatSuggestions'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { VoiceInputButton } from './VoiceInputButton'
 import { getTranscripts } from '../../helpers/recordings'
@@ -573,20 +572,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             </Text>{" "} to start a new thread.</Text>
             </Notify>
             }
-            {/* <ChatSuggestions
-              suggestQueries={suggestQueries}
-              toggleSuggestions={toggleSuggestions}
-              suggestions={suggestions} 
-              onSuggestionClick={(suggestion) => {
-                chat.addUserMessage({
-                  content: {
-                    type: "DEFAULT",
-                    text: suggestion,
-                    images: []
-                  },
-                })
-              }} 
-            /> */}
           { configs.IS_DEV && demoMode && currentTool === "metabase" && <SemanticLayerViewer/> }
           <Divider borderColor={"minusxBW.500"}/>
         </>
