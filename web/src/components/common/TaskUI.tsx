@@ -1,20 +1,13 @@
 import {
   HStack,
-  Textarea,
   VStack,
-  Stack,
   Icon,
-  IconButton,
   Divider,
   Tooltip,
   Text,
-  Switch,
   Spinner,
   Button,
-  Checkbox,
-  Link,
   Box,
-  Badge,
   Menu,
   MenuButton,
   MenuList,
@@ -22,26 +15,22 @@ import {
 } from '@chakra-ui/react'
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import RunTaskButton from './RunTaskButton'
-import AbortTaskButton from './AbortTaskButton'
 import { ChatSection } from './Chat'
-import { BiScreenshot, BiPaperclip, BiMessageAdd, BiEdit, BiTrash, BiBookBookmark, BiTable, BiRefresh, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand, BiChevronDown } from 'react-icons/bi'
-import { BsDatabase, BsDatabaseCheck, BsDatabaseFill } from 'react-icons/bs'
+import { BiTable, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand, BiChevronDown } from 'react-icons/bi'
+import {  BsDatabaseCheck } from 'react-icons/bs'
 import chat from '../../chat/chat'
 import _, { every, get, isEmpty, isEqual, isUndefined, pick, sortBy } from 'lodash'
 import { abortPlan, clearTasks, startNewThread, updateLastWarmedOn, cloneThreadFromHistory } from '../../state/chat/reducer'
 import { resetThumbnails, setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
-import { setSuggestQueries, TableInfo, setSelectedModels } from '../../state/settings/reducer'
+import { setSuggestQueries } from '../../state/settings/reducer'
 import { RootState } from '../../state/store'
 import { getSuggestions } from '../../helpers/LLM/remote'
 import { simplePlan } from '../../planner/simplePlan'
 import { Thumbnails } from './Thumbnails'
 import { UserConfirmation } from './UserConfirmation'
 import { Clarification } from './Clarification'
-import { gdocReadSelected, gdocRead, gdocWrite, gdocImage, queryDOMSingle, readActiveSpreadsheet, getUserSelectedRange, stopRecording, startRecording } from '../../app/rpc'
-import { forwardToTab } from '../../app/rpc'
+import { stopRecording, startRecording } from '../../app/rpc'
 import { metaPlanner } from '../../planner/metaPlan'
-import AutosizeTextarea from './AutosizeTextarea'
 import { setMinusxMode } from '../../app/rpc'
 import { updateAppMode, DevToolsTabName } from '../../state/settings/reducer'
 import { UIElementSelection } from './UIElements'
@@ -49,17 +38,14 @@ import { capture } from '../../helpers/screenCapture/extensionCapture'
 import { addThumbnail } from '../../state/thumbnails/reducer'
 import { startSelection } from '../../helpers/Selection'
 import { ImageContext } from '../../state/chat/types'
-import { QuickActionButton } from './QuickActionButton'
 import { getParsedIframeInfo } from '../../helpers/origin'
-import { VoiceInputButton } from './VoiceInputButton'
 import { getTranscripts } from '../../helpers/recordings'
 import { configs } from '../../constants'
 import { SemanticLayerViewer } from './SemanticLayerViewer'
 import { updateDevToolsTabName, updateIsDevToolsOpen, updateSidePanelTabName } from '../../state/settings/reducer'
 import { executeAction } from '../../planner/plannerActions'
 import { SettingsBlock } from './SettingsBlock'
-import { SupportButton } from './Support'
-import { FormattedTable, MetabaseContext } from 'apps/types';
+import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
 import { applyTableDiffs, getCurrentQuery, getSelectedAndRelevantModels } from "apps";
 import { toast } from '../../app/toast'
@@ -67,6 +53,8 @@ import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 import { Notify } from './Notify'
 import { Markdown } from './Markdown'
 import ChatInputArea from './ChatInputArea'
+import { Suggestions } from './Suggestions';
+
 
 
 const app = getApp()
@@ -355,20 +343,20 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   // suggestions stuff
   const [suggestions, setSuggestions] = useState<string[]>([]);
 
-  const setSuggestionsDebounced = useCallback(
-    _.debounce(async() => {
-      const suggestions = await getSuggestions()
-      setSuggestions(suggestions)
-    }, 500),
-    []
-  );
-  useEffect(() => {
-    setSuggestions([]);
-    if (!taskInProgress && suggestQueries) {
-      setSuggestionsDebounced()
-      return () => setSuggestionsDebounced.cancel();
-    }
-  }, [messages, taskInProgress, setSuggestionsDebounced, suggestQueries]);
+//   const setSuggestionsDebounced = useCallback(
+//     _.debounce(async() => {
+//       const suggestions = await getSuggestions()
+//       setSuggestions(suggestions)
+//     }, 500),
+//     []
+//   );
+//   useEffect(() => {
+//     setSuggestions([]);
+//     if (!taskInProgress && suggestQueries) {
+//       setSuggestionsDebounced()
+//       return () => setSuggestionsDebounced.cancel();
+//     }
+//   }, [messages, taskInProgress, setSuggestionsDebounced, suggestQueries]);
 
   useEffect(() => {
     if (!taskInProgress && ref?.current) {
@@ -407,13 +395,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
     }
   }
 
-  const clearSQL = async () => {
-    await executeAction({
-      index: -1,
-      function: 'updateSQLQuery',
-      args: '{"sql":"","executeImmediately":false}'
-    });
-  }
+//   const clearSQL = async () => {
+//     await executeAction({
+//       index: -1,
+//       function: 'updateSQLQuery',
+//       args: '{"sql":"","executeImmediately":false}'
+//     });
+//   }
 
   const shouldBeEnabled = (drMode || toolContext.pageType === 'sql')
     
@@ -579,67 +567,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation/>
         <Clarification/>
-        {/* {
-            demoMode && currentTool == "google" && currentToolVersion == "sheets" ? 
-            <HStack justify={"center"}>
-            <Button onClick={async () => {
-              // const range = await getUserSelectedRange()
-              // console.log('Range is', range)
-              let text = await readActiveSpreadsheet()
-              console.log('Read sheets data', text)
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Read table data</Button>
-            <Button onClick={async () => {
-              let text = await gdocReadSelected()
-              let response = await forwardToTab("metabase", String(text))
-              await gdocWrite("source", String(response?.url))
-              await gdocImage(String(response?.response?.images[0]), 0.5)
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Write table data</Button>
-            </HStack> : null
-          }
-          {
-            demoMode && currentTool == "google" && currentToolVersion == "docs" ? 
-            <HStack justify={"center"}>
-            <Button onClick={async () => {
-              let text = await gdocReadSelected()
-              let response = await forwardToTab("jupyter", String(text))
-              await gdocWrite(String(response?.response?.text))
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Jupyter</Button>
-            <Button onClick={async () => {
-              let text = await gdocReadSelected()
-              let response = await forwardToTab("metabase", String(text))
-              await gdocWrite("source", String(response?.url))
-              await gdocImage(String(response?.response?.images[0]), 0.5)
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Use Metabase</Button>
-            </HStack> : null
-          } */}
-          {/* {
-            demoMode && currentTool === "jupyter" && (<Button onClick={async ()=>{
-              if (instructions) {
-                const text = instructions
-                setInstructions('')
-                setMetaQuestion(text)
-                await metaPlanner({text: instructions})
-                setMetaQuestion('')
-              }
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>I'm feeling lucky</Button>)
-          } */}
-        {/* {demoMode && <Button onClick={async () => {
-              // let text = await gdocReadSelected()
-              const appState = await getApp().getState() as JupyterNotebookState
-              const outputCellSelector =  await jupyterQSMap.cell_output;
-              const imgs = await getElementScreenCapture(outputCellSelector);
-
-              let response = await forwardToTab("gdoc", {appState, imgs})
-              // await gdocWrite(String(response?.response?.text))
-            }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>Send to GDoc</Button>
-          }   
-        {demoMode && <Button onClick={()=>{
-          if (instructions) {
-            feelinLucky({text: instructions})
-            setInstructions('')
-          }
-        }} colorScheme="minusxGreen" size="sm" disabled={taskInProgress}>feelin' lucky</Button>
-        } */}
         {
             appEnabledStatus.alert.type && 
             <Notify title={appEnabledStatus.alert.title} notificationType={appEnabledStatus.alert.type}>
@@ -816,33 +743,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         <VStack width={"100%"} alignItems={"stretch"} gap={0}>
-        {/* { currentTool == 'metabase'  && !taskInProgress && appEnabledStatus.inputBox &&
-        <HStack 
-          mb={-2} 
-          p={2} 
-          pb={4} 
-          borderRadius={"8px 8px 0px 0px"} 
-          justifyContent={"space-between"} 
-          bg={"rgba(20, 160, 133, 0.05)"}
-          aria-label="context-info"
-          border={"1px solid"}
-          borderColor={"minusxGreen.600"}
-          gap={0}
-          alignItems={"center"}
-        >
-          {
-            analystMode ? 
-                <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Context contains Base Tables, Metabase Models, Cards and Dashboards. MinusX figures out the rest.">
-                    <Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>Everything in context</Text>
-                </Tooltip>
-            :
-                <Tooltip hasArrow placement='top' borderRadius={5} width={150}label="Entities can be Base Tables and Metabase Models">
-                    <Text mb={0} pb={0} fontSize={"xs"} fontWeight={"bold"} textTransform={"uppercase"} color={"minusxGreen.600"}>{entitiesInContext} {entitiesInContext != 1 ? 'entities' : 'entity' } in context</Text>
-                </Tooltip>
-          }
-        </HStack>
-        } */}
-
         { !taskInProgress && (!isUndefined(get(toolContext, 'dbId'))) && 
           <ChatInputArea
             ref={ref}
