@@ -1,6 +1,6 @@
 import { createSlice, createAction } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
-import _, { get } from 'lodash'
+import _, { get, times } from 'lodash'
 
 import { ChatCompletionMessageToolCall, ChatCompletionRole, ChatCompletionToolMessageParam, ChatCompletion, Chat } from 'openai/resources';
 import { getUniqueString, Subset } from '../../helpers/utils'
@@ -296,9 +296,6 @@ export const chatSlice = createSlice({
       action: PayloadAction<{llmResponse: LLMResponse, debug: any}>
     ) => {
       const messages = getMessages(state)
-      const latestMessageIndex = messages.length
-      const toolCalls = action.payload.llmResponse.tool_calls
-      const messageContent = action.payload.llmResponse.content
       const newTasks = action.payload.llmResponse.tasks || []
       const currentTasks = getActiveThread(state).tasks || []
       
@@ -317,30 +314,29 @@ export const chatSlice = createSlice({
       // Convert completed tasks to tool calls for display
       const completedToolCalls = completedTasks.map(taskToToolCall)
       
-      // Calculate total action message IDs for both completed and pending tool calls
-      const totalToolCalls = completedToolCalls.length + toolCalls.length
-      const actionMessageIDs = [...Array(totalToolCalls).keys()].map((value) => value+1+latestMessageIndex)
-      
       const timestamp = Date.now()
-      const actionPlanMessage: ActionPlanChatMessage = {
-        role: 'assistant',
-        feedback: {
-          reaction: "unrated"
-        },
-        index: latestMessageIndex,
-        content: {
-          type: 'ACTIONS',
-          actionMessageIDs: actionMessageIDs,
-          toolCalls: [...completedToolCalls, ...toolCalls], // Completed first, then pending
-          messageContent,
-          finishReason: action.payload.llmResponse.finish_reason,
-          finished: completedTasks.length === totalToolCalls // Only finished if all are completed
-        },
-        createdAt: timestamp,
-        updatedAt: timestamp,
-        debug: action.payload.debug
+      const latestMessageIndex = messages.length
+      if (completedToolCalls.length > 0) {
+        const completedActionPlanMessage: ActionPlanChatMessage = {
+          role: 'assistant',
+          feedback: {
+            reaction: "unrated"
+          },
+          index: latestMessageIndex,
+          content: {
+            type: 'ACTIONS',
+            actionMessageIDs: times(completedToolCalls.length).map(i => i + latestMessageIndex + 1),
+            toolCalls: completedToolCalls, // Completed first, then pending
+            messageContent: '',
+            finishReason: action.payload.llmResponse.finish_reason,
+            finished: true // Only finished if all are completed
+          },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          debug: action.payload.debug
+        }
+        messages.push(completedActionPlanMessage)
       }
-      messages.push(actionPlanMessage)
       
       let messageIndex = 1
       
@@ -368,16 +364,42 @@ export const chatSlice = createSlice({
         messages.push(actionMessage)
         messageIndex++
       })
+
+      // Add pending tool calls
+      const messageContent = action.payload.llmResponse.content
+      const toolCalls = action.payload.llmResponse.tool_calls
+      const newLatestMessageIndex = messages.length
+      if (toolCalls.length > 0 || messageContent) {
+        const pendingActionPlanMessage: ActionPlanChatMessage = {
+          role: 'assistant',
+          feedback: {
+            reaction: "unrated"
+          },
+          index: newLatestMessageIndex,
+          content: {
+            type: 'ACTIONS',
+            actionMessageIDs: times(toolCalls.length).map(i => i + newLatestMessageIndex + 1),
+            toolCalls, // Pending
+            messageContent,
+            finishReason: action.payload.llmResponse.finish_reason,
+            finished: false //
+          },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          debug: action.payload.debug
+        }
+        messages.push(pendingActionPlanMessage)
+      }
       
       // Add pending tool calls as TODO messages
       toolCalls.forEach((toolCall) => {
-        const actionMessageID = messageIndex + latestMessageIndex
+        const actionMessageID = messageIndex + newLatestMessageIndex
         const timestamp = Date.now()
         const actionMessage: ActionChatMessage = {
           role: 'tool',
           action: {
             ...toolCall,
-            planID: latestMessageIndex,
+            planID: newLatestMessageIndex,
             status: 'TODO',
             finished: false,
           },
