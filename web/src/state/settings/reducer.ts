@@ -112,6 +112,7 @@ interface Settings {
   selectedAssetId: string | null
   assetsLoading: boolean
   useTeamMemory: boolean
+  savedQuestions: string[]
 }
 
 const initialState: Settings = {
@@ -152,6 +153,7 @@ const initialState: Settings = {
   selectedAssetId: null,
   assetsLoading: false,
   useTeamMemory: false,
+  savedQuestions: [],
 }
 
 export const settingsSlice = createSlice({
@@ -315,6 +317,17 @@ export const settingsSlice = createSlice({
     setAssetsLoading: (state, action: PayloadAction<boolean>) => {
       state.assetsLoading = action.payload
     },
+    addSavedQuestion: (state, action: PayloadAction<string>) => {
+      if (!state.savedQuestions.includes(action.payload)) {
+        state.savedQuestions.push(action.payload)
+      }
+    },
+    removeSavedQuestion: (state, action: PayloadAction<string>) => {
+      state.savedQuestions = state.savedQuestions.filter(question => question !== action.payload)
+    },
+    setSavedQuestions: (state, action: PayloadAction<string[]>) => {
+      state.savedQuestions = action.payload
+    },
   },
 })
 
@@ -326,7 +339,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode,
   resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection, setUseV2States, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory
+  updateManualContextSelection, setUseV2States, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, addSavedQuestion, removeSavedQuestion, setSavedQuestions
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

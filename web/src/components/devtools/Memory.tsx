@@ -1,12 +1,83 @@
 import React from "react"
-import { Text, HStack, Switch, Box } from "@chakra-ui/react";
+import { Text, HStack, Switch, Box, VStack, Button, IconButton } from "@chakra-ui/react";
+import { BsTrash } from 'react-icons/bs';
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { AdditionalContext } from '../common/AdditionalContext';
 import { DisabledOverlay } from '../common/DisabledOverlay';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
-import { setUseMemory } from '../../state/settings/reducer';
+import { setUseMemory, removeSavedQuestion, setSuggestQueries } from '../../state/settings/reducer';
+
+
+
+const SavedQuestions = () => {
+    const savedQuestions = useSelector((state: RootState) => state.settings.savedQuestions)
+    const showSavedQuestions = useSelector((state: RootState) => state.settings.suggestQueries)
+
+    const handleDeleteQuestion = (question: string) => {
+        dispatch(removeSavedQuestion(question))
+    }
+
+    const handleShowSQ = (checked: boolean) => {
+        dispatch(setSuggestQueries(checked))
+    }
+
+    return (
+        <Box mt={5}>
+            <HStack justify="space-between" align="center" mb={4}>
+            <Text fontSize="lg" fontWeight="bold" mb={2}>Saved Questions</Text>
+            <HStack spacing={3} align="center">
+                <HStack spacing={2} align="center">
+                    <Text fontSize="xs" color="minusxGreen.600" fontWeight="bold">
+                        SHOW SAVED QUESTIONS
+                    </Text>
+                    <Switch 
+                        colorScheme="minusxGreen" 
+                        size="sm" 
+                        isChecked={showSavedQuestions} 
+                        onChange={(e) => handleShowSQ(e.target.checked)}
+                    />
+                </HStack>
+            </HStack>
+            </HStack>
+            {savedQuestions.length === 0 ? (
+                <Text color="gray.500" fontSize="sm" fontStyle="italic">
+                    No saved questions yet
+                </Text>
+            ) : (
+                <VStack spacing={2} align="stretch">
+                    {savedQuestions.map((question, index) => (
+                        <HStack
+                            key={index}
+                            justify="space-between"
+                            align="center"
+                            p={3}
+                            border="1px solid"
+                            borderColor="gray.200"
+                            borderRadius="md"
+                            bg="white"
+                        >
+                            <Text fontSize="sm" flex={1} mr={2}>
+                                {question}
+                            </Text>
+                            <IconButton
+                                size="sm"
+                                variant="ghost"
+                                color="red"
+                                icon={<BsTrash />}
+                                onClick={() => handleDeleteQuestion(question)}
+                                aria-label="Delete question"
+                                _hover={{ bg: "red.100" }}
+                            />
+                        </HStack>
+                    ))}
+                </VStack>
+            )}
+        </Box>
+    )
+}
+
 
 export const MinusXMD: React.FC = () => {
     const tool = getParsedIframeInfo().tool
@@ -47,5 +118,6 @@ export const MinusXMD: React.FC = () => {
                 />
             )}
         </Box>
+        <SavedQuestions />
     </>
 }
