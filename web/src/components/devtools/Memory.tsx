@@ -7,20 +7,40 @@ import { DisabledOverlay } from '../common/DisabledOverlay';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { dispatch } from '../../state/dispatch';
-import { setUseMemory, removeSavedQuestion } from '../../state/settings/reducer';
+import { setUseMemory, removeSavedQuestion, setSuggestQueries } from '../../state/settings/reducer';
 
 
 
 const SavedQuestions = () => {
     const savedQuestions = useSelector((state: RootState) => state.settings.savedQuestions)
+    const showSavedQuestions = useSelector((state: RootState) => state.settings.suggestQueries)
 
     const handleDeleteQuestion = (question: string) => {
         dispatch(removeSavedQuestion(question))
     }
 
+    const handleShowSQ = (checked: boolean) => {
+        dispatch(setSuggestQueries(checked))
+    }
+
     return (
         <Box mt={5}>
+            <HStack justify="space-between" align="center" mb={4}>
             <Text fontSize="lg" fontWeight="bold" mb={2}>Saved Questions</Text>
+            <HStack spacing={3} align="center">
+                <HStack spacing={2} align="center">
+                    <Text fontSize="xs" color="minusxGreen.600" fontWeight="bold">
+                        SHOW SAVED QUESTIONS
+                    </Text>
+                    <Switch 
+                        colorScheme="minusxGreen" 
+                        size="sm" 
+                        isChecked={showSavedQuestions} 
+                        onChange={(e) => handleShowSQ(e.target.checked)}
+                    />
+                </HStack>
+            </HStack>
+            </HStack>
             {savedQuestions.length === 0 ? (
                 <Text color="gray.500" fontSize="sm" fontStyle="italic">
                     No saved questions yet
@@ -91,7 +111,6 @@ export const MinusXMD: React.FC = () => {
         
         <Box position="relative">
             <AdditionalContext />
-            <SavedQuestions />
             {!useMemory && (
                 <DisabledOverlay 
                     toolEnabledReason="Turn on the **USE MEMORY** switch above to let MinusX use your memories and preferences in context." 
@@ -99,5 +118,6 @@ export const MinusXMD: React.FC = () => {
                 />
             )}
         </Box>
+        <SavedQuestions />
     </>
 }

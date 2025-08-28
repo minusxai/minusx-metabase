@@ -110,6 +110,8 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
   const proUser = useSelector((state: RootState) => state.billing.isSubscribed)
   const enterpriseUser = useSelector((state: RootState) => state.billing.isEnterpriseCustomer)
+  const savedQuestions = useSelector((state: RootState) => state.settings.savedQuestions)
+  const showSavedQuestions = useSelector((state: RootState) => state.settings.suggestQueries)
 
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
   const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
@@ -567,6 +569,11 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation/>
         <Clarification/>
+        {
+            savedQuestions.length > 0 && !taskInProgress && showSavedQuestions &&
+            <Suggestions title="Saved Questions" suggestions={savedQuestions} />
+        }
+        
         {
             appEnabledStatus.alert.type && 
             <Notify title={appEnabledStatus.alert.title} notificationType={appEnabledStatus.alert.type}>

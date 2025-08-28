@@ -33,7 +33,7 @@ export const Suggestions = ({ title, suggestions, onSuggestionClick }: {title: s
       </HStack>
       <VStack width={"100%"}>
 
-      {suggestions.map((suggestion, index) => (
+      {suggestions.slice(0, 3).map((suggestion, index) => (
         <Button
           key={index}
           onClick={() => handleSuggestionClick(suggestion)}
