@@ -8,7 +8,6 @@ interface ENV {
     LOGGING_PATH: string
     SEMANTIC_PATH: string
     ASSETS_PATH: string
-    GROUPS_PATH: string
     DEEPRESEARCH_PATH: string
     ATLAS_PATH: string
     SOCKET_ENDPOINT: string
@@ -30,7 +29,6 @@ const conf: ENV = {
     LOGGING_PATH: process.env.LOGGING_PATH || defaults.LOGGING_PATH,
     SEMANTIC_PATH: process.env.SEMANTIC_PATH || defaults.SEMANTIC_PATH,
     ASSETS_PATH: process.env.ASSETS_PATH || defaults.ASSETS_PATH,
-    GROUPS_PATH: process.env.GROUPS_PATH || defaults.GROUPS_PATH,
     DEEPRESEARCH_PATH: process.env.DEEPRESEARCH_PATH || defaults.DEEPRESEARCH_PATH,
     ATLAS_PATH: process.env.ATLAS_PATH || defaults.ATLAS_PATH,
     SOCKET_ENDPOINT: process.env.SOCKET_ENDPOINT || defaults.SOCKET_ENDPOINT,
@@ -49,7 +47,6 @@ interface Configs extends ENV {
     LOGGING_BASE_URL: string
     SEMANTIC_BASE_URL: string
     ASSETS_BASE_URL: string
-    GROUPS_BASE_URL: string
     DEEPRESEARCH_BASE_URL: string
     ATLAS_BASE_URL: string
     SOCKET_BASE_URL: string
@@ -65,7 +62,6 @@ export const configs: Configs = {
     LOGGING_BASE_URL: SERVER_BASE_URL + conf.LOGGING_PATH,
     SEMANTIC_BASE_URL: SERVER_BASE_URL + conf.SEMANTIC_PATH,
     ASSETS_BASE_URL: SERVER_BASE_URL + conf.ASSETS_PATH,
-    GROUPS_BASE_URL: SERVER_BASE_URL + conf.GROUPS_PATH,
     DEEPRESEARCH_BASE_URL: SERVER_BASE_URL + conf.DEEPRESEARCH_PATH,
     ATLAS_BASE_URL: SERVER_BASE_URL + conf.ATLAS_PATH,
     SOCKET_BASE_URL: conf.BASE_SERVER_URL + conf.SOCKET_ENDPOINT,
