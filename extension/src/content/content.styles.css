@@ -20,7 +20,7 @@
 } */
 
 #minusx-root {
-  position: fixed;
+  position: relative;
   top: 0;
   right: 0;
   border: 0;
@@ -50,7 +50,7 @@
 #minusx-toggle {
   position: absolute;
   left: -40px;
-  top: 50%;
+  top: 60%;
   width: 40px;
   background-image: url('/logo_x.svg');
 }
@@ -98,3 +98,15 @@
 /* .closed > #minusx-toggle{
   left: -40px
 } */
+
+body {
+  display: flex !important;
+  flex-direction: row !important;
+  position: relative;
+}
+
+#root {
+  height: 100%;
+  position: relative;
+  flex: 1;
+}
