@@ -596,7 +596,17 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         });
         console.log("Derived SQL query is", sqlQuery);
     } catch (error) {
-        const errorMessage = error?.response?.data?.message || error.message || 'Unknown error';
+        console.log('Full error is', error)
+        let errorMessage = error?.response?.message || error.message || 'Unknown error';
+        try {
+            let errorDetails = {}
+            if (errorMessage.includes('DETAILS:')) {
+                errorDetails = JSON.parse(errorMessage.split('DETAILS:')[1]);
+                errorMessage = errorDetails?.message?? 'Error deriving SQL from MBQL';
+            }
+        } catch (e) {
+            console.error('Error while processing error message:', e);
+        }
         actionContent.content = `<ERROR>Error with the MBQL: ${errorMessage}</ERROR>`;
         return actionContent;
     }

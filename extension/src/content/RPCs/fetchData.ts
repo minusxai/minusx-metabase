@@ -47,7 +47,13 @@ export async function fetchData<T>(
   try {
     const response = await fetch(url, options);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}, fetch url: ${url},  message: ${response.statusText}`);
+        let data = {}
+        try{
+            data = await response.json();
+        } catch(e) {
+          // ignore JSON parse error
+        }
+      throw new Error(`Error! status: ${response.status}, DETAILS:${JSON.stringify(data)}`);
     }
     const data: T = await response.json();
     return data;
