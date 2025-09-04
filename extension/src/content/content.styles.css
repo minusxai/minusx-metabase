@@ -110,3 +110,9 @@ body {
   position: relative;
   flex: 1;
 }
+
+div.emotion-Modal-root {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
