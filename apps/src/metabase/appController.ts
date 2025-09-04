@@ -50,7 +50,7 @@ import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCur
 import { runSQLQueryFromDashboard, runMBQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
-import { fetchTableMetadata } from "./helpers/metabaseAPI";
+import { fetchTableMetadata, getSQLFromMBQL } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
 import { replaceLLMFriendlyIdentifiersInSqlWithModels } from "./helpers/metabaseModels";
 
@@ -584,6 +584,20 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
     if (isEmpty(mbql)) {
         actionContent.content = "This MBQL query has errors: " + explanation;
+        return actionContent;
+    }
+
+
+    try {
+        const sqlQuery = await getSQLFromMBQL({
+            database: dbID,
+            type: 'query',
+            query: mbql,
+        });
+        console.log("Derived SQL query is", sqlQuery);
+    } catch (error) {
+        const errorMessage = error?.response?.data?.message || error.message || 'Unknown error';
+        actionContent.content = `<ERROR>Error with the MBQL: ${errorMessage}</ERROR>`;
         return actionContent;
     }
 
