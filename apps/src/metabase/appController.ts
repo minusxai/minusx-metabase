@@ -594,9 +594,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             type: 'query',
             query: mbql,
         });
-        console.log("Derived SQL query is", sqlQuery);
+        // console.log("Derived SQL query is", sqlQuery);
     } catch (error) {
-        console.log('Full error is', error)
+        // console.log('Full error is', error)
         let errorMessage = error?.response?.message || error.message || 'Unknown error';
         try {
             let errorDetails = {}
