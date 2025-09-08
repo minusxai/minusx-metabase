@@ -61,6 +61,11 @@ const getBaseStyles = () => `
   .minusx_style_absolute_container {
     position: absolute;
   }
+  div[class$="Modal-root"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 `;
 
 const getHighlightStyles = () => `
