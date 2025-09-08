@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "MinusX",
   "description": "AI Data Engineer + Analyst for Metabase",
-  "version": "1.0.30",
+  "version": "1.0.31",
   "background": { "service_worker": "background.bundle.js" },
   "permissions": [
     "storage"
