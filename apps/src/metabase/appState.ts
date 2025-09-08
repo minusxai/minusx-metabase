@@ -137,6 +137,19 @@ function minifyDbs(allDBs: any) {
   return Object.values(allDBs || {}).map((db: any) => ({ id: db.id, name: db.name }))
 }
 
+export async function fetchAllDBsIfEmpty() {
+  let minifiedDBs = minifyDbs(await RPCs.getMetabaseState('entities.databases'))
+  let _tries = 0
+  while (isEmpty(minifiedDBs)) {
+    await new Promise(resolve => setTimeout(resolve, 500))
+    minifiedDBs = minifyDbs(await RPCs.getMetabaseState('entities.databases'))
+    if (_tries++ > 50) {
+      break
+    }
+  }
+  return minifiedDBs
+}
+
 export class MetabaseState extends DefaultAppState<MetabaseAppState> {
   initialInternalState = metabaseInternalState;
   actionController = new MetabaseController(this);
@@ -150,13 +163,8 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
     
     const getState = this.useStore().getState
     let minifiedDBs = minifyDbs(allDBs)
-    let _tries = 0
-    while (isEmpty(minifiedDBs)) {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      minifiedDBs = minifyDbs(await RPCs.getMetabaseState('entities.databases'));
-      if (_tries++ > 50) {
-        break
-      }
+    if (isEmpty(minifiedDBs)) {
+      minifiedDBs = await fetchAllDBsIfEmpty()
     }
     
     let toolEnabledNew = shouldEnable(elements, url);

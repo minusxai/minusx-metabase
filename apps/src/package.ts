@@ -8,3 +8,4 @@ export { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabase
 export { getCurrentQuery, getDashboardState } from "./metabase/helpers/metabaseStateAPI";
 export { subscribeMB, onMBSubscription } from "./metabase/helpers/stateSubscriptions";
 export { getTablesFromSqlRegex } from "./metabase/helpers/parseSql";
+export { fetchAllDBsIfEmpty } from "./metabase/appState";

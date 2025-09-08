@@ -47,7 +47,7 @@ import { executeAction } from '../../planner/plannerActions'
 import { SettingsBlock } from './SettingsBlock'
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
-import { applyTableDiffs, getCurrentQuery, getSelectedAndRelevantModels } from "apps";
+import { applyTableDiffs, getCurrentQuery, getSelectedAndRelevantModels, fetchAllDBsIfEmpty } from "apps";
 import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 import { Notify } from './Notify'
@@ -764,7 +764,29 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <Text fontSize={"sm"} color={"gray.500"} mb={3}>We're unable to auto-select your Database. Pick one to get started</Text>
                 <Box display="flex" justifyContent="center">
                     <Menu placement="bottom">
-                        <MenuButton as={Button} rightIcon={<BiChevronDown />} size="xs" variant="solid" colorScheme='minusxGreen'>
+                        <MenuButton 
+                            as={Button} 
+                            rightIcon={<BiChevronDown />} 
+                            size="xs" 
+                            variant="solid" 
+                            colorScheme='minusxGreen'
+                            onClick={async () => {
+                                const allDBs = get(toolContext, 'allDBs', [])
+                                if (isEmpty(allDBs)) {
+                                    await fetchAllDBsIfEmpty()
+                                    if (!isEmpty(minifiedDBs)) {
+                                        const getState = app.useStore().getState
+                                        getState().update((oldState) => ({
+                                            ...oldState,
+                                            toolContext: {
+                                                ...oldState.toolContext,
+                                                allDBs: minifiedDBs
+                                            }
+                                        }))
+                                    }
+                                }
+                            }}
+                        >
                             Choose a Database
                         </MenuButton>
                         <MenuList maxH="200px" overflowY="auto">
