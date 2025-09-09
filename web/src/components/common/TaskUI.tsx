@@ -764,7 +764,19 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 <Text fontSize={"sm"} color={"gray.500"} mb={3}>We're unable to auto-select your Database. Pick one to get started</Text>
                 <Box display="flex" justifyContent="center">
                     <Menu placement="bottom">
-                        <MenuButton as={Button} rightIcon={<BiChevronDown />} size="xs" variant="solid" colorScheme='minusxGreen'>
+                        <MenuButton 
+                            as={Button} 
+                            rightIcon={<BiChevronDown />} 
+                            size="xs" 
+                            variant="solid" 
+                            colorScheme='minusxGreen'
+                            onClick={() => {
+                                const allDBs = get(toolContext, 'allDBs', [])
+                                if (isEmpty(allDBs)) {
+                                  app.triggerStateUpdate()
+                                }
+                            }}
+                        >
                             Choose a Database
                         </MenuButton>
                         <MenuList maxH="200px" overflowY="auto">

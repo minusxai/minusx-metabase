@@ -35,6 +35,9 @@ export abstract class AppState<T extends InternalState, K> {
   public async getQuerySelectorMap() {
     return this.useStore().getState().querySelectorMap;
   }
+
+  public async triggerStateUpdate() {
+  }
 }
 
 export abstract class DefaultAppState<T> extends AppState<InternalState, T> {
