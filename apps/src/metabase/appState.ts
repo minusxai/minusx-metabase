@@ -137,7 +137,7 @@ function minifyDbs(allDBs: any) {
   return Object.values(allDBs || {}).map((db: any) => ({ id: db.id, name: db.name }))
 }
 
-export async function fetchAllDBsIfEmpty() {
+async function fetchAllDBsIfEmpty() {
   let minifiedDBs = minifyDbs(await RPCs.getMetabaseState('entities.databases'))
   let _tries = 0
   while (isEmpty(minifiedDBs)) {

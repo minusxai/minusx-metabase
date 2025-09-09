@@ -47,7 +47,7 @@ import { executeAction } from '../../planner/plannerActions'
 import { SettingsBlock } from './SettingsBlock'
 import { MetabaseContext } from 'apps/types';
 import { getApp } from '../../helpers/app';
-import { applyTableDiffs, getCurrentQuery, getSelectedAndRelevantModels, fetchAllDBsIfEmpty } from "apps";
+import { applyTableDiffs, getCurrentQuery, getSelectedAndRelevantModels } from "apps";
 import { toast } from '../../app/toast'
 import { NUM_RELEVANT_TABLES, resetRelevantTables } from './TablesCatalog'
 import { Notify } from './Notify'
@@ -770,20 +770,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                             size="xs" 
                             variant="solid" 
                             colorScheme='minusxGreen'
-                            onClick={async () => {
+                            onClick={() => {
                                 const allDBs = get(toolContext, 'allDBs', [])
                                 if (isEmpty(allDBs)) {
-                                    await fetchAllDBsIfEmpty()
-                                    if (!isEmpty(minifiedDBs)) {
-                                        const getState = app.useStore().getState
-                                        getState().update((oldState) => ({
-                                            ...oldState,
-                                            toolContext: {
-                                                ...oldState.toolContext,
-                                                allDBs: minifiedDBs
-                                            }
-                                        }))
-                                    }
+                                  app.triggerStateUpdate()
                                 }
                             }}
                         >
