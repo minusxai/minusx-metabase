@@ -437,7 +437,10 @@ const AppBody = forwardRef((_props, ref) => {
       if (mx_token) {
         try {
           const embedAuthResult = await authModule.embedAuth(mx_token)
-          const { session_jwt, profile_id, email } = embedAuthResult
+          const { session_jwt, profile_id, email, is_failed } = embedAuthResult
+          if (is_failed) {
+            return
+          }
           if (email != currentEmail) {
             resetState()
           }
