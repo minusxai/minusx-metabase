@@ -213,7 +213,7 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
   console.log('[minusx] getAllCards - Total cards:', cards.length);
   
   // Filter cards by database_id only
-  const filteredCardsAndModels = filter(cards, (card) => {
+  const filteredCards = filter(cards, (card) => {
     const databaseId = get(card, 'database_id');
     
     // Filter by selected database only
@@ -221,13 +221,10 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
 
     return matchesDatabase;
   });
-  console.log('[minusx] getAllCards - Filtered:', filteredCardsAndModels.length);
+  console.log('[minusx] getAllCards - Filtered:', filteredCards.length);
   
-  // split into cards and models
-  const [filteredCards, filteredModels] = partition(filteredCardsAndModels, (card) => get(card, 'type') !== 'model');
   
   console.log('[minusx] Non model cards:', filteredCards.length);
-  console.log('[minusx] Model cards:', filteredModels.length);
   // Calculate relevancy score and sort by it
   const cardsWithRelevancy = filteredCards.map((card) => {
     const viewCount = get(card, 'view_count') || 0;
@@ -261,24 +258,6 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
   const cardsForProcessing = sortedCards.map(card => omit(card, ['relevancy']));
   const processedCards = map(cardsForProcessing, processCard);
 
-  const processedModelFields = filteredModels.flatMap((model) => {
-    const result_metadata = get(model, 'result_metadata', [])
-    if (result_metadata == null) {
-      console.warn("[minusx] model has no result_metadata: ", model)
-      return []
-    }
-    const columns = result_metadata.map((column: ResultMetadataElm) => {
-      return {
-        id: get(column, 'name'),
-        name: get(column, 'name'),
-        type: get(column, 'base_type'),
-        model_id: get(model, 'id'),
-        model_name: get(model, 'name')
-      }
-    })
-    return columns
-  })
-
   console.log('Processed cards:', processedCards);
   const tables: Record<string, TableAndSchema> = {};
   _.forEach(processedCards, (card) => {
@@ -296,7 +275,7 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
   const relevantTables = _.chain(tables).values().sortBy('count').reverse().value();
   console.log('Tables from cards:', relevantTables);
   
-  return { cards: processedCards, tables: relevantTables, modelFields: processedModelFields };
+  return { cards: processedCards, tables: relevantTables };
 }
 
 export async function getAllFields(currentDBId: number) {
