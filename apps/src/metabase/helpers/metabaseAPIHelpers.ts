@@ -381,18 +381,25 @@ export const getAllRelevantModelsForSelectedDb = async (dbId: number, forceRefre
   return modelsAsTables.filter((model: MetabaseModel) => model.collectionName !== 'mx_internal');
 }
 
-export async function getDatabaseTablesAndModelsWithoutFields(db_id: number, forceRefreshModels: boolean = false, forceRefreshTables: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
-  // If dbId not provided, get the currently selected database ID
-  const jsonResponse = forceRefreshTables ? await  fetchDatabaseWithTables.refresh({ db_id }) : await fetchDatabaseWithTables({ db_id });
-  const models = await getAllRelevantModelsForSelectedDb(db_id, forceRefreshModels) ;
+export const getRelevantTablesAndDetailsForSelectedDb = async (dbId: number, forceRefreshTables: boolean = false) => {
+  const jsonResponse = forceRefreshTables ? await fetchDatabaseWithTables.refresh({ db_id: dbId }) : await fetchDatabaseWithTables({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
   const tables = await Promise.all(
-      map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
+    map(get(jsonResponse, 'tables', []), (table: any) => extractTableInfo(table, false))
   );
 
   return {
-      ...extractDbInfo(jsonResponse, defaultSchema),
-      tables: tables || [],
+    ...extractDbInfo(jsonResponse, defaultSchema),
+    tables: tables || []
+  };
+}
+
+export async function getDatabaseTablesAndModelsWithoutFields(db_id: number, forceRefreshModels: boolean = false, forceRefreshTables: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
+  const tablesAndDetails = await getRelevantTablesAndDetailsForSelectedDb(db_id, forceRefreshTables);
+  const models = await getAllRelevantModelsForSelectedDb(db_id, forceRefreshModels);
+
+  return {
+      ...tablesAndDetails,
       models: models || []
   };
 }

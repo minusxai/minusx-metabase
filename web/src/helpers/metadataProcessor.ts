@@ -12,7 +12,7 @@ import { get, isEmpty } from 'lodash';
 import { MetadataProcessingResult, MetadataHashInfo, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
-import { getAllCardsAndModels, getDatabaseTablesAndModelsWithoutFields, getAllFields } from 'apps'
+import { getAllCardsAndModels, getDatabaseTablesAndModelsWithoutFields, getAllFields, getRelevantTablesAndDetailsForSelectedDb } from 'apps'
 import { fetchDatabaseFields } from '../../../apps/src/metabase/helpers/metabaseAPI';
 import { getSelectedDbId } from '../../../apps/src/metabase/helpers/metabaseStateAPI';
 import { getModelsWithFields } from '../../../apps/src/metabase/helpers/metabaseModels';
@@ -293,7 +293,7 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
     try {
       
       const [dbSchema, { cards, tables: referencedTables, modelFields }, allFields] = await Promise.all([
-        getDatabaseTablesAndModelsWithoutFields(selectedDbId, forceRefresh, forceRefresh),
+        getRelevantTablesAndDetailsForSelectedDb(selectedDbId, forceRefresh),
         getAllCardsAndModels(forceRefresh, selectedDbId),
         forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId })
       ])
