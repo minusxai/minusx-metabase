@@ -131,9 +131,17 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const [isChangedByDb, setIsChangedByDb] = React.useState<Record<number, boolean>>({}) 
 
 
+  const allDBs = get(toolContext, 'allDBs', [])
   useEffect(() => {
-    app.triggerStateUpdate()
-  }, [])
+    const interval = setInterval(() => {
+      if (isEmpty(allDBs)) {
+        app.triggerStateUpdate()
+      } else {
+        clearInterval(interval)
+      }
+    }, 600)
+    return () => clearInterval(interval)
+  }, [allDBs])
 
   useEffect(() => {
     const currentDbId = dbInfo.id
