@@ -292,7 +292,7 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
   const processingPromise = (async () => {
     try {
       
-      const [dbSchema, { cards, tables: referencedTables, modelFields }, allFields] = await Promise.all([
+      const [dbSchema, { cards }, allFields] = await Promise.all([
         getRelevantTablesAndDetailsForSelectedDb(selectedDbId, forceRefresh),
         getAllCardsAndModels(forceRefresh, selectedDbId),
         forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId })
@@ -303,15 +303,13 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
       
       console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
       
-      console.log("[minusx] modelFields: ", modelFields.length)      
       // Step 5: Process metadata for all four with filtered data
       console.log('[minusx] Processing metadata with filtered data...')
       
-      const [cardsHash, dbSchemaHash, fieldsHash, modelFieldsHash] = await Promise.all([
+      const [cardsHash, dbSchemaHash, fieldsHash] = await Promise.all([
         processMetadataWithCaching('cards', async () => cards, selectedDbId),
         processMetadataWithCaching('dbSchema', async () => dbSchema, selectedDbId),
         processMetadataWithCaching('fields', async () => filteredFields, selectedDbId),
-        processMetadataWithCaching('modelFields', async () => modelFields, selectedDbId)
       ])
       
       console.log('[minusx] Coordinated metadata processing complete')
@@ -320,7 +318,6 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
         cardsHash,
         dbSchemaHash, 
         fieldsHash,
-        modelFieldsHash,
         selectedDbId
       }
   
