@@ -9,7 +9,6 @@ export interface MetadataProcessingResult {
   cardsHash?: string;
   dbSchemaHash?: string;
   fieldsHash?: string;
-  modelFieldsHash?: string;
   selectedDbId?: number;
 }
 

@@ -42,15 +42,13 @@ export async function planActionsRemote({
     // Check if analyst mode is enabled
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
-        const { cardsHash, dbSchemaHash, fieldsHash, modelFieldsHash, selectedDbId } = await getAllMetadataPromise;
+        const { cardsHash, dbSchemaHash, fieldsHash, selectedDbId } = await getAllMetadataPromise;
         // @ts-ignore
         payload.cardsHash = cardsHash;
         // @ts-ignore
         payload.dbSchemaHash = dbSchemaHash;
         // @ts-ignore
         payload.fieldsHash = fieldsHash;
-        // @ts-ignore
-        payload.modelFieldsHash = modelFieldsHash;
         // @ts-ignore
         payload.selectedDbId = `${selectedDbId}`;
         console.log('[minusx] Added metadata hashes to request for analyst mode');
