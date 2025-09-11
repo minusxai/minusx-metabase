@@ -6,6 +6,7 @@ import { getApp } from '../app'
 import { getState } from '../../state/store'
 import { unset } from 'lodash'
 import { processAllMetadata } from '../metadataProcessor'
+import { getParsedIframeInfo } from '../origin'
 
   
 export async function planActionsRemote({
@@ -42,6 +43,7 @@ export async function planActionsRemote({
     // Check if analyst mode is enabled
     if (currentState.settings.drMode && currentState.settings.analystMode) {
       try {
+        const parsedInfo = getParsedIframeInfo()
         const { cardsHash, dbSchemaHash, fieldsHash, selectedDbId } = await getAllMetadataPromise;
         // @ts-ignore
         payload.cardsHash = cardsHash;
@@ -51,6 +53,8 @@ export async function planActionsRemote({
         payload.fieldsHash = fieldsHash;
         // @ts-ignore
         payload.selectedDbId = `${selectedDbId}`;
+        // @ts-ignore
+        payload.r = parsedInfo.r;
         console.log('[minusx] Added metadata hashes to request for analyst mode');
       } catch (error) {
         console.warn('[minusx] Failed to fetch metadata for analyst mode:', error);
