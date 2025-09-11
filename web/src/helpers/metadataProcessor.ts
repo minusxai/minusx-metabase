@@ -322,11 +322,16 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
       }
   
       // Cache the result for this database ID
-      if (!result.cardsHash) {
-        console.warn('[minusx] Cardshash is undefined')
+      const is_authenticated = getState().auth.is_authenticated;
+      if (!is_authenticated) {
+        console.warn('[minusx] User is not authenticated, not caching metadata processing result');
       }
-      dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
-      console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
+      else if (!result.cardsHash && !result.dbSchemaHash && !result.fieldsHash) {
+        console.warn('[minusx] All hashes are undefined. Not caching')
+      } else {
+        dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
+        console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
+      }
       
       return result
     } finally {
