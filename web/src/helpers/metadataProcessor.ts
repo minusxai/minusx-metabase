@@ -149,6 +149,26 @@ async function gzipBase64(obj: any): Promise<string> {
   return b64;
 }
 
+/**
+ * Generates a presigned URL and object key
+ */
+async function generateObjectKey(metadataType: string, database_id: number): Promise<{url: string, key: string}> {
+  const iframeInfo = getParsedIframeInfo()
+  const request = {
+    origin: iframeInfo.origin,
+    r: iframeInfo.r,
+    metadata_type: metadataType,
+    database_id: `${database_id}`
+  };
+
+  const response = await axios.post(
+    `${configs.DEEPRESEARCH_BASE_URL}/metadata/generate_key`, 
+    request
+  );
+  
+  return response.data;
+}
+
 async function uploadMetadata(metadataType: string, data: any, metadataHash: string, database_id: number): Promise<string | undefined> {
   // Check if this hash is already being uploaded
   if (ongoingUploads.has(metadataHash)) {
@@ -156,15 +176,34 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
     return await ongoingUploads.get(metadataHash)!;
   }
 
-  // Create and store the upload promise
   const uploadPromise = (async () => {
-    // Stringify data, gzip it, and base64 encode
     let metadata_value = { [metadataType]: data }
+    
     try {
       const compressedData = await gzipBase64(data);
-      metadata_value = {
-        type: 'gzip',
-        [metadataType]: compressedData
+      
+      try {
+        const objectData = await generateObjectKey(metadataType, database_id);
+        
+        await axios.put(objectData.url, compressedData, {
+          headers: {
+            'Content-Type': 'application/octet-stream',
+          }
+        });
+        console.log('[minusx] Successfull new obj flow:', objectData);
+        
+        metadata_value = {
+          type: 'gzip_objstore',
+          [metadataType]: objectData
+        }
+      } catch (objError) {
+        console.warn(`Failed to process ${metadataType}, falling back to older method:`, objError);
+        
+        // Fallback to direct upload
+        metadata_value = {
+          type: 'gzip',
+          [metadataType]: compressedData
+        }
       }
     } catch (error) {
       console.warn(`Failed to compress ${metadataType} data, using uncompressed version`, error);
