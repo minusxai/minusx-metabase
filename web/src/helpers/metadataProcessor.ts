@@ -212,7 +212,7 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
     const metadataItem: MetadataItem = {
       metadata_type: metadataType,
       metadata_value,
-      version: '1.0',
+      version: '2.0', // Update version for new implementation
       metadata_hash: metadataHash,
       database_id: `${database_id}`
     };
