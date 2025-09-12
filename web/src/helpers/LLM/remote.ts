@@ -4,7 +4,7 @@ import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
 import { getState } from '../../state/store'
-import { unset } from 'lodash'
+import { set, unset } from 'lodash'
 import { processAllMetadata } from '../metadataProcessor'
 import { getParsedIframeInfo } from '../origin'
 
@@ -31,6 +31,9 @@ export async function planActionsRemote({
   }
   if (!deepResearch) {
     unset(payload, 'tasks')
+  } else {
+    set(payload, 'messages.0.content', "")
+    set(payload, 'actions', [])
   }
   const dbId = getApp().useStore().getState().toolContext?.dbId || undefined
   const getAllMetadataPromise = processAllMetadata(false, dbId)
