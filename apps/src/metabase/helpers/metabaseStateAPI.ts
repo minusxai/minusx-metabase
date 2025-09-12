@@ -64,7 +64,7 @@ export async function getSelectedDbId(): Promise<number | undefined> {
     dbId = await getMetabaseState('qb.card.dataset_query.database');
     if (!dbId) {
         const entity_dbs = await getMetabaseState('entities.databases') as object;
-        const all_dbs = Object.entries(entity_dbs)
+        const all_dbs = isEmpty(entity_dbs) ? [] : Object.entries(entity_dbs)
         if (all_dbs.length === 1) {
             dbId = all_dbs[0][1].id;
         }
