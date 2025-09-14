@@ -44,8 +44,7 @@ export const TeamMemory: React.FC = () => {
     const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
                          (availableAssets.length > 0 ? availableAssets[0] : null)
     
-    console.log("Selected Asset:", selectedAsset);
-    
+
     if (tool != 'metabase') {
         return <Text>Coming soon!</Text>
     }

@@ -4,72 +4,25 @@ import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
+import { getApp } from '../../helpers/app';
 
 
-const DEMO_SLUGS = [
-    "/138-demo-sql",
-    "/139-demo-mbql",
-    "/1-e-commerce-insights",
-    "/35-us-green-card",
-]
-
-const MESSAGES = [
-    `Hey there! Welcome to the **MinusX SQL Demo**. Try any of the suggested questions, or ask something of your own!
-  
-  ---
-  \`[badge]Protip: \` Click the **[Context](https://docs.minusx.ai/en/articles/11166007-default-tables)** quick action to control the tables MinusX can see!`,
-    `Hey there! Welcome to the **[MinusX Question Builder Demo](https://docs.minusx.ai/en/articles/11637221-metabase-gui-question-builder)**. Try any of the suggested questions, or ask something of your own!
-  
-  ---
-  \`[badge]Protip: \` Click the MinusX logo on the left to toggle the side panel`,
-      `Hey there! Welcome to the **[MinusX Dashboard Demo](https://docs.minusx.ai/en/articles/11496071-q-a-on-dashboards)**. Try any of the suggested questions, or ask something of your own!
-  
-  ---
-  \`[badge]Protip: \` Install MinusX on your own Metabase with a [simple Chrome Extension](https://minusx.ai/chrome-extension/)`,
-  `Welcome to MinusX! Use this chat to ask any questions about the data.
-  
-  ---
-  \`[badge]Protip: \` Install MinusX on your own Metabase with a [simple Chrome Extension](https://minusx.ai/chrome-extension/)`
-]
-
-const MESSAGE_TITLES = [
-    "SQL Demo",
-    "MBQL Demo",
-    "Dashboard Q&A",
-    "Green Cards"
-]
-
-const ALL_SUGGESTIONS = [
-    [
-        "show me monthly category wise sales but i want 2023 and 2024 in separate columns, with a col for % change",
-        "bar plot this!",
-    ],
-    [
-        "filter for this year, sort by orders",
-        "pick top 15?"
-    ],
-    [
-        "what's the total non gizmo order %?"
-    ],
-    [
-        "Show me the top 10th percentile of income for H1Bs",
-        "Show me the top 10 most popular green card visa categories",
-        "How many green card applications were certified in 2024?"
-    ]
-]
-
-export const getDemoIDX = (url: string) => {
-    return DEMO_SLUGS.findIndex(slug => url.includes(slug))
-}
+const useAppStore = getApp().useStore()
 
 export const DemoHelperMessage = ({url}: {url: string}) => {
-  const demoIDX = getDemoIDX(url)
-    if (demoIDX === -1) {
-        return null
-    }
+  const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
+  const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
+  const useTeamMemory = useSelector((state: RootState) => state.settings.useTeamMemory)
+  const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
+                            (availableAssets.length > 0 ? availableAssets[0] : null)
 
-  const message = MESSAGES[demoIDX]
-  return <SettingsBlock title={MESSAGE_TITLES[demoIDX]} ariaLabel="welcome-message"><Markdown content={message}/></SettingsBlock>
+  const teamHelperMessage = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.helpertexts?.filter(text => text.url === url && text.is_published).map(t => t.text)?.[0] : null
+
+  const helperMessage = useAppStore((state) => state.helperMessage)
+  if (!helperMessage && !teamHelperMessage) {
+    return null
+  }
+  return <SettingsBlock title={"Welcome"} ariaLabel="welcome-message"><Markdown content={teamHelperMessage || helperMessage}/></SettingsBlock>
 
 }
 
@@ -77,20 +30,27 @@ export const DemoSuggestions = ({url}: {url: string}) => {
     const thread = useSelector((state: RootState) => state.chat.activeThread)
     const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
     const taskInProgress = !(activeThread.status == 'FINISHED')
+    const savedQuestions = useSelector((state: RootState) => state.settings.savedQuestions)
+    const showSavedQuestions = useSelector((state: RootState) => state.settings.suggestQueries)
+    const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
+    const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
+    const useTeamMemory = useSelector((state: RootState) => state.settings.useTeamMemory)
+    const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
+                         (availableAssets.length > 0 ? availableAssets[0] : null)
+
+    const personalQuestions = showSavedQuestions ? savedQuestions : []
+    const teamQuestions = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.questions?.filter(q => q.is_published && q.source_url === url).map(q => q.content) : []
+    const allQuestions = [...personalQuestions, ...teamQuestions]
+        
+
 
     const [clickedSuggestions, setClickedSuggestions] = useState<Set<string>>(new Set())
-    const demoIDX = getDemoIDX(url)
-    if (demoIDX === -1) {
-        return null
-    }
-
-    const suggestions = ALL_SUGGESTIONS[demoIDX] || []
     
     const handleSuggestionClick = (suggestion: string) => {
         setClickedSuggestions(prev => new Set([...prev, suggestion]))
     }
     
-    const visibleSuggestions = suggestions.filter(suggestion => !clickedSuggestions.has(suggestion))
+    const visibleSuggestions = allQuestions.filter(suggestion => !clickedSuggestions.has(suggestion))
     
     if (visibleSuggestions.length === 0) {
         return null

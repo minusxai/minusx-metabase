@@ -11,7 +11,7 @@ const SettingsHeader = ({ text }: { text: string }) => (
 )
 
 export const SettingsBlock = ({title, ariaLabel, children}: {title: string, ariaLabel?: string, children: React.ReactNode}) => (
-  <VStack borderRadius={10} bg="minusxBW.300" alignItems={"stretch"} padding={3} aria-label={ariaLabel}>
+  <VStack borderRadius={10} bg="minusxBW.300" alignItems={"stretch"} padding={3} aria-label={ariaLabel} w={"100%"}>
     <SettingsHeader text={title} />
     {children}
   </VStack>
