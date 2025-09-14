@@ -18,7 +18,8 @@ import {
   Collapse,
   Flex,
   Spacer,
-  HStack
+  HStack,
+  Tooltip
 } from "@chakra-ui/react";
 import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { FormattedTable, MetabaseModel } from 'apps/types';
@@ -138,7 +139,9 @@ const Node: FC<FixedSizeNodeComponentProps<TreeData>> = ({
           variant="subtle"
           mr={2}
         />
-        <Text fontWeight="bold">schema: <Badge color="minusxGreen.600">{name}</Badge></Text>
+        <Tooltip label={name} hasArrow placement="top">
+          <Text fontWeight="bold">schema: <Badge color="minusxGreen.600">{name.length > 10 ? `${name.slice(0, 10)}...` : name}</Badge></Text>
+        </Tooltip>
         <Spacer />
         <Badge color="minusxGreen.600">{numTables} tables</Badge>
       </Flex>

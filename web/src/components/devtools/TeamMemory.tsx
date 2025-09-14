@@ -11,6 +11,19 @@ import { DisabledOverlay } from '../common/DisabledOverlay';
 import { Markdown } from '../common/Markdown';
 import { Notify } from '../common/Notify';
 
+
+interface Question {
+    content: string;
+    source_url: string;
+    is_published: boolean;
+}
+
+interface HelperText {
+    text: string;
+    url: string;
+    is_published: boolean;
+}
+
 export const TeamMemory: React.FC = () => {
     const tool = getParsedIframeInfo().tool
     const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
@@ -31,6 +44,7 @@ export const TeamMemory: React.FC = () => {
     const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
                          (availableAssets.length > 0 ? availableAssets[0] : null)
     
+
     if (tool != 'metabase') {
         return <Text>Coming soon!</Text>
     }
@@ -310,22 +324,68 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
                                     <Text fontSize="sm" fontWeight="semibold" color="gray.700">
                                         Saved Questions ({asset.content.questions.length})
                                     </Text>
-                                    {asset.content.questions.map((question: any, index: number) => (
-                                        <HStack 
+                                    {asset.content.questions.map((question: Question, index: number) => (
+                                        <VStack 
                                             key={index}
                                             p={3}
                                             border="1px solid" 
                                             borderColor="gray.200"
                                             borderRadius="md"
-                                            spacing={3}
-                                            justify="flex-start"
+                                            spacing={2}
+                                            align="flex-start"
                                         >
-                                            {question && (
+                                            {question.content && (
                                                 <Text fontSize="sm" fontWeight="medium" color="gray.800">
-                                                    {question}
+                                                    {question.content}
                                                 </Text>
                                             )}
-                                        </HStack>
+                                            {question.source_url && (
+                                                <Text fontSize="xs" color="blue.600" textDecoration="underline">
+                                                    {question.source_url}
+                                                </Text>
+                                            )}
+                                            {question.is_published !== undefined && (
+                                                <Badge colorScheme={question.is_published ? "green" : "orange"} variant="subtle" fontSize="xs">
+                                                    {question.is_published ? "Published" : "Draft"}
+                                                </Badge>
+                                            )}
+                                        </VStack>
+                                    ))}
+                                </VStack>
+                            )}
+
+                        {
+                            asset.content.helpertexts && asset.content.helpertexts.length > 0 && (
+                                <VStack align="stretch" spacing={3} borderTop="1px solid" borderColor="gray.300" pt={5}>
+                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                        Helper Texts ({asset.content.helpertexts.length})
+                                    </Text>
+                                    {asset.content.helpertexts.map((helperText: HelperText, index: number) => (
+                                        <VStack 
+                                            key={index}
+                                            p={3}
+                                            border="1px solid" 
+                                            borderColor="gray.200"
+                                            borderRadius="md"
+                                            spacing={2}
+                                            align="flex-start"
+                                        >
+                                            {helperText.text && (
+                                                <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                    {helperText.text}
+                                                </Text>
+                                            )}
+                                            {helperText.url && (
+                                                <Text fontSize="xs" color="blue.600" textDecoration="underline">
+                                                    {helperText.url}
+                                                </Text>
+                                            )}
+                                            {helperText.is_published !== undefined && (
+                                                <Badge colorScheme={helperText.is_published ? "green" : "orange"} variant="subtle" fontSize="xs">
+                                                    {helperText.is_published ? "Published" : "Draft"}
+                                                </Badge>
+                                            )}
+                                        </VStack>
                                     ))}
                                 </VStack>
                             )}

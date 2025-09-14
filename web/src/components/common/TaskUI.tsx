@@ -110,8 +110,6 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const analystMode = useSelector((state: RootState) => state.settings.analystMode)
   const proUser = useSelector((state: RootState) => state.billing.isSubscribed)
   const enterpriseUser = useSelector((state: RootState) => state.billing.isEnterpriseCustomer)
-  const savedQuestions = useSelector((state: RootState) => state.settings.savedQuestions)
-  const showSavedQuestions = useSelector((state: RootState) => state.settings.suggestQueries)
 
   const creditsExhausted = () => (credits <= 0 && infoLoaded)
   const creditsLow = () => (credits <= LOW_CREDITS_THRESHOLD && infoLoaded)
@@ -577,10 +575,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         <Thumbnails thumbnails={thumbnails} />
         <UserConfirmation/>
         <Clarification/>
-        {
+        {/* {
             savedQuestions.length > 0 && !taskInProgress && showSavedQuestions &&
             <Suggestions title="Saved Questions" suggestions={savedQuestions} />
-        }
+        } */}
         
         {
             appEnabledStatus.alert.type && 
@@ -742,7 +740,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                                         <Text fontSize="xs" fontWeight="medium">Team Memory</Text>
                                     </HStack>
                                     <HStack spacing={1} alignItems="center">
-                                        <Text fontSize="xs" color="gray.500">{useTeamMemory ? selectedAssetName : 'Disabled'}</Text>
+                                        <Text fontSize="xs" color="gray.500">{useTeamMemory ? (selectedAssetName.length > 8 ? `${selectedAssetName.slice(0, 8)}...` : selectedAssetName) : 'Disabled'}</Text>
                                         <Icon 
                                             as={useTeamMemory ? BiSolidCheckCircle : BiSolidXCircle}
                                             size={10} 

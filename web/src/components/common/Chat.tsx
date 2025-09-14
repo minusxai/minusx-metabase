@@ -15,7 +15,7 @@ import { Markdown } from './Markdown';
 import { Tasks } from './Tasks'
 import { TasksLite } from './TasksLite'
 import { getParsedIframeInfo } from '../../helpers/origin'
-import { DemoHelperMessage, DemoSuggestions, getDemoIDX } from './DemoComponents';
+import { DemoHelperMessage, DemoSuggestions } from './DemoComponents';
 import { configs } from '../../constants'
 import { setMinusxMode } from '../../app/rpc'
 
@@ -208,16 +208,6 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
 
 const useAppStore = getApp().useStore()
 
-const HelperMessage = () => {
-  const helperMessage = useAppStore((state) => state.helperMessage)
-  if (!helperMessage) {
-    return null
-  }
-  // return <Chat role='user' index={-1} content={{type: 'DEFAULT', text: helperMessage, images: []}} />
-  return <SettingsBlock title={"Welcome"} ariaLabel="welcome-message"><Markdown content={helperMessage}/></SettingsBlock>
-
-}
-
 export const ChatSection = () => {
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
@@ -260,7 +250,7 @@ export const ChatSection = () => {
     return returnValue
   })
   const Chats = isEmpty(messagesWithStatus) ?
-    (getDemoIDX(url) == -1 ? <HelperMessage /> : <DemoHelperMessage url={url}/>) :
+    <DemoHelperMessage url={url}/>:
     messagesWithStatus.map((message, key) => (
       <Chat key={key} {...message}/>
     ))
