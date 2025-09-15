@@ -5,6 +5,7 @@ export interface MentionItem {
   type: 'table' | 'model'
   id: number | string
   name: string
+  originalName: string // Original name with spaces preserved
   displayName: string // For showing in UI (e.g., "users (table)")
   description?: string
 }
@@ -14,21 +15,29 @@ export const createMentionItems = (
   tables: FormattedTable[],
   models: MetabaseModel[]
 ): MentionItem[] => {
-  const tableItems: MentionItem[] = tables.map(table => ({
-    type: 'table' as const,
-    id: table.id,
-    name: table.name,
-    displayName: `${table.name} (table)`,
-    description: table.description
-  }))
+  const tableItems: MentionItem[] = tables.map(table => {
+    const normalizedName = table.name.replace(/\s+/g, '_')
+    return {
+      type: 'table' as const,
+      id: table.id,
+      name: normalizedName,
+      originalName: table.name,
+      displayName: `${normalizedName} (table)`,
+      description: table.description
+    }
+  })
 
-  const modelItems: MentionItem[] = models.map(model => ({
-    type: 'model' as const,
-    id: model.modelId,
-    name: model.name,
-    displayName: `${model.name} (model)`,
-    description: model.description
-  }))
+  const modelItems: MentionItem[] = models.map(model => {
+    const normalizedName = model.name.replace(/\s+/g, '_')
+    return {
+      type: 'model' as const,
+      id: model.modelId,
+      name: normalizedName,
+      originalName: model.name,
+      displayName: `${normalizedName} (model)`,
+      description: model.description
+    }
+  })
 
   return [...tableItems, ...modelItems].sort((a, b) => a.name.localeCompare(b.name))
 }
@@ -97,7 +106,7 @@ export const convertMentionsToDisplay = (
   // Regex to find storage format mentions
   const storageRegex = /@\{type:(table|model),id:(\w+)\}/g
   
-  return text.replace(storageRegex, (match, type, id) => {
+  return text.replace(storageRegex, (_match, type, id) => {
     const item = mentionMap!.get(`${type}:${id}`)
     if (item) {
       return `\`[mention:${type}:${item.name}]\``
