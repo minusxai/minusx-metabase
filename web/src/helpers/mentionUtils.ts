@@ -86,9 +86,9 @@ export const convertMentionsToDisplay = (
   return text.replace(storageRegex, (match, type, id) => {
     const item = mentionMap.get(`${type}:${id}`)
     if (item) {
-      return `\`[mention:${type}:${item.name}]\``
+      return `@${item.name}`
     }
-    return `\`[mention:missing:${type}:${id}]\`` // Fallback for missing references
+    return `@[${type}:${id}]` // Fallback for missing references
   })
 }
 
