@@ -91,18 +91,42 @@ function ModifiedCode(props: any) {
         }
         if (text.startsWith('[mention:table:')) {
           const tableName = text.replace('[mention:table:', '').replace(']', '');
+          const mentionItem = (props as any).mentionItems?.find((item: MentionItem) => 
+            item.name === tableName && item.type === 'table'
+          );
+          
+          let tooltipText = '';
+          if (mentionItem) {
+            tooltipText = `Name: ${mentionItem.originalName}`;
+            if (mentionItem.schema) tooltipText += ` | Schema: ${mentionItem.schema}`;
+          }
+          
           return (
-            <span style={{ color: '#3182ce', fontWeight: 500 }}>
-              @{tableName}
-            </span>
+            <Tooltip label={tooltipText} placement="top" hasArrow>
+              <span style={{ color: '#3182ce', fontWeight: 500 }}>
+                @{tableName}
+              </span>
+            </Tooltip>
           );
         }
         if (text.startsWith('[mention:model:')) {
           const modelName = text.replace('[mention:model:', '').replace(']', '');
+          const mentionItem = (props as any).mentionItems?.find((item: MentionItem) => 
+            item.name === modelName && item.type === 'model'
+          );
+          
+          let tooltipText = '';
+          if (mentionItem) {
+            tooltipText = `Name: ${mentionItem.originalName}`;
+            if (mentionItem.collection) tooltipText += ` | Collection: ${mentionItem.collection}`;
+          }
+          
           return (
-            <span style={{ color: '#805ad5', fontWeight: 500 }}>
-              @{modelName}
-            </span>
+            <Tooltip label={tooltipText} placement="top" hasArrow>
+              <span style={{ color: '#805ad5', fontWeight: 500 }}>
+                @{modelName}
+              </span>
+            </Tooltip>
           );
         }
         if (text.startsWith('[mention:missing:')) {
@@ -677,6 +701,14 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   const mxModels = useSelector((state: RootState) => state.cache.mxModels);
   
   // Process template variables like {{MX_LAST_QUERY_URL}}
+  // Create mention items from toolContext
+  const mentionItems = useMemo(() => {
+    if (!toolContext?.dbInfo) return []
+    const tables = toolContext.dbInfo.tables || []
+    const models = toolContext.dbInfo.models || []
+    return createMentionItems(tables, models)
+  }, [toolContext?.dbInfo])
+
   const processedContent = React.useMemo(() => {
     if (content.includes('{{MX_LAST_QUERY_URL}}')) {
       try {
@@ -705,6 +737,11 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
     return content;
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
+  // Create a wrapped ModifiedCode component that has access to mentionItems
+  const ModifiedCodeWithMentions = (props: any) => (
+    <ModifiedCode {...props} mentionItems={mentionItems} />
+  )
+
   return (
     <MarkdownComponent 
       remarkPlugins={[remarkGfm]} 
@@ -717,7 +754,7 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
         img: ImageComponent, 
         pre: ModifiedPre, 
         blockquote: ModifiedBlockquote, 
-        code: ModifiedCode, 
+        code: ModifiedCodeWithMentions, 
         hr: HorizontalLine, 
         h1: ModifiedH1, 
         h2: ModifiedH2, 

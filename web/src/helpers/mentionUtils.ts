@@ -8,6 +8,8 @@ export interface MentionItem {
   originalName: string // Original name with spaces preserved
   displayName: string // For showing in UI (e.g., "users (table)")
   description?: string
+  schema?: string // For tables: database schema name
+  collection?: string // For models: collection name
 }
 
 // Convert tables and models to unified mention items
@@ -23,7 +25,8 @@ export const createMentionItems = (
       name: normalizedName,
       originalName: table.name,
       displayName: `${normalizedName} (table)`,
-      description: table.description
+      description: table.description,
+      schema: table.schema
     }
   })
 
@@ -35,7 +38,8 @@ export const createMentionItems = (
       name: normalizedName,
       originalName: model.name,
       displayName: `${normalizedName} (model)`,
-      description: model.description
+      description: model.description,
+      collection: model.collectionName || undefined
     }
   })
 

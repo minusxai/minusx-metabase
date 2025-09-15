@@ -38,7 +38,7 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
         
         // Calculate dropdown position after filtering
         setTimeout(() => {
-          const itemHeight = 60
+          const itemHeight = 80 // Updated for 4-line items (name + type + description + schema/collection)
           const maxItems = 6
           const actualItems = Math.min(filtered.length, maxItems)
           const dropdownHeight = actualItems * itemHeight + 10
@@ -106,11 +106,27 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
       // Convert storage format mentions to display format
       const displayText = convertMentionsToDisplay(text, mentionItems)
       
-      // Split text by mentions and create HTML with highlights
+      // Create a map for quick mention lookup
+      const mentionMap = new Map<string, MentionItem>()
+      mentionItems.forEach(item => {
+        mentionMap.set(item.name.toLowerCase(), item)
+      })
+      
+      // Split text by mentions and create HTML with highlights and tooltips
       const parts = displayText.split(/(@\w+)/g)
       const html = parts.map((part: string, _index: number) => {
         if (part.startsWith('@')) {
-          return `<span style="background-color: #EBF8FF; color: #2B6CB0; padding: 2px 4px; border-radius: 4px; font-weight: 500;">${part}</span>`
+          const mentionName = part.substring(1).toLowerCase()
+          const mentionItem = mentionMap.get(mentionName)
+          
+          let tooltipText = ''
+          if (mentionItem) {
+            tooltipText = `Name: ${mentionItem.originalName}`
+            if (mentionItem.schema) tooltipText += ` | Schema: ${mentionItem.schema}`
+            if (mentionItem.collection) tooltipText += ` | Collection: ${mentionItem.collection}`
+          }
+          
+          return `<span style="background-color: #EBF8FF; color: #2B6CB0; padding: 2px 4px; border-radius: 4px; font-weight: 500;" title="${tooltipText}">${part}</span>`
         }
         // Wrap regular text in spans with explicit black color to prevent blue bleeding
         return `<span style="color: black;">${part.replace(/\n/g, '<br>')}</span>`

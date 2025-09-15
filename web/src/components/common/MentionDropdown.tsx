@@ -82,6 +82,11 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
                   {item.description}
                 </Text>
               )}
+              {(item.schema || item.collection) && (
+                <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                  {item.type === 'table' ? `Schema: ${item.schema}` : `Collection: ${item.collection}`}
+                </Text>
+              )}
             </Box>
           )
         })}
