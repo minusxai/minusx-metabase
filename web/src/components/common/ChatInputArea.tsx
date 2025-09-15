@@ -5,12 +5,12 @@ import {
   Text,
   Badge
 } from '@chakra-ui/react'
-import React, { forwardRef, useState, useEffect, useCallback } from 'react'
+import React, { forwardRef, useState, useEffect, useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
 import RunTaskButton from './RunTaskButton'
 import AbortTaskButton from './AbortTaskButton'
-import AutosizeTextarea from './AutosizeTextarea'
+import { MentionTextarea } from './MentionTextarea'
 import { abortPlan } from '../../state/chat/reducer'
 import { setInstructions as setTaskInstructions } from '../../state/thumbnails/reducer'
 import { setConfirmChanges } from '../../state/settings/reducer'
@@ -18,6 +18,7 @@ import { configs } from '../../constants'
 import _ from 'lodash'
 import { MetabaseContext } from 'apps/types'
 import { getApp } from '../../helpers/app'
+import { createMentionItems, convertMentionsToStorage } from '../../helpers/mentionUtils'
 
 interface ChatInputAreaProps {
   isRecording: boolean
@@ -48,6 +49,14 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
       dispatch(setConfirmChanges(value))
     }
 
+    // Create mention items from tables and models
+    const mentionItems = useMemo(() => {
+      if (!toolContext.dbInfo) return []
+      const tables = toolContext.dbInfo.tables || []
+      const models = toolContext.dbInfo.models || []
+      return createMentionItems(tables, models)
+    }, [toolContext.dbInfo])
+
     // Sync with redux instructions when they change
     useEffect(() => {
       setInstructions(reduxInstructions)
@@ -67,7 +76,9 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
     const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
-        runTask(instructions)
+        // Convert mentions to storage format before sending
+        const instructionsWithStorageMentions = convertMentionsToStorage(instructions, mentionItems)
+        runTask(instructionsWithStorageMentions)
       }
     }
 
@@ -75,7 +86,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
       <>
         {appEnabledStatus.inputBox && (
           <Stack aria-label="chat-input-area" position={"relative"}>
-            <AutosizeTextarea
+            <MentionTextarea
               ref={ref}
               autoFocus
               aria-label='chat-input'
@@ -84,6 +95,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
               onChange={(e) => setInstructions(e.target.value)}
               onKeyDown={onKeyDown}
               style={{ width: '100%', height: "100%" }}
+              mentionItems={mentionItems}
             />
             <HStack aria-label="chat-controls" position={"absolute"} bottom={0} width={"100%"} p={2}>
               <HStack justify={"space-between"} width={"100%"}>
@@ -120,7 +132,10 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
                   {taskInProgress ? (
                     <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
                   ) : (
-                    <RunTaskButton runTask={() => runTask(instructions)} disabled={taskInProgress} />
+                    <RunTaskButton runTask={() => {
+                      const instructionsWithStorageMentions = convertMentionsToStorage(instructions, mentionItems)
+                      runTask(instructionsWithStorageMentions)
+                    }} disabled={taskInProgress} />
                   )}
                 </HStack>
               </HStack>
