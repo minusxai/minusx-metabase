@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle } from 'react'
+import React, { useState, useRef, useCallback, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react'
 import { TextareaProps, Box } from '@chakra-ui/react'
 import AutosizeTextarea from './AutosizeTextarea'
 import { MentionDropdown } from './MentionDropdown'
@@ -9,6 +9,7 @@ import {
   replaceMentionInText,
   convertMentionsToDisplay
 } from '../../helpers/mentionUtils'
+import { debounce } from 'lodash'
 
 interface MentionTextareaProps extends Omit<TextareaProps, 'onChange'> {
   mentionItems: MentionItem[]
@@ -28,6 +29,30 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
 
     // Forward ref to the contenteditable div
     useImperativeHandle(ref, () => editableRef.current!, [])
+
+    // Debounced search function to avoid searching on every keystroke
+    const debouncedSearch = useMemo(
+      () => debounce((query: string) => {
+        const filtered = filterMentionItems(mentionItems, query)
+        setFilteredItems(filtered)
+        
+        // Calculate dropdown position after filtering
+        setTimeout(() => {
+          const itemHeight = 60
+          const maxItems = 6
+          const actualItems = Math.min(filtered.length, maxItems)
+          const dropdownHeight = actualItems * itemHeight + 10
+          
+          const position = {
+            top: -(dropdownHeight + 5),
+            left: 0
+          }
+          
+          setDropdownPosition(position)
+        }, 0)
+      }, 150),
+      [mentionItems]
+    )
 
 
     // Get plain text content from contenteditable div
@@ -125,30 +150,16 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
         setShowDropdown(true)
         setSelectedIndex(0)
         
-        // Filter items based on query
-        const filtered = filterMentionItems(mentionItems, mentionInfo.query)
-        setFilteredItems(filtered)
-        
-        // Calculate dropdown position
-        setTimeout(() => {
-          const itemHeight = 60
-          const maxItems = 6
-          const actualItems = Math.min(filtered.length, maxItems)
-          const dropdownHeight = actualItems * itemHeight + 10
-          
-          const position = {
-            top: -(dropdownHeight + 5),
-            left: 0
-          }
-          
-          setDropdownPosition(position)
-        }, 0)
+        // Use debounced search instead of immediate filtering
+        debouncedSearch(mentionInfo.query)
       } else {
         setShowDropdown(false)
         setMentionQuery('')
         setMentionStart(-1)
+        // Cancel any pending debounced search
+        debouncedSearch.cancel()
       }
-    }, [onChange, mentionItems, getTextContent, getCursorPosition, updateContent, setCursorPosition])
+    }, [onChange, mentionItems, getTextContent, getCursorPosition, updateContent, setCursorPosition, debouncedSearch])
 
     // Handle mention selection
     const handleMentionSelect = useCallback((item: MentionItem) => {
@@ -248,6 +259,13 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
         return () => document.removeEventListener('click', handleClickOutside)
       }
     }, [showDropdown])
+
+    // Cleanup debounced function on unmount
+    useEffect(() => {
+      return () => {
+        debouncedSearch.cancel()
+      }
+    }, [debouncedSearch])
 
     return (
       <Box position="relative">

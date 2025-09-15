@@ -44,23 +44,30 @@ export const filterMentionItems = (items: MentionItem[], query: string): Mention
   )
 }
 
+// Cache for mention maps to avoid recreating on every call
+const mentionMapCache = new WeakMap<MentionItem[], Map<string, MentionItem>>()
+
 // Parse @ mentions from display format to storage format
 // Converts: "Check @users table" -> "Check @{type:table,id:123} table"
 export const convertMentionsToStorage = (
   text: string,
   mentionItems: MentionItem[]
 ): string => {
-  // Create a map for fast lookup by name
-  const mentionMap = new Map<string, MentionItem>()
-  mentionItems.forEach(item => {
-    mentionMap.set(item.name.toLowerCase(), item)
-  })
+  // Use cached map or create new one
+  let mentionMap = mentionMapCache.get(mentionItems)
+  if (!mentionMap) {
+    mentionMap = new Map<string, MentionItem>()
+    mentionItems.forEach(item => {
+      mentionMap!.set(item.name.toLowerCase(), item)
+    })
+    mentionMapCache.set(mentionItems, mentionMap)
+  }
 
   // Regex to find @mentions - matches @word_characters
   const mentionRegex = /@(\w+)/g
   
   return text.replace(mentionRegex, (match, name) => {
-    const item = mentionMap.get(name.toLowerCase())
+    const item = mentionMap!.get(name.toLowerCase())
     if (item) {
       return `@{type:${item.type},id:${item.id}}`
     }
@@ -68,23 +75,30 @@ export const convertMentionsToStorage = (
   })
 }
 
+// Cache for display mention maps to avoid recreating on every call
+const displayMentionMapCache = new WeakMap<MentionItem[], Map<string, MentionItem>>()
+
 // Parse @ mentions from storage format to display format
 // Converts: "Check @{type:table,id:123} table" -> "Check @users table"
 export const convertMentionsToDisplay = (
   text: string,
   mentionItems: MentionItem[]
 ): string => {
-  // Create a map for fast lookup by type and id
-  const mentionMap = new Map<string, MentionItem>()
-  mentionItems.forEach(item => {
-    mentionMap.set(`${item.type}:${item.id}`, item)
-  })
+  // Use cached map or create new one
+  let mentionMap = displayMentionMapCache.get(mentionItems)
+  if (!mentionMap) {
+    mentionMap = new Map<string, MentionItem>()
+    mentionItems.forEach(item => {
+      mentionMap!.set(`${item.type}:${item.id}`, item)
+    })
+    displayMentionMapCache.set(mentionItems, mentionMap)
+  }
 
   // Regex to find storage format mentions
   const storageRegex = /@\{type:(table|model),id:(\w+)\}/g
   
   return text.replace(storageRegex, (match, type, id) => {
-    const item = mentionMap.get(`${type}:${id}`)
+    const item = mentionMap!.get(`${type}:${id}`)
     if (item) {
       return `\`[mention:${type}:${item.name}]\``
     }
