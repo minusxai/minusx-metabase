@@ -25,8 +25,9 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
 }) => {
   const bgColor = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.600')
-  const hoverBgColor = useColorModeValue('minusxGreen.50', 'minusxGreen.900')
-  const selectedBgColor = useColorModeValue('minusxGreen.100', 'minusxGreen.800')
+  const hoverBgColor = useColorModeValue('minusxGreen.600', 'minusxGreen.600')
+  const selectedBgColor = useColorModeValue('minusxGreen.600', 'minusxGreen.600')
+  const hoverTextColor = useColorModeValue('white', 'white')
 
   if (!visible || items.length === 0) {
     return null
@@ -48,11 +49,12 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
       minWidth="200px"
       role="listbox"
       aria-label="Mention suggestions"
+      w={"100%"}
     >
       <VStack spacing={0} align="stretch">
         {items.map((item, index) => {
           const isSelected = index === selectedIndex
-          const typeColor = item.type === 'table' ? 'blue.500' : 'purple.500'
+          const typeColor = item.type === 'table' ? 'red.500' : 'blue.500'
           
           return (
             <Box
@@ -60,7 +62,8 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
               px={3}
               py={2}
               bg={isSelected ? selectedBgColor : 'transparent'}
-              _hover={{ bg: hoverBgColor }}
+              color={isSelected ? hoverTextColor : 'inherit'}
+              _hover={{ bg: hoverBgColor, color: hoverTextColor }}
               cursor="pointer"
               borderRadius="sm"
               onClick={() => onSelect(item)}
@@ -68,14 +71,14 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
               aria-selected={isSelected}
               tabIndex={-1}
             >
-              <Text fontWeight="medium" fontSize="sm" color="gray.900">
+              <Text fontWeight="medium" fontSize="sm">
                 @{item.name}
               </Text>
               <Text fontSize="xs" color={typeColor} textTransform="uppercase">
                 {item.type}
               </Text>
               {item.description && (
-                <Text fontSize="xs" color="gray.600" noOfLines={1} mt={1}>
+                <Text fontSize="xs" noOfLines={1} mt={1}>
                   {item.description}
                 </Text>
               )}
