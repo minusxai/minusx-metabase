@@ -16,7 +16,7 @@ export const createMentionItems = (
   models: MetabaseModel[]
 ): MentionItem[] => {
   const tableItems: MentionItem[] = tables.map(table => {
-    const normalizedName = table.name.replace(/\s+/g, '_')
+    const normalizedName = table.name.replace(/[^\w]/g, '_')
     return {
       type: 'table' as const,
       id: table.id,
@@ -28,7 +28,7 @@ export const createMentionItems = (
   })
 
   const modelItems: MentionItem[] = models.map(model => {
-    const normalizedName = model.name.replace(/\s+/g, '_')
+    const normalizedName = model.name.replace(/[^\w]/g, '_')
     return {
       type: 'model' as const,
       id: model.modelId,
