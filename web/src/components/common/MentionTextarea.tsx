@@ -154,6 +154,11 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
     const handleMentionSelect = useCallback((item: MentionItem) => {
       if (!editableRef.current || mentionStart === -1) return
 
+      // Clear any pending content updates to prevent conflicts
+      if (typingTimerRef.current) {
+        clearTimeout(typingTimerRef.current)
+      }
+
       const currentValue = getTextContent()
       const cursorPosition = getCursorPosition()
       
@@ -164,9 +169,13 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
         item
       )
 
-      // Update content with highlighted mentions
+      // Update content with highlighted mentions immediately
       updateContent(newText)
-      setCursorPosition(newCursorPosition)
+      
+      // Set cursor position after a brief delay to ensure content is updated
+      setTimeout(() => {
+        setCursorPosition(newCursorPosition)
+      }, 10)
       
       // Notify parent of change
       if (onChange) {
