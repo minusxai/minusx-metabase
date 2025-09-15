@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import MarkdownComponent from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import './ChatContent.css'
@@ -10,7 +10,7 @@ import { renderString } from '../../helpers/templatize'
 import { getOrigin, getParsedIframeInfo } from '../../helpers/origin'
 import { getApp } from '../../helpers/app'
 import { getAllTemplateTagsInQuery, replaceLLMFriendlyIdentifiersInSqlWithModels } from 'apps'
-import type { MetabaseModel } from 'apps/types'
+import type { MetabaseModel, MetabaseContext } from 'apps/types'
 import { type EmbedConfigs } from '../../state/configs/reducer'
 import { Badge } from "@chakra-ui/react";
 import { CodeBlock } from './CodeBlock';
@@ -19,6 +19,7 @@ import { BsBarChartFill } from "react-icons/bs";
 import { dispatch } from '../../state/dispatch';
 import { updateIsDevToolsOpen  } from '../../state/settings/reducer';
 import { setMinusxMode } from '../../app/rpc';
+import { createMentionItems, MentionItem } from '../../helpers/mentionUtils';
 
 
 function LinkRenderer(props: any) {
@@ -87,6 +88,32 @@ function ModifiedCode(props: any) {
         }
         if (text.startsWith('[badge_mx]')) {
             return <><br></br><Badge aria-label='mx-badge' borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
+        }
+        if (text.startsWith('[mention:table:')) {
+          const tableName = text.replace('[mention:table:', '').replace(']', '');
+          return (
+            <span style={{ color: '#3182ce', fontWeight: 500 }}>
+              @{tableName}
+            </span>
+          );
+        }
+        if (text.startsWith('[mention:model:')) {
+          const modelName = text.replace('[mention:model:', '').replace(']', '');
+          return (
+            <span style={{ color: '#805ad5', fontWeight: 500 }}>
+              @{modelName}
+            </span>
+          );
+        }
+        if (text.startsWith('[mention:missing:')) {
+          const parts = text.replace('[mention:missing:', '').replace(']', '').split(':');
+          const type = parts[0];
+          const id = parts[1];
+          return (
+            <span style={{ color: '#718096' }}>
+              @[{type}:{id}]
+            </span>
+          );
         }
     }
     
@@ -551,6 +578,90 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
 
 const useAppStore = getApp().useStore();
 
+// Component to detect @ mentions in text and render with colors
+function MentionAwareText({ children }: { children: React.ReactNode }) {
+  const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+  
+  // Create mention items for determining colors
+  const mentionItems = useMemo(() => {
+    if (!toolContext?.dbInfo) return []
+    const tables = toolContext.dbInfo.tables || []
+    const models = toolContext.dbInfo.models || []
+    return createMentionItems(tables, models)
+  }, [toolContext?.dbInfo])
+
+  // Create lookup map for determining mention types
+  const mentionMap = useMemo(() => {
+    const map = new Map<string, 'table' | 'model'>()
+    mentionItems.forEach((item: MentionItem) => {
+      map.set(item.name.toLowerCase(), item.type)
+    })
+    return map
+  }, [mentionItems])
+
+  // Only process string children
+  if (typeof children !== 'string') {
+    return <>{children}</>
+  }
+
+  const renderTextWithColors = (text: string) => {
+    // Regex to find @ mentions (@ followed by word characters)
+    const mentionRegex = /@(\w+)/g
+    const parts: (string | JSX.Element)[] = []
+    let lastIndex = 0
+    let match
+
+    while ((match = mentionRegex.exec(text)) !== null) {
+      // Add text before the mention
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index))
+      }
+
+      const mentionName = match[1]
+      const mentionType = mentionMap.get(mentionName.toLowerCase())
+      
+      if (mentionType) {
+        // Render as colored mention
+        const color = mentionType === 'table' ? '#3182ce' : '#805ad5' // Blue for tables, purple for models
+        parts.push(
+          <span
+            key={`mention-${match.index}`}
+            style={{ color, fontWeight: 500 }}
+          >
+            @{mentionName}
+          </span>
+        )
+      } else {
+        // Check if it looks like a missing reference pattern @[type:id]
+        if (text.slice(match.index).match(/^@\[[^:]+:\w+\]/)) {
+          parts.push(
+            <span
+              key={`mention-missing-${match.index}`}
+              style={{ color: '#718096' }}
+            >
+              {match[0]}
+            </span>
+          )
+        } else {
+          // Regular @ mention, not in our database
+          parts.push(match[0])
+        }
+      }
+
+      lastIndex = match.index + match[0].length
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex))
+    }
+
+    return parts.length > 1 ? <>{parts}</> : text
+  }
+
+  return <>{renderTextWithColors(children)}</>
+}
+
 export function Markdown({content, messageIndex}: {content: string, messageIndex?: number}) {
   const currentThread = useSelector((state: RootState) => 
     state.chat.threads[state.chat.activeThread]
@@ -595,6 +706,32 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
   return (
-    <MarkdownComponent remarkPlugins={[remarkGfm]} className={"markdown"} components={{ a: LinkRenderer, p: ModifiedParagraph, ul: ModifiedUL, ol: ModifiedOL, img: ImageComponent, pre: ModifiedPre, blockquote: ModifiedBlockquote, code: ModifiedCode, hr: HorizontalLine, h1: ModifiedH1, h2: ModifiedH2, h3: ModifiedH3, h4: ModifiedH4, table: ModifiedTable, thead: ModifiedThead, tbody: ModifiedTbody, tr: ModifiedTr, th: ModifiedTh, td: ModifiedTd }}>{processedContent}</MarkdownComponent>
+    <MarkdownComponent 
+      remarkPlugins={[remarkGfm]} 
+      className={"markdown"} 
+      components={{ 
+        a: LinkRenderer, 
+        p: ModifiedParagraph, 
+        ul: ModifiedUL, 
+        ol: ModifiedOL, 
+        img: ImageComponent, 
+        pre: ModifiedPre, 
+        blockquote: ModifiedBlockquote, 
+        code: ModifiedCode, 
+        hr: HorizontalLine, 
+        h1: ModifiedH1, 
+        h2: ModifiedH2, 
+        h3: ModifiedH3, 
+        h4: ModifiedH4, 
+        table: ModifiedTable, 
+        thead: ModifiedThead, 
+        tbody: ModifiedTbody, 
+        tr: ModifiedTr, 
+        th: ModifiedTh, 
+        td: ModifiedTd,
+      }}
+    >
+      {processedContent}
+    </MarkdownComponent>
   )
 }
