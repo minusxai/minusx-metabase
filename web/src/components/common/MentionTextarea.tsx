@@ -26,36 +26,11 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
     // Forward ref to the actual textarea
     useImperativeHandle(ref, () => textareaRef.current!, [])
 
-    // Calculate cursor position for dropdown
-    const getCaretCoordinates = useCallback(() => {
-      if (!textareaRef.current) return { top: 0, left: 0 }
-
-      const textArea = textareaRef.current
-      const caretOffset = textArea.selectionStart || 0
-      
-      // Simple fallback positioning - place dropdown below textarea
-      const rect = textArea.getBoundingClientRect()
-      
-      console.log('[getCaretCoordinates] TextArea rect:', rect)
-      console.log('[getCaretCoordinates] CaretOffset:', caretOffset)
-      
-      // For now, use a simple approach - position dropdown at the bottom-left of textarea
-      // TODO: Later we can implement proper cursor positioning
-      const position = {
-        top: rect.height + 5, // Just below the textarea
-        left: 0 // Align with textarea left edge
-      }
-      
-      console.log('[getCaretCoordinates] Calculated position:', position)
-      return position
-    }, [value])
 
     // Handle text changes and mention detection
     const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value
       const cursorPosition = e.target.selectionStart || 0
-      
-      console.log('[MentionTextarea] Text changed:', { newValue, cursorPosition, mentionItems: mentionItems.length })
       
       // Call original onChange
       if (onChange) {
@@ -64,10 +39,8 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
 
       // Detect mention at cursor
       const mentionInfo = detectMentionAtCursor(newValue, cursorPosition)
-      console.log('[MentionTextarea] Mention detection result:', mentionInfo)
       
       if (mentionInfo) {
-        console.log('[MentionTextarea] Setting up mention dropdown')
         setMentionStart(mentionInfo.mentionStart)
         setMentionQuery(mentionInfo.query)
         setShowDropdown(true)
@@ -75,22 +48,28 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
         
         // Filter items based on query
         const filtered = filterMentionItems(mentionItems, mentionInfo.query)
-        console.log('[MentionTextarea] Filtered items:', filtered.length, filtered.slice(0, 3).map(i => i.name))
         setFilteredItems(filtered)
         
-        // Calculate dropdown position
+        // Calculate dropdown position based on number of items
         setTimeout(() => {
-          const position = getCaretCoordinates()
-          console.log('[MentionTextarea] Dropdown position:', position)
+          const itemHeight = 60 // Approximate height per item (including padding, text, etc.)
+          const maxItems = 6 // Show max 6 items before scrolling
+          const actualItems = Math.min(filtered.length, maxItems)
+          const dropdownHeight = actualItems * itemHeight + 10 // +10 for padding/borders
+          
+          const position = {
+            top: -(dropdownHeight + 5), // Position above textarea with calculated height
+            left: 0
+          }
+          
           setDropdownPosition(position)
         }, 0)
       } else {
-        console.log('[MentionTextarea] Hiding dropdown')
         setShowDropdown(false)
         setMentionQuery('')
         setMentionStart(-1)
       }
-    }, [onChange, mentionItems, getCaretCoordinates])
+    }, [onChange, mentionItems])
 
     // Handle mention selection
     const handleMentionSelect = useCallback((item: MentionItem) => {

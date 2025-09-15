@@ -83,10 +83,36 @@ function ModifiedCode(props: any) {
         const text = props.children?.toString() || '';
         
         if (text.startsWith('[badge]')) {
-        return <Badge color={"minusxGreen.600"} aria-label='mx-badge'>{text.replace('[badge]', '')}</Badge>;
+            return <Badge color={"minusxGreen.600"} aria-label='mx-badge'>{text.replace('[badge]', '')}</Badge>;
         }
         if (text.startsWith('[badge_mx]')) {
-        return <><br></br><Badge aria-label='mx-badge' borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
+            return <><br></br><Badge aria-label='mx-badge' borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
+        } 
+        if (text.startsWith('[mention:table:')) {
+          const tableName = text.replace('[mention:table:', '').replace(']', '');
+          return (
+            <Tag size="sm" colorScheme="blue" variant="outline" mx={1}>
+              <TagLabel>@{tableName}</TagLabel>
+            </Tag>
+          );
+        }
+        if (text.startsWith('[mention:model:')) {
+            const modelName = text.replace('[mention:model:', '').replace(']', '');
+            return (
+            <Tag size="sm" colorScheme="purple" variant="outline" mx={1}>
+                <TagLabel>@{modelName}</TagLabel>
+            </Tag>
+            );
+        }
+        if (text.startsWith('[mention:missing:')) {
+            const parts = text.replace('[mention:missing:', '').replace(']', '').split(':');
+            const type = parts[0];
+            const id = parts[1];
+            return (
+            <Tag size="sm" colorScheme="gray" variant="outline" mx={1}>
+                <TagLabel>@[{type}:{id}]</TagLabel>
+            </Tag>
+            );
         }
     }
     

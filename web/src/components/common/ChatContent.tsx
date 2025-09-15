@@ -33,14 +33,14 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
   
   if (content.type == 'DEFAULT') {
     const baseContentText = ((pageType === 'dashboard' || pageType === 'unknown') && role === 'assistant') ? `${content.text} {{MX_LAST_QUERY_URL}}` : content.text;
-    // Convert storage format mentions (@{type:table,id:123}) back to display format (@table_name)
-    const contentTextWithDisplayMentions = convertMentionsToDisplay(baseContentText, mentionItems);
+    // Convert storage format mentions (@{type:table,id:123}) to special code syntax ([mention:table:table_name])
+    const contentTextWithMentionTags = convertMentionsToDisplay(baseContentText, mentionItems);
     return (
       <div>
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
-        <Markdown content={processModelToUIText(contentTextWithDisplayMentions, origin, embedConfigs)} messageIndex={messageIndex} />
+        <Markdown content={processModelToUIText(contentTextWithMentionTags, origin, embedConfigs)} messageIndex={messageIndex} />
       </div>
     )
   } else {
