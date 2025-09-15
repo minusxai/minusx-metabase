@@ -97,38 +97,48 @@ export const detectMentionAtCursor = (
   text: string,
   cursorPosition: number
 ): { mentionStart: number; query: string } | null => {
+  console.log('[detectMentionAtCursor] Input:', { text, cursorPosition, charAtCursor: text[cursorPosition - 1] })
+  
   // Look backwards from cursor to find last @
   let mentionStart = -1
   for (let i = cursorPosition - 1; i >= 0; i--) {
+    console.log(`[detectMentionAtCursor] Checking char at ${i}: "${text[i]}"`)
     if (text[i] === '@') {
       // Check if this @ is already part of a completed mention
       const restOfText = text.slice(i)
       const storageFormatMatch = restOfText.match(/^@\{type:(table|model),id:\w+\}/)
       if (storageFormatMatch) {
+        console.log('[detectMentionAtCursor] Found completed mention, stopping')
         // This is a completed mention, not active for editing
         break
       }
       mentionStart = i
+      console.log('[detectMentionAtCursor] Found @ at position:', i)
       break
     }
     // Stop if we hit whitespace or other boundaries
     if (text[i] === ' ' || text[i] === '\n') {
+      console.log('[detectMentionAtCursor] Hit boundary, stopping')
       break
     }
   }
 
   if (mentionStart === -1) {
+    console.log('[detectMentionAtCursor] No @ found')
     return null
   }
 
   // Extract the partial query after @
   const query = text.slice(mentionStart + 1, cursorPosition)
+  console.log('[detectMentionAtCursor] Query extracted:', query)
   
   // Only return if we're directly after @ or typing word characters
   if (/^\w*$/.test(query)) {
+    console.log('[detectMentionAtCursor] Valid query, returning mention info')
     return { mentionStart, query }
   }
 
+  console.log('[detectMentionAtCursor] Invalid query format')
   return null
 }
 

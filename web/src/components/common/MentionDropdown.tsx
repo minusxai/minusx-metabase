@@ -23,14 +23,23 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
   position,
   visible
 }) => {
+  console.log('[MentionDropdown] Render:', { visible, itemCount: items.length, position, selectedIndex })
+  
   const bgColor = useColorModeValue('white', 'gray.800')
   const borderColor = useColorModeValue('gray.200', 'gray.600')
   const hoverBgColor = useColorModeValue('minusxGreen.50', 'minusxGreen.900')
   const selectedBgColor = useColorModeValue('minusxGreen.100', 'minusxGreen.800')
 
   if (!visible || items.length === 0) {
+    console.log('[MentionDropdown] Not rendering - visible:', visible, 'items:', items.length)
     return null
   }
+
+  console.log('[MentionDropdown] Rendering dropdown with styles:', { 
+    top: `${position.top}px`, 
+    left: `${position.left}px`,
+    zIndex: 1000 
+  })
 
   return (
     <Box

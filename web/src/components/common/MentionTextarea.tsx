@@ -33,45 +33,29 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
       const textArea = textareaRef.current
       const caretOffset = textArea.selectionStart || 0
       
-      // Create a mirror div to calculate position
-      const div = document.createElement('div')
-      const style = window.getComputedStyle(textArea)
-      
-      div.style.position = 'absolute'
-      div.style.visibility = 'hidden'
-      div.style.whiteSpace = 'pre-wrap'
-      div.style.wordWrap = 'break-word'
-      div.style.font = style.font
-      div.style.lineHeight = style.lineHeight
-      div.style.padding = style.padding
-      div.style.border = style.border
-      div.style.boxSizing = style.boxSizing
-      div.style.width = style.width
-      
-      document.body.appendChild(div)
-      
-      const textBeforeCaret = (value as string || '').substring(0, caretOffset)
-      div.textContent = textBeforeCaret
-      
-      const span = document.createElement('span')
-      span.textContent = '|' // Cursor marker
-      div.appendChild(span)
-      
+      // Simple fallback positioning - place dropdown below textarea
       const rect = textArea.getBoundingClientRect()
-      const spanRect = span.getBoundingClientRect()
       
-      document.body.removeChild(div)
+      console.log('[getCaretCoordinates] TextArea rect:', rect)
+      console.log('[getCaretCoordinates] CaretOffset:', caretOffset)
       
-      return {
-        top: spanRect.top - rect.top + textArea.scrollTop + 20,
-        left: spanRect.left - rect.left
+      // For now, use a simple approach - position dropdown at the bottom-left of textarea
+      // TODO: Later we can implement proper cursor positioning
+      const position = {
+        top: rect.height + 5, // Just below the textarea
+        left: 0 // Align with textarea left edge
       }
+      
+      console.log('[getCaretCoordinates] Calculated position:', position)
+      return position
     }, [value])
 
     // Handle text changes and mention detection
     const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value
       const cursorPosition = e.target.selectionStart || 0
+      
+      console.log('[MentionTextarea] Text changed:', { newValue, cursorPosition, mentionItems: mentionItems.length })
       
       // Call original onChange
       if (onChange) {
@@ -80,8 +64,10 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
 
       // Detect mention at cursor
       const mentionInfo = detectMentionAtCursor(newValue, cursorPosition)
+      console.log('[MentionTextarea] Mention detection result:', mentionInfo)
       
       if (mentionInfo) {
+        console.log('[MentionTextarea] Setting up mention dropdown')
         setMentionStart(mentionInfo.mentionStart)
         setMentionQuery(mentionInfo.query)
         setShowDropdown(true)
@@ -89,14 +75,17 @@ export const MentionTextarea = forwardRef<HTMLTextAreaElement, MentionTextareaPr
         
         // Filter items based on query
         const filtered = filterMentionItems(mentionItems, mentionInfo.query)
+        console.log('[MentionTextarea] Filtered items:', filtered.length, filtered.slice(0, 3).map(i => i.name))
         setFilteredItems(filtered)
         
         // Calculate dropdown position
         setTimeout(() => {
           const position = getCaretCoordinates()
+          console.log('[MentionTextarea] Dropdown position:', position)
           setDropdownPosition(position)
         }, 0)
       } else {
+        console.log('[MentionTextarea] Hiding dropdown')
         setShowDropdown(false)
         setMentionQuery('')
         setMentionStart(-1)

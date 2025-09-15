@@ -51,10 +51,16 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
 
     // Create mention items from tables and models
     const mentionItems = useMemo(() => {
-      if (!toolContext.dbInfo) return []
+      if (!toolContext.dbInfo) {
+        console.log('[ChatInputArea] No dbInfo available')
+        return []
+      }
       const tables = toolContext.dbInfo.tables || []
       const models = toolContext.dbInfo.models || []
-      return createMentionItems(tables, models)
+      console.log('[ChatInputArea] Creating mention items:', { tableCount: tables.length, modelCount: models.length })
+      const items = createMentionItems(tables, models)
+      console.log('[ChatInputArea] Created mention items:', items.length, items.slice(0, 3).map(i => i.name))
+      return items
     }, [toolContext.dbInfo])
 
     // Sync with redux instructions when they change
