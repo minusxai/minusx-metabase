@@ -88,6 +88,12 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
     const updateContent = useCallback((text: string) => {
       if (!editableRef.current) return
       
+      // If text is empty, clear innerHTML to show placeholder
+      if (!text.trim()) {
+        editableRef.current.innerHTML = ''
+        return
+      }
+      
       // Convert storage format mentions to display format
       const displayText = convertMentionsToDisplay(text, mentionItems)
       
