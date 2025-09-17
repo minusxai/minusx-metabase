@@ -339,8 +339,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         </HStack>
         <HStack justifyContent={'space-between'} mt={1}>
             <MXMode />
-            <HStack gap={1} justifyContent={'center'} alignItems={'center'}  aria-label='mx-agent-selector'>
-              {/* <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} display={"flex"} justifyContent={"center"} alignItems={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BsFillInfoSquareFill} boxSize={3} /></Link></Text> */}
+            {/* <HStack gap={1} justifyContent={'center'} alignItems={'center'}  aria-label='mx-agent-selector'>
                 <Menu>
                 <MenuButton
                   as={Button}
@@ -374,7 +373,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
                 <Tooltip hasArrow label="What are MinusX Agents?" placement='bottom' borderRadius={5} openDelay={500}>
                   <Text fontSize="xs" color={"minusxGreen.600"}><Link width={"100%"} textAlign={"center"} display={"flex"} justifyContent={"center"} alignItems={"center"} href="https://docs.minusx.ai/en/articles/11814763-agents-overview" isExternal><Icon as={BsFillPatchQuestionFill} boxSize={4} /></Link></Text>
                 </Tooltip>
-            </HStack>
+            </HStack> */}
         </HStack>
       </VStack>
       {sidePanelTabName === 'chat' ? <TaskUI ref={ref} /> : null}
