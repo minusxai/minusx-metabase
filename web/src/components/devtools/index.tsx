@@ -101,7 +101,7 @@ export const DevToolsBox: React.FC = () => {
     const isAllowedByEnv = configs.IS_DEV || Monitor.tags?.includes('production')
 
     if (isEmbedded && !configs.IS_DEV) {
-        if (Monitor.title === 'History' || Monitor.title === 'Memory') {
+        if (Monitor.title === 'History' || Monitor.title === 'Memory' || Monitor.title === 'Team Memory') {
             return true
         }
         if (isInfoPageEnabled && Monitor.title == 'Debug Tools') {
