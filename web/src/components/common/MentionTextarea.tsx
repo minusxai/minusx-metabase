@@ -29,12 +29,12 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
 
     // Rotating placeholder
     const [placeholderIndex, setPlaceholderIndex] = useState(0)
-    const placeholders = ['Ask Anything!', 'Tip: Use @ to mention tables and models']
+    const placeholders = ['Ask Anything!', 'Tip: Use @ to mention tables or models']
     
     useEffect(() => {
       const interval = setInterval(() => {
         setPlaceholderIndex(prev => (prev + 1) % placeholders.length)
-      }, 10000)
+      }, 5000)
       
       return () => clearInterval(interval)
     }, [])
