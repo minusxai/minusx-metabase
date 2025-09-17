@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch } from "@chakra-ui/react";
+import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch, Mark } from "@chakra-ui/react";
 import { BiChevronDown, BiCheck, BiBuildings, BiGroup } from "react-icons/bi";
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { useSelector } from 'react-redux';
@@ -111,7 +111,7 @@ export const TeamMemory: React.FC = () => {
                         >
                             {availableAssets.map((asset) => (
                                 <MenuItem
-                                    key={asset.slug}
+                                    key={`${asset.company_slug}-${asset.slug}`}
                                     onClick={() => handleAssetSelection(asset.slug)}
                                     bg="white"
                                     _hover={{
@@ -277,7 +277,7 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
                             maxHeight="200px"
                             overflowY="auto"
                         >
-                            <Markdown content={asset.content.text === '' ? '> Note: Text context is empty' : asset.content.text} />
+                            {asset.content.text && asset.content.text.trim() !== '' ? <Markdown content={asset.content.text} /> : <Markdown content="> Note: Text context is empty" />}
                         </Box>
                         
                         {/* Render entities as a list */}
