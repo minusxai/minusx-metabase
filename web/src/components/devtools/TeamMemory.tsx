@@ -26,12 +26,12 @@ interface HelperText {
 
 export const TeamMemory: React.FC = () => {
     const tool = getParsedIframeInfo().tool
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
     const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
     const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
     const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
     const useTeamMemory = useSelector((state: RootState) => state.settings.useTeamMemory)
 
-    
     const handleAssetSelection = (assetSlug: string) => {
         dispatch(setSelectedAssetId(assetSlug === '' ? null : assetSlug))
     }
@@ -68,7 +68,7 @@ export const TeamMemory: React.FC = () => {
         </HStack>
         
         {/* Asset Selection Section */}
-        <Box position="relative">
+        <Box position="relative" minH={"500px"}>
             <VStack align="stretch" spacing={4} mb={4}>
             <VStack align="stretch" spacing={2}>
                 {assetsLoading ? (
@@ -232,7 +232,7 @@ export const TeamMemory: React.FC = () => {
             </VStack>
             {!useTeamMemory && (
                 <DisabledOverlay 
-                    toolEnabledReason="Turn on the **USE TEAM MEMORY** switch above to use your organization's assets and team context." 
+                    toolEnabledReason={isEmbedded ? "Turn on the **USE TEAM MEMORY** switch above to let the AI use your organization's assets and team context." : "Turn on the **USE TEAM MEMORY** switch above to let MinusX use your organization's assets and team context."}
                     local={true}
                 />
             )}
