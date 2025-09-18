@@ -461,16 +461,16 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         }
 
         // 2. All cases when the input box should be enabled, but an alert shown
-        if (toolContext.pageType === 'mbql'){
-            return {
-                inputBox: true,
-                alert: {
-                    message: "Question Builder feature is new and still in progress. Some things might not work just yet.",
-                    type: "info",
-                    title: "Try Question Builder!"
-                }
-            }
-        }
+        // if (toolContext.pageType === 'mbql'){
+        //     return {
+        //         inputBox: true,
+        //         alert: {
+        //             message: "Question Builder feature is new and still in progress. Some things might not work just yet.",
+        //             type: "info",
+        //             title: "Try Question Builder!"
+        //         }
+        //     }
+        // }
         if (!drMode) {
             return {
                 inputBox: false,
