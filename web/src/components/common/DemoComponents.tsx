@@ -16,7 +16,7 @@ export const DemoHelperMessage = ({url}: {url: string}) => {
   const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
                             (availableAssets.length > 0 ? availableAssets[0] : null)
 
-  const teamHelperMessage = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.helpertexts?.filter(text => url.includes(text.url) && text.is_published).map(t => t.text)?.[0] : null
+  const teamHelperMessage = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.helpertexts?.filter(text => url.includes(new URL(text.url).pathname) && text.is_published).map(t => t.text)?.[0] : null
 
   const helperMessage = useAppStore((state) => state.helperMessage)
   if (!helperMessage && !teamHelperMessage) {
@@ -39,7 +39,7 @@ export const DemoSuggestions = ({url}: {url: string}) => {
                          (availableAssets.length > 0 ? availableAssets[0] : null)
 
     const personalQuestions = showSavedQuestions ? savedQuestions : []
-    const teamQuestions = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.questions?.filter(q => q.is_published && url.includes(q.source_url)).map(q => q.content) : []
+    const teamQuestions = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.questions?.filter(q => q.is_published && url.includes(new URL(q.source_url).pathname)).map(q => q.content) : []
     const allQuestions = [...personalQuestions, ...teamQuestions]
         
 
