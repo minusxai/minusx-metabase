@@ -215,7 +215,7 @@ export const TeamMemory: React.FC = () => {
                         No Assets Available
                     </Text>
                     <Text fontSize="xs" color="gray.500" lineHeight="1.4" maxWidth="300px">
-                        Contact MinusX to set up your organization's assets and unlock enhanced AI context capabilities.
+                        {isEmbedded ? "" : "Contact MinusX to set up your organization's assets and unlock enhanced AI context capabilities."}
                     </Text>
                 </VStack>
             )}
