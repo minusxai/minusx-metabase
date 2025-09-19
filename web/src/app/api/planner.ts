@@ -35,16 +35,7 @@ export const getLLMResponse = async (payload: any, signal?: AbortSignal, deepres
       }
       if (axios.isAxiosError(error) && error.response) {
         if (error.response.status === 401 || error.response.status === 403) {
-          logoutState();
-          toast({
-            title: 'Unauthorized',
-            description: "Please login again",
-            status: 'error',
-            duration: 5000,
-            isClosable: true,
-            position: 'bottom-right',
-          })
-          throw new Error("Unauthorized, please login again")
+          throw new Error("Authentication error occurred.")
         } else if (error.response.status === 402) {
           // Hack to capture billing event
           dispatch({
