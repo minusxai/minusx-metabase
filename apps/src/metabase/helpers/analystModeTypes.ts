@@ -61,7 +61,7 @@ const fieldsToRemove = [
   'can_write',
   'card_schema',
   // 'dashboard_count',
-  'creator_id',
+  // 'creator_id',
   'can_restore',
   'moderation_reviews',
   'can_manage_db',
@@ -69,7 +69,7 @@ const fieldsToRemove = [
   'last-edit-info',
   'metabase_version',
   'dashboard',
-  'dashboard_id',
+  // 'dashboard_id',
   'parameter_usage_count', // this seems to always be 0 so removing
   'public_uuid',
   'can_delete'
