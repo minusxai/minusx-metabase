@@ -42,7 +42,7 @@ export interface MetabaseAppStateDashboardV2 extends MetabaseAppStateBase {
 
 const fieldsToRemove = [
   'cache_invalidated_at',
-  'archived', 
+  // 'archived', 
   'collection_position',
   'source_card_id',
   'creator',
@@ -55,12 +55,12 @@ const fieldsToRemove = [
   'collection_preview',
   // more useless stuff to remove
   'displayIsLocked',
-  'view_count',
+  // 'view_count',
   'table_id',
   'can_run_adhoc_query',
   'can_write',
   'card_schema',
-  'dashboard_count',
+  // 'dashboard_count',
   'creator_id',
   'can_restore',
   'moderation_reviews',
