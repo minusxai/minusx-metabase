@@ -81,6 +81,7 @@ const SavedQuestions = () => {
 
 export const MinusXMD: React.FC = () => {
     const tool = getParsedIframeInfo().tool
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
     const useMemory = useSelector((state: RootState) => state.settings.useMemory)
     
     const handleMemoryToggle = (checked: boolean) => {
@@ -109,9 +110,10 @@ export const MinusXMD: React.FC = () => {
                 </HStack>
             </HStack>
         </HStack>
-        <HStack>
+        { !isEmbedded && <HStack>
             <Link href={"https://docs.minusx.ai/en/articles/11675800-memory-minusx-md"} isExternal display={"flex"} alignItems={"center"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} textDecoration={"underline"}>What is "Memory" and how does it work? <BsFillPatchQuestionFill /></Link>
         </HStack>
+        }
         </VStack>
         
         <Box position="relative">
