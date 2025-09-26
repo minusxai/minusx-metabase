@@ -656,7 +656,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                         </HStack>
                     </Box>
                     <HStack justifyContent="space-between" fontSize="sm" gap={1} width={"100%"}>
-                        <Tooltip 
+                        {/* <Tooltip 
                             hasArrow 
                             placement='right' 
                             borderRadius={5} 
@@ -687,7 +687,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                                     </HStack>
                                 </VStack>
                             </Box>
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip 
                             hasArrow 
                             placement='top' 
@@ -695,6 +695,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                             label={`Personal memory is ${useMemory ? 'enabled' : 'disabled'}`}
                         >
                             <Box 
+                                flex={1}
                                 bg="minusxBW.200" 
                                 px={2} 
                                 py={1} 
@@ -727,6 +728,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                         >
                             <Box 
                                 bg="minusxBW.200"
+                                flex={1}
                                 px={2} 
                                 py={1} 
                                 borderRadius="md" 

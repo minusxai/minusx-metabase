@@ -29,7 +29,7 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
 
     // Rotating placeholder
     const [placeholderIndex, setPlaceholderIndex] = useState(0)
-    const placeholders = ['Ask Anything!', 'Tip: Use @ to mention tables or models']
+    const placeholders = ['Ask anything!', 'Tip: Use @ to mention any tables or models']
     
     useEffect(() => {
       const interval = setInterval(() => {
@@ -91,11 +91,15 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
     const getCursorPosition = useCallback(() => {
       const sel = window.getSelection()
       if (!sel?.rangeCount || !editableRef.current) return 0
-      
+
       const range = sel.getRangeAt(0).cloneRange()
       range.selectNodeContents(editableRef.current)
       range.setEnd(sel.getRangeAt(0).startContainer, sel.getRangeAt(0).startOffset)
-      return range.toString().length
+
+      // Create a temporary div to get innerText (consistent with getTextContent)
+      const tempDiv = document.createElement('div')
+      tempDiv.appendChild(range.cloneContents())
+      return (tempDiv.innerText || tempDiv.textContent || '').length
     }, [])
 
     // Update content with highlighted mentions
@@ -103,7 +107,7 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
       if (!editableRef.current) return
       
       // If text is empty, clear innerHTML to show placeholder
-      if (!text.trim()) {
+      if (text.length === 0) {
         editableRef.current.innerHTML = ''
         return
       }
@@ -140,11 +144,29 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
       editableRef.current.innerHTML = html
     }, [mentionItems])
 
+    // Handle paste events for immediate formatting
+    const handlePaste = useCallback((_e: React.ClipboardEvent<HTMLDivElement>) => {
+      // Let the paste happen first, then immediately format
+      setTimeout(() => {
+        const newValue = getTextContent()
+        const cursorPosition = getCursorPosition()
+
+        // Call original onChange
+        if (onChange) {
+          onChange({ target: { value: newValue } })
+        }
+
+        // Immediately update content for paste
+        updateContent(newValue)
+        setCursorPosition(cursorPosition)
+      }, 0)
+    }, [getTextContent, getCursorPosition, onChange, updateContent, setCursorPosition])
+
     // Handle input changes
-    const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
+    const handleInput = useCallback((_e: React.FormEvent<HTMLDivElement>) => {
       const newValue = getTextContent()
       const cursorPosition = getCursorPosition()
-      
+
       // Call original onChange
       if (onChange) {
         onChange({ target: { value: newValue } })
@@ -258,14 +280,14 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
 
       // Call original onKeyDown
       if (onKeyDown) {
-        onKeyDown(e)
+        onKeyDown(e as unknown as React.KeyboardEvent<HTMLTextAreaElement>)
       }
     }, [showDropdown, filteredItems, selectedIndex, handleMentionSelect, onKeyDown])
 
     // Update content when value prop changes (only if not focused)
     useEffect(() => {
       if (value !== undefined && editableRef.current && document.activeElement !== editableRef.current) {
-        updateContent(value)
+        updateContent(String(value))
       }
     }, [value, updateContent])
 
@@ -308,6 +330,7 @@ export const MentionTextarea = forwardRef<HTMLDivElement, MentionTextareaProps>(
             suppressContentEditableWarning
             onInput={handleInput}
             onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
             minH="48px"
             maxHeight={300}
             overflow="auto"
