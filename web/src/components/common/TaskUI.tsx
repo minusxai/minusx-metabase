@@ -742,7 +742,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                                         <Text fontSize="xs" fontWeight="medium">Team Memory</Text>
                                     </HStack>
                                     <HStack spacing={1} alignItems="center">
-                                        <Text fontSize="xs" color="gray.500">{useTeamMemory ? (selectedAssetName.length > 8 ? `${selectedAssetName.slice(0, 8)}...` : selectedAssetName) : 'Disabled'}</Text>
+                                        <Text fontSize="xs" color="gray.500">{useTeamMemory ? (selectedAssetName.length > 8 ? `${selectedAssetName.slice(0, 12)}...` : selectedAssetName) : 'Disabled'}</Text>
                                         <Icon 
                                             as={useTeamMemory ? BiSolidCheckCircle : BiSolidXCircle}
                                             size={10} 

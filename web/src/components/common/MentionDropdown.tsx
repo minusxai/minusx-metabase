@@ -3,7 +3,8 @@ import {
   Box, 
   VStack, 
   Text, 
-  useColorModeValue 
+  useColorModeValue, 
+  Badge
 } from '@chakra-ui/react'
 import { MentionItem } from '../../helpers/mentionUtils'
 
@@ -67,6 +68,7 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
               _hover={{ bg: hoverBgColor, color: hoverTextColor }}
               cursor="pointer"
               borderRadius="sm"
+              borderBottom="1px solid #eee"
               onClick={() => onSelect(item)}
               role="option"
               aria-selected={isSelected}
@@ -75,17 +77,13 @@ export const MentionDropdown: React.FC<MentionDropdownProps> = ({
               <Text fontWeight="medium" fontSize="sm">
                 @{item.name}
               </Text>
-              <Text fontSize="xs" color={typeColor} textTransform="uppercase">
-                {item.type}
+              <Text fontSize="xs" textTransform="uppercase">
+                <Badge mr={1} color={typeColor}>{item.type}</Badge>
+                {(item.schema || item.collection) && <Badge color={"#333"}>{item.type === 'table' ? `Schema: ${item.schema}` : `Collection: ${item.collection}`}</Badge>}
               </Text>
               {item.description && (
                 <Text fontSize="xs" noOfLines={1} mt={1}>
                   {item.description}
-                </Text>
-              )}
-              {(item.schema || item.collection) && (
-                <Text fontSize="xs" color="gray.500" noOfLines={1}>
-                  {item.type === 'table' ? `Schema: ${item.schema}` : `Collection: ${item.collection}`}
                 </Text>
               )}
             </Box>

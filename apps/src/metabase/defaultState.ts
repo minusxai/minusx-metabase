@@ -145,10 +145,9 @@ export const metabaseInternalState: MetabaseInternalState = {
 
 ---
 
-\`[badge]✨Product Update✨\`  \n #### Launching: **Review Mode**
-Review Mode lets you accept or tweak MinusX's SQL changes with a clean side-by-side diff. Iterate and perfect complex queries faster! [[Read more](https://docs.minusx.ai/en/articles/10510685-review-mode)]
+\`[badge]✨Product Update✨\` \n#### Launching: **Mentions**
+Mention specific tables and models for MinusX to focus on. Type "@" to see all entities. [[Read more](https://docs.minusx.ai/en/articles/12429148-mentions-table-model)]
 
-[![img](https://minusx.ai/app_assets/review_mode.gif)](https://docs.minusx.ai/en/articles/10510685-review-mode)
-
+[![img](https://minusx.ai/app_assets/mentions.gif)](https://docs.minusx.ai/en/articles/12429148-mentions-table-model)
 `,
 };
