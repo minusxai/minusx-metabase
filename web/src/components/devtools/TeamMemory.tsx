@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
-import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch, Mark } from "@chakra-ui/react";
+import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch, Mark, Link } from "@chakra-ui/react";
 import { BiChevronDown, BiCheck, BiBuildings, BiGroup } from "react-icons/bi";
+import { BsFillPatchQuestionFill } from "react-icons/bs";
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -50,7 +51,8 @@ export const TeamMemory: React.FC = () => {
     }
 
     return <>
-        <HStack justify="space-between" align="center" mb={4}>
+        <VStack width={"100%"} align="stretch" spacing={0} mb={2}>
+        <HStack justify="space-between" align="center" width={"100%"}>
             <Text fontSize="2xl" fontWeight="bold">Team Memory</Text>
             <HStack spacing={3} align="center">
                 <HStack spacing={2} align="center">
@@ -66,6 +68,10 @@ export const TeamMemory: React.FC = () => {
                 </HStack>
             </HStack>
         </HStack>
+        <HStack>
+            <Link href={"https://docs.minusx.ai/en/articles/12426829-team-memory"} isExternal display={"flex"} alignItems={"center"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} textDecoration={"underline"}>What is "Team Memory" and how to set it up? <BsFillPatchQuestionFill /></Link>
+        </HStack>
+        </VStack>
         
         {/* Asset Selection Section */}
         <Box position="relative" minH={"500px"}>

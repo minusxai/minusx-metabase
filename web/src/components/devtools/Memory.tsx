@@ -1,6 +1,6 @@
 import React from "react"
-import { Text, HStack, Switch, Box, VStack, Button, IconButton } from "@chakra-ui/react";
-import { BsTrash } from 'react-icons/bs';
+import { Text, HStack, Switch, Box, VStack, Button, IconButton, Link } from "@chakra-ui/react";
+import { BsTrash, BsFillPatchQuestionFill } from 'react-icons/bs';
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { AdditionalContext } from '../common/AdditionalContext';
 import { DisabledOverlay } from '../common/DisabledOverlay';
@@ -92,7 +92,8 @@ export const MinusXMD: React.FC = () => {
     }
 
     return <>
-        <HStack justify="space-between" align="center" mb={4}>
+        <VStack width={"100%"} align="stretch" spacing={0} mb={2}>
+        <HStack justify="space-between" align="center" width={"100%"}>
             <Text fontSize="2xl" fontWeight="bold">Memory</Text>
             <HStack spacing={3} align="center">
                 <HStack spacing={2} align="center">
@@ -108,6 +109,10 @@ export const MinusXMD: React.FC = () => {
                 </HStack>
             </HStack>
         </HStack>
+        <HStack>
+            <Link href={"https://docs.minusx.ai/en/articles/11675800-memory-minusx-md"} isExternal display={"flex"} alignItems={"center"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} textDecoration={"underline"}>What is "Memory" and how does it work? <BsFillPatchQuestionFill /></Link>
+        </HStack>
+        </VStack>
         
         <Box position="relative">
             <AdditionalContext />
