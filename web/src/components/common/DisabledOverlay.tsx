@@ -29,7 +29,9 @@ export function DisabledOverlay({ toolEnabledReason, local = false }: { toolEnab
       zIndex={1000}
       display="flex"
       alignItems="center"
-      justifyContent="center"
+      justifyContent="flex-start"
+      flexDirection={"column"}
+      pt={"200px"}
     >
       <Flex
         direction="column"
