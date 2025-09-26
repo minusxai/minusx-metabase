@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
-import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch, Mark, Link } from "@chakra-ui/react";
-import { BiChevronDown, BiCheck, BiBuildings, BiGroup } from "react-icons/bi";
+import { Text, Box, HStack, Badge, VStack, Spinner, Menu, MenuButton, MenuList, MenuItem, Button, Icon, Switch, Mark, Link, Accordion, AccordionItem, AccordionButton, AccordionPanel } from "@chakra-ui/react";
+import { BiChevronDown, BiChevronRight, BiCheck, BiBuildings, BiGroup } from "react-icons/bi";
 import { BsFillPatchQuestionFill } from "react-icons/bs";
 import { getParsedIframeInfo } from "../../helpers/origin"
 import { useSelector } from 'react-redux';
@@ -10,9 +10,9 @@ import { setSelectedAssetId, setUseTeamMemory } from '../../state/settings/reduc
 import { CodeBlock } from '../common/CodeBlock';
 import { DisabledOverlay } from '../common/DisabledOverlay';
 import { Markdown } from '../common/Markdown';
-import { Notify } from '../common/Notify';
-
-
+import { MetabaseContext } from 'apps/types';
+import { getApp } from '../../helpers/app';
+const useAppStore = getApp().useStore()
 interface Question {
     content: string;
     source_url: string;
@@ -25,13 +25,19 @@ interface HelperText {
     is_published: boolean;
 }
 
+// type AssetType = 'context' | 'notes' | 'scheduled_report' | 'alert'
+
 export const TeamMemory: React.FC = () => {
     const tool = getParsedIframeInfo().tool
     const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
-    const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
+    const availableAssets = useSelector((state: RootState) => state.settings.availableAssets).filter((asset) => asset?.type === 'context')
     const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
     const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
     const useTeamMemory = useSelector((state: RootState) => state.settings.useTeamMemory)
+    const toolContext: MetabaseContext = useAppStore((state) => state.toolContext)
+    const dbInfo = toolContext.dbInfo
+    const allTables = dbInfo.tables || []
+    const allModels = dbInfo.models|| []
 
     const handleAssetSelection = (assetSlug: string) => {
         dispatch(setSelectedAssetId(assetSlug === '' ? null : assetSlug))
@@ -49,6 +55,14 @@ export const TeamMemory: React.FC = () => {
     if (tool != 'metabase') {
         return <Text>Coming soon!</Text>
     }
+
+    const blackListedEntities = selectedAsset?.content?.entity_blacklist?.filter(entity => entity.database_id === dbInfo.id) || []
+
+    const blackListedTableIds = blackListedEntities.filter((entity: any) => entity.type === 'table').map((entity: any) => String(entity.id))
+    const blacListedModelIds = blackListedEntities.filter((entity: any) => entity.type === 'model').map((entity: any) => String(entity.id))
+
+    const finTables = allTables.filter(table => !blackListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
+    const finModels = allModels.filter(model => !blacListedModelIds.includes(String(model.modelId))).filter(model => model.dbId === dbInfo.id).sort((a, b) => String(a.collectionName).localeCompare(String(b.collectionName)) || a.name.localeCompare(b.name))
 
     return <>
         <VStack width={"100%"} align="stretch" spacing={0} mb={2}>
@@ -68,9 +82,9 @@ export const TeamMemory: React.FC = () => {
                 </HStack>
             </HStack>
         </HStack>
-        <HStack>
+        { !isEmbedded && <HStack>
             <Link href={"https://docs.minusx.ai/en/articles/12426829-team-memory"} isExternal display={"flex"} alignItems={"center"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} textDecoration={"underline"}>What is "Team Memory" and how to set it up? <BsFillPatchQuestionFill /></Link>
-        </HStack>
+        </HStack>}
         </VStack>
         
         {/* Asset Selection Section */}
@@ -164,7 +178,7 @@ export const TeamMemory: React.FC = () => {
                         </Text>
                         
                         <HStack justify="space-between" align="center">
-                            <HStack spacing={4}>
+                            <HStack spacing={4} width={"100%"} justify="space-between">
                                 <VStack align="start" spacing={0}>
                                     <Text fontSize="xs" color="gray.500" fontWeight="medium">TEAM</Text>
                                     <HStack spacing={1} align="center">
@@ -193,7 +207,6 @@ export const TeamMemory: React.FC = () => {
                                         </Text>
                                     </VStack>
                                 )}
-                            </HStack>
                             
                             <VStack align="end" spacing={0}>
                                 <Text fontSize="xs" color="gray.500" fontWeight="medium">TYPE</Text>
@@ -201,6 +214,7 @@ export const TeamMemory: React.FC = () => {
                                     {selectedAsset.type}
                                 </Badge>
                             </VStack>
+                            </HStack>
                         </HStack>
                         
                         <HStack justify="space-between" align="center" pt={1}>
@@ -210,7 +224,7 @@ export const TeamMemory: React.FC = () => {
                         </HStack>
                     </VStack>
                     
-                    <AssetContentDisplay asset={selectedAsset} />
+                    <AssetContentDisplay asset={selectedAsset} finTables={finTables} finModels={finModels} />
                 </VStack>
             )}
             
@@ -247,7 +261,7 @@ export const TeamMemory: React.FC = () => {
 }
 
 // Component to display asset content based on type
-const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
+const AssetContentDisplay: React.FC<{ asset: any; finTables: any[]; finModels: any[] }> = ({ asset, finTables, finModels }) => {
     if (!asset.content) {
         return (
             <VStack spacing={2} py={4} align="start">
@@ -264,138 +278,217 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
             </VStack>
         );
     }
-
     const renderContent = () => {
         if (asset.type === 'context') {
             // Check if content has the new structure with 'text' and 'entities'
             if (asset.content && typeof asset.content === 'object') {
                 return (
-                    <VStack align="stretch" spacing={4}>
-                        {/* Render text as markdown */}
-                        <Text fontSize="sm" fontWeight="semibold" color="gray.700">
-                            Text Context
-                        </Text>
-                        <Box 
-                            border="1px solid" 
-                            borderColor="gray.200"
-                            borderRadius="md" 
-                            p={3}
-                            maxHeight="200px"
-                            overflowY="auto"
-                        >
-                            {asset.content.text && asset.content.text.trim() !== '' ? <Markdown content={asset.content.text} /> : <Markdown content="> Note: Text context is empty" />}
-                        </Box>
-                        
-                        {/* Render entities as a list */}
-                        {asset.content.entities && asset.content.entities.length > 0 && (
-                            <VStack align="stretch" spacing={3}>
-                                <Text fontSize="sm" fontWeight="semibold" color="gray.700" borderTop="1px solid" borderColor="gray.300" pt={5}>
-                                    Entities ({asset.content.entities.length})
-                                </Text>
-                                <VStack align="stretch" spacing={2} maxHeight="200px" overflowY="auto">
-                                    {asset.content.entities.map((entity: any, index: number) => (
-                                        <HStack 
-                                            key={index}
-                                            p={3}
-                                            border="1px solid" 
-                                            borderColor="gray.200"
-                                            borderRadius="md"
-                                            spacing={3}
-                                            justify="flex-start"
+                    <Accordion allowMultiple defaultIndex={[0]}>
+                        <AccordionItem>
+                            {({ isExpanded }) => (
+                                <>
+                                    <AccordionButton>
+                                        <Box as="span" flex="1" textAlign="left">
+                                            <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                                Text Context
+                                            </Text>
+                                        </Box>
+                                        <Icon as={isExpanded ? BiChevronDown : BiChevronRight} />
+                                    </AccordionButton>
+                                    <AccordionPanel pb={4}>
+                                        <Box
+                                            maxHeight="200px"
+                                            overflowY="auto"
                                         >
-                                            {entity.name && (
-                                                <Text fontSize="sm" fontWeight="medium" color="gray.800">
-                                                    {entity.name}
+                                            {asset.content.text && asset.content.text.trim() !== '' ? <Markdown content={asset.content.text} /> : <Markdown content="> Note: Text context is empty" />}
+                                        </Box>
+                                    </AccordionPanel>
+                                </>
+                            )}
+                        </AccordionItem>
+
+                        {finTables && finTables.length > 0 && (
+                            <AccordionItem>
+                                {({ isExpanded }) => (
+                                    <>
+                                        <AccordionButton>
+                                            <Box as="span" flex="1" textAlign="left">
+                                                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                                    Filtered Tables ({finTables.length})
                                                 </Text>
-                                            )}
-                                            {entity.id && (
-                                                <Badge colorScheme="green" variant="subtle" fontSize="xs">
-                                                    ID: {entity.id}
-                                                </Badge>
-                                            )}
-                                            {entity.type && (
-                                                <Badge colorScheme="red" variant="subtle" fontSize="xs">
-                                                    {entity.type}
-                                                </Badge>
-                                            )}
-                                        </HStack>
-                                    ))}
-                                </VStack>
-                            </VStack>
+                                            </Box>
+                                            <Icon as={isExpanded ? BiChevronDown : BiChevronRight} />
+                                        </AccordionButton>
+                                        <AccordionPanel pb={4}>
+                                            <VStack align="stretch" spacing={2} maxHeight="200px" overflowY="auto">
+                                                {finTables.map((table, index) => (
+                                                    <HStack
+                                                        key={index}
+                                                        pb={2}
+                                                        borderBottom="1px solid"
+                                                        borderColor="gray.200"
+                                                        borderRadius="md"
+                                                        spacing={3}
+                                                        justify="flex-start"
+                                                    >
+                                                        <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                            {table.name}
+                                                        </Text>
+                                                        <Badge colorScheme="blue" variant="subtle" fontSize="xs">
+                                                            ID: {table.id}
+                                                        </Badge>
+                                                        {table.schema && (
+                                                            <Badge colorScheme="purple" variant="subtle" fontSize="xs">
+                                                                Schema: {table.schema}
+                                                            </Badge>
+                                                        )}
+                                                    </HStack>
+                                                ))}
+                                            </VStack>
+                                        </AccordionPanel>
+                                    </>
+                                )}
+                            </AccordionItem>
                         )}
 
-                        {
-                            asset.content.questions && asset.content.questions.length > 0 && (
-                                <VStack align="stretch" spacing={3} borderTop="1px solid" borderColor="gray.300" pt={5}>
-                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700">
-                                        Saved Questions ({asset.content.questions.length})
-                                    </Text>
-                                    {asset.content.questions.map((question: Question, index: number) => (
-                                        <VStack 
-                                            key={index}
-                                            p={3}
-                                            border="1px solid" 
-                                            borderColor="gray.200"
-                                            borderRadius="md"
-                                            spacing={2}
-                                            align="flex-start"
-                                        >
-                                            {question.content && (
-                                                <Text fontSize="sm" fontWeight="medium" color="gray.800">
-                                                    {question.content}
+                        {finModels && finModels.length > 0 && (
+                            <AccordionItem>
+                                {({ isExpanded }) => (
+                                    <>
+                                        <AccordionButton>
+                                            <Box as="span" flex="1" textAlign="left">
+                                                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                                    Filtered Models ({finModels.length})
                                                 </Text>
-                                            )}
-                                            {question.source_url && (
-                                                <Text fontSize="xs" color="blue.600" textDecoration="underline">
-                                                    {question.source_url}
-                                                </Text>
-                                            )}
-                                            {question.is_published !== undefined && (
-                                                <Badge colorScheme={question.is_published ? "green" : "orange"} variant="subtle" fontSize="xs">
-                                                    {question.is_published ? "Published" : "Draft"}
-                                                </Badge>
-                                            )}
-                                        </VStack>
-                                    ))}
-                                </VStack>
-                            )}
+                                            </Box>
+                                            <Icon as={isExpanded ? BiChevronDown : BiChevronRight} />
+                                        </AccordionButton>
+                                        <AccordionPanel pb={4}>
+                                            <VStack align="stretch" spacing={2} maxHeight="200px" overflowY="auto">
+                                                {finModels.map((model, index) => (
+                                                    <HStack
+                                                        key={index}
+                                                        pb={2}
+                                                        borderBottom="1px solid"
+                                                        borderColor="gray.200"
+                                                        borderRadius="md"
+                                                        spacing={3}
+                                                        justify="flex-start"
+                                                    >
+                                                        <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                            {model.name}
+                                                        </Text>
+                                                        <Badge colorScheme="blue" variant="subtle" fontSize="xs">
+                                                            ID: {model.modelId}
+                                                        </Badge>
+                                                        <Badge colorScheme="gray" variant="subtle" fontSize="xs">
+                                                            Collection: {model.collectionName}
+                                                        </Badge>
+                                                    </HStack>
+                                                ))}
+                                            </VStack>
+                                        </AccordionPanel>
+                                    </>
+                                )}
+                            </AccordionItem>
+                        )}
 
-                        {
-                            asset.content.helpertexts && asset.content.helpertexts.length > 0 && (
-                                <VStack align="stretch" spacing={3} borderTop="1px solid" borderColor="gray.300" pt={5}>
-                                    <Text fontSize="sm" fontWeight="semibold" color="gray.700">
-                                        Helper Texts ({asset.content.helpertexts.length})
-                                    </Text>
-                                    {asset.content.helpertexts.map((helperText: HelperText, index: number) => (
-                                        <VStack 
-                                            key={index}
-                                            p={3}
-                                            border="1px solid" 
-                                            borderColor="gray.200"
-                                            borderRadius="md"
-                                            spacing={2}
-                                            align="flex-start"
-                                        >
-                                            {helperText.text && (
-                                                <Text fontSize="sm" fontWeight="medium" color="gray.800">
-                                                    {helperText.text}
+                        {asset.content.questions && asset.content.questions.length > 0 && (
+                            <AccordionItem>
+                                {({ isExpanded }) => (
+                                    <>
+                                        <AccordionButton>
+                                            <Box as="span" flex="1" textAlign="left">
+                                                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                                    Saved Questions ({asset.content.questions.length})
                                                 </Text>
-                                            )}
-                                            {helperText.url && (
-                                                <Text fontSize="xs" color="blue.600" textDecoration="underline">
-                                                    {helperText.url}
+                                            </Box>
+                                            <Icon as={isExpanded ? BiChevronDown : BiChevronRight} />
+                                        </AccordionButton>
+                                        <AccordionPanel pb={4}>
+                                            <VStack align="stretch" spacing={2}>
+                                                {asset.content.questions.map((question: Question, index: number) => (
+                                                    <VStack
+                                                        key={index}
+                                                        p={3}
+                                                        border="1px solid"
+                                                        borderColor="gray.200"
+                                                        borderRadius="md"
+                                                        spacing={2}
+                                                        align="flex-start"
+                                                    >
+                                                        {question.content && (
+                                                            <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                                {question.content}
+                                                            </Text>
+                                                        )}
+                                                        {question.source_url && (
+                                                            <Text fontSize="xs" color="blue.600" textDecoration="underline">
+                                                                {question.source_url}
+                                                            </Text>
+                                                        )}
+                                                        {question.is_published !== undefined && (
+                                                            <Badge colorScheme={question.is_published ? "green" : "orange"} variant="subtle" fontSize="xs">
+                                                                {question.is_published ? "Published" : "Draft"}
+                                                            </Badge>
+                                                        )}
+                                                    </VStack>
+                                                ))}
+                                            </VStack>
+                                        </AccordionPanel>
+                                    </>
+                                )}
+                            </AccordionItem>
+                        )}
+
+                        {asset.content.helpertexts && asset.content.helpertexts.length > 0 && (
+                            <AccordionItem>
+                                {({ isExpanded }) => (
+                                    <>
+                                        <AccordionButton>
+                                            <Box as="span" flex="1" textAlign="left">
+                                                <Text fontSize="sm" fontWeight="semibold" color="gray.700">
+                                                    Helper Texts ({asset.content.helpertexts.length})
                                                 </Text>
-                                            )}
-                                            {helperText.is_published !== undefined && (
-                                                <Badge colorScheme={helperText.is_published ? "green" : "orange"} variant="subtle" fontSize="xs">
-                                                    {helperText.is_published ? "Published" : "Draft"}
-                                                </Badge>
-                                            )}
-                                        </VStack>
-                                    ))}
-                                </VStack>
-                            )}
-                    </VStack>
+                                            </Box>
+                                            <Icon as={isExpanded ? BiChevronDown : BiChevronRight} />
+                                        </AccordionButton>
+                                        <AccordionPanel pb={4}>
+                                            <VStack align="stretch" spacing={2}>
+                                                {asset.content.helpertexts.map((helperText: HelperText, index: number) => (
+                                                    <VStack
+                                                        key={index}
+                                                        p={3}
+                                                        border="1px solid"
+                                                        borderColor="gray.200"
+                                                        borderRadius="md"
+                                                        spacing={2}
+                                                        align="flex-start"
+                                                    >
+                                                        {helperText.text && (
+                                                            <Text fontSize="sm" fontWeight="medium" color="gray.800">
+                                                                {helperText.text}
+                                                            </Text>
+                                                        )}
+                                                        {helperText.url && (
+                                                            <Text fontSize="xs" color="blue.600" textDecoration="underline">
+                                                                {helperText.url}
+                                                            </Text>
+                                                        )}
+                                                        {helperText.is_published !== undefined && (
+                                                            <Badge colorScheme={helperText.is_published ? "green" : "orange"} variant="subtle" fontSize="xs">
+                                                                {helperText.is_published ? "Published" : "Draft"}
+                                                            </Badge>
+                                                        )}
+                                                    </VStack>
+                                                ))}
+                                            </VStack>
+                                        </AccordionPanel>
+                                    </>
+                                )}
+                            </AccordionItem>
+                        )}
+                    </Accordion>
                 );
             }
             
@@ -430,14 +523,6 @@ const AssetContentDisplay: React.FC<{ asset: any }> = ({ asset }) => {
     return (
         <VStack align="stretch" spacing={3}>
             {renderContent()}
-            
-            <Notify 
-                title="Team Memory" 
-                notificationType="info"
-            >
-                This asset's context will be included in AI requests to provide more relevant 
-                and accurate responses based on your organization's specific information.
-            </Notify>
         </VStack>
     );
 };
