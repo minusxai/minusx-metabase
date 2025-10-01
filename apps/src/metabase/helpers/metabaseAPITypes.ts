@@ -45,6 +45,7 @@ export interface FormattedTable {
   name: string;
   id: number | string;
   schema: string;
+  display_name?: string;
   columns?: { [key: number | string]: FormattedColumn };
   related_tables_freq?: number[][];
   count?: number;

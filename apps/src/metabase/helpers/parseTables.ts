@@ -5,6 +5,7 @@ export const extractTableInfo = (table: any, includeFields: boolean = false, sch
   name: get(table, 'name', ''),
   ...(get(table, 'description', null) != null && { description: get(table, 'description', null) }),
   schema: get(table, schemaKey, ''),
+  display_name: get(table, 'display_name', ''),
   id: get(table, 'id', 0),
   ...(
     get(table, 'count') ? { count: get(table, 'count') } : {}
