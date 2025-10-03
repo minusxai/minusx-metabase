@@ -238,6 +238,17 @@ const taskResultToContent = (task: Task): ActionChatMessageContent => {
     ? task.result 
     : JSON.stringify(task.result)
     
+  if (task.agent == "TalkToUser") {
+    return {
+      type: 'DEFAULT',
+      text: content,
+      images: [],
+      renderInfo: {
+        text: content,
+        code: undefined,
+      }
+    }
+  }
   return {
     type: 'BLANK',
     content,
