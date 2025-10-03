@@ -188,6 +188,7 @@ const flattenTasks = (tasks: TasksInfo, expandedRootTasks: Set<string> = new Set
     
     if (shouldShowChildren && Array.isArray(task.child_ids) && task.child_ids.length > 0) {
       const childTasks = task.child_ids
+        .flat()
         .map(childId => taskMap.get(childId))
         .filter((child): child is Task => child !== undefined);
       
@@ -201,10 +202,10 @@ const flattenTasks = (tasks: TasksInfo, expandedRootTasks: Set<string> = new Set
   };
 
   // Find root tasks (tasks without parents or whose parents don't exist)
-  const childIds = new Set<string>();
+  const childIds = new Set<number>();
   tasks.forEach(task => {
     if (Array.isArray(task.child_ids)) {
-      task.child_ids.forEach(cid => childIds.add(cid));
+      task.child_ids.flat().forEach(cid => childIds.add(cid));
     }
   });
 
@@ -240,10 +241,10 @@ export const TasksLite: React.FC = () => {
   const rootTasks = useMemo(() => {
     if (!allTasks || allTasks.length === 0) return [];
     const taskMap = new Map(allTasks.map(t => [t.id, t]));
-    const childIds = new Set<string>();
+    const childIds = new Set<number>();
     allTasks.forEach(task => {
         if (Array.isArray(task.child_ids)) {
-            task.child_ids.forEach(cid => childIds.add(cid));
+            task.child_ids.flat().forEach(cid => childIds.add(cid));
         }
     });
     return allTasks.filter(task =>

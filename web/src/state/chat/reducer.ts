@@ -135,7 +135,7 @@ export interface Task {
   parent_id: number | null;
   run_id: string;
   debug: any;
-  child_ids: number[];
+  child_ids: Array<number[]>;
   result: any; // Key field for completion status
 }
 

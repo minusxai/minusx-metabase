@@ -59,7 +59,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
     if (!Array.isArray(task.child_ids)) {
         return [];
     }
-    return allTasks.filter(t => task.child_ids.includes(t.id));
+    return allTasks.filter(t => task.child_ids.flat().includes(t.id));
   }, [task.child_ids, allTasks]);
 
   const hasChildren = childTasks.length > 0;
@@ -305,10 +305,10 @@ export const Tasks: React.FC = () => {
   const rootTasks = useMemo(() => {
     if (!allTasks || allTasks.length === 0) return [];
     const taskMap = new Map(allTasks.map(t => [t.id, t]));
-    const childIds = new Set<string>();
+    const childIds = new Set<number>();
     allTasks.forEach(task => {
         if (Array.isArray(task.child_ids)) {
-            task.child_ids.forEach(cid => childIds.add(cid));
+            task.child_ids.flat().forEach(cid => childIds.add(cid));
         }
     });
     return allTasks.filter(task =>
