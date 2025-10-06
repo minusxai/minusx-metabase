@@ -488,14 +488,22 @@ export const chatSlice = createSlice({
               reaction: "unrated"
             },
             index: actionMessageID,
-            content: {
-              type: 'BLANK',
-              content: toolResult.content,
-              renderInfo: {
-                text: '',
-                code: undefined,
-                oldCode: undefined,
-                hidden: true
+            content: toolCall.function.name == "TalkToUser" ? {
+                type: 'DEFAULT',
+                text: JSON.parse(toolCall.function.arguments).content,
+                images: [],
+                renderInfo: {
+                  text: JSON.parse(toolCall.function.arguments).content,
+                  code: undefined,
+                }
+              } : {
+                type: 'BLANK',
+                content: toolResult.content,
+                renderInfo: {
+                  text: '',
+                  code: undefined,
+                  oldCode: undefined,
+                  hidden: true
               }
             },
             createdAt: timestamp,
