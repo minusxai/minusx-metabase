@@ -315,7 +315,7 @@ const PlanningActionStack: React.FC = () => {
   const dbMetadata = get(metadataProcessingCache, [dbId, 'result'], null);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const planningMessage = useSelector((state: RootState) => state.chat.threads[thread].planningMessage)
-  const streamingContent = useSelector((state: RootState) => state.chat.threads[thread].streamingContent)
+  const streamingContents = useSelector((state: RootState) => state.chat.threads[thread].streamingContents)
 
   const planningActions = isEmpty(dbMetadata) && isAnalystmode
       ? ['One time optimizations underway']
@@ -350,8 +350,9 @@ const PlanningActionStack: React.FC = () => {
         <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" aria-label={"planning-spinner"}/>
       </HStack>
     </Box>
-    {streamingContent && (
+    {streamingContents?.map((streamingContent) => (
       <Box
+        key={streamingContent.id}
         bg={'minusxGreen.800'}
         p={3}
         borderRadius={'10px 10px 10px 0'}
@@ -362,6 +363,6 @@ const PlanningActionStack: React.FC = () => {
       >
         <Markdown content={streamingContent.text} />
       </Box>
-    )}
+    ))}
   </VStack>
 )}

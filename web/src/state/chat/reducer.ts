@@ -154,7 +154,7 @@ export interface ChatThread {
   tasks: Tasks
   id: string
   planningMessage?: string
-  streamingContent?: { id: string, text: string }
+  streamingContents?: Array<{ id: string, text: string }>
 }
 
 interface ChatState {
@@ -743,7 +743,7 @@ export const chatSlice = createSlice({
       // Clear planning data when leaving PLANNING status
       if (oldStatus === 'PLANNING' && action.payload !== 'PLANNING') {
         activeThread.planningMessage = undefined
-        activeThread.streamingContent = undefined
+        activeThread.streamingContents = undefined
       }
     },
     toggleUserConfirmation: (state, action: PayloadAction<{
@@ -906,17 +906,25 @@ export const chatSlice = createSlice({
       const activeThread = getActiveThread(state)
       const { id, chunk } = action.payload
 
-      // If no existing streaming content or different id, start fresh
-      if (!activeThread.streamingContent || activeThread.streamingContent.id !== id) {
-        activeThread.streamingContent = { id, text: chunk }
+      // Initialize array if needed
+      if (!activeThread.streamingContents) {
+        activeThread.streamingContents = []
+      }
+
+      // Find existing entry by id
+      const existingEntry = activeThread.streamingContents.find(entry => entry.id === id)
+
+      if (existingEntry) {
+        // Append chunk to existing entry
+        existingEntry.text += chunk
       } else {
-        // Same id, append chunk
-        activeThread.streamingContent.text += chunk
+        // Add new entry
+        activeThread.streamingContents.push({ id, text: chunk })
       }
     },
     clearStreamingContent: (state) => {
       const activeThread = getActiveThread(state)
-      activeThread.streamingContent = undefined
+      activeThread.streamingContents = undefined
     }
   },
 })
