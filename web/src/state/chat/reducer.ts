@@ -153,6 +153,7 @@ export interface ChatThread {
   interrupted: boolean
   tasks: Tasks
   id: string
+  planningMessage?: string
 }
 
 interface ChatState {
@@ -735,7 +736,13 @@ export const chatSlice = createSlice({
       activeThread.debugChatIndex = action.payload
     },
     setActiveThreadStatus: (state, action: PayloadAction<ChatThreadStatus>) => {
-      state.threads[state.activeThread].status = action.payload
+      const activeThread = state.threads[state.activeThread]
+      const oldStatus = activeThread.status
+      activeThread.status = action.payload
+      // Clear planning message when leaving PLANNING status
+      if (oldStatus === 'PLANNING' && action.payload !== 'PLANNING') {
+        activeThread.planningMessage = undefined
+      }
     },
     toggleUserConfirmation: (state, action: PayloadAction<{
       show: boolean
@@ -884,11 +891,19 @@ export const chatSlice = createSlice({
         console.error('Error cloning thread from history:', error)
         // Don't change state on error - let existing thread remain active
       }
+    },
+    setPlanningMessage: (state, action: PayloadAction<string>) => {
+      const activeThread = getActiveThread(state)
+      activeThread.planningMessage = action.payload
+    },
+    clearPlanningMessage: (state) => {
+      const activeThread = getActiveThread(state)
+      activeThread.planningMessage = undefined
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, addActionPlanMessageV2, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, addActionPlanMessageV2, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback, setPlanningMessage, clearPlanningMessage } = chatSlice.actions
 
 export default chatSlice.reducer

@@ -46,7 +46,7 @@ import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { getMXToken, setMinusxMode, toggleMinusXRoot } from '../../app/rpc'
 import { configs } from '../../constants'
-import { abortPlan, startNewThread, updateThreadID } from '../../state/chat/reducer'
+import { abortPlan, startNewThread, updateThreadID, setPlanningMessage } from '../../state/chat/reducer'
 import { intelligentThreadStart } from '../../helpers/threadHistory'
 
 // Agent constants
@@ -196,6 +196,11 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     sessionToken: sessionJwt,
     onMessage: (message) => {
       console.log('Socket.io message received:', message);
+      // Handle planning messages
+      if (message?.type === 'message' && message?.content?.agent) {
+        const agentName = message.content.agent;
+        dispatch(setPlanningMessage(`Running ${agentName}`));
+      }
     },
     onConnect: () => {
       console.log('Socket.io connected successfully');
