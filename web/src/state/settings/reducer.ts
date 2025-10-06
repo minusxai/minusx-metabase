@@ -106,6 +106,7 @@ interface Settings {
   metadataProcessingCache: Record<number, MetadataProcessingCacheEntry>
   manuallyLimitContext: boolean
   useV2States: boolean
+  useV2API: boolean
   currentEmail?: string
   availableAssets: AssetInfo[]
   selectedAssetId: string | null
@@ -148,6 +149,7 @@ const initialState: Settings = {
   metadataProcessingCache: {},
   manuallyLimitContext: false,
   useV2States: true,
+  useV2API: false,
   availableAssets: [],
   selectedAssetId: null,
   assetsLoading: false,
@@ -303,6 +305,9 @@ export const settingsSlice = createSlice({
     setUseV2States: (state, action: PayloadAction<boolean>) => {
       state.useV2States = action.payload
     },
+    setUseV2API: (state, action: PayloadAction<boolean>) => {
+      state.useV2API = action.payload
+    },
     setAvailableAssets: (state, action: PayloadAction<AssetInfo[]>) => {
       state.availableAssets = action.payload
       // Auto-select first asset if no asset is currently selected and assets are available
@@ -338,7 +343,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode,
   resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection, setUseV2States, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, addSavedQuestion, removeSavedQuestion, setSavedQuestions
+  updateManualContextSelection, setUseV2States, setUseV2API, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, addSavedQuestion, removeSavedQuestion, setSavedQuestions
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

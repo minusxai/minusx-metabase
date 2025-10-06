@@ -22,7 +22,7 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
   const deepResearch = state.settings.drMode ? 'deepResearchPlanner' : 'simple' as researchMode
 
   // Check if we should use V2 API
-  const useV2Api = state.settings.useV2States && deepResearch === 'deepResearchPlanner'
+  const useV2Api = state.settings.useV2API && deepResearch === 'deepResearchPlanner'
 
   if (useV2Api) {
     // Use V2 API

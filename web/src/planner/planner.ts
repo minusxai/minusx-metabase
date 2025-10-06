@@ -20,7 +20,7 @@ function shouldContinue(getState: () => RootState) {
   const lastMessage = messageHistory[messageHistory.length - 1]
 
   // For V2 API: check if pending_tool_calls is empty
-  const useV2Api = state.settings.useV2States && state.settings.drMode
+  const useV2Api = state.settings.useV2API && state.settings.drMode
   if (useV2Api) {
     // For v2, we continue if the last assistant message has tool calls
     if (lastMessage.role == 'assistant' && lastMessage.content.type === 'ACTIONS') {

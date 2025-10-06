@@ -563,6 +563,12 @@ const migrations = {
       })
     })
     return newState
+  },
+  63: (state: RootState) => {
+    let newState = {...state}
+    // Add useV2API flag for v2 chat planner API
+    newState.settings.useV2API = false
+    return newState
   }
 }
 
@@ -570,7 +576,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 62,
+  version: 63,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
