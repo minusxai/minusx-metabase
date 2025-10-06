@@ -22,7 +22,7 @@ function shouldContinue(getState: () => RootState) {
   // For V2 API: check if should continue
   const useV2Api = state.settings.useV2API && state.settings.drMode
   if (useV2Api) {
-    // Check if there are any unfinished tool messages
+    // Check if there are any unfinished tool messages (TODO status)
     const hasUnfinishedTools = messageHistory.some(
       (msg) => msg.role === 'tool' && !msg.action.finished
     )
@@ -32,15 +32,23 @@ function shouldContinue(getState: () => RootState) {
       return true
     }
 
-    // If no unfinished tools and last message is a finished tool that's not terminal,
-    // continue to call planner to get next steps
-    if (lastMessage.role === 'tool' && lastMessage.action.finished) {
-      const isTerminalAction = lastMessage.action.function.name === 'UpdateTaskStatus' ||
-                               lastMessage.action.function.name === 'markTaskDone'
-      return !isTerminalAction
+    // Find the last assistant message to check its source
+    const lastAssistantMsg = messageHistory.findLast(
+      (msg) => msg.role === 'assistant' && msg.content.type === 'ACTIONS'
+    )
+
+    if (lastAssistantMsg && lastAssistantMsg.role === 'assistant' && lastAssistantMsg.content.type === 'ACTIONS') {
+      // If tools came from pending (we executed them), send results back to server
+      if (lastAssistantMsg.content.source === 'pending') {
+        return true
+      }
+      // If tools came from completed (server sent them), stop (no more work)
+      if (lastAssistantMsg.content.source === 'completed') {
+        return false
+      }
     }
 
-    // Otherwise stop
+    // Default: stop
     return false
   }
 

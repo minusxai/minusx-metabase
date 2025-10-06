@@ -59,6 +59,7 @@ export interface ActionPlanMessageContent {
   messageContent: string // this is right now for CoT for claude sonnet. will be empty usually
   finishReason: ChatCompletion.Choice['finish_reason']
   finished: boolean
+  source?: 'pending' | 'completed' // V2 API: track if tools came from pending or completed
 }
 
 export type ChatMessageContent = DefaultMessageContent | ActionPlanMessageContent | BlankMessageContent
@@ -465,7 +466,8 @@ export const chatSlice = createSlice({
             toolCalls: completedToolCalls.map(([toolCall, _]) => toolCall),
             messageContent: '',
             finishReason: 'stop',
-            finished: true
+            finished: true,
+            source: 'completed'
           },
           createdAt: timestamp,
           updatedAt: timestamp,
@@ -530,7 +532,8 @@ export const chatSlice = createSlice({
             toolCalls: pendingToolCalls,
             messageContent: '',
             finishReason: 'tool_calls',
-            finished: false
+            finished: false,
+            source: 'pending'
           },
           createdAt: timestamp,
           updatedAt: timestamp,

@@ -248,8 +248,8 @@ export async function planActionsRemoteV2({
   const lastUserMessage = messageHistory[lastUserMessageIdx]
   const tasks_id = lastUserMessage.tasks_id || null
 
-  // Extract completed tool calls from the last planner response only
-  // Find the last assistant message with actions
+  // Extract completed tool calls from the last 'pending' planner response only
+  // Find the last assistant message with actions from pending source
   const completed_tool_calls: Array<{tool_call_id: string, content: string, role: 'tool'}> = []
   let lastPlanIdx = -1
   for (let i = messageHistory.length - 1; i >= lastUserMessageIdx; i--) {
@@ -260,10 +260,11 @@ export async function planActionsRemoteV2({
     }
   }
 
-  // If we found a plan, extract the completed tool calls from it
+  // If we found a plan, only extract if it's from pending source (client executed)
   if (lastPlanIdx !== -1) {
     const planMessage = messageHistory[lastPlanIdx]
-    if (planMessage.role === 'assistant' && planMessage.content.type === 'ACTIONS') {
+    if (planMessage.role === 'assistant' && planMessage.content.type === 'ACTIONS' &&
+        planMessage.content.source === 'pending') {
       // Get all tool messages that belong to this plan and are finished
       for (const toolMessageIdx of planMessage.content.actionMessageIDs) {
         const toolMessage = messageHistory[toolMessageIdx]
