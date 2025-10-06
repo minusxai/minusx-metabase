@@ -26,17 +26,26 @@ export async function simplePlan(signal: AbortSignal, plannerConfig: SimplePlann
 
   if (useV2Api) {
     // Use V2 API
-    const { meta } = getLLMContextFromState(
-      { system: plannerConfig.systemPrompt, user: plannerConfig.userPrompt },
-      await app.getState() as AppState,
-      await app.getState() as AppState,
-      messageHistory
-    )
+    const prompts = {
+      system: plannerConfig.systemPrompt,
+      user: plannerConfig.userPrompt,
+    }
+    const currentAppState = await app.getState() as AppState
+    const { context: messages, meta } = getLLMContextFromState(prompts, currentAppState, currentAppState, messageHistory)
+
+    // Extract the rendered user message from the context
+    // The context has system message first, then the rendered messages
+    // We need to find the last user message in the context
+    const lastUserMessageInContext = messages.findLast((msg) => msg.role === 'user')
+    const renderedUserMessage = typeof lastUserMessageInContext?.content === 'string'
+      ? lastUserMessageInContext.content
+      : ''
 
     const llmResponseV2 = await planActionsRemoteV2({
       signal,
       conversationID,
-      meta
+      meta,
+      user_message: renderedUserMessage
     })
 
     const endTime = Date.now()

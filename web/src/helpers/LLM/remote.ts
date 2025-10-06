@@ -231,21 +231,21 @@ export const convertToMarkdown = async(appState, imgs): Promise<string[]> => {
 export async function planActionsRemoteV2({
   signal,
   conversationID,
-  meta
-}: Pick<PlanActionsParams, 'signal' | 'conversationID' | 'meta'>): Promise<LLMResponseV2> {
+  meta,
+  user_message
+}: Pick<PlanActionsParams, 'signal' | 'conversationID' | 'meta'> & { user_message: string }): Promise<LLMResponseV2> {
   const state = getState()
   const thread = state.chat.activeThread
   const activeThread = state.chat.threads[thread]
   const messageHistory = activeThread.messages
 
-  // Find the last user message
+  // Find the last user message to get tasks_id
   const lastUserMessageIdx = messageHistory.findLastIndex((message) => message.role === 'user')
   if (lastUserMessageIdx === -1) {
     throw new Error('No user message found in thread')
   }
 
   const lastUserMessage = messageHistory[lastUserMessageIdx]
-  const user_message = lastUserMessage.content.text
   const tasks_id = lastUserMessage.tasks_id || null
 
   // Extract completed tool calls since last user message
