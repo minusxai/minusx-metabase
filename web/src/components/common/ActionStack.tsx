@@ -361,7 +361,14 @@ const PlanningActionStack: React.FC = () => {
         alignSelf={'flex-start'}
         aria-label={"streaming-content-bubble"}
       >
-        <Markdown content={streamingContent.text} />
+        <ChatContent
+          content={{
+            type: 'DEFAULT',
+            text: streamingContent.text,
+            images: [],
+          }}
+          role="assistant"
+        />
       </Box>
     ))}
   </VStack>
