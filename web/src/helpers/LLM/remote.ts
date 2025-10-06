@@ -249,35 +249,23 @@ export async function planActionsRemoteV2({
   const tasks_id = lastUserMessage.tasks_id || null
 
   // Extract completed tool calls since last user message
-  const completed_tool_calls: CompletedToolCalls = []
+  const completed_tool_calls: Array<{tool_call_id: string, content: string, role: 'tool'}> = []
   for (let i = lastUserMessageIdx + 1; i < messageHistory.length; i++) {
     const message = messageHistory[i]
-    if (message.role === 'assistant' && message.content.type === 'ACTIONS') {
-      // Get all tool calls from this assistant message
-      const toolCalls = message.content.toolCalls
-      for (const toolCall of toolCalls) {
-        // Find the corresponding tool message with result
-        const toolMessage = messageHistory.find(m =>
-          m.role === 'tool' && m.action.id === toolCall.id && m.action.finished
-        )
-        if (toolMessage && toolMessage.role === 'tool') {
-          // Get the content from tool message
-          let content = ''
-          if (toolMessage.content.type === 'DEFAULT') {
-            content = toolMessage.content.text
-          } else if (toolMessage.content.type === 'BLANK') {
-            content = toolMessage.content.content || ''
-          }
-
-          completed_tool_calls.push([
-            toolCall,
-            {
-              tool_call_id: toolCall.id,
-              content
-            }
-          ])
-        }
+    if (message.role === 'tool' && message.action.finished) {
+      // Get the content from tool message
+      let content = ''
+      if (message.content.type === 'DEFAULT') {
+        content = message.content.text
+      } else if (message.content.type === 'BLANK') {
+        content = message.content.content || ''
       }
+
+      completed_tool_calls.push({
+        tool_call_id: message.action.id,
+        content,
+        role: 'tool'
+      })
     }
   }
 
