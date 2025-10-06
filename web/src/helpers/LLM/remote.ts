@@ -270,10 +270,11 @@ export async function planActionsRemoteV2({
   }
 
   // Build request payload
+  // Only send user_message on first call (when no completed_tool_calls)
   const payload: any = {
     conversationID,
     tasks_id,
-    user_message,
+    user_message: completed_tool_calls.length > 0 ? '' : user_message,
     completed_tool_calls,
     meta
   }
