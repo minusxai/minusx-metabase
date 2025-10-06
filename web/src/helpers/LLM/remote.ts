@@ -248,24 +248,40 @@ export async function planActionsRemoteV2({
   const lastUserMessage = messageHistory[lastUserMessageIdx]
   const tasks_id = lastUserMessage.tasks_id || null
 
-  // Extract completed tool calls since last user message
+  // Extract completed tool calls from the last planner response only
+  // Find the last assistant message with actions
   const completed_tool_calls: Array<{tool_call_id: string, content: string, role: 'tool'}> = []
-  for (let i = lastUserMessageIdx + 1; i < messageHistory.length; i++) {
-    const message = messageHistory[i]
-    if (message.role === 'tool' && message.action.finished) {
-      // Get the content from tool message
-      let content = ''
-      if (message.content.type === 'DEFAULT') {
-        content = message.content.text
-      } else if (message.content.type === 'BLANK') {
-        content = message.content.content || ''
-      }
+  let lastPlanIdx = -1
+  for (let i = messageHistory.length - 1; i >= lastUserMessageIdx; i--) {
+    const msg = messageHistory[i]
+    if (msg.role === 'assistant' && msg.content.type === 'ACTIONS') {
+      lastPlanIdx = i
+      break
+    }
+  }
 
-      completed_tool_calls.push({
-        tool_call_id: message.action.id,
-        content,
-        role: 'tool'
-      })
+  // If we found a plan, extract the completed tool calls from it
+  if (lastPlanIdx !== -1) {
+    const planMessage = messageHistory[lastPlanIdx]
+    if (planMessage.role === 'assistant' && planMessage.content.type === 'ACTIONS') {
+      // Get all tool messages that belong to this plan and are finished
+      for (const toolMessageIdx of planMessage.content.actionMessageIDs) {
+        const toolMessage = messageHistory[toolMessageIdx]
+        if (toolMessage?.role === 'tool' && toolMessage.action.finished) {
+          let content = ''
+          if (toolMessage.content.type === 'DEFAULT') {
+            content = toolMessage.content.text
+          } else if (toolMessage.content.type === 'BLANK') {
+            content = toolMessage.content.content || ''
+          }
+
+          completed_tool_calls.push({
+            tool_call_id: toolMessage.action.id,
+            content,
+            role: 'tool'
+          })
+        }
+      }
     }
   }
 
