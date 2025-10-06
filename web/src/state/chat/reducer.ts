@@ -154,6 +154,7 @@ export interface ChatThread {
   tasks: Tasks
   id: string
   planningMessage?: string
+  streamingContent?: { id: string, text: string }
 }
 
 interface ChatState {
@@ -739,9 +740,10 @@ export const chatSlice = createSlice({
       const activeThread = state.threads[state.activeThread]
       const oldStatus = activeThread.status
       activeThread.status = action.payload
-      // Clear planning message when leaving PLANNING status
+      // Clear planning data when leaving PLANNING status
       if (oldStatus === 'PLANNING' && action.payload !== 'PLANNING') {
         activeThread.planningMessage = undefined
+        activeThread.streamingContent = undefined
       }
     },
     toggleUserConfirmation: (state, action: PayloadAction<{
@@ -899,11 +901,27 @@ export const chatSlice = createSlice({
     clearPlanningMessage: (state) => {
       const activeThread = getActiveThread(state)
       activeThread.planningMessage = undefined
+    },
+    appendStreamingContent: (state, action: PayloadAction<{ id: string, chunk: string }>) => {
+      const activeThread = getActiveThread(state)
+      const { id, chunk } = action.payload
+
+      // If no existing streaming content or different id, start fresh
+      if (!activeThread.streamingContent || activeThread.streamingContent.id !== id) {
+        activeThread.streamingContent = { id, text: chunk }
+      } else {
+        // Same id, append chunk
+        activeThread.streamingContent.text += chunk
+      }
+    },
+    clearStreamingContent: (state) => {
+      const activeThread = getActiveThread(state)
+      activeThread.streamingContent = undefined
     }
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, addActionPlanMessageV2, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback, setPlanningMessage, clearPlanningMessage } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, addActionPlanMessageV2, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback, setPlanningMessage, clearPlanningMessage, appendStreamingContent, clearStreamingContent } = chatSlice.actions
 
 export default chatSlice.reducer
