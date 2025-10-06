@@ -1,7 +1,7 @@
 import { dispatch } from '../state/dispatch'
-import { addActionPlanMessage, addUserMessage, startNewThread } from '../state/chat/reducer'
+import { addActionPlanMessage, addActionPlanMessageV2, addUserMessage, startNewThread } from '../state/chat/reducer'
 import { DefaultMessageContent } from '../state/chat/types'
-import { LLMResponse } from '../helpers/LLM/types'
+import { LLMResponse, LLMResponseV2 } from '../helpers/LLM/types'
 import { updateCredits } from '../state/billing/reducer'
 import { getState } from '../state/store'
 import { toast } from '../app/toast'
@@ -34,6 +34,11 @@ export default {
     dispatch(addActionPlanMessage({llmResponse, debug}))
     // update credits. not sure if this is the best place to do this
     dispatch(updateCredits(llmResponse.credits))
+  },
+  addActionPlanFromLlmResponseV2(llmResponseV2: LLMResponseV2, debug: any) {
+    dispatch(addActionPlanMessageV2({llmResponseV2, debug}))
+    // update credits
+    dispatch(updateCredits(llmResponseV2.credits))
   },
   async createNewThreadIfNeeded() {
     const state = getState()

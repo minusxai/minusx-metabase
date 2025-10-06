@@ -551,6 +551,18 @@ const migrations = {
     newState.settings.manuallyLimitContext = false
     newState.settings.useTeamMemory = true
     return newState
+  },
+  62: (state: RootState) => {
+    let newState = {...state}
+    // Add tasks_id to all user messages
+    newState.chat.threads.forEach((thread) => {
+      thread.messages.forEach((message) => {
+        if (message.role === 'user') {
+          (message as any).tasks_id = null
+        }
+      })
+    })
+    return newState
   }
 }
 
@@ -558,7 +570,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 61,
+  version: 62,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

@@ -1,5 +1,5 @@
 import { ToolCalls } from '../../state/chat/reducer'
-import { LLMResponse } from './types'
+import { LLMResponse, LLMResponseV2, CompletedToolCalls } from './types'
 import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
 import { getApp } from '../app'
@@ -7,6 +7,8 @@ import { getState } from '../../state/store'
 import { set, unset } from 'lodash'
 import { processAllMetadata } from '../metadataProcessor'
 import { getParsedIframeInfo } from '../origin'
+import axios from 'axios'
+import { configs } from '../../constants'
 
   
 export async function planActionsRemote({
@@ -195,7 +197,7 @@ export const convertToMarkdown = async(appState, imgs): Promise<string[]> => {
   }
 
   const systemMessage = `
-  You are an incredible data scientist, and proficient at using jupyter notebooks. 
+  You are an incredible data scientist, and proficient at using jupyter notebooks.
   The user gives you a jupyter state and you must convert it into a markdown document.
   Just give a report as a markdown document based on the notebook
   Don't print any actual code
@@ -223,5 +225,122 @@ export const convertToMarkdown = async(appState, imgs): Promise<string[]> => {
     }
   }).filter(i => i).join("\n")
   return content
+}
+
+// V2 API planner
+export async function planActionsRemoteV2({
+  signal,
+  conversationID,
+  meta
+}: Pick<PlanActionsParams, 'signal' | 'conversationID' | 'meta'>): Promise<LLMResponseV2> {
+  const state = getState()
+  const thread = state.chat.activeThread
+  const activeThread = state.chat.threads[thread]
+  const messageHistory = activeThread.messages
+
+  // Find the last user message
+  const lastUserMessageIdx = messageHistory.findLastIndex((message) => message.role === 'user')
+  if (lastUserMessageIdx === -1) {
+    throw new Error('No user message found in thread')
+  }
+
+  const lastUserMessage = messageHistory[lastUserMessageIdx]
+  const user_message = lastUserMessage.content.text
+  const tasks_id = lastUserMessage.tasks_id || null
+
+  // Extract completed tool calls since last user message
+  const completed_tool_calls: CompletedToolCalls = []
+  for (let i = lastUserMessageIdx + 1; i < messageHistory.length; i++) {
+    const message = messageHistory[i]
+    if (message.role === 'assistant' && message.content.type === 'ACTIONS') {
+      // Get all tool calls from this assistant message
+      const toolCalls = message.content.toolCalls
+      for (const toolCall of toolCalls) {
+        // Find the corresponding tool message with result
+        const toolMessage = messageHistory.find(m =>
+          m.role === 'tool' && m.action.id === toolCall.id && m.action.finished
+        )
+        if (toolMessage && toolMessage.role === 'tool') {
+          // Get the content from tool message
+          let content = ''
+          if (toolMessage.content.type === 'DEFAULT') {
+            content = toolMessage.content.text
+          } else if (toolMessage.content.type === 'BLANK') {
+            content = toolMessage.content.content || ''
+          }
+
+          completed_tool_calls.push([
+            toolCall,
+            {
+              tool_call_id: toolCall.id,
+              content
+            }
+          ])
+        }
+      }
+    }
+  }
+
+  // Build request payload
+  const payload: any = {
+    conversationID,
+    tasks_id,
+    user_message,
+    completed_tool_calls,
+    meta
+  }
+
+  // Add metadata hashes for analyst mode (when both drMode and analystMode are enabled)
+  if (state.settings.drMode && state.settings.analystMode) {
+    try {
+      const dbId = getApp().useStore().getState().toolContext?.dbId || undefined
+      const parsedInfo = getParsedIframeInfo()
+      const { cardsHash, dbSchemaHash, fieldsHash, selectedDbId } = await processAllMetadata(false, dbId)
+
+      payload.cardsHash = cardsHash
+      payload.dbSchemaHash = dbSchemaHash
+      payload.fieldsHash = fieldsHash
+      payload.selectedDbId = `${selectedDbId}`
+      payload.r = parsedInfo.r
+      console.log('[minusx] Added metadata hashes to v2 request for analyst mode')
+    } catch (error) {
+      console.warn('[minusx] Failed to fetch metadata for analyst mode:', error)
+    }
+  }
+
+  // Add selected asset_slug if available and team memory is enabled
+  const selectedAssetSlug = state.settings.selectedAssetId
+  const useTeamMemory = state.settings.useTeamMemory
+  if (selectedAssetSlug && useTeamMemory) {
+    payload.asset_slug = selectedAssetSlug
+    console.log('[minusx] Added asset_slug to v2 request for enhanced context:', selectedAssetSlug)
+  }
+
+  // Make API call
+  const response = await axios.post(
+    `${configs.BASE_SERVER_URL}/deepresearch/v2/chat_planner`,
+    payload,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      signal
+    }
+  )
+
+  signal.throwIfAborted()
+
+  const jsonResponse = response.data
+  if (jsonResponse.error) {
+    throw new Error(jsonResponse.error)
+  }
+
+  return {
+    pending_tool_calls: jsonResponse.pending_tool_calls || [],
+    completed_tool_calls: jsonResponse.completed_tool_calls || [],
+    tasks_id: jsonResponse.tasks_id,
+    credits: jsonResponse.credits,
+    error: jsonResponse.error
+  }
 }
 

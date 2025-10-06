@@ -13,10 +13,23 @@ import { getParsedIframeInfo } from '../helpers/origin';
 import { configs } from '../constants';
 export const plannerListener = createListenerMiddleware();
 function shouldContinue(getState: () => RootState) {
-  const thread = getState().chat.activeThread
-  const activeThread = getState().chat.threads[thread]
+  const state = getState()
+  const thread = state.chat.activeThread
+  const activeThread = state.chat.threads[thread]
   const messageHistory = activeThread.messages
   const lastMessage = messageHistory[messageHistory.length - 1]
+
+  // For V2 API: check if pending_tool_calls is empty
+  const useV2Api = state.settings.useV2States && state.settings.drMode
+  if (useV2Api) {
+    // For v2, we continue if the last assistant message has tool calls
+    if (lastMessage.role == 'assistant' && lastMessage.content.type === 'ACTIONS') {
+      return lastMessage.content.toolCalls.length > 0
+    }
+    return false
+  }
+
+  // For V1 API: existing logic
   // check if there are 0 tool calls in the last assistant message. if so, we don't continue
   if (lastMessage.role == 'assistant' && lastMessage.content.toolCalls.length == 0) {
     return false
@@ -25,7 +38,7 @@ function shouldContinue(getState: () => RootState) {
   if (lastMessage.role == 'tool' && (lastMessage.action.function.name == 'markTaskDone' || lastMessage.action.function.name == 'UpdateTaskStatus')) {
     return false;
   } else {
-    // if last tool was not respondToUser, we continue anyway. not sure if we should keep it this way? 
+    // if last tool was not respondToUser, we continue anyway. not sure if we should keep it this way?
     return true
   }
 }

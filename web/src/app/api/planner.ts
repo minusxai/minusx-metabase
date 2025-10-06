@@ -4,6 +4,7 @@ import { dispatch, logoutState } from '../../state/dispatch';
 import { toast } from '../toast';
 const url = `${configs.PLANNER_BASE_URL}/getLLMResponse`
 const dr_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_planner`
+const dr_url_v2 = `${configs.BASE_SERVER_URL}/deepresearch/v2/chat_planner`
 const dr_tool_url = `${configs.BASE_SERVER_URL}/deepresearch/chat`
 const prewarm_url = `${configs.BASE_SERVER_URL}/deepresearch/chat_plan_warm`
 

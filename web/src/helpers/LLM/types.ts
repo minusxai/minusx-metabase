@@ -23,6 +23,18 @@ export type LLMResponse = {
   credits?: number
   tasks?: Tasks
 }
+
+// V2 API types
+export type CompletedToolCall = [ToolCalls[0], { tool_call_id: string, content: string }]
+export type CompletedToolCalls = CompletedToolCall[]
+
+export type LLMResponseV2 = {
+  pending_tool_calls: ToolCalls
+  completed_tool_calls: CompletedToolCalls[]  // List of lists of tuples
+  tasks_id?: string | null
+  credits?: number
+  error?: string
+}
 // Should add more stuff here as and when we try to experiment with them
 export type LLMSettings = {
   model: string,

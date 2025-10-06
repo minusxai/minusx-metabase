@@ -4,7 +4,7 @@ import _, { get, times } from 'lodash'
 
 import { ChatCompletionMessageToolCall, ChatCompletionRole, ChatCompletionToolMessageParam, ChatCompletion, Chat } from 'openai/resources';
 import { getUniqueString, Subset } from '../../helpers/utils'
-import { LLMResponse } from '../../helpers/LLM/types';
+import { LLMResponse, LLMResponseV2 } from '../../helpers/LLM/types';
 import { ActionRenderInfo, BlankMessageContent, ChatMessageContentType, DefaultMessageContent } from './types';
 import { getParsedIframeInfo } from '../../helpers/origin';
 
@@ -77,6 +77,7 @@ export interface UserChatMessage extends BaseChatMessage {
   role: 'user'
   content: DefaultMessageContent
   debug: {}
+  tasks_id?: string | null
 }
 
 export interface ActionPlanChatMessage extends BaseChatMessage {
@@ -436,7 +437,138 @@ export const chatSlice = createSlice({
 
       // Update tasks array with new tasks
       getActiveThread(state).tasks = newTasks
-      
+
+    },
+    addActionPlanMessageV2: (
+      state,
+      action: PayloadAction<{llmResponseV2: LLMResponseV2, debug: any}>
+    ) => {
+      const messages = getMessages(state)
+      const timestamp = Date.now()
+      const latestMessageIndex = messages.length
+
+      // Process completed tool calls first (flatten the nested list structure)
+      const completedToolCallsNested = action.payload.llmResponseV2.completed_tool_calls || []
+      const completedToolCalls = completedToolCallsNested.flat()
+
+      if (completedToolCalls.length > 0) {
+        // Create assistant message for completed tool calls
+        const completedActionPlanMessage: ActionPlanChatMessage = {
+          role: 'assistant',
+          feedback: {
+            reaction: "unrated"
+          },
+          index: latestMessageIndex,
+          content: {
+            type: 'ACTIONS',
+            actionMessageIDs: times(completedToolCalls.length).map(i => i + latestMessageIndex + 1),
+            toolCalls: completedToolCalls.map(([toolCall, _]) => toolCall),
+            messageContent: '',
+            finishReason: 'stop',
+            finished: true
+          },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          debug: action.payload.debug
+        }
+        messages.push(completedActionPlanMessage)
+
+        // Add tool messages with SUCCESS status
+        completedToolCalls.forEach(([toolCall, toolResult], index) => {
+          const actionMessageID = index + latestMessageIndex + 1
+          const actionMessage: ActionChatMessage = {
+            role: 'tool',
+            action: {
+              ...toolCall,
+              planID: latestMessageIndex,
+              status: 'SUCCESS',
+              finished: true,
+            },
+            feedback: {
+              reaction: "unrated"
+            },
+            index: actionMessageID,
+            content: {
+              type: 'BLANK',
+              content: toolResult.content,
+              renderInfo: {
+                text: '',
+                code: undefined,
+                oldCode: undefined,
+                hidden: true
+              }
+            },
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            debug: {}
+          }
+          messages.push(actionMessage)
+        })
+      }
+
+      // Process pending tool calls
+      const pendingToolCalls = action.payload.llmResponseV2.pending_tool_calls || []
+      const newLatestMessageIndex = messages.length
+      if (pendingToolCalls.length > 0) {
+        const pendingActionPlanMessage: ActionPlanChatMessage = {
+          role: 'assistant',
+          feedback: {
+            reaction: "unrated"
+          },
+          index: newLatestMessageIndex,
+          content: {
+            type: 'ACTIONS',
+            actionMessageIDs: times(pendingToolCalls.length).map(i => i + newLatestMessageIndex + 1),
+            toolCalls: pendingToolCalls,
+            messageContent: '',
+            finishReason: 'tool_calls',
+            finished: false
+          },
+          createdAt: timestamp,
+          updatedAt: timestamp,
+          debug: action.payload.debug
+        }
+        messages.push(pendingActionPlanMessage)
+
+        // Add tool messages with TODO status
+        pendingToolCalls.forEach((toolCall, index) => {
+          const actionMessageID = index + newLatestMessageIndex + 1
+          const actionMessage: ActionChatMessage = {
+            role: 'tool',
+            action: {
+              ...toolCall,
+              planID: newLatestMessageIndex,
+              status: 'TODO',
+              finished: false,
+            },
+            feedback: {
+              reaction: "unrated"
+            },
+            index: actionMessageID,
+            content: {
+              type: 'BLANK',
+              renderInfo: {
+                text: undefined,
+                code: undefined,
+                oldCode: undefined
+              }
+            },
+            createdAt: timestamp,
+            updatedAt: timestamp,
+            debug: {}
+          }
+          messages.push(actionMessage)
+        })
+      }
+
+      // Update tasks_id in the last user message
+      if (action.payload.llmResponseV2.tasks_id) {
+        const lastUserMessageIdx = messages.findLastIndex((message) => message.role === 'user')
+        if (lastUserMessageIdx !== -1) {
+          const lastUserMessage = messages[lastUserMessageIdx] as UserChatMessage
+          lastUserMessage.tasks_id = action.payload.llmResponseV2.tasks_id
+        }
+      }
     },
     startAction: (
       state,
@@ -746,6 +878,6 @@ export const chatSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { addUserMessage, deleteUserMessage, addActionPlanMessage, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback } = chatSlice.actions
+export const { addUserMessage, deleteUserMessage, addActionPlanMessage, addActionPlanMessageV2, startAction, finishAction, interruptPlan, startNewThread, addReaction, removeReaction, updateDebugChatIndex, setActiveThreadStatus, toggleUserConfirmation, setUserConfirmationInput, toggleClarification, setClarificationAnswer, switchToThread, abortPlan, updateThreadID, updateLastWarmedOn, clearTasks, cloneThreadFromHistory, setUserConfirmationFeedback } = chatSlice.actions
 
 export default chatSlice.reducer
