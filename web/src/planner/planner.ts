@@ -19,13 +19,28 @@ function shouldContinue(getState: () => RootState) {
   const messageHistory = activeThread.messages
   const lastMessage = messageHistory[messageHistory.length - 1]
 
-  // For V2 API: check if pending_tool_calls is empty
+  // For V2 API: check if should continue
   const useV2Api = state.settings.useV2API && state.settings.drMode
   if (useV2Api) {
-    // For v2, we continue if the last assistant message has tool calls
-    if (lastMessage.role == 'assistant' && lastMessage.content.type === 'ACTIONS') {
-      return lastMessage.content.toolCalls.length > 0
+    // Simple logic: continue if there are any unfinished tool messages
+    // The reducer won't create TODO messages if pending_tool_calls is empty
+    const hasUnfinishedTools = messageHistory.some(
+      (msg) => msg.role === 'tool' && !msg.action.finished
+    )
+
+    // If there are unfinished tools, continue to execute them
+    if (hasUnfinishedTools) {
+      return true
     }
+
+    // If the last message is a finished tool message, loop back to call planner
+    // (unless it's a terminal action)
+    if (lastMessage.role === 'tool' && lastMessage.action.finished) {
+      const isTerminalAction = lastMessage.action.function.name === 'UpdateTaskStatus' ||
+                               lastMessage.action.function.name === 'markTaskDone'
+      return !isTerminalAction
+    }
+
     return false
   }
 
