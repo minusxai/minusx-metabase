@@ -192,22 +192,22 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   }, [atlasData, atlasLoading, atlasError])
 
   // Disabling sockets for now
-  // useSocketIO({
-  //   sessionToken: sessionJwt,
-  //   onMessage: (message) => {
-  //     console.log('Socket.io message received:', message);
-  //   },
-  //   onConnect: () => {
-  //     console.log('Socket.io connected successfully');
-  //   },
-  //   onDisconnect: (reason) => {
-  //     console.log('Socket.io disconnected:', reason);
-  //   },
-  //   onError: (error) => {
-  //     console.log(error.message)
-  //     console.error('Socket.io connection error:', error);
-  //   }
-  // });
+  useSocketIO({
+    sessionToken: sessionJwt,
+    onMessage: (message) => {
+      console.log('Socket.io message received:', message);
+    },
+    onConnect: () => {
+      console.log('Socket.io connected successfully');
+    },
+    onDisconnect: (reason) => {
+      console.log('Socket.io disconnected:', reason);
+    },
+    onError: (error) => {
+      console.log(error.message)
+      console.error('Socket.io connection error:', error);
+    }
+  });
 
   // Update thread id on start
   useEffect(() => {
