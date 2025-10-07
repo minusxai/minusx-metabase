@@ -1,4 +1,4 @@
-import { ToolCalls } from '../../state/chat/reducer'
+import { ToolCalls, UserChatMessage } from '../../state/chat/reducer'
 import { LLMResponse, LLMResponseV2, CompletedToolCalls } from './types'
 import { PlanActionsParams } from '.'
 import { getLLMResponse } from '../../app/api'
@@ -245,8 +245,10 @@ export async function planActionsRemoteV2({
     throw new Error('No user message found in thread')
   }
 
-  const lastUserMessage = messageHistory[lastUserMessageIdx]
-  const tasks_id = lastUserMessage.tasks_id || null
+  const lastTasksIdMessage = messageHistory.findLast((message, idx) => {
+    return message.role === 'user' && message.tasks_id
+  }) as UserChatMessage
+  const tasks_id = lastTasksIdMessage?.tasks_id
 
   // Extract completed tool calls from the last 'pending' planner response only
   // Find the last assistant message with actions from pending source
