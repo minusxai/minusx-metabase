@@ -291,7 +291,7 @@ export async function planActionsRemoteV2({
   const payload: any = {
     conversationID,
     tasks_id,
-    user_message: completed_tool_calls.length > 0 ? '' : user_message,
+    user_message: completed_tool_calls.length > 0 ? null : user_message,
     completed_tool_calls,
     meta
   }
