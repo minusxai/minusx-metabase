@@ -362,7 +362,7 @@ function ModifiedTable(props: any) {
             <Box position="relative">
                 <HStack justifyContent="space-between" alignItems="center" mb={2}>
                     <h4 style={{ marginTop: '3px', fontWeight: '600', color: '#2d3748' }}>
-                        Results
+                        Results: 
                     </h4>
                     <Tooltip label="Expand Results" openDelay={300}>
                         <IconButton
