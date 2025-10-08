@@ -288,8 +288,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       const currentQuery = appState?.currentCard?.dataset_query?.native?.query || appState?.sqlQuery || "";
       const currentTemplateTags = appState?.currentCard?.dataset_query?.native?.['template-tags'] || {};
       const currentParameters = appState?.currentCard?.parameters || [];
-      const paramValuesInfo = parameterValues && parameterValues.length > 0 ? `Executed with ${parameterValues.length} parameter values` : '';
-      return {text: `${paramValuesInfo}`, code: sql, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
+      return {text: null, code: sql, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
     }
   })
   async ExecuteQueryV2({ sql, _ctes = [], explanation = "", template_tags={}, parameters=[], parameterValues=[], skipConfirmation=false }: { sql: string, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}>, skipConfirmation?: boolean }) {
@@ -355,8 +354,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       const currentTemplateTags = appState?.currentCard?.dataset_query?.native?.['template-tags'] || {};
       const currentParameters = appState?.currentCard?.parameters || [];
       const newQuery = applySQLEdits(currentQuery, sql_edits);
-      const paramValuesInfo = parameterValues && parameterValues.length > 0 ? `Executed with ${parameterValues.length} parameter values` : '';
-      return {text: `${paramValuesInfo}`, code: newQuery, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
+      return {text: null, code: newQuery, oldCode: currentQuery, language: "sql", extraArgs: {old: {template_tags: currentTemplateTags, parameters: currentParameters}, new: {template_tags, parameters, parameterValues}}}
     }
   })
   async EditAndExecuteQueryV2({ sql_edits, _ctes = [], explanation = "", template_tags={}, parameters=[], parameterValues=[] }: { sql_edits: SQLEdits, _ctes?: CTE[], explanation?: string, template_tags?: object, parameters?: any[], parameterValues?: Array<{id: string, value: string[]}> }) {

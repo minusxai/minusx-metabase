@@ -153,7 +153,7 @@ function ModifiedCode(props: any) {
                 border={"1px solid #eee"}
                 rightIcon={<span>{isOpen ? <BiChevronDown/> : <BiChevronRight/>}</span>}
             >
-                {isOpen ? 'Hide' : 'Show'} SQL Code
+                {isOpen ? 'Hide' : 'Show'} Code Block
             </Button>
             <Collapse in={isOpen} animateOpacity>
                 <CodeBlock code={props.children?.toString() || ''} tool='metabase' language='sql'/>
