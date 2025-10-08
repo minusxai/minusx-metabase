@@ -178,7 +178,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Handle atlas data loading and updates
   useEffect(() => {
     dispatch(setAssetsLoading(atlasLoading))
-    dispatch(updateThreadID())
     
     if (atlasData && atlasData.accessible_assets) {
       console.log('[minusx] Loaded assets from Atlas API:', atlasData.accessible_assets.length)
@@ -191,6 +190,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       console.warn('[minusx] Failed to load assets from Atlas API:', atlasError)
     }
   }, [atlasData, atlasLoading, atlasError])
+  useEffect(() => {
+    dispatch(updateThreadID())
+  }, [])
 
   // Disabling sockets for now
   useSocketIO({
