@@ -594,9 +594,11 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
                 // Ignore parsing errors
             }
         }
+      }
+    } else if (message.role === 'user') {
+      break
     }
   }
-}
   return null;
 }
 

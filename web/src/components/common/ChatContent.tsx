@@ -22,7 +22,11 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
   const origin = url ? new URL(url).origin : '';
   const pageType = toolContext?.pageType || ''
   const embedConfigs = useSelector((state: RootState) => state.configs.embed);
-  
+
+  // Get messages to check if next message exists
+  const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const messages = useSelector((state: RootState) => state.chat.threads[thread].messages)
+
   // Create mention items for parsing storage format mentions
   const mentionItems = useMemo(() => {
     if (!toolContext?.dbInfo) return []
@@ -30,9 +34,16 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
     const models = toolContext.dbInfo.models || []
     return createMentionItems(tables, models)
   }, [toolContext?.dbInfo]);
-  
+
   if (content.type == 'DEFAULT') {
-    const baseContentText = ((pageType === 'dashboard' || pageType === 'unknown') && role === 'assistant') ? `${content.text} {{MX_LAST_QUERY_URL}}` : content.text;
+    // Check if next message exists and if it's a user message
+    const nextMessage = messageIndex !== undefined ? messages[messageIndex + 1] : undefined
+    const shouldAddQueryURL = (
+      (pageType === 'dashboard' || pageType === 'unknown') &&
+      role === 'assistant' &&
+      (!nextMessage || nextMessage.role === 'user')
+    )
+    const baseContentText = shouldAddQueryURL ? `${content.text} {{MX_LAST_QUERY_URL}}` : content.text;
     // Convert storage format mentions (@{type:table,id:123}) to special code syntax ([mention:table:table_name])
     const contentTextWithMentionTags = convertMentionsToDisplay(baseContentText, mentionItems);
     if (contentTextWithMentionTags.trim() === '') {
