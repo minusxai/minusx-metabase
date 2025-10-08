@@ -582,7 +582,6 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
         }
         else if (toolCall.function?.name === 'ExecuteMBQLQuery' ||
                  toolCall.function?.name === 'ExecuteMBQLQueryV2' ||
-                 toolCall.function?.name === 'ExecuteMBQLClient' ||
                  toolCall.function?.name === 'runMBQLQuery') {
           // Handle MBQL queries
             try {
