@@ -25,8 +25,8 @@ import { get, isEmpty, last } from 'lodash';
 
 // Todo: Vivek: Hardcoding here, need to fix this later
 // This is a list of actions that are undo/redoable
-const UNDO_REDO_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery']
-const TABLE_OUTPUT_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteMBQLQuery']
+const UNDO_REDO_ACTIONS = ['ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteQueryV2', 'EditAndExecuteQueryV2']
+const TABLE_OUTPUT_ACTIONS = ['ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteMBQLQuery', 'ExecuteQueryV2', 'EditAndExecuteQueryV2', 'ExecuteMBQLQueryV2']
 
 
 function removeThinkingTags(input: string): string {

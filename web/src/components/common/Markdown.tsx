@@ -567,8 +567,8 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
       // Check tool calls in assistant messages
       for (let j = message.content.toolCalls.length - 1; j >= 0; j--) {
         const toolCall = message.content.toolCalls[j];
-        if (toolCall.function?.name === 'ExecuteSQLClient' || 
-            toolCall.function?.name === 'ExecuteQuery' ||
+        if (toolCall.function?.name === 'ExecuteQuery' ||
+            toolCall.function?.name === 'ExecuteQueryV2' ||
             toolCall.function?.name === 'updateSQLQuery' || 
             toolCall.function?.name === 'runSQLQuery') {
           try {
@@ -581,6 +581,7 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
           }
         }
         else if (toolCall.function?.name === 'ExecuteMBQLQuery' ||
+                 toolCall.function?.name === 'ExecuteMBQLQueryV2' ||
                  toolCall.function?.name === 'ExecuteMBQLClient' ||
                  toolCall.function?.name === 'runMBQLQuery') {
           // Handle MBQL queries

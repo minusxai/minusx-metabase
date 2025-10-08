@@ -38,11 +38,11 @@ function extractSQLFromAction(action: Action): string | null {
     const functionName = action.function.name;
     const args = JSON.parse(action.function.arguments);
     
-    if (functionName === 'ExecuteQuery') {
+    if ((functionName === 'ExecuteQuery') || (functionName === 'ExecuteQueryV2')) {
       return args.sql || null;
     }
-    
-    if (functionName === 'EditAndExecuteQuery') {
+
+    if ((functionName === 'EditAndExecuteQuery') || (functionName === 'EditAndExecuteQueryV2')) {
       // For EditAndExecuteQuery, we need to reconstruct the final SQL
       // This is a simplified approach - in reality we'd need access to the base SQL
       const sql_edits = args.sql_edits as SQLEdits;
