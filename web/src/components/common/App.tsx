@@ -178,6 +178,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Handle atlas data loading and updates
   useEffect(() => {
     dispatch(setAssetsLoading(atlasLoading))
+    dispatch(updateThreadID())
     
     if (atlasData && atlasData.accessible_assets) {
       console.log('[minusx] Loaded assets from Atlas API:', atlasData.accessible_assets.length)
