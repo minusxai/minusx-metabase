@@ -314,6 +314,7 @@ const PlanningActionStack: React.FC = () => {
   const isAnalystmode = useSelector((state: RootState) => state.settings.analystMode) || false;
   const dbMetadata = get(metadataProcessingCache, [dbId, 'result'], null);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const planningMessage = useSelector((state: RootState) => state.chat.threads[thread].planningMessage)
   const streamingContents = useSelector((state: RootState) => state.chat.threads[thread].streamingContents)
 
@@ -328,8 +329,16 @@ const PlanningActionStack: React.FC = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Use socket planning message if available, otherwise cycle through default messages
-  const displayMessage = planningMessage || planningActions[currentTitleIndex % planningActions.length]
+  // Only display planning message if it's for the current thread
+  const shouldShowPlanning = planningMessage?.conversationID === activeThread.id
+  const displayMessage = shouldShowPlanning && planningMessage
+    ? planningMessage.message
+    : planningActions[currentTitleIndex % planningActions.length]
+
+  // Filter streaming contents for current thread only
+  const relevantStreamingContents = streamingContents?.filter(
+    content => content.conversationID === activeThread.id
+  ) || []
 
   return (
   <VStack aria-label={"planning"} className={'action-stack'} justifyContent={'start'} width={"100%"} spacing={2}>
@@ -350,7 +359,7 @@ const PlanningActionStack: React.FC = () => {
         <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" aria-label={"planning-spinner"}/>
       </HStack>
     </Box>
-    {streamingContents?.map((streamingContent) => (
+    {relevantStreamingContents.map((streamingContent) => (
       <Box
         key={streamingContent.id}
         bg={'minusxGreen.800'}
