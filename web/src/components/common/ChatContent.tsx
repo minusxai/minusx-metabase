@@ -35,6 +35,9 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
     const baseContentText = ((pageType === 'dashboard' || pageType === 'unknown') && role === 'assistant') ? `${content.text} {{MX_LAST_QUERY_URL}}` : content.text;
     // Convert storage format mentions (@{type:table,id:123}) to special code syntax ([mention:table:table_name])
     const contentTextWithMentionTags = convertMentionsToDisplay(baseContentText, mentionItems);
+    if (contentTextWithMentionTags.trim() === '') {
+      return null;
+    }
     return (
       <div>
         {content.images.map(image => (
