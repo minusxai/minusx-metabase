@@ -250,6 +250,7 @@ const taskResultToContent = (task: Task): ActionChatMessageContent => {
       renderInfo: {
         text: content,
         code: undefined,
+        hidden: true,
       }
     }
   }
@@ -499,6 +500,7 @@ export const chatSlice = createSlice({
                 renderInfo: {
                   text: JSON.parse(toolCall.function.arguments).content,
                   code: undefined,
+                  hidden: true,
                 }
               } : {
                 type: 'BLANK',
