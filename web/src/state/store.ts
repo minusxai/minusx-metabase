@@ -569,6 +569,16 @@ const migrations = {
     // Add useV2API flag for v2 chat planner API
     newState.settings.useV2API = false
     return newState
+  },
+  64: (state: RootState) => {
+    let newState = {...state}
+    // Clear planning messages and streaming contents (now include conversationID)
+    // These are ephemeral fields that should only exist during active planning
+    newState.chat.threads.forEach((thread) => {
+      thread.planningMessage = undefined
+      thread.streamingContents = undefined
+    })
+    return newState
   }
 }
 
@@ -576,7 +586,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 63,
+  version: 64,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

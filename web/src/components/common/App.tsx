@@ -190,6 +190,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       console.warn('[minusx] Failed to load assets from Atlas API:', atlasError)
     }
   }, [atlasData, atlasLoading, atlasError])
+  useEffect(() => {
+    dispatch(updateThreadID())
+  }, [])
 
   // Disabling sockets for now
   useSocketIO({
@@ -197,13 +200,20 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     onMessage: (message) => {
       console.log('Socket.io message received:', message);
       // Handle planning messages
-      if (message?.type === 'message' && message?.content?.agent) {
+      if (message?.type === 'message' && message?.content?.agent && message?.conversationID) {
         const agentName = message.content.agent;
-        dispatch(setPlanningMessage(`Running ${agentName}`));
+        dispatch(setPlanningMessage({
+          message: `Running ${agentName}`,
+          conversationID: message.conversationID
+        }));
       }
       // Handle streaming content chunks
-      if (message?.type === 'content' && message?.id && message?.content) {
-        dispatch(appendStreamingContent({ id: message.id, chunk: message.content }));
+      if (message?.type === 'content' && message?.id && message?.content && message?.conversationID) {
+        dispatch(appendStreamingContent({
+          id: message.id,
+          chunk: message.content,
+          conversationID: message.conversationID
+        }));
       }
     },
     onConnect: () => {

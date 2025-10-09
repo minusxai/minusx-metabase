@@ -21,7 +21,7 @@ export const COMMON_ACTION_DESCRIPTIONS: ActionDescription[] = [
 
 const NEW_ACTION_DESCRIPTIONS: ActionDescription[] =  [
     {
-    name: 'ExecuteMBQLClient',
+    name: 'ExecuteMBQLQuery',
     args: {
       mbql: {
         type: 'string',

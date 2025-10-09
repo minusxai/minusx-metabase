@@ -25,8 +25,8 @@ import { get, isEmpty, last } from 'lodash';
 
 // Todo: Vivek: Hardcoding here, need to fix this later
 // This is a list of actions that are undo/redoable
-const UNDO_REDO_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery']
-const TABLE_OUTPUT_ACTIONS = ['ExecuteSQLClient', 'ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteMBQLQuery']
+const UNDO_REDO_ACTIONS = ['ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteQueryV2', 'EditAndExecuteQueryV2']
+const TABLE_OUTPUT_ACTIONS = ['ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteMBQLQuery', 'ExecuteQueryV2', 'EditAndExecuteQueryV2', 'ExecuteMBQLQueryV2']
 
 
 function removeThinkingTags(input: string): string {
@@ -79,7 +79,14 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
   let title: string = "";
   if (status == 'FINISHED') {
     let titles = actions.map(action => getActionLabels(action.function.name, 'labelDone')) 
-    title = [...new Set(titles)].join(', ')
+    const titleCounts = titles.reduce((acc, title) => {
+      acc[title] = (acc[title] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    title = Object.entries(titleCounts)
+      .map(([label, count]) => count > 1 ? `${label} (${count})` : label)
+      .join(', ')
 
   } else {
     let titles = actions.map(action => getActionLabels(action.function.name, 'labelRunning'))
@@ -150,119 +157,119 @@ export const ActionStack: React.FC<{status: string, actions: Array<ActionStatusV
     return null;
   }
   return (
-    <VStack maxWidth={"100%"} width={isExpanded ? "100%" : ""}>
-    <HStack aria-label="thinking-block" className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
-      <Box
-        aria-label="thinking-block-container"
-        // bg={'minusxGreen.800'}
-        bg={'minusxBW.200'}
-        // p={2}
-        px={2}
-        py={1}
-        my={0}
-        borderRadius={5}
-        // color={'minusxBW.50'}
-        color={'minusxGreen.800'}
-        border={'1px'}
-        width={'100%'}
-        position="relative"
-      > 
-        {content && <>
-          <ChatContent content={{
-            type: "DEFAULT",
-            images: [],
-            text: extractMessageContent(content)
-          }} />
-          <br />
-        </>}
-        <HStack
-          // add border only if actions are present
-        //   paddingBottom={actions.length && isExpanded ? 1 : 0}
-          p={0}
-        >
-          <VStack alignItems={"start"} flex={1} spacing={0}>
-            <VStack>
-            {preExpanderTextArr.length > 0 && 
-            // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
-            preExpanderTextArr.map((text, i) => {
-                return (
-                    <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'} w={"100%"}>
-                        <Markdown content={text}></Markdown>
-                        {pageType && pageType == 'sql' && !taskInProgress && undoRedoArr[i]}
-                    </Box>
-                )
-            })}
-            </VStack>
+    <VStack maxWidth={"100%"} width={"100%"} alignItems={"flex-start"} spacing={2}>
+        <HStack aria-label="thinking-block" className={'action-stack'} justifyContent={'start'} maxWidth={"100%"} width={isExpanded ? "100%" : ""}> 
+        <Box
+            aria-label="thinking-block-container"
+            // bg={'minusxGreen.800'}
+            bg={'minusxBW.200'}
+            // p={2}
+            px={2}
+            py={1}
+            my={0}
+            borderRadius={5}
+            // color={'minusxBW.50'}
+            color={'minusxGreen.800'}
+            border={'1px'}
+            width={'100%'}
+            position="relative"
+        > 
+            {content && <>
+            <ChatContent content={{
+                type: "DEFAULT",
+                images: [],
+                text: extractMessageContent(content)
+            }} />
+            <br />
+            </>}
             <HStack
-              aria-label="thinking-header"
-              paddingBottom={actions.length && isExpanded ? 1 : 0}
-            marginBottom={actions.length && isExpanded ? 1 : 0}
-          borderBottomWidth={ actions.length && isExpanded ? '1px' : '0px'}
-        //   borderBottomColor={'minusxBW.50'}
-          borderBottomColor={'minusxGreen.800'}
-          justifyContent={'space-between'}
-          onClick={toggleExpand} cursor={"pointer"}
-            width={"100%"}
-          >
-            <HStack>
-                {isExpanded ? <BsChevronDown strokeWidth={1}/> : <BsChevronRight strokeWidth={1}/>}
-                <Box flex={5}>
-                <Text>{title}</Text>
+            // add border only if actions are present
+            //   paddingBottom={actions.length && isExpanded ? 1 : 0}
+            p={0}
+            >
+            <VStack alignItems={"start"} flex={1} spacing={0}>
+                <VStack>
+                {preExpanderTextArr.length > 0 && 
+                // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
+                preExpanderTextArr.map((text, i) => {
+                    return (
+                        <Box aria-label="thinking-content" borderBottomWidth={1} mb={1} borderBottomColor={'minusxGreen.800'} w={"100%"}>
+                            <Markdown content={text}></Markdown>
+                            {pageType && pageType == 'sql' && !taskInProgress && undoRedoArr[i]}
+                        </Box>
+                    )
+                })}
+                </VStack>
+                <HStack
+                aria-label="thinking-header"
+                paddingBottom={actions.length && isExpanded ? 1 : 0}
+                marginBottom={actions.length && isExpanded ? 1 : 0}
+            borderBottomWidth={ actions.length && isExpanded ? '1px' : '0px'}
+            //   borderBottomColor={'minusxBW.50'}
+            borderBottomColor={'minusxGreen.800'}
+            justifyContent={'space-between'}
+            onClick={toggleExpand} cursor={"pointer"}
+                width={"100%"}
+            >
+                <HStack>
+                    {isExpanded ? <BsChevronDown strokeWidth={1}/> : <BsChevronRight strokeWidth={1}/>}
+                    <Box flex={5}>
+                    <Text>{title}</Text>
+                    </Box>
+                    { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
+                </HStack>
+                {/* { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null } */}
+                </HStack>
+            </VStack>
+            </HStack>
+            {isExpanded && actions.map((action, index) => {
+            const { text, code, oldCode, language, extraArgs } = action.renderInfo || {}
+            return (
+            <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
+                <HStack>
+                <Icon
+                    as={
+                    !action.finished
+                        ? MdOutlineCheckBoxOutlineBlank
+                        : (action.status == 'SUCCESS' ?  MdOutlineCheckBox : MdOutlineIndeterminateCheckBox)
+                    }
+                    boxSize={5}
+                />
+                {/* <Text>{action.function.name}{text ? " | " : ""}{text}</Text> */}
+                    <Text>{action.function.name}</Text>
+                </HStack>
+                <VStack width={"100%"} alignItems={"stretch"}>
+                { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
+                <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode} language={language} />
                 </Box>
-                { status != 'FINISHED' ? <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" mx={3} /> : null }
-            </HStack>
-            {/* { isExpanded ? <Text fontSize={"12px"} flexDirection={"row"} display={"flex"} justifyContent={"center"} alignItems={"center"}><MdOutlineTimer/>{latency}{"s"}</Text> : null } */}
-            </HStack>
-          </VStack>
-        </HStack>
-        {isExpanded && actions.map((action, index) => {
-          const { text, code, oldCode, language, extraArgs } = action.renderInfo || {}
-          return (
-          <VStack className={'action'} padding={'2px'} key={index} alignItems={"start"}>
-            <HStack>
-              <Icon
-                as={
-                  !action.finished
-                    ? MdOutlineCheckBoxOutlineBlank
-                    : (action.status == 'SUCCESS' ?  MdOutlineCheckBox : MdOutlineIndeterminateCheckBox)
                 }
-                boxSize={5}
-              />
-              {/* <Text>{action.function.name}{text ? " | " : ""}{text}</Text> */}
-                <Text>{action.function.name}</Text>
-            </HStack>
-            <VStack width={"100%"} alignItems={"stretch"}>
-            { code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
-              <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode} language={language} />
-             </Box>
-            }
-            {extraArgs && <CodeBlock code={JSON.stringify(extraArgs, null, 2)} language='json' tool={currentTool}/>}
+                {extraArgs && <CodeBlock code={JSON.stringify(extraArgs, null, 2)} language='json' tool={currentTool}/>}
+                </VStack>
             </VStack>
-          </VStack>
-        )})}
-        {/* {isHovered && isExpanded && configs.IS_DEV && index >= 0 && (
-        <Box position="absolute" top={-1} right={0}>
-          <IconButton
-            aria-label="Debug Info"
-            isRound={true}
-            icon={<BsBugFill />}
-            size="xs"
-            colorScheme={"minusxBW"}
-            mr={1}
-            onClick={showDebugInfo}
-          />
+            )})}
+            {/* {isHovered && isExpanded && configs.IS_DEV && index >= 0 && (
+            <Box position="absolute" top={-1} right={0}>
+            <IconButton
+                aria-label="Debug Info"
+                isRound={true}
+                icon={<BsBugFill />}
+                size="xs"
+                colorScheme={"minusxBW"}
+                mr={1}
+                onClick={showDebugInfo}
+            />
+            </Box>
+            )} */}
         </Box>
-        )} */}
-      </Box>
-    </HStack>
-    <VStack maxWidth={"100%"} width={"100%"} overflow={"auto"}>
-    {tableOutputsArr.length > 0 && 
-        // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
-        tableOutputsArr.map((text, i) => {
-            return (<>{text}</>)
-    })}
+        </HStack>
+        <VStack maxWidth={"100%"} width={"100%"} overflow={"auto"}>
+        {tableOutputsArr.length > 0 && 
+            // <Text marginBottom={2} borderBottomWidth={1} borderBottomColor={'minusxGreen.800'} style={{ hyphens: 'auto' }} p={2} w={"100%"}>{"Thinking..."}<br/>{preExpanderText}</Text>
+            tableOutputsArr.map((text, i) => {
+                return (<>{text}</>)
+        })}
+        </VStack>
     </VStack>
-            </VStack>
   )
 }
 
@@ -314,6 +321,7 @@ const PlanningActionStack: React.FC = () => {
   const isAnalystmode = useSelector((state: RootState) => state.settings.analystMode) || false;
   const dbMetadata = get(metadataProcessingCache, [dbId, 'result'], null);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
+  const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const planningMessage = useSelector((state: RootState) => state.chat.threads[thread].planningMessage)
   const streamingContents = useSelector((state: RootState) => state.chat.threads[thread].streamingContents)
 
@@ -328,8 +336,16 @@ const PlanningActionStack: React.FC = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  // Use socket planning message if available, otherwise cycle through default messages
-  const displayMessage = planningMessage || planningActions[currentTitleIndex % planningActions.length]
+  // Only display planning message if it's for the current thread
+  const shouldShowPlanning = planningMessage?.conversationID === activeThread.id
+  const displayMessage = shouldShowPlanning && planningMessage
+    ? planningMessage.message
+    : planningActions[currentTitleIndex % planningActions.length]
+
+  // Filter streaming contents for current thread only
+  const relevantStreamingContents = streamingContents?.filter(
+    content => content.conversationID === activeThread.id
+  ) || []
 
   return (
   <VStack aria-label={"planning"} className={'action-stack'} justifyContent={'start'} width={"100%"} spacing={2}>
@@ -350,7 +366,7 @@ const PlanningActionStack: React.FC = () => {
         <Spinner size="xs" speed={'0.75s'} color="minusxBW.100" aria-label={"planning-spinner"}/>
       </HStack>
     </Box>
-    {streamingContents?.map((streamingContent) => (
+    {relevantStreamingContents.map((streamingContent) => (
       <Box
         key={streamingContent.id}
         bg={'minusxGreen.800'}

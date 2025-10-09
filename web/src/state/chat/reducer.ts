@@ -153,8 +153,8 @@ export interface ChatThread {
   interrupted: boolean
   tasks: Tasks
   id: string
-  planningMessage?: string
-  streamingContents?: Array<{ id: string, text: string }>
+  planningMessage?: { message: string, conversationID: string }
+  streamingContents?: Array<{ id: string, text: string, conversationID: string }>
 }
 
 interface ChatState {
@@ -250,6 +250,7 @@ const taskResultToContent = (task: Task): ActionChatMessageContent => {
       renderInfo: {
         text: content,
         code: undefined,
+        hidden: true,
       }
     }
   }
@@ -260,7 +261,7 @@ const taskResultToContent = (task: Task): ActionChatMessageContent => {
       text: '',
       code: undefined,
       oldCode: undefined,
-      hidden: true
+      hidden: false
     }
   }
 }
@@ -499,6 +500,7 @@ export const chatSlice = createSlice({
                 renderInfo: {
                   text: JSON.parse(toolCall.function.arguments).content,
                   code: undefined,
+                  hidden: true,
                 }
               } : {
                 type: 'BLANK',
@@ -894,32 +896,41 @@ export const chatSlice = createSlice({
         // Don't change state on error - let existing thread remain active
       }
     },
-    setPlanningMessage: (state, action: PayloadAction<string>) => {
-      const activeThread = getActiveThread(state)
-      activeThread.planningMessage = action.payload
+    setPlanningMessage: (state, action: PayloadAction<{ message: string, conversationID: string }>) => {
+      const { message, conversationID } = action.payload
+      // Find the thread with matching conversationID
+      const targetThread = state.threads.find(thread => thread.id === conversationID)
+      if (targetThread) {
+        targetThread.planningMessage = { message, conversationID }
+      }
     },
     clearPlanningMessage: (state) => {
       const activeThread = getActiveThread(state)
       activeThread.planningMessage = undefined
     },
-    appendStreamingContent: (state, action: PayloadAction<{ id: string, chunk: string }>) => {
-      const activeThread = getActiveThread(state)
-      const { id, chunk } = action.payload
+    appendStreamingContent: (state, action: PayloadAction<{ id: string, chunk: string, conversationID: string }>) => {
+      const { id, chunk, conversationID } = action.payload
+
+      // Find the thread with matching conversationID
+      const targetThread = state.threads.find(thread => thread.id === conversationID)
+      if (!targetThread) {
+        return
+      }
 
       // Initialize array if needed
-      if (!activeThread.streamingContents) {
-        activeThread.streamingContents = []
+      if (!targetThread.streamingContents) {
+        targetThread.streamingContents = []
       }
 
       // Find existing entry by id
-      const existingEntry = activeThread.streamingContents.find(entry => entry.id === id)
+      const existingEntry = targetThread.streamingContents.find(entry => entry.id === id)
 
       if (existingEntry) {
         // Append chunk to existing entry
         existingEntry.text += chunk
       } else {
         // Add new entry
-        activeThread.streamingContents.push({ id, text: chunk })
+        targetThread.streamingContents.push({ id, text: chunk, conversationID })
       }
     },
     clearStreamingContent: (state) => {

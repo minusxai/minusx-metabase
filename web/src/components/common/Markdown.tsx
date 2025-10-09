@@ -27,7 +27,7 @@ function LinkRenderer(props: any) {
         return (
             <a href={props.href} target="_blank" rel="minusxapp">
                 {/* <Button leftIcon={<BsBarChartFill />} size={"xs"} colorScheme={"minusxGreen"}>{props.children}</Button> */}
-                <Tag size='sm' colorScheme='minusxGreen' variant='solid' border={"1px solid #fff"} aria-label='card-link'>
+                <Tag size='sm'  bg='minusxBW.600' variant='solid' aria-label='card-link'>
                     <TagLeftIcon as={BsBarChartFill} />
                     <TagLabel>{props.children}</TagLabel>
                 </Tag>
@@ -84,10 +84,10 @@ function ModifiedCode(props: any) {
         const text = props.children?.toString() || '';
         
         if (text.startsWith('[badge]')) {
-            return <Badge color={"minusxGreen.600"} aria-label='mx-badge'>{text.replace('[badge]', '')}</Badge>;
+            return <Badge color={"minusxBW.600"} aria-label='mx-badge'>{text.replace('[badge]', '')}</Badge>;
         }
         if (text.startsWith('[badge_mx]')) {
-            return <><br></br><Badge aria-label='mx-badge' borderLeftColor={"minusxGreen.600"} borderLeft={"2px solid"} color={"minusxGreen.600"} fontSize={"sm"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
+            return <><Badge aria-label='mx-badge' borderLeftColor={"minusxBW.600"} borderLeft={"2px solid"} color={"minusxBW.600"} fontSize={"xs"} mt={2}>{text.replace('[badge_mx]', '')}</Badge><br></br></>;
         }
         if (text.startsWith('[mention:table:')) {
           const tableName = text.replace('[mention:table:', '').replace(']', '');
@@ -153,7 +153,7 @@ function ModifiedCode(props: any) {
                 border={"1px solid #eee"}
                 rightIcon={<span>{isOpen ? <BiChevronDown/> : <BiChevronRight/>}</span>}
             >
-                {isOpen ? 'Hide' : 'Show'} SQL Code
+                {isOpen ? 'Hide' : 'Show'} Code Block
             </Button>
             <Collapse in={isOpen} animateOpacity>
                 <CodeBlock code={props.children?.toString() || ''} tool='metabase' language='sql'/>
@@ -362,7 +362,7 @@ function ModifiedTable(props: any) {
             <Box position="relative">
                 <HStack justifyContent="space-between" alignItems="center" mb={2}>
                     <h4 style={{ marginTop: '3px', fontWeight: '600', color: '#2d3748' }}>
-                        Results
+                        Results: 
                     </h4>
                     <Tooltip label="Expand Results" openDelay={300}>
                         <IconButton
@@ -567,8 +567,8 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
       // Check tool calls in assistant messages
       for (let j = message.content.toolCalls.length - 1; j >= 0; j--) {
         const toolCall = message.content.toolCalls[j];
-        if (toolCall.function?.name === 'ExecuteSQLClient' || 
-            toolCall.function?.name === 'ExecuteQuery' ||
+        if (toolCall.function?.name === 'ExecuteQuery' ||
+            toolCall.function?.name === 'ExecuteQueryV2' ||
             toolCall.function?.name === 'updateSQLQuery' || 
             toolCall.function?.name === 'runSQLQuery') {
           try {
@@ -581,7 +581,7 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
           }
         }
         else if (toolCall.function?.name === 'ExecuteMBQLQuery' ||
-                 toolCall.function?.name === 'ExecuteMBQLClient' ||
+                 toolCall.function?.name === 'ExecuteMBQLQueryV2' ||
                  toolCall.function?.name === 'runMBQLQuery') {
           // Handle MBQL queries
             try {
@@ -594,9 +594,11 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
                 // Ignore parsing errors
             }
         }
+      }
+    } else if (message.role === 'user') {
+      break
     }
   }
-}
   return null;
 }
 
