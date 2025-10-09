@@ -261,7 +261,7 @@ const taskResultToContent = (task: Task): ActionChatMessageContent => {
       text: '',
       code: undefined,
       oldCode: undefined,
-      hidden: true
+      hidden: false
     }
   }
 }
