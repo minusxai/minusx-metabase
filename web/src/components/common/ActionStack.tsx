@@ -315,7 +315,7 @@ const scrollUp = keyframes`
   }
   `;
 
-const PlanningActionStack: React.FC = () => {
+export const PlanningActionStack: React.FC = () => {
   const dbId = useAppStore((state) => state.toolContext.dbId) || 0;
   const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
   const isAnalystmode = useSelector((state: RootState) => state.settings.analystMode) || false;

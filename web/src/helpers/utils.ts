@@ -131,7 +131,7 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
             text = match[1];
         }
         const truncated = text.length > 100 ? text.slice(0, 100) + '...' : text;
-        return `> Error: ${truncated}.\n\nFixing it!`;
+        return `> Error: ${truncated}.\n\nFixing it...`;
     }
     if (text.includes("<UserCancelled>")) {
         const match = text.match(/<UserCancelled>(.*?)<\/UserCancelled>/s);
