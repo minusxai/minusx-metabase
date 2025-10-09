@@ -375,7 +375,7 @@ export const PlanningActionStack: React.FC = () => {
         color={'minusxBW.50'}
         width={"90%"}
         alignSelf={'flex-start'}
-        aria-label={"streaming-content-bubble"}
+        aria-label={"assistant-message-bubble"}
       >
         <ChatContent
           content={{
