@@ -41,7 +41,7 @@ export function useSocketIO({
       reconnection: true,
       reconnectionAttempts: 2,
       reconnectionDelay: 10000,
-      transports: ['polling'],
+      transports: ['polling', 'websocket'],
       timeout: 20000,
       path: configs.SOCKET_ENDPOINT,
       forceNew: true  // Force new connection to prevent reusing stale connections
