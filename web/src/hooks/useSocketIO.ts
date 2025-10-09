@@ -42,7 +42,7 @@ export function useSocketIO({
       reconnection: true,
       reconnectionAttempts: 2,
       reconnectionDelay: 10000,
-      transports: ['polling', 'websocket'],
+      transports: ['websocket'],
       timeout: 20000,
       path: configs.SOCKET_ENDPOINT
     });
