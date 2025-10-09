@@ -82,8 +82,8 @@ export const CodeBlock = ({ code, tool, oldCode, language }: { code: string, too
   return (
     <Tabs isFitted colorScheme={'minusXGreen'} size={"sm"}>
       { validDiff && <TabList borderBottom={'none'}>
-        <Tab>Updated {language}</Tab>
-        <Tab>Diff</Tab>
+        <Tab color={"white"}>Updated {language}</Tab>
+        <Tab color={"white"}>Diff</Tab>
       </TabList> }
 
       <TabPanels bg={"#1e1e1e"} borderRadius={5} mt={0} maxHeight={"500px"} overflow={"auto"}>

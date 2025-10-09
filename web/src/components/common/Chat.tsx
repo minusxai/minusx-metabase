@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, HStack, VStack, IconButton, Stack, Text, Tooltip } from '@chakra-ui/react'
-import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill, BsDashCircle, BsPlusCircleFill, BsStarFill } from 'react-icons/bs';
+import { Box, HStack, VStack, IconButton, Stack, Text, Tooltip, Icon, Spinner, Button } from '@chakra-ui/react'
+import { BsDashCircle, BsPlusCircleFill, BsStarFill } from 'react-icons/bs';
+import { ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { BiSolidCheckCircle, BiSolidErrorCircle, BiHourglass } from 'react-icons/bi';
 import { dispatch } from '../../state/dispatch'
 import { ChatMessage, addReaction, removeReaction, deleteUserMessage, ActionChatMessage } from '../../state/chat/reducer'
 import { addSavedQuestion, updateIsDevToolsOpen, updateDevToolsTabName } from '../../state/settings/reducer'
 import _, { cloneDeep, isEmpty } from 'lodash'
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { ActionStack, ActionStatusView, OngoingActionStack } from './ActionStack';
 import { ChatContent } from './ChatContent';
 import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
@@ -18,94 +19,95 @@ import { getParsedIframeInfo } from '../../helpers/origin'
 import { DemoHelperMessage, DemoSuggestions } from './DemoComponents';
 import { configs } from '../../constants'
 import { setMinusxMode } from '../../app/rpc'
+import { CodeBlock } from './CodeBlock';
+import {processModelToUIText} from '../../helpers/utils';
+import { executeAction } from '../../planner/plannerActions'
+import { BiUndo, BiRedo } from "react-icons/bi";
+import { PlanningActionStack } from './ActionStack';
 
-// adds tool information like execution status and rendering info
-// this stuff is in the 'tool' messages, but we're ony rendering 'assistant' messages
-// so this copy needs to be done while rendering.
-function addToolInfoToActionPlanMessages(messages: Array<ChatMessage>) {
+const UNDO_REDO_ACTIONS = ['ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteQueryV2', 'EditAndExecuteQueryV2']
+const TABLE_OUTPUT_ACTIONS = ['ExecuteQuery', 'EditAndExecuteQuery', 'ExecuteMBQLQuery', 'ExecuteQueryV2', 'EditAndExecuteQueryV2', 'ExecuteMBQLQueryV2']
+
+
+// adds tool call information (function name, args) from assistant messages to tool messages
+// processes in forward order to match each tool message with its preceding assistant's toolCall
+function addToolCallInfoToToolMessages(messages: Array<ChatMessage>) {
   const result = [...messages]
-  const toolMessageMap = new Map<string, ActionChatMessage>()
-  
-  // Process messages in reverse order
-  for (let i = messages.length - 1; i >= 0; i--) {
+  const toolCallMap = new Map<string, any>()
+
+  // Process messages in forward order
+  for (let i = 0; i < messages.length; i++) {
     const message = messages[i]
-    
-    if (message.role === 'tool') {
-      // Add tool message to map
-      const toolMessage = message as ActionChatMessage
-      toolMessageMap.set(toolMessage.action.id, toolMessage)
-    } else if (message.role === 'assistant') {
-      // Process assistant message using current tool map
-      const toolCalls = message.content.toolCalls.map(toolCall => {
-        const toolMessage = toolMessageMap.get(toolCall.id)
-        if (toolMessage) {
-          return {
-            ...toolCall,
-            status: toolMessage.action.status,
-            content: toolMessage.content.content,
-            renderInfo: toolMessage.content.renderInfo
-          }
-        } else {
-          return toolCall
-        }
+
+    if (message.role === 'assistant') {
+      // Add all toolCalls to map
+      message.content.toolCalls.forEach(toolCall => {
+        toolCallMap.set(toolCall.id, toolCall)
       })
-      
-      result[i] = {
-        ...message,
-        content: {
-          ...message.content,
-          toolCalls
+    } else if (message.role === 'tool') {
+      // Process tool message using current toolCall map
+      const toolMessage = message as ActionChatMessage
+      const toolCallInfo = toolCallMap.get(toolMessage.action.id)
+
+      if (toolCallInfo) {
+        result[i] = {
+          ...message,
+          content: {
+            ...toolMessage.content,
+            action: {
+              ...toolMessage.action,
+              ...toolCallInfo
+            }
+          } as any
         }
       }
-      
-      // Clear the map after processing this assistant message
-      toolMessageMap.clear()
     }
   }
-  
+
   return result
 }
 
-const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]> = ({
-  index,
-  role,
-  content,
-  feedback,
-  debug
+
+const UndoRedo: React.FC<{fn: string, sql: string, type: 'undo' | 'redo', extraArgs: any}> = ({fn, sql, type, extraArgs}) => {
+    const urHandler = (event: React.MouseEvent, fn: string, sql: string) => {
+        event.preventDefault();
+        event.stopPropagation();
+        executeAction({
+            index: -1,
+            function: 'ExecuteQuery',
+            args: {sql: sql, template_tags: extraArgs?.template_tags || {}, parameters: extraArgs?.parameters || [], skipConfirmation: true},
+        });
+    };
+    
+    return <Button
+            size="xs"
+            w={"100%"}
+            leftIcon={ type === 'undo' ? <BiUndo /> : <BiRedo /> }
+            variant={'solid'}
+            colorScheme="minusxGreen"
+            onClick={(event) => urHandler(event, fn, sql)}>
+                {type === 'undo' ? 'Undo' : 'Redo'}
+            </Button>
+};
+
+const ConvMessage: React.FC<ReturnType<typeof addToolCallInfoToToolMessages>[number]> = ({
+    index,
+    role,
+    content,
+    feedback,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const reaction = feedback?.reaction
-  const clearMessages = () => dispatch(deleteUserMessage(index))
-  const saveQuestion = async () => {
-    if (content.type === 'DEFAULT' && content.text) {
-      dispatch(addSavedQuestion(content.text))
-      dispatch(updateIsDevToolsOpen(true))
-      dispatch(updateDevToolsTabName('Memory'))
-      await setMinusxMode('open-sidepanel-devtools')
+    const [isHovered, setIsHovered] = useState(false);
+    const reaction = feedback?.reaction
+    const clearMessages = () => dispatch(deleteUserMessage(index))
+    const saveQuestion = async () => {
+        if (content.type === 'DEFAULT' && content.text) {
+        dispatch(addSavedQuestion(content.text))
+        dispatch(updateIsDevToolsOpen(true))
+        dispatch(updateDevToolsTabName('Memory'))
+        await setMinusxMode('open-sidepanel-devtools')
+        }
     }
-  }
-  if (content.type == 'BLANK') {
-    return null
-  } else if (content.type == 'ACTIONS') {
-    if (!content.finished) {
-      return null
-    }
-    const actions: ActionStatusView[] = []
-    content.toolCalls.forEach(toolCall => {
-      if (!toolCall.renderInfo.hidden) {
-        actions.push({
-          finished: true,
-          function: toolCall.function,
-          status: toolCall.status,
-          renderInfo: toolCall.renderInfo,
-          output: toolCall.content,
-        })
-      }
-    })
-    const latency = ('latency' in debug)? Math.round(debug.latency as number /100)/10 : 0
-    return <ActionStack content={content.messageContent} actions={actions} status={'FINISHED'} index={index} latency={latency}/>
-  }
-  return (
+    return (
     <HStack
       className={`chat ${role}`}
       aria-label={role === 'user' ? 'user-message' : 'assistant-message'}
@@ -124,7 +126,6 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
           className={'bubble'}
           aria-label={role === 'user' ? 'user-message-bubble' : 'assistant-message-bubble'}
           bg={role == 'user' ? 'minusxBW.300' : 'minusxGreen.800'}
-          // bg={role == 'user' ? 'minusxBW.300' : 'minusxBW.600'}
           px={3} py={2}
           borderRadius={role == 'user' ? '10px 10px 0 10px' : '10px 10px 10px 0'}
           color={role == 'user' ? 'minusxBW.900' : 'minusxBW.50'}
@@ -143,34 +144,11 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
             borderWidth={'3px'}
             borderStyle={"solid"}
             borderTopColor={role == 'user' ? 'minusxBW.300' : 'minusxGreen.800'}
-            // borderTopColor={role == 'user' ? 'minusxBW.300' : 'minusxBW.600'}
             borderBottomColor="transparent"
             borderRightColor={role == 'user' ? 'minusxBW.300' : 'transparent'}
             borderLeftColor={role == 'user' ? 'transparent' : 'minusxGreen.800'}
-            // borderLeftColor={role == 'user' ? 'transparent' : 'minusxBW.600'}
           />
         </Box>
-        {/* {(isHovered || (reaction !== "unrated")) && (role == 'tool') && (
-          <Box aria-label="message-reactions" position="absolute" bottom={-1} right={0}>
-            <IconButton
-              aria-label="Thumbs up"
-              isRound={true}
-              icon={<BsFillHandThumbsUpFill />}
-              size="xs"
-              colorScheme={ reaction === "positive" ? "minusxGreen" : "minusxBW" }
-              mr={1}
-              onClick={reaction == "positive" ? clearReactions : addPositiveReaction}
-            />
-            <IconButton
-              aria-label="Thumbs down"
-              isRound={true}
-              icon={<BsFillHandThumbsDownFill />}
-              size="xs"
-              colorScheme={ reaction === "negative" ? "minusxGreen" : "minusxBW" }
-              onClick={reaction == "negative" ? clearReactions : addNegativeReaction}
-            />
-          </Box>
-        )} */}
         {(isHovered || (reaction !== "unrated")) && (role == 'user') && (
           <Box aria-label="message-actions" position="absolute" bottom={-1} right={0}>
             <Tooltip label="Delete message" placement="top">
@@ -203,8 +181,155 @@ const Chat: React.FC<ReturnType<typeof addToolInfoToActionPlanMessages>[number]>
         )}
       </Box>
     </HStack>
-  )
+    )
 }
+
+const ToolMessage: React.FC<{index: number, content: any}> = ({index, content}) => {
+    const { action, renderInfo } = content
+    const { textRI, code, language, extraArgs, oldCode } = renderInfo || {}
+    const text = content.text || textRI || ''
+    const functionName = action?.function?.name || 'Unknown'
+    const output = content.content || ''
+    const status = action?.status || 'TODO'
+    const finished = action?.finished || false
+    const renderAsMessage = functionName === 'TalkToUser'
+    const currentTool = useSelector((state: RootState) => state.settings.iframeInfo.tool)
+    const [isCodeExpanded, setIsCodeExpanded] = useState(false)
+    const embedConfigs = useSelector((state: RootState) => state.configs.embed);
+    const pageType = useAppStore((state) => state.toolContext.pageType) || '';
+    const url = useAppStore((state) => state.toolContext.url) || '';
+    const origin = url ? new URL(url).origin : '';
+    const thread = useSelector((state: RootState) => state.chat.activeThread)
+    const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
+    const taskInProgress = !(activeThread.status == 'FINISHED')
+    const totalThreads = useSelector((state: RootState) => state.chat.threads.length)
+    const lastThread = (thread === totalThreads - 1)
+      
+
+    if (renderAsMessage) {
+        return (
+            <ConvMessage index={index} role='assistant' content={{
+                images: [],
+                type: 'DEFAULT',
+                text: text || ''
+            }} />
+        )
+    }
+
+    const getStatusIcon = () => {
+        if (!finished) {
+            if (status === 'DOING') {
+                return <Spinner size="xs" speed="0.8s" thickness="2px" color="blue.500" title="Running" />;
+            }
+            return <Icon as={BiHourglass} color="gray.500" title="Pending" />;
+        }
+        if (status === 'SUCCESS') {
+            return <Icon as={BiSolidCheckCircle} color="green.500" title="Completed" />;
+        }
+        return <Icon as={BiSolidErrorCircle} color="red.500" title="Failed" />;
+    };
+
+    const tableOutputs = TABLE_OUTPUT_ACTIONS.includes(functionName) && (
+        <HStack w={"100%"} justify={"center"} mb={2} overflowX={'auto'}>
+            <Markdown content={processModelToUIText(output, origin, embedConfigs)} />
+        </HStack>
+    )
+
+    const undoRedoArr = UNDO_REDO_ACTIONS.includes(action.function.name) && lastThread && (
+                <HStack w={"100%"} justify={"center"} mb={2}>
+                    {oldCode ? <UndoRedo fn={action.function.name} sql={oldCode} type={'undo'} extraArgs={extraArgs?.old || {}}/>:<UndoRedo fn={action.function.name} sql={''} type={'undo'} extraArgs={extraArgs?.old || {}}/>}
+                    {code ? <UndoRedo fn={action.function.name} sql={code} type={'redo'} extraArgs={extraArgs?.new || {}}/> : <UndoRedo fn={action.function.name} sql={''} type={'redo'} extraArgs={extraArgs?.new || {}}/> }
+                </HStack>
+            )
+
+    return (
+        <>
+        <VStack
+            bg={'minusxBW.200'}
+            p={2}
+            borderRadius={5}
+            width={'90%'}
+            alignItems={'flex-start'}
+            spacing={1}
+            border={'1px'}
+            borderColor={'minusxGreen.800'}
+        >
+            <HStack spacing={2} w="100%" justifyContent={'space-between'}>
+                <HStack spacing={1.5}>
+                    {getStatusIcon()}
+                    <Text fontSize={'sm'} fontWeight={'semibold'} color={'minusxGreen.800'}>
+                        {functionName}
+                    </Text>
+                </HStack>
+                {code && (
+                    <HStack
+                        spacing={0.5}
+                        cursor="pointer"
+                        onClick={() => setIsCodeExpanded(!isCodeExpanded)}
+                        p={1}
+                        _hover={{ opacity: 0.8}}
+                    >
+                        <Text fontSize={'xs'} fontWeight={'medium'} color={'minusxGreen.800'}>
+                            Code
+                        </Text>
+                        <Icon
+                            as={isCodeExpanded ? ChevronDownIcon : ChevronRightIcon}
+                            color={'minusxGreen.800'}
+                            boxSize={3}
+                        />
+                    </HStack>
+                )}
+            </HStack>
+            {pageType && pageType == 'sql' && !taskInProgress && undoRedoArr}
+            {text && (
+                <Box width={'100%'}>
+                    <Markdown content={text} />
+                </Box>
+            )}
+            {code && isCodeExpanded && (
+                <VStack width={"100%"} alignItems={"stretch"} spacing={1}>
+                    {code && <Box width={"100%"} p={2} bg={"#1e1e1e"} borderRadius={5}>
+                        <CodeBlock code={code || ""} tool={currentTool} oldCode={oldCode} language={language} />
+                    </Box>}
+                    {extraArgs && <CodeBlock code={JSON.stringify(extraArgs, null, 2)} language='json' tool={currentTool}/>}
+                </VStack>
+            )}
+        </VStack>
+        {tableOutputs}
+        </>
+    )
+}
+
+const Chat: React.FC<ReturnType<typeof addToolCallInfoToToolMessages>[number]> = ({
+  index,
+  role,
+  content,
+  feedback,
+  debug
+}) => {
+
+  // Convention
+  // 1. If it is a user message, display it
+  // 2. If it is an assistant message without tool calls, display it
+  // 3. If it is an assistant message with tool calls, skip it
+  // 4. If it is a tool message, display it
+
+    if (role == 'user') {
+        return <ConvMessage index={index} role={role} content={content} feedback={feedback}/>
+    }
+    else if (role == 'assistant' && content.toolCalls?.length == 0) {
+        return <ConvMessage index={index} role={role} content={{
+            images: [],
+            type: 'DEFAULT',
+            text: content.messageContent || ''
+        }} feedback={feedback}/>
+    }
+    else if (role == 'tool') {
+        return <ToolMessage index={index} content={content}/>
+    }
+}
+
+
 
 const useAppStore = getApp().useStore()
 
@@ -234,7 +359,8 @@ export const ChatSection = () => {
   // just create a map of all role='tool' messages by their id, and for each
   // tool call in each assistant message, add the status from the corresponding
   // tool message
-  const messagesWithStatusInfo = addToolInfoToActionPlanMessages(messages)
+  const messagesWithStatusInfo = addToolCallInfoToToolMessages(messages)
+  console.log('Messages with tool call info', messagesWithStatusInfo)
   const messagesWithStatus = messagesWithStatusInfo.flatMap(message => {
     // if (message.role == 'assistant' && message.content.toolCalls.length == 0) {
     const returnValue = [message]
@@ -262,7 +388,8 @@ export const ChatSection = () => {
     { configs.IS_DEV && tasks.length && <Tasks /> }
     { !configs.IS_DEV &&  tasks.length && <TasksLite /> }
     {/* { tasks.length && <TasksLite /> } */}
-    <OngoingActionStack />
+    {/* <OngoingActionStack /> */}
+    {activeThread.status === 'PLANNING' && <PlanningActionStack />}
     <div style={{ height: '10px', width: '100%' }} ref={lastMessageRef} />
   </HStack>
   <DemoSuggestions url={url}/>
