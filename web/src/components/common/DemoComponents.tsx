@@ -38,8 +38,16 @@ export const DemoSuggestions = ({url}: {url: string}) => {
     const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
                          (availableAssets.length > 0 ? availableAssets[0] : null)
 
+    const isSubset = (url: string, parentUrl: string) => {
+      try {
+        return parentUrl.includes(new URL(url).pathname)
+      } catch (e) {
+        console.error("Invalid URL:", url, e)
+        return false
+      }
+    }
     const personalQuestions = showSavedQuestions ? savedQuestions : []
-    const teamQuestions = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.questions?.filter(q => q.is_published && url.includes(new URL(q.source_url).pathname)).map(q => q.content) || [] : []
+    const teamQuestions = (selectedAsset && useTeamMemory && selectedAsset.content?.isActive) ? selectedAsset.content?.questions?.filter(q => q.is_published && isSubset(q.source_url, url) && q.content).map(q => q.content) || [] : []
     const allQuestions = [...personalQuestions, ...teamQuestions]
         
 
