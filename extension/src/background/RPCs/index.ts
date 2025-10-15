@@ -231,6 +231,13 @@ export function initBackgroundRPC() {
         // });
       }
     });
+
+    // Set uninstall URL
+    getExtensionID().then((extensionId) => {
+      const uninstallLink = `https://minusx.ai/goodbye-world?r=${extensionId}`;
+      chrome.runtime.setUninstallURL(uninstallLink);
+      console.log(`Uninstall URL set to ${uninstallLink}`);
+    });
   }
 
   // add a listener on tab removed, so we can remove from our map
