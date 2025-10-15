@@ -178,7 +178,10 @@ const Auth = () => {
   const [discoverySource, setDiscoverySource] = useState("");
   const isOTPMode = authJWT ? true : false
   // const helperMessage = useAppStore((state) => state.helperMessage)?.split('---')[1] || "Welcome to MinusX! You can ask us anything related to your data, and our agents will take care of the rest!"
-  const helperMessage = `Login to start talking to your dashboards, writing complex queries in minutes, and asking deeper questions about your business.`
+  const helperMessage = `Login to start talking to your dashboards, writing complex queries in minutes, and asking deeper questions about your business.
+
+
+  ![img](https://minusx.ai/app_assets/tutorial.gif)`
   const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
   
 
