@@ -16,6 +16,11 @@ import {
     MenuList,
     MenuItem,
     Portal,
+    Popover,
+    PopoverTrigger,
+    PopoverContent,
+    PopoverBody,
+    PopoverArrow,
 
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
@@ -323,11 +328,32 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     const isEnterpriseCustomer = useSelector((state: RootState) => state.billing.isEnterpriseCustomer)
     const drMode = useSelector((state: RootState) => state.settings.drMode)
     return (
-        <HStack aria-label='mx-mode'>
+        <HStack aria-label='mx-mode' justifyContent="space-between" width="100%">
             { !(subscribed || isEnterpriseCustomer) && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"} title="A taste of what's possible. Great if you're just exploring MinusX to get a feel for the product. Switch to pro for an advanced experience." ><BiSolidLockAlt /> Basic Plan</Link> }
             { subscribed && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidStar /> Pro Plan</Link> }
             {isEnterpriseCustomer && <Link href={"https://minusx.ai/pricing/"} isExternal display={"flex"} fontSize="xs" color="minusxGreen.800" fontWeight={"bold"} alignItems={"center"}><BiSolidRocket /> Enterprise Plan</Link> }
             {/* { analystMode && <Text fontSize="xs" color="minusxGreen.800" fontWeight={"bold"}>[Explorer Agent]</Text> } */}
+            { !(subscribed || isEnterpriseCustomer) && (
+              <Popover placement="bottom-end">
+                <PopoverTrigger>
+                  <Link fontSize="xs" color="blue.500" fontWeight="medium" cursor="pointer" _hover={{ textDecoration: 'underline' }}>
+                    Get Free Credits
+                  </Link>
+                </PopoverTrigger>
+                <PopoverContent maxW="280px" p={2}>
+                  <PopoverArrow />
+                  <PopoverBody>
+                    <Text fontSize="xs">
+                      If you enjoy using MinusX, leave us a{' '}
+                      <Link href="https://minusx.ai/chrome-extension" color="blue.500" isExternal textDecoration="underline">
+                        review
+                      </Link>
+                      {' '}and send us a screenshot at reviews@minusx.ai to get a free trial of MinusX Pro!
+                    </Text>
+                  </PopoverBody>
+                </PopoverContent>
+              </Popover>
+            )}
         </HStack>
     )
   }
