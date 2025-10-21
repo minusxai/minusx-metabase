@@ -98,7 +98,7 @@ startListening({
         // check if we need to continue tool calls. maybe should have a counter
         // here to limit the number of iterations?
         let _steps = 0
-        const MAX_STEPS = 8
+        const MAX_STEPS = 12
         while (shouldContinue(getState)) {
           _steps += 1
           if (_steps > MAX_STEPS) {
