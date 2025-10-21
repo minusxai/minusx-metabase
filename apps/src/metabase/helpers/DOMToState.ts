@@ -1,6 +1,6 @@
 import { getParsedIframeInfo, RPCs } from 'web'
 import { getAllRelevantTablesForSelectedDb, getRelevantTablesForSelectedDb, getTablesWithFields, validateTablesInDB } from './getDatabaseSchema';
-import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases, getTableData } from './metabaseAPIHelpers';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases, getTableData, handleEmpty } from './metabaseAPIHelpers';
 import { getAndFormatOutputTable, getSqlErrorMessage } from './operations';
 import { DashboardInfo } from './dashboard/types';
 import { getDashboardAppState } from './dashboard/appState';
@@ -116,13 +116,23 @@ export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, cu
   const isEmbedded = getParsedIframeInfo().isEmbedded
   const sqlQuery =  get(currentCard, 'dataset_query.native.query', '') || ''
   const dbId = currentDBId
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
-  const limitedEntities = await getLimitedEntities(sqlQuery, currentDBId);
+  const selectedDatabaseInfo = dbId ? await handleEmpty(getDatabaseInfo(dbId), {
+    name: 'Unknown Database',
+    description: '',
+    id: dbId,
+    dialect: 'unknown',
+    dbms_version: {
+      flavor: 'unknown',
+      version: 'unknown',
+      semantic_version: [0, 0, 0]
+    }
+  }) : undefined;
+  const limitedEntities = await handleEmpty(getLimitedEntities(sqlQuery, currentDBId), []);
   const sqlErrorMessage = await getSqlErrorMessage();
   const appStateType = pageType === 'sql' ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
   let relevantTablesWithFields: FormattedTable[] = []
   {
-      const dbTables = await getAllRelevantTablesForSelectedDb(dbId || 0)
+      const dbTables = await handleEmpty(getAllRelevantTablesForSelectedDb(dbId || 0), [])
       const sqlTables = await getTablesFromSqlRegex(sqlQuery)
       const defaultSchema = selectedDatabaseInfo?.default_schema
       // Apply default schema to tables if needed
@@ -158,9 +168,19 @@ export async function convertDOMtoStateSQLQuery(currentDBId: number) {
   // const dbId = _.get(hashMetadata, 'dataset_query.database');
   const fullUrl = await RPCs.queryURL();
   const url = new URL(fullUrl).origin;
-  const availableDatabases = (await getDatabases())?.data?.map(({ name }) => name);
+  const availableDatabases = (await handleEmpty(getDatabases(), { total: 0, data: [] }))?.data?.map(({ name }) => name);
   const dbId = currentDBId;
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
+  const selectedDatabaseInfo = dbId ? await handleEmpty(getDatabaseInfo(dbId), {
+    name: 'Unknown Database',
+    description: '',
+    id: dbId,
+    dialect: 'unknown',
+    dbms_version: {
+      flavor: 'unknown',
+      version: 'unknown',
+      semantic_version: [0, 0, 0]
+    }
+  }) : undefined;
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   let sqlQuery = await getCurrentQuery();
   const appSettings = RPCs.getAppSettings();
@@ -173,7 +193,7 @@ export async function convertDOMtoStateSQLQuery(currentDBId: number) {
       }
     })
   }
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, false, sqlTables, [], dbId);
+  let relevantTablesWithFields = await handleEmpty(getTablesWithFields(appSettings.tableDiff, appSettings.drMode, false, sqlTables, [], dbId), []);
   // add defaultSchema back to relevantTablesWithFields. kind of hacky but whatever
   relevantTablesWithFields = relevantTablesWithFields.map(table => {
     if (table.schema === undefined || table.schema === '') {
@@ -181,9 +201,9 @@ export async function convertDOMtoStateSQLQuery(currentDBId: number) {
     }
     return table
   })
-  const allModels = dbId ? await getAllRelevantModelsForSelectedDb(dbId) : []
+  const allModels = dbId ? await handleEmpty(getAllRelevantModelsForSelectedDb(dbId), []) : []
   const relevantModels = await getSelectedAndRelevantModels(sqlQuery || "", appSettings.selectedModels, allModels)
-  const relevantModelsWithFields = await getModelsWithFields(relevantModels)
+  const relevantModelsWithFields = await handleEmpty(getModelsWithFields(relevantModels), [])
   const allFormattedTables = [...relevantTablesWithFields, ...relevantModelsWithFields]
   const tableContextYAML = getTableContextYAML(allFormattedTables, null, appSettings.drMode);
   sqlQuery = modifySqlForMetabaseModels(sqlQuery || "", relevantModels)
