@@ -116,8 +116,8 @@ export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, cu
   const isEmbedded = getParsedIframeInfo().isEmbedded
   const sqlQuery =  get(currentCard, 'dataset_query.native.query', '') || ''
   const dbId = currentDBId
-  const limitedEntities = await getLimitedEntities(sqlQuery, currentDBId);
   const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined;
+  const limitedEntities = await getLimitedEntities(sqlQuery, currentDBId);
   const sqlErrorMessage = await getSqlErrorMessage();
   const appStateType = pageType === 'sql' ? MetabaseAppStateType.SQLEditor : MetabaseAppStateType.RandomPage;
   let relevantTablesWithFields: FormattedTable[] = []

@@ -1,7 +1,7 @@
 import { DashboardInfo, DashboardMetabaseState } from './types';
 import _, { forEach, reduce, template, values } from 'lodash';
 import { MetabaseAppStateDashboard} from '../DOMToState';
-import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getFieldResolvedName } from '../metabaseAPIHelpers';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getFieldResolvedName, handleEmpty } from '../metabaseAPIHelpers';
 import { getDashboardState, getSelectedDbId } from '../metabaseStateAPI';
 import { getParsedIframeInfo, RPCs } from 'web';
 import { getSQLFromMBQL, fetchCard } from '../metabaseAPI';
@@ -218,10 +218,10 @@ function substituteParameterMappings(
   return sql
 }
 
-async function getDashcardwithOutputTableMd(
+function getDashcardwithOutputTableMd(
   dashboardMetabaseState: DashboardMetabaseState, 
   dashcardId: number,
-  dashboardId: number): Promise<DashboardInfoForModelling['cards'][number] | null> {
+  dashboardId: number): DashboardInfoForModelling['cards'][number] | null {
   const dashcard = dashboardMetabaseState.dashcards[dashcardId].card;
   if (!dashcard) {
     return null;
@@ -335,7 +335,17 @@ export async function getDashboardAppState(currentDBId: number): Promise<Metabas
   const fullUrl = await RPCs.queryURL();
   const url = new URL(fullUrl).origin;
   const dbId = currentDBId
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
+  const selectedDatabaseInfo = dbId ? await handleEmpty(getDatabaseInfo(dbId), {
+    name: 'Unknown Database',
+    description: '',
+    id: dbId,
+    dialect: 'unknown',
+    dbms_version: {
+      flavor: 'unknown',
+      version: 'unknown',
+      semantic_version: [0, 0, 0]
+    }
+  }) : undefined
   const dashboardMetabaseState: DashboardMetabaseState = await getDashboardState() as DashboardMetabaseState;
   if (!dashboardMetabaseState || !dashboardMetabaseState.dashboards || !dashboardMetabaseState.dashboardId) {
     console.warn('Could not get dashboard info');
@@ -355,23 +365,23 @@ export async function getDashboardAppState(currentDBId: number): Promise<Metabas
   }
   const selectedTabDashcardIds = getSelectedTabDashcardIds(dashboardMetabaseState);
 //   const dashboardParameters = _.get(dashboardMetabaseState, ['dashboards', dashboardId, 'parameters'], [])
-  const cards = await Promise.all(selectedTabDashcardIds.map(async dashcardId => await getDashcardwithOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId)))
+  const cards = selectedTabDashcardIds.map(dashcardId => getDashcardwithOutputTableMd(dashboardMetabaseState, dashcardId, dashboardId))
   let filteredCards = _.compact(cards);
-    const limitedEntitiesSQL = await getLimitedEntitiesFromQueries(
-        filteredCards.flatMap(card => 
-            card?.dataset_query?.native?.query ? [card.dataset_query.native.query] : []
-        ),
-        dbId
-    );
-    const limitedEntitiesMBQL = await getLimitedEntitiesFromMBQLQueries(
-        filteredCards.flatMap(card => 
-            card?.dataset_query?.query ? [card.dataset_query.query] : []
-        ),
-        dbId
-    );
-    const limitedEntities = [...limitedEntitiesSQL, ...limitedEntitiesMBQL];
-    // remove duplicates based on id and type
-    const uniqueEntities = Array.from(new Map(limitedEntities.map(entity => [entity.id, entity])).values());
+  const limitedEntitiesSQL = await handleEmpty(getLimitedEntitiesFromQueries(
+      filteredCards.flatMap(card => 
+          card?.dataset_query?.native?.query ? [card.dataset_query.native.query] : []
+      ),
+      dbId
+  ), []);
+  const limitedEntitiesMBQL = await handleEmpty(getLimitedEntitiesFromMBQLQueries(
+      filteredCards.flatMap(card => 
+          card?.dataset_query?.query ? [card.dataset_query.query] : []
+      ),
+      dbId
+  ), []);
+  const limitedEntities = [...limitedEntitiesSQL, ...limitedEntitiesMBQL];
+  // remove duplicates based on id and type
+  const uniqueEntities = Array.from(new Map(limitedEntities.map(entity => [entity.id, entity])).values());
   const dashboardAppState: MetabaseAppStateDashboard = {
     ...dashboardInfo,
     type: MetabaseAppStateType.Dashboard,
@@ -421,7 +431,7 @@ export async function getDashboardAppState(currentDBId: number): Promise<Metabas
       }
 
       filteredCards = await Promise.all(
-        filteredCards.map(card => processMBQLCard(card, dbId, cardDetailsMap))
+        filteredCards.map(card => handleEmpty(processMBQLCard(card, dbId, cardDetailsMap), card))
       );
       
     } catch (error) {
