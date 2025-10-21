@@ -2,7 +2,7 @@ import { MetabaseAppStateMBQLEditor} from '../DOMToState';
 import { getParsedIframeInfo, RPCs } from 'web';
 import { MBQLInfo, getSourceTableIds } from './utils';
 import { getMBQLState, getSelectedDbId } from '../metabaseStateAPI';
-import { getAllRelevantModelsForSelectedDb, getDatabaseInfo } from '../metabaseAPIHelpers';
+import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, handleEmpty } from '../metabaseAPIHelpers';
 import { get, find } from 'lodash';
 import { getTableContextYAML } from '../catalog';
 import { getTablesWithFields } from '../getDatabaseSchema';
@@ -18,7 +18,17 @@ export async function getMBQLAppState(currentDBId: number): Promise<MetabaseAppS
   const appSettings = RPCs.getAppSettings();
   const selectedCatalog = get(find(appSettings.availableCatalogs, { name: appSettings.selectedCatalog }), 'content')
   const dbId = currentDBId
-  const selectedDatabaseInfo = dbId ? await getDatabaseInfo(dbId) : undefined
+  const selectedDatabaseInfo = dbId ? await handleEmpty(getDatabaseInfo(dbId), {
+    name: 'Unknown Database',
+    description: '',
+    id: dbId,
+    dialect: 'unknown',
+    dbms_version: {
+      flavor: 'unknown',
+      version: 'unknown',
+      semantic_version: [0, 0, 0]
+    }
+  }) : undefined
   const defaultSchema = selectedDatabaseInfo?.default_schema;
   const mbqlState = await getMBQLState();
   const outputTableMarkdown = await getAndFormatOutputTable()
@@ -26,13 +36,13 @@ export async function getMBQLAppState(currentDBId: number): Promise<MetabaseAppS
     mbqlQuery: mbqlState.dataset_query.query,
     outputTableMarkdown
   }
-  
+
   const sourceTableModelIds = getSourceTableIds(mbqlState?.dataset_query?.query);
-  const allModels = dbId ?  await getAllRelevantModelsForSelectedDb(dbId) : []
+  const allModels = dbId ?  await handleEmpty(getAllRelevantModelsForSelectedDb(dbId), []) : []
   const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels, sourceTableModelIds)
-  const relevantModelsWithFields = await getModelsWithFields(relevantModels)
-  
-  let relevantTablesWithFields = await getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds, dbId);
+  const relevantModelsWithFields = await handleEmpty(getModelsWithFields(relevantModels), [])
+
+  let relevantTablesWithFields = await handleEmpty(getTablesWithFields(appSettings.tableDiff, appSettings.drMode, !!selectedCatalog, [], sourceTableModelIds, dbId), []);
   relevantTablesWithFields = relevantTablesWithFields.map(table => {
     if (table.schema === undefined || table.schema === '') {
       table.schema = defaultSchema || 'unknown'
