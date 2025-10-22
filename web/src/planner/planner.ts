@@ -114,12 +114,12 @@ startListening({
           // don't do toast stuff. this happens when the user aborts the planner so not really an error
           return
         }
-        let description = "Unknown error"
+        let description = String(err)
         if (isAxiosError(err)) {
-          description = err.response?.data?.error || err.message
+          description += ";" + String(err.response?.data?.error || err.message)
         } else if (err instanceof Error) {
-          description = err.message
-        } 
+          description += ";" + String(err.message)
+        }
         
         // Capture error to backend for analysis
         try {
