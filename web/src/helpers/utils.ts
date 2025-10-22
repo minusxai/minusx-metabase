@@ -62,8 +62,6 @@ export type MxModel = {
   }
 }
 
-const useAppStore = getApp().useStore()
-
 const controller = getApp().actionController
 export const getActionTaskLiteLabels = (action: string) => {
     const extraMapping: { [key: string]: string } = {
@@ -88,7 +86,7 @@ export const getActionTaskLiteLabels = (action: string) => {
 }
 
 
-export const processModelToUIText = (text: string, origin: string, embedConfigs: EmbedConfigs = {}): string => {
+export const processModelToUIText = (text: string, origin: string, embedConfigs: EmbedConfigs = {}, cards: object[] = []): string => {
     if (text === ''){
         return ''
     }
@@ -99,7 +97,6 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
                    .replace(/\]\]/g, '`]')  
     }
     if (text.includes("card_id:") && (origin != '')) {
-        const cards = useAppStore((state) => state.toolContext?.dbInfo?.cards) || [];
         //Replace [card_id:<id>] with link
         // Replace [card_id:<id>] with markdown link using embed URL logic
         text = text.replace(/\[card_id:(\d+)\]/g, (match, id) => {

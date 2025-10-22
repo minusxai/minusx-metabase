@@ -22,6 +22,7 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
   const origin = url ? new URL(url).origin : '';
   const pageType = toolContext?.pageType || ''
   const embedConfigs = useSelector((state: RootState) => state.configs.embed);
+  const cards = toolContext?.dbInfo?.cards || []
 
   // Get messages to check if next message exists
   const thread = useSelector((state: RootState) => state.chat.activeThread)
@@ -54,7 +55,7 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
-        <Markdown content={processModelToUIText(contentTextWithMentionTags, origin, embedConfigs)} messageIndex={messageIndex} />
+        <Markdown content={processModelToUIText(contentTextWithMentionTags, origin, embedConfigs, cards)} messageIndex={messageIndex} />
       </div>
     )
   } else {
