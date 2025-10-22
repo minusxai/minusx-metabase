@@ -385,6 +385,10 @@ export async function getDatabaseTablesAndModelsWithoutFields(db_id: number, for
   };
 }
 
+export function handleEmpty<T>(promise: Promise<T>, defaultValue: T): Promise<T> {
+  return Promise.resolve(promise).catch(() => defaultValue);
+}
+
 export async function getDatabaseInfo(dbId: number) {
   const jsonResponse = await fetchDatabaseInfo({ db_id: dbId });
   const defaultSchema = getDefaultSchema(jsonResponse);
