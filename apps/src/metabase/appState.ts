@@ -7,7 +7,7 @@ import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
 import { DOMQueryMapResponse } from "extension/types";
 import { subscribe, setInstructions, dispatch } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
-import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo } from "./helpers/metabaseAPIHelpers";
+import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo, getDatabaseTablesModelsCardsWithoutFields } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
 import { getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
@@ -547,7 +547,7 @@ Here's what I need modified:
       const isCancelled = () => taskStatus.status === 'cancelled';
       const [relevantTables, dbInfo] = await Promise.all([
         handlePromise(abortable(getRelevantTablesForSelectedDb(dbId), isCancelled), "Failed to get relevant tables", []),
-        handlePromise(abortable(getDatabaseTablesAndModelsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
+        handlePromise(abortable(getDatabaseTablesModelsCardsWithoutFields(dbId), isCancelled), "Failed to get database info", DB_INFO_DEFAULT)
       ])
       state.getState().update((oldState) => ({
         ...oldState,

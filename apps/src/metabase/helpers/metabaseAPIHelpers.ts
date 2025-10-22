@@ -258,7 +258,8 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
   }
 
   const cardsForProcessing = finalCards;
-  const processedCards = map(cardsForProcessing, processCard);
+  // const processedCards = map(cardsForProcessing, processCard);
+  const processedCards = cardsForProcessing.map(processCard)
 
   console.log('Processed cards:', processedCards);
   const tables: Record<string, TableAndSchema> = {};
@@ -382,6 +383,31 @@ export async function getDatabaseTablesAndModelsWithoutFields(db_id: number, for
   return {
       ...tablesAndDetails,
       models: models || []
+  };
+}
+
+export async function getDatabaseTablesModelsCardsWithoutFields(db_id: number, forceRefreshModels: boolean = false, forceRefreshTables: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
+  const tablesAndDetails = await getRelevantTablesAndDetailsForSelectedDb(db_id, forceRefreshTables);
+  const cardsAndModels = await getAllCardsAndModels(forceRefreshModels, db_id);
+  const allCardsAndModels = cardsAndModels.cards || [];
+  const cards = allCardsAndModels.filter(card => card.type == 'question');
+  const models = allCardsAndModels.filter(card => card.type !== 'question');
+
+  return {
+      ...tablesAndDetails,
+      models: models.map((model) => ({
+        name: model.name,
+        collectionId: model.collection_id || null,
+        collectionName: get(model.collection, 'name', ''),
+        modelId: model.id,
+        description: model.description || undefined,
+        dbId: db_id
+      })),
+      cards: cards.map(card => ({
+        name: card.name,
+        id: card.id,
+        description: card.description,
+      }))
   };
 }
 

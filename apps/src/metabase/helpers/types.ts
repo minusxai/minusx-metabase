@@ -57,6 +57,11 @@ export interface Card {
     visualization_settings: visualizationSettings;
     type: string;
     parameters?: QBParameters;
+    name: string;
+    id: number;
+    description?: string;
+    collection_id?: number;
+    collection?: object;
 }
 
 export interface SavedCard extends Card {

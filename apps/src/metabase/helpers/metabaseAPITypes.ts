@@ -63,6 +63,12 @@ export interface MetabaseModel {
   dbId: number;
 }
 
+export interface MetabaseCard {
+  name: string;
+  id: number;
+  descption?: string;
+}
+
 
 export interface MetabaseTableOrModel {
   type: 'table' | 'model'
@@ -88,6 +94,7 @@ export interface DatabaseInfo {
 export interface DatabaseInfoWithTablesAndModels extends DatabaseInfo {
   tables: FormattedTable[];
   models: MetabaseModel[];
+  cards: MetabaseCard[];
 }
 
 export interface DatabaseResponse {
