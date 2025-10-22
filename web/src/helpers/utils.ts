@@ -62,6 +62,8 @@ export type MxModel = {
   }
 }
 
+const useAppStore = getApp().useStore()
+
 const controller = getApp().actionController
 export const getActionTaskLiteLabels = (action: string) => {
     const extraMapping: { [key: string]: string } = {
@@ -97,6 +99,7 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
                    .replace(/\]\]/g, '`]')  
     }
     if (text.includes("card_id:") && (origin != '')) {
+        const cards = useAppStore((state) => state.toolContext?.dbInfo?.cards) || [];
         //Replace [card_id:<id>] with link
         // Replace [card_id:<id>] with markdown link using embed URL logic
         text = text.replace(/\[card_id:(\d+)\]/g, (match, id) => {
@@ -104,6 +107,13 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
             const embedHost = embedConfigs.embed_host;
             
             let questionUrl;
+            let cardText;
+            const selectedCardName = cards.find(card => card.id === parseInt(id))?.name || '';
+            if (selectedCardName) {
+                cardText = `Card ID ${id}: ${selectedCardName.slice(0, 15)}${selectedCardName.length > 15 ? '... ' : ' '}`;
+            } else {
+                cardText = `Card ID: ${id}`;
+            }
             if (embedHost && isEmbedded) {
                 // Use embed host for embedded mode
                 questionUrl = `${embedHost}/question/${id}`;
@@ -112,7 +122,7 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
                 questionUrl = `${origin}/question/${id}`;
             }
             
-            return `[Card ID: ${id}](${questionUrl})`;
+            return `[${cardText}](${questionUrl})`;
         });
     }
     if (text.includes("<OUTPUT>")) {
