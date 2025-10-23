@@ -469,22 +469,20 @@ export const Reports: React.FC = () => {
                 </Select>
               </Box>
 
-              {/* Emails */}
+              {/* Emails - Read Only */}
               <Box>
-                <Text fontSize="sm" fontWeight="medium" mb={2}>Email Recipients *</Text>
-                <Input
-                  value={editedReport?.emails?.join(', ') || ''}
-                  onChange={(e) =>
-                    setEditedReport({
-                      ...editedReport,
-                      emails: e.target.value.split(',').map((email) => email.trim())
-                    })
-                  }
-                  placeholder="email1@example.com, email2@example.com"
-                  size="sm"
-                />
+                <Text fontSize="sm" fontWeight="medium" mb={2}>Email Recipients (Read Only)</Text>
+                <Box p={2} bg="gray.100" borderRadius="md" border="1px solid" borderColor="gray.300">
+                  <HStack spacing={2} wrap="wrap">
+                    {editedReport?.emails?.map((email: string, index: number) => (
+                      <Badge key={index} colorScheme="blue" fontSize="xs">
+                        {email}
+                      </Badge>
+                    ))}
+                  </HStack>
+                </Box>
                 <Text fontSize="xs" color="gray.500" mt={1}>
-                  Separate multiple emails with commas
+                  Email recipients cannot be edited from this interface
                 </Text>
               </Box>
 
