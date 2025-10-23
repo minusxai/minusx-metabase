@@ -119,6 +119,7 @@ export const Reports: React.FC = () => {
     (asset) => asset?.type === 'scheduled_report'
   );
   const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading);
+  const session_jwt = useSelector((state: RootState) => state.auth.session_jwt);
 
   // State
   const [selectedAssetSlug, setSelectedAssetSlug] = useState<string | null>(null);
@@ -169,11 +170,20 @@ export const Reports: React.FC = () => {
 
     try {
       // Call the backend API to update the asset
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      // Add Authorization header if JWT is available
+      if (session_jwt) {
+        headers['Authorization'] = `Bearer ${session_jwt}`;
+      }
+
       const response = await fetch(
         `${configs.ATLAS_BASE_URL}/company/${selectedAsset.company_slug}/team/${selectedAsset.team_slug}/asset/${selectedAsset.slug}`,
         {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           credentials: 'include',
           body: JSON.stringify({
             name: selectedAsset.name,
