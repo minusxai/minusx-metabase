@@ -1,16 +1,17 @@
 import React from 'react';
 import { HStack, VStack, Text } from '@chakra-ui/react'
-import { 
-  BiCog, 
-  BiTable, 
-  BiMemoryCard, 
-  BiGroup, 
-  BiHistory, 
-  BiWrench, 
+import {
+  BiCog,
+  BiTable,
+  BiMemoryCard,
+  BiGroup,
+  BiHistory,
+  BiWrench,
   BiPalette,
   BiBot,
   BiListUl,
-  BiTestTube
+  BiTestTube,
+  BiCalendar
 } from 'react-icons/bi'
 import { DockSwitcher, MonitorDef } from './DockSwitcher';
 import { LLMContext } from './LLMContext'
@@ -21,6 +22,7 @@ import { configs } from '../../constants';
 import { Context } from './Context';
 import { MinusXMD } from './Memory';
 import { TeamMemory } from './TeamMemory';
+import { Reports } from './Reports';
 import CSSCustomization from './CSSCustomization';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -52,6 +54,12 @@ const Monitors: MonitorDef[] = [
     title: "Team Memory",
     component: TeamMemory,
     icon: BiGroup,
+    tags: ['production']
+  },
+  {
+    title: "Reports",
+    component: Reports,
+    icon: BiCalendar,
     tags: ['production']
   },
   {

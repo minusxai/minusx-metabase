@@ -6,7 +6,7 @@ import { configs } from '../../constants'
 export interface AssetInfo {
   slug: string
   name: string
-  type: 'main_doc' | 'playbook' | 'notes' | 'context'
+  type: 'main_doc' | 'playbook' | 'notes' | 'context' | 'scheduled_report' | 'alert'
   content: object
   team_slug: string
   company_slug: string
@@ -50,11 +50,49 @@ export interface AtlasApiResponse<T> {
   meta?: Record<string, any>
 }
 
+// Job Types
+export type JobStatus = 'RUNNING' | 'SUCCESS' | 'FAILURE' | 'TIMEOUT'
+
+export interface JobRun {
+  id: number
+  job_id: string
+  status: JobStatus
+  created_at: string
+  completed_at: string | null
+  input: {
+    data: {
+      url: string
+      questions: string[]
+    }
+    type: string
+    emails: string[]
+    job_id: string
+    timeout: number
+    schedule: string
+    requested_at: string
+  }
+  output: any | null
+  error_message: string | null
+  timeout: number
+}
+
+export interface JobExecuteRequest {
+  job_ids: string[]
+  forced: boolean
+  send_email: boolean
+}
+
+export interface JobExecuteResponse {
+  job_runs: JobRun[]
+  total_jobs: number
+  new_runs_created: number
+}
+
 export const atlasApi = createApi({
   reducerPath: 'atlasApi',
   baseQuery: createConcurrencyBaseQuery(configs.ATLAS_BASE_URL, 1),
   keepUnusedDataFor: 300, // Cache for 5 minutes
-  tagTypes: ['User', 'Assets'],
+  tagTypes: ['User', 'Assets', 'JobRuns'],
   endpoints: (builder) => ({
     getAtlasMe: builder.query<MeResponse, void>({
       query: () => ({
@@ -71,10 +109,52 @@ export const atlasApi = createApi({
       },
       providesTags: ['User', 'Assets'],
     }),
+    // Job endpoints
+    executeJob: builder.mutation<JobExecuteResponse, { assetIds: string[], isForced?: boolean, sendEmail?: boolean }>({
+      query: ({ assetIds, isForced = false, sendEmail = false }) => ({
+        url: '../jobs/execute',
+        method: 'POST',
+        body: {
+          job_ids: assetIds,
+          forced: isForced,
+          send_email: sendEmail
+        }
+      }),
+      invalidatesTags: ['JobRuns'],
+    }),
+    getJobRunHistory: builder.query<JobRun[], string>({
+      query: (jobId) => ({
+        url: `../jobs/runs/job/${jobId}`,
+        method: 'GET',
+      }),
+      transformResponse: (response: any) => {
+        // Handle different response formats
+        if (Array.isArray(response)) {
+          return response
+        } else if (response && Array.isArray(response.data)) {
+          return response.data
+        } else if (response && response.success && Array.isArray(response.data)) {
+          return response.data
+        }
+        return []
+      },
+      providesTags: (result, error, jobId) => [{ type: 'JobRuns' as const, id: jobId }],
+    }),
+    sendJobEmail: builder.mutation<AtlasApiResponse<any>, number>({
+      query: (runId) => ({
+        url: `../jobs/${runId}/send_email`,
+        method: 'POST',
+      }),
+      invalidatesTags: (result, error, runId) => [{ type: 'JobRuns' as const }],
+    }),
   }),
 })
 
-export const { 
+export const {
   useGetAtlasMeQuery,
-  useLazyGetAtlasMeQuery
+  useLazyGetAtlasMeQuery,
+  useExecuteJobMutation,
+  useGetJobRunHistoryQuery,
+  useLazyGetJobRunHistoryQuery,
+  useSendJobEmailMutation
 } = atlasApi
