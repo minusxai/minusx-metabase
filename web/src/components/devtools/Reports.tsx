@@ -170,23 +170,21 @@ export const Reports: React.FC = () => {
   const [sendJobEmail, { isLoading: sendingEmail }] = useSendJobEmailMutation();
   const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
 
-  // Get admin teams (or all teams for godmode users)
+  // Get teams where user can create reports
   const isGodMode = userCompanies.some(c => c.role === 'godmode_access');
-  const adminCompanySlugs = isGodMode
-    ? userCompanies.map(c => c.slug)  // Godmode can access all companies
-    : userCompanies.filter(c => c.role === 'admin').map(c => c.slug);
-  const adminTeams = userTeams.filter(t => adminCompanySlugs.includes(t.company_slug));
-  const canCreateReport = adminTeams.length > 0;  // Only show button if there are teams available
+
+  // Team members can create reports in their teams (backend allows this)
+  const creatableTeams = userTeams;
+  const canCreateReport = creatableTeams.length > 0;  // Show button if user is in any team
 
   // Debug logging
   React.useEffect(() => {
     console.log('[Reports] Is god mode:', isGodMode);
     console.log('[Reports] User companies:', userCompanies);
     console.log('[Reports] User teams:', userTeams);
-    console.log('[Reports] Admin company slugs:', adminCompanySlugs);
-    console.log('[Reports] Admin teams:', adminTeams);
+    console.log('[Reports] Creatable teams:', creatableTeams);
     console.log('[Reports] Can create report:', canCreateReport);
-  }, [isGodMode, userCompanies, userTeams, adminCompanySlugs, adminTeams, canCreateReport]);
+  }, [isGodMode, userCompanies, userTeams, creatableTeams, canCreateReport]);
 
   // Helper to create unique asset ID
   const getAssetId = (asset: typeof availableAssets[0]) =>
@@ -350,6 +348,17 @@ export const Reports: React.FC = () => {
   };
 
   const handleCreateReport = async () => {
+    // Check if teams exist
+    if (creatableTeams.length === 0) {
+      toast({
+        title: 'No teams available',
+        description: 'Please join a team first before creating reports',
+        status: 'error',
+        duration: 5000
+      });
+      return;
+    }
+
     // Validation
     if (!newReport.teamSlug) {
       toast({
@@ -395,7 +404,7 @@ export const Reports: React.FC = () => {
     }
 
     try {
-      const selectedTeam = adminTeams.find(t => t.slug === newReport.teamSlug);
+      const selectedTeam = creatableTeams.find((t) => t.slug === newReport.teamSlug);
       if (!selectedTeam) throw new Error('Team not found');
 
       await createAsset({
@@ -1016,7 +1025,7 @@ export const Reports: React.FC = () => {
                   onChange={(e) => setNewReport({ ...newReport, teamSlug: e.target.value })}
                   placeholder="Select team"
                 >
-                  {adminTeams.map((team) => (
+                  {creatableTeams.map((team) => (
                     <option key={team.slug} value={team.slug}>
                       {team.name} ({team.company_name})
                     </option>
@@ -1034,7 +1043,7 @@ export const Reports: React.FC = () => {
                     placeholder="Use your godmode identity"
                   >
                     {(() => {
-                      const selectedTeam = adminTeams.find(t => t.slug === newReport.teamSlug);
+                      const selectedTeam = creatableTeams.find(t => t.slug === newReport.teamSlug);
                       const company = userCompanies.find(c => c.slug === selectedTeam?.company_slug);
                       return company?.admins?.map((adminEmail) => (
                         <option key={adminEmail} value={adminEmail}>
