@@ -137,6 +137,7 @@ export interface Task {
   parent_id: number | null;
   run_id: string;
   debug: any;
+  unique_id: string;
   child_ids: Array<number[]>;
   result: any; // Key field for completion status
 }
@@ -242,7 +243,7 @@ const getMessages = (state: ChatState) => getActiveThread(state).messages
  * Converts a Task to a ChatCompletionMessageToolCall for display purposes
  */
 const taskToToolCall = (task: Task): ChatCompletionMessageToolCall => ({
-  id: `task_${task.id}`,
+  id: task.unique_id || `task_${task.id}`,
   type: 'function',
   function: {
     name: task.agent,
