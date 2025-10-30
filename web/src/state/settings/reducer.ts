@@ -3,7 +3,7 @@ import { MetabaseModel } from 'apps/types';
 import type { PayloadAction } from '@reduxjs/toolkit'
 import { defaultIframeInfoWeb, getParsedIframeInfo, IframeInfoWeb } from '../../helpers/origin'
 import { MxModel } from '../../helpers/utils'
-import { AssetInfo } from '../../app/api/atlasApi'
+import { AssetInfo, CompanyInfo, TeamInfo } from '../../app/api/atlasApi'
 
 export interface MetadataProcessingResult {
   cardsHash?: string;
@@ -114,6 +114,8 @@ interface Settings {
   useTeamMemory: boolean
   savedQuestions: string[]
   notifyUserStatus: 'incoming' | 'ongoing' | 'complete'
+  userCompanies: CompanyInfo[]
+  userTeams: TeamInfo[]
 }
 
 const initialState: Settings = {
@@ -156,7 +158,9 @@ const initialState: Settings = {
   assetsLoading: false,
   useTeamMemory: false,
   savedQuestions: [],
-  notifyUserStatus: 'incoming'
+  notifyUserStatus: 'incoming',
+  userCompanies: [],
+  userTeams: []
 }
 
 export const settingsSlice = createSlice({
@@ -336,6 +340,12 @@ export const settingsSlice = createSlice({
     },
     updateNotifyUserStatus: (state, action: PayloadAction<'incoming' | 'ongoing' | 'complete'>) => {
       state.notifyUserStatus = action.payload
+    },
+    setUserCompanies: (state, action: PayloadAction<CompanyInfo[]>) => {
+      state.userCompanies = action.payload
+    },
+    setUserTeams: (state, action: PayloadAction<TeamInfo[]>) => {
+      state.userTeams = action.payload
     }
   },
 })
@@ -349,7 +359,7 @@ export const { updateIsLocal, updateUploadLogs,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode,
   resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
   updateManualContextSelection, setUseV2States, setUseV2API, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, addSavedQuestion, removeSavedQuestion, setSavedQuestions,
-  updateNotifyUserStatus
+  updateNotifyUserStatus, setUserCompanies, setUserTeams
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

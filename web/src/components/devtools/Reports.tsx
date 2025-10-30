@@ -5,10 +5,6 @@ import {
   HStack,
   VStack,
   Button,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Icon,
   Spinner,
   Badge,
@@ -28,7 +24,22 @@ import {
   AccordionPanel,
   AccordionIcon,
   IconButton,
-  useToast
+  useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  InputGroup,
+  InputLeftElement,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody
 } from '@chakra-ui/react';
 import {
   BiChevronDown,
@@ -44,7 +55,8 @@ import {
   BiTrash,
   BiEdit,
   BiSave,
-  BiShow
+  BiShow,
+  BiSearch
 } from 'react-icons/bi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -53,6 +65,7 @@ import {
   useExecuteJobMutation,
   useLazyGetJobRunHistoryQuery,
   useSendJobEmailMutation,
+  useCreateAssetMutation,
   type JobRun,
   type JobStatus
 } from '../../app/api/atlasApi';
@@ -120,9 +133,11 @@ export const Reports: React.FC = () => {
   );
   const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading);
   const session_jwt = useSelector((state: RootState) => state.auth.session_jwt);
+  const userCompanies = useSelector((state: RootState) => state.settings.userCompanies);
+  const userTeams = useSelector((state: RootState) => state.settings.userTeams);
 
   // State
-  const [selectedAssetSlug, setSelectedAssetSlug] = useState<string | null>(null);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedReport, setEditedReport] = useState<any>(null);
 
@@ -133,13 +148,52 @@ export const Reports: React.FC = () => {
   const [selectedOutput, setSelectedOutput] = useState<any>(null);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
 
+  // Asset search state
+  const [assetSearchQuery, setAssetSearchQuery] = useState('');
+  const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
+
+  // Create modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newReport, setNewReport] = useState({
+    teamSlug: '',
+    name: '',
+    url: '',
+    questions: [''],
+    schedule: SCHEDULE_OPTIONS[0].value,
+    emails: [''],
+    asUser: ''  // For godmode: which admin to act as
+  });
+
   // API hooks
   const [executeJob, { isLoading: isExecuting }] = useExecuteJobMutation();
   const [getJobRunHistory, { data: runHistory = [], isFetching: historyLoading }] = useLazyGetJobRunHistoryQuery();
   const [sendJobEmail, { isLoading: sendingEmail }] = useSendJobEmailMutation();
+  const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
+
+  // Get admin teams (or all teams for godmode users)
+  const isGodMode = userCompanies.some(c => c.role === 'godmode_access');
+  const adminCompanySlugs = isGodMode
+    ? userCompanies.map(c => c.slug)  // Godmode can access all companies
+    : userCompanies.filter(c => c.role === 'admin').map(c => c.slug);
+  const adminTeams = userTeams.filter(t => adminCompanySlugs.includes(t.company_slug));
+  const canCreateReport = adminTeams.length > 0;
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Reports] Is god mode:', isGodMode);
+    console.log('[Reports] User companies:', userCompanies);
+    console.log('[Reports] User teams:', userTeams);
+    console.log('[Reports] Admin company slugs:', adminCompanySlugs);
+    console.log('[Reports] Admin teams:', adminTeams);
+    console.log('[Reports] Can create report:', canCreateReport);
+  }, [isGodMode, userCompanies, userTeams, adminCompanySlugs, adminTeams, canCreateReport]);
+
+  // Helper to create unique asset ID
+  const getAssetId = (asset: typeof availableAssets[0]) =>
+    `${asset.company_slug}/${asset.team_slug}/${asset.slug}`;
 
   // Find selected asset
-  const selectedAsset = availableAssets.find((asset) => asset.slug === selectedAssetSlug) ||
+  const selectedAsset = availableAssets.find((asset) => getAssetId(asset) === selectedAssetId) ||
     (availableAssets.length > 0 ? availableAssets[0] : null);
 
   // Extract report data
@@ -160,10 +214,24 @@ export const Reports: React.FC = () => {
     }
   }, [isEditing, selectedAsset, reportData]);
 
-  const handleAssetSelection = (assetSlug: string) => {
-    setSelectedAssetSlug(assetSlug);
+  const handleAssetSelection = (assetId: string) => {
+    setSelectedAssetId(assetId);
     setIsEditing(false);
+    setIsAssetDropdownOpen(false);
+    setAssetSearchQuery('');
   };
+
+  // Filter assets by search query
+  const filteredAssets = React.useMemo(() => {
+    if (!assetSearchQuery.trim()) return availableAssets;
+
+    const query = assetSearchQuery.toLowerCase();
+    return availableAssets.filter((asset) => {
+      const assetName = asset.name.toLowerCase();
+      const teamName = userTeams.find(t => t.slug === asset.team_slug)?.name?.toLowerCase() || '';
+      return assetName.includes(query) || teamName.includes(query);
+    });
+  }, [assetSearchQuery, availableAssets, userTeams]);
 
   const handleSave = async () => {
     if (!selectedAsset || !editedReport) return;
@@ -281,6 +349,100 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const handleCreateReport = async () => {
+    // Validation
+    if (!newReport.teamSlug) {
+      toast({
+        title: 'Please select a team',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    if (!newReport.name.trim()) {
+      toast({
+        title: 'Please enter a report name',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    if (!newReport.url.trim()) {
+      toast({
+        title: 'Please enter a report URL',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    const validQuestions = newReport.questions.filter(q => q.trim());
+    if (validQuestions.length === 0) {
+      toast({
+        title: 'Please add at least one question',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    const validEmails = newReport.emails.filter(e => e.trim());
+    if (validEmails.length === 0) {
+      toast({
+        title: 'Please add at least one email',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      const selectedTeam = adminTeams.find(t => t.slug === newReport.teamSlug);
+      if (!selectedTeam) throw new Error('Team not found');
+
+      await createAsset({
+        companySlug: selectedTeam.company_slug,
+        teamSlug: selectedTeam.slug,
+        data: {
+          name: newReport.name,
+          type: 'scheduled_report',
+          content: {
+            url: newReport.url,
+            questions: validQuestions,
+            schedule: newReport.schedule,
+            emails: validEmails
+          }
+        },
+        asUser: isGodMode && newReport.asUser ? newReport.asUser : undefined
+      }).unwrap();
+
+      toast({
+        title: 'Report created successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true
+      });
+
+      // Reset form and close modal
+      setNewReport({
+        teamSlug: '',
+        name: '',
+        url: '',
+        questions: [''],
+        schedule: SCHEDULE_OPTIONS[0].value,
+        emails: [''],
+        asUser: ''
+      });
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Failed to create report',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  };
+
   const handleAddQuestion = () => {
     if (editedReport) {
       setEditedReport({
@@ -338,62 +500,128 @@ export const Reports: React.FC = () => {
       <VStack width="100%" align="stretch" spacing={2}>
         <HStack justify="space-between" align="center" width="100%">
           <Text fontSize="2xl" fontWeight="bold">Reports</Text>
+          {canCreateReport && (
+            <Button
+              size="sm"
+              colorScheme="minusxGreen"
+              leftIcon={<BiPlus />}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Create New Report
+            </Button>
+          )}
         </HStack>
       </VStack>
 
-      {/* Report Selection */}
+      {/* Report Selection - Searchable Dropdown */}
       <Box>
-        <Menu>
-          <MenuButton
-            as={Button}
-            rightIcon={<BiChevronDown />}
-            size="sm"
+        <Popover
+          isOpen={isAssetDropdownOpen}
+          onClose={() => {
+            setIsAssetDropdownOpen(false);
+            setAssetSearchQuery('');
+          }}
+          placement="bottom-start"
+          matchWidth
+        >
+          <PopoverTrigger>
+            <Button
+              onClick={() => setIsAssetDropdownOpen(!isAssetDropdownOpen)}
+              rightIcon={<BiChevronDown />}
+              size="sm"
+              width="100%"
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              color="minusxBW.800"
+              _hover={{ bg: 'gray.50', borderColor: 'gray.300' }}
+              _active={{ bg: 'gray.100', borderColor: 'gray.400' }}
+              fontWeight="normal"
+              textAlign="left"
+              justifyContent="space-between"
+            >
+              <VStack align="start" spacing={0} width="100%">
+                <Text fontSize="sm">{selectedAsset?.name || availableAssets[0]?.name}</Text>
+                {selectedAsset && (
+                  <Text fontSize="xs" color="gray.500">
+                    {userTeams.find(t => t.slug === selectedAsset.team_slug)?.name || ''}
+                  </Text>
+                )}
+              </VStack>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
             width="100%"
-            bg="white"
-            border="1px solid"
-            borderColor="gray.200"
-            color="minusxBW.800"
-            _hover={{ bg: 'gray.50', borderColor: 'gray.300' }}
-            _active={{ bg: 'gray.100', borderColor: 'gray.400' }}
-            fontWeight="normal"
-            textAlign="left"
-            justifyContent="space-between"
-          >
-            {selectedAsset?.name || availableAssets[0]?.name}
-          </MenuButton>
-          <MenuList
             bg="white"
             border="1px solid"
             borderColor="gray.200"
             boxShadow="lg"
-            borderRadius="md"
-            py={1}
-            width="100%"
           >
-            {availableAssets.map((asset) => (
-              <MenuItem
-                key={`${asset.company_slug}-${asset.slug}`}
-                onClick={() => handleAssetSelection(asset.slug)}
-                bg="white"
-                _hover={{ bg: 'gray.50' }}
-                _focus={{ bg: 'gray.50' }}
-                py={2}
-                px={3}
-                color="minusxBW.800"
-                fontSize="sm"
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                width="100%"
-              >
-                <Text>{asset.name}</Text>
-                {(selectedAssetSlug || availableAssets[0].slug) === asset.slug && (
-                  <Icon as={BiCheck} boxSize={4} color="minusxGreen.500" />
-                )}
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Menu>
+            <PopoverBody p={0}>
+              <VStack spacing={0} align="stretch">
+                {/* Search Input */}
+                <Box p={2} borderBottom="1px solid" borderColor="gray.200">
+                  <InputGroup size="sm">
+                    <InputLeftElement pointerEvents="none">
+                      <Icon as={BiSearch} color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Search reports or teams..."
+                      value={assetSearchQuery}
+                      onChange={(e) => setAssetSearchQuery(e.target.value)}
+                      autoFocus
+                    />
+                  </InputGroup>
+                </Box>
+
+                {/* Asset List */}
+                <Box maxH="300px" overflowY="auto">
+                  {filteredAssets.length === 0 ? (
+                    <Box p={4} textAlign="center">
+                      <Text fontSize="sm" color="gray.500">No reports found</Text>
+                    </Box>
+                  ) : (
+                    filteredAssets.map((asset) => {
+                      const team = userTeams.find(t => t.slug === asset.team_slug);
+                      const assetId = getAssetId(asset);
+                      const isSelected = (selectedAssetId || (availableAssets[0] && getAssetId(availableAssets[0]))) === assetId;
+
+                      return (
+                        <Box
+                          key={assetId}
+                          onClick={() => handleAssetSelection(assetId)}
+                          px={3}
+                          py={2}
+                          cursor="pointer"
+                          bg={isSelected ? 'gray.50' : 'white'}
+                          _hover={{ bg: 'gray.50' }}
+                          borderBottom="1px solid"
+                          borderColor="gray.100"
+                        >
+                          <HStack justify="space-between" align="center">
+                            <VStack align="start" spacing={0} flex={1}>
+                              <Text fontSize="sm" color="minusxBW.800" fontWeight={isSelected ? 'medium' : 'normal'}>
+                                {asset.name}
+                              </Text>
+                              {team && (
+                                <Text fontSize="xs" color="gray.500">
+                                  {team.name}
+                                </Text>
+                              )}
+                            </VStack>
+                            {isSelected && (
+                              <Icon as={BiCheck} boxSize={4} color="minusxGreen.500" />
+                            )}
+                          </HStack>
+                        </Box>
+                      );
+                    })
+                  )}
+                </Box>
+              </VStack>
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       </Box>
 
       {/* Report Details */}
@@ -768,6 +996,190 @@ export const Reports: React.FC = () => {
         output={selectedOutput}
         runId={selectedRunId}
       />
+
+      {/* Create Report Modal */}
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Report</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              {/* Team Selection */}
+              <FormControl isRequired>
+                <FormLabel>Team</FormLabel>
+                <Select
+                  value={newReport.teamSlug}
+                  onChange={(e) => setNewReport({ ...newReport, teamSlug: e.target.value })}
+                  placeholder="Select team"
+                >
+                  {adminTeams.map((team) => (
+                    <option key={team.slug} value={team.slug}>
+                      {team.name} ({team.company_name})
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Admin Selection (Godmode only) */}
+              {isGodMode && newReport.teamSlug && (
+                <FormControl>
+                  <FormLabel>Act as Admin (optional)</FormLabel>
+                  <Select
+                    value={newReport.asUser}
+                    onChange={(e) => setNewReport({ ...newReport, asUser: e.target.value })}
+                    placeholder="Use your godmode identity"
+                  >
+                    {(() => {
+                      const selectedTeam = adminTeams.find(t => t.slug === newReport.teamSlug);
+                      const company = userCompanies.find(c => c.slug === selectedTeam?.company_slug);
+                      return company?.admins?.map((adminEmail) => (
+                        <option key={adminEmail} value={adminEmail}>
+                          {adminEmail}
+                        </option>
+                      )) || [];
+                    })()}
+                  </Select>
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    Leave empty to create as yourself. Select an admin to impersonate them.
+                  </Text>
+                </FormControl>
+              )}
+
+              {/* Report Name */}
+              <FormControl isRequired>
+                <FormLabel>Report Name</FormLabel>
+                <Input
+                  value={newReport.name}
+                  onChange={(e) => setNewReport({ ...newReport, name: e.target.value })}
+                  placeholder="e.g., Weekly Sales Report"
+                />
+              </FormControl>
+
+              {/* URL */}
+              <FormControl isRequired>
+                <FormLabel>Dashboard URL</FormLabel>
+                <Input
+                  value={newReport.url}
+                  onChange={(e) => setNewReport({ ...newReport, url: e.target.value })}
+                  placeholder="https://..."
+                />
+              </FormControl>
+
+              {/* Questions */}
+              <FormControl isRequired>
+                <FormLabel>Questions</FormLabel>
+                <VStack spacing={2} width="100%" align="stretch">
+                  {newReport.questions.map((question, idx) => (
+                    <HStack key={idx}>
+                      <Input
+                        value={question}
+                        onChange={(e) => {
+                          const updated = [...newReport.questions];
+                          updated[idx] = e.target.value;
+                          setNewReport({ ...newReport, questions: updated });
+                        }}
+                        placeholder="Enter a question"
+                      />
+                      {newReport.questions.length > 1 && (
+                        <IconButton
+                          aria-label="Remove question"
+                          icon={<BiTrash />}
+                          size="sm"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => {
+                            const updated = newReport.questions.filter((_, i) => i !== idx);
+                            setNewReport({ ...newReport, questions: updated });
+                          }}
+                        />
+                      )}
+                    </HStack>
+                  ))}
+                  <Button
+                    size="sm"
+                    leftIcon={<BiPlus />}
+                    onClick={() => setNewReport({ ...newReport, questions: [...newReport.questions, ''] })}
+                    variant="outline"
+                  >
+                    Add Question
+                  </Button>
+                </VStack>
+              </FormControl>
+
+              {/* Schedule */}
+              <FormControl isRequired>
+                <FormLabel>Schedule</FormLabel>
+                <Select
+                  value={newReport.schedule}
+                  onChange={(e) => setNewReport({ ...newReport, schedule: e.target.value })}
+                >
+                  {SCHEDULE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Emails */}
+              <FormControl isRequired>
+                <FormLabel>Recipients</FormLabel>
+                <VStack spacing={2} width="100%" align="stretch">
+                  {newReport.emails.map((email, idx) => (
+                    <HStack key={idx}>
+                      <Input
+                        value={email}
+                        onChange={(e) => {
+                          const updated = [...newReport.emails];
+                          updated[idx] = e.target.value;
+                          setNewReport({ ...newReport, emails: updated });
+                        }}
+                        placeholder="email@example.com"
+                        type="email"
+                      />
+                      {newReport.emails.length > 1 && (
+                        <IconButton
+                          aria-label="Remove email"
+                          icon={<BiTrash />}
+                          size="sm"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => {
+                            const updated = newReport.emails.filter((_, i) => i !== idx);
+                            setNewReport({ ...newReport, emails: updated });
+                          }}
+                        />
+                      )}
+                    </HStack>
+                  ))}
+                  <Button
+                    size="sm"
+                    leftIcon={<BiPlus />}
+                    onClick={() => setNewReport({ ...newReport, emails: [...newReport.emails, ''] })}
+                    variant="outline"
+                  >
+                    Add Email
+                  </Button>
+                </VStack>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={() => setIsCreateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="minusxGreen"
+              onClick={handleCreateReport}
+              isLoading={isCreating}
+            >
+              Create Report
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </VStack>
   );
 };
