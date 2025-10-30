@@ -28,7 +28,17 @@ import {
   AccordionPanel,
   AccordionIcon,
   IconButton,
-  useToast
+  useToast,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  FormErrorMessage
 } from '@chakra-ui/react';
 import {
   BiChevronDown,
@@ -53,6 +63,7 @@ import {
   useExecuteJobMutation,
   useLazyGetJobRunHistoryQuery,
   useSendJobEmailMutation,
+  useCreateAssetMutation,
   type JobRun,
   type JobStatus
 } from '../../app/api/atlasApi';
@@ -120,6 +131,8 @@ export const Reports: React.FC = () => {
   );
   const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading);
   const session_jwt = useSelector((state: RootState) => state.auth.session_jwt);
+  const userCompanies = useSelector((state: RootState) => state.settings.userCompanies);
+  const userTeams = useSelector((state: RootState) => state.settings.userTeams);
 
   // State
   const [selectedAssetSlug, setSelectedAssetSlug] = useState<string | null>(null);
@@ -133,10 +146,27 @@ export const Reports: React.FC = () => {
   const [selectedOutput, setSelectedOutput] = useState<any>(null);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
 
+  // Create modal state
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newReport, setNewReport] = useState({
+    teamSlug: '',
+    name: '',
+    url: '',
+    questions: [''],
+    schedule: SCHEDULE_OPTIONS[0].value,
+    emails: ['']
+  });
+
   // API hooks
   const [executeJob, { isLoading: isExecuting }] = useExecuteJobMutation();
   const [getJobRunHistory, { data: runHistory = [], isFetching: historyLoading }] = useLazyGetJobRunHistoryQuery();
   const [sendJobEmail, { isLoading: sendingEmail }] = useSendJobEmailMutation();
+  const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
+
+  // Get admin teams
+  const adminCompanySlugs = userCompanies.filter(c => c.role === 'admin').map(c => c.slug);
+  const adminTeams = userTeams.filter(t => adminCompanySlugs.includes(t.company_slug));
+  const canCreateReport = adminTeams.length > 0;
 
   // Find selected asset
   const selectedAsset = availableAssets.find((asset) => asset.slug === selectedAssetSlug) ||
@@ -281,6 +311,98 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const handleCreateReport = async () => {
+    // Validation
+    if (!newReport.teamSlug) {
+      toast({
+        title: 'Please select a team',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    if (!newReport.name.trim()) {
+      toast({
+        title: 'Please enter a report name',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    if (!newReport.url.trim()) {
+      toast({
+        title: 'Please enter a report URL',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    const validQuestions = newReport.questions.filter(q => q.trim());
+    if (validQuestions.length === 0) {
+      toast({
+        title: 'Please add at least one question',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+    const validEmails = newReport.emails.filter(e => e.trim());
+    if (validEmails.length === 0) {
+      toast({
+        title: 'Please add at least one email',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      const selectedTeam = adminTeams.find(t => t.slug === newReport.teamSlug);
+      if (!selectedTeam) throw new Error('Team not found');
+
+      await createAsset({
+        companySlug: selectedTeam.company_slug,
+        teamSlug: selectedTeam.slug,
+        data: {
+          name: newReport.name,
+          type: 'scheduled_report',
+          content: {
+            url: newReport.url,
+            questions: validQuestions,
+            schedule: newReport.schedule,
+            emails: validEmails
+          }
+        }
+      }).unwrap();
+
+      toast({
+        title: 'Report created successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true
+      });
+
+      // Reset form and close modal
+      setNewReport({
+        teamSlug: '',
+        name: '',
+        url: '',
+        questions: [''],
+        schedule: SCHEDULE_OPTIONS[0].value,
+        emails: ['']
+      });
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      toast({
+        title: 'Failed to create report',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        status: 'error',
+        duration: 5000,
+        isClosable: true
+      });
+    }
+  };
+
   const handleAddQuestion = () => {
     if (editedReport) {
       setEditedReport({
@@ -338,6 +460,16 @@ export const Reports: React.FC = () => {
       <VStack width="100%" align="stretch" spacing={2}>
         <HStack justify="space-between" align="center" width="100%">
           <Text fontSize="2xl" fontWeight="bold">Reports</Text>
+          {canCreateReport && (
+            <Button
+              size="sm"
+              colorScheme="minusxGreen"
+              leftIcon={<BiPlus />}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Create New Report
+            </Button>
+          )}
         </HStack>
       </VStack>
 
@@ -768,6 +900,165 @@ export const Reports: React.FC = () => {
         output={selectedOutput}
         runId={selectedRunId}
       />
+
+      {/* Create Report Modal */}
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create New Report</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4}>
+              {/* Team Selection */}
+              <FormControl isRequired>
+                <FormLabel>Team</FormLabel>
+                <Select
+                  value={newReport.teamSlug}
+                  onChange={(e) => setNewReport({ ...newReport, teamSlug: e.target.value })}
+                  placeholder="Select team"
+                >
+                  {adminTeams.map((team) => (
+                    <option key={team.slug} value={team.slug}>
+                      {team.name} ({team.company_name})
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Report Name */}
+              <FormControl isRequired>
+                <FormLabel>Report Name</FormLabel>
+                <Input
+                  value={newReport.name}
+                  onChange={(e) => setNewReport({ ...newReport, name: e.target.value })}
+                  placeholder="e.g., Weekly Sales Report"
+                />
+              </FormControl>
+
+              {/* URL */}
+              <FormControl isRequired>
+                <FormLabel>Dashboard URL</FormLabel>
+                <Input
+                  value={newReport.url}
+                  onChange={(e) => setNewReport({ ...newReport, url: e.target.value })}
+                  placeholder="https://..."
+                />
+              </FormControl>
+
+              {/* Questions */}
+              <FormControl isRequired>
+                <FormLabel>Questions</FormLabel>
+                <VStack spacing={2} width="100%" align="stretch">
+                  {newReport.questions.map((question, idx) => (
+                    <HStack key={idx}>
+                      <Input
+                        value={question}
+                        onChange={(e) => {
+                          const updated = [...newReport.questions];
+                          updated[idx] = e.target.value;
+                          setNewReport({ ...newReport, questions: updated });
+                        }}
+                        placeholder="Enter a question"
+                      />
+                      {newReport.questions.length > 1 && (
+                        <IconButton
+                          aria-label="Remove question"
+                          icon={<BiTrash />}
+                          size="sm"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => {
+                            const updated = newReport.questions.filter((_, i) => i !== idx);
+                            setNewReport({ ...newReport, questions: updated });
+                          }}
+                        />
+                      )}
+                    </HStack>
+                  ))}
+                  <Button
+                    size="sm"
+                    leftIcon={<BiPlus />}
+                    onClick={() => setNewReport({ ...newReport, questions: [...newReport.questions, ''] })}
+                    variant="outline"
+                  >
+                    Add Question
+                  </Button>
+                </VStack>
+              </FormControl>
+
+              {/* Schedule */}
+              <FormControl isRequired>
+                <FormLabel>Schedule</FormLabel>
+                <Select
+                  value={newReport.schedule}
+                  onChange={(e) => setNewReport({ ...newReport, schedule: e.target.value })}
+                >
+                  {SCHEDULE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Emails */}
+              <FormControl isRequired>
+                <FormLabel>Recipients</FormLabel>
+                <VStack spacing={2} width="100%" align="stretch">
+                  {newReport.emails.map((email, idx) => (
+                    <HStack key={idx}>
+                      <Input
+                        value={email}
+                        onChange={(e) => {
+                          const updated = [...newReport.emails];
+                          updated[idx] = e.target.value;
+                          setNewReport({ ...newReport, emails: updated });
+                        }}
+                        placeholder="email@example.com"
+                        type="email"
+                      />
+                      {newReport.emails.length > 1 && (
+                        <IconButton
+                          aria-label="Remove email"
+                          icon={<BiTrash />}
+                          size="sm"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => {
+                            const updated = newReport.emails.filter((_, i) => i !== idx);
+                            setNewReport({ ...newReport, emails: updated });
+                          }}
+                        />
+                      )}
+                    </HStack>
+                  ))}
+                  <Button
+                    size="sm"
+                    leftIcon={<BiPlus />}
+                    onClick={() => setNewReport({ ...newReport, emails: [...newReport.emails, ''] })}
+                    variant="outline"
+                  >
+                    Add Email
+                  </Button>
+                </VStack>
+              </FormControl>
+            </VStack>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={() => setIsCreateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="minusxGreen"
+              onClick={handleCreateReport}
+              isLoading={isCreating}
+            >
+              Create Report
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </VStack>
   );
 };

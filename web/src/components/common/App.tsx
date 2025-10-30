@@ -46,7 +46,7 @@ import { getBillingInfo } from '../../app/api/billing'
 import { setBillingInfo } from '../../state/billing/reducer'
 import { useGetUserStateQuery } from '../../app/api/userStateApi'
 import { useGetAtlasMeQuery } from '../../app/api/atlasApi'
-import { setAvailableAssets, setAssetsLoading } from '../../state/settings/reducer'
+import { setAvailableAssets, setAssetsLoading, setUserCompanies, setUserTeams } from '../../state/settings/reducer'
 import { SupportButton } from './Support'
 import { Markdown } from './Markdown'
 import { getMXToken, setMinusxMode, setStyle, toggleMinusXRoot } from '../../app/rpc'
@@ -205,14 +205,29 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   // Handle atlas data loading and updates
   useEffect(() => {
     dispatch(setAssetsLoading(atlasLoading))
-    
+
     if (atlasData && atlasData.accessible_assets) {
       console.log('[minusx] Loaded assets from Atlas API:', atlasData.accessible_assets.length)
       dispatch(setAvailableAssets(atlasData.accessible_assets))
     } else {
       dispatch(setAvailableAssets([]))
     }
-    
+
+    // Dispatch companies and teams data
+    if (atlasData && atlasData.companies) {
+      console.log('[minusx] Loaded companies from Atlas API:', atlasData.companies.length)
+      dispatch(setUserCompanies(atlasData.companies))
+    } else {
+      dispatch(setUserCompanies([]))
+    }
+
+    if (atlasData && atlasData.teams) {
+      console.log('[minusx] Loaded teams from Atlas API:', atlasData.teams.length)
+      dispatch(setUserTeams(atlasData.teams))
+    } else {
+      dispatch(setUserTeams([]))
+    }
+
     if (atlasError) {
       console.warn('[minusx] Failed to load assets from Atlas API:', atlasError)
     }

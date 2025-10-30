@@ -88,6 +88,18 @@ export interface JobExecuteResponse {
   new_runs_created: number
 }
 
+export interface CreateAssetRequest {
+  name: string
+  type: 'scheduled_report' | 'alert'
+  content: {
+    url: string
+    questions: string[]
+    schedule: string
+    emails: string[]
+    template?: string
+  }
+}
+
 export const atlasApi = createApi({
   reducerPath: 'atlasApi',
   baseQuery: createConcurrencyBaseQuery(configs.ATLAS_BASE_URL, 1),
@@ -147,6 +159,18 @@ export const atlasApi = createApi({
       }),
       invalidatesTags: (result, error, runId) => [{ type: 'JobRuns' as const }],
     }),
+    createAsset: builder.mutation<AtlasApiResponse<{ asset: AssetInfo }>, {
+      companySlug: string
+      teamSlug: string
+      data: CreateAssetRequest
+    }>({
+      query: ({ companySlug, teamSlug, data }) => ({
+        url: `company/${companySlug}/team/${teamSlug}/assets`,
+        method: 'POST',
+        body: data
+      }),
+      invalidatesTags: ['User', 'Assets'],
+    }),
   }),
 })
 
@@ -156,5 +180,6 @@ export const {
   useExecuteJobMutation,
   useGetJobRunHistoryQuery,
   useLazyGetJobRunHistoryQuery,
-  useSendJobEmailMutation
+  useSendJobEmailMutation,
+  useCreateAssetMutation
 } = atlasApi

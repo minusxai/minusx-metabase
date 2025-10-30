@@ -584,6 +584,13 @@ const migrations = {
     let newState = {...state}
     newState.settings.notifyUserStatus = 'incoming'
     return newState
+  },
+  66: (state: RootState) => {
+    let newState = {...state}
+    // Add userCompanies and userTeams for team admin permissions
+    newState.settings.userCompanies = []
+    newState.settings.userTeams = []
+    return newState
   }
 }
 
@@ -591,7 +598,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 65,
+  version: 66,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
