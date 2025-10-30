@@ -137,7 +137,7 @@ export const Reports: React.FC = () => {
   const userTeams = useSelector((state: RootState) => state.settings.userTeams);
 
   // State
-  const [selectedAssetSlug, setSelectedAssetSlug] = useState<string | null>(null);
+  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedReport, setEditedReport] = useState<any>(null);
 
@@ -188,8 +188,12 @@ export const Reports: React.FC = () => {
     console.log('[Reports] Can create report:', canCreateReport);
   }, [isGodMode, userCompanies, userTeams, adminCompanySlugs, adminTeams, canCreateReport]);
 
+  // Helper to create unique asset ID
+  const getAssetId = (asset: typeof availableAssets[0]) =>
+    `${asset.company_slug}/${asset.team_slug}/${asset.slug}`;
+
   // Find selected asset
-  const selectedAsset = availableAssets.find((asset) => asset.slug === selectedAssetSlug) ||
+  const selectedAsset = availableAssets.find((asset) => getAssetId(asset) === selectedAssetId) ||
     (availableAssets.length > 0 ? availableAssets[0] : null);
 
   // Extract report data
@@ -210,8 +214,8 @@ export const Reports: React.FC = () => {
     }
   }, [isEditing, selectedAsset, reportData]);
 
-  const handleAssetSelection = (assetSlug: string) => {
-    setSelectedAssetSlug(assetSlug);
+  const handleAssetSelection = (assetId: string) => {
+    setSelectedAssetId(assetId);
     setIsEditing(false);
     setIsAssetDropdownOpen(false);
     setAssetSearchQuery('');
@@ -579,12 +583,13 @@ export const Reports: React.FC = () => {
                   ) : (
                     filteredAssets.map((asset) => {
                       const team = userTeams.find(t => t.slug === asset.team_slug);
-                      const isSelected = (selectedAssetSlug || availableAssets[0]?.slug) === asset.slug;
+                      const assetId = getAssetId(asset);
+                      const isSelected = (selectedAssetId || (availableAssets[0] && getAssetId(availableAssets[0]))) === assetId;
 
                       return (
                         <Box
-                          key={`${asset.company_slug}-${asset.slug}`}
-                          onClick={() => handleAssetSelection(asset.slug)}
+                          key={assetId}
+                          onClick={() => handleAssetSelection(assetId)}
                           px={3}
                           py={2}
                           cursor="pointer"
