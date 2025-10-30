@@ -18,8 +18,9 @@ export interface AssetInfo {
 export interface CompanyInfo {
   slug: string
   name: string
-  role: 'admin' | 'member'
+  role: 'admin' | 'member' | 'godmode_access'
   created_at: string
+  admins?: string[]  // List of admin emails (visible to godmode users)
 }
 
 export interface TeamInfo {
@@ -163,12 +164,16 @@ export const atlasApi = createApi({
       companySlug: string
       teamSlug: string
       data: CreateAssetRequest
+      asUser?: string  // For godmode: which admin to act as
     }>({
-      query: ({ companySlug, teamSlug, data }) => ({
-        url: `company/${companySlug}/team/${teamSlug}/assets`,
-        method: 'POST',
-        body: data
-      }),
+      query: ({ companySlug, teamSlug, data, asUser }) => {
+        const url = `company/${companySlug}/team/${teamSlug}/assets`;
+        return {
+          url: asUser ? `${url}?as_user=${encodeURIComponent(asUser)}` : url,
+          method: 'POST',
+          body: data
+        };
+      },
       invalidatesTags: ['User', 'Assets'],
     }),
   }),

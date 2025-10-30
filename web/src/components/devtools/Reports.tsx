@@ -154,7 +154,8 @@ export const Reports: React.FC = () => {
     url: '',
     questions: [''],
     schedule: SCHEDULE_OPTIONS[0].value,
-    emails: ['']
+    emails: [''],
+    asUser: ''  // For godmode: which admin to act as
   });
 
   // API hooks
@@ -163,10 +164,23 @@ export const Reports: React.FC = () => {
   const [sendJobEmail, { isLoading: sendingEmail }] = useSendJobEmailMutation();
   const [createAsset, { isLoading: isCreating }] = useCreateAssetMutation();
 
-  // Get admin teams
-  const adminCompanySlugs = userCompanies.filter(c => c.role === 'admin').map(c => c.slug);
+  // Get admin teams (or all teams for godmode users)
+  const isGodMode = userCompanies.some(c => c.role === 'godmode_access');
+  const adminCompanySlugs = isGodMode
+    ? userCompanies.map(c => c.slug)  // Godmode can access all companies
+    : userCompanies.filter(c => c.role === 'admin').map(c => c.slug);
   const adminTeams = userTeams.filter(t => adminCompanySlugs.includes(t.company_slug));
   const canCreateReport = adminTeams.length > 0;
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Reports] Is god mode:', isGodMode);
+    console.log('[Reports] User companies:', userCompanies);
+    console.log('[Reports] User teams:', userTeams);
+    console.log('[Reports] Admin company slugs:', adminCompanySlugs);
+    console.log('[Reports] Admin teams:', adminTeams);
+    console.log('[Reports] Can create report:', canCreateReport);
+  }, [isGodMode, userCompanies, userTeams, adminCompanySlugs, adminTeams, canCreateReport]);
 
   // Find selected asset
   const selectedAsset = availableAssets.find((asset) => asset.slug === selectedAssetSlug) ||
@@ -372,7 +386,8 @@ export const Reports: React.FC = () => {
             schedule: newReport.schedule,
             emails: validEmails
           }
-        }
+        },
+        asUser: isGodMode && newReport.asUser ? newReport.asUser : undefined
       }).unwrap();
 
       toast({
@@ -389,7 +404,8 @@ export const Reports: React.FC = () => {
         url: '',
         questions: [''],
         schedule: SCHEDULE_OPTIONS[0].value,
-        emails: ['']
+        emails: [''],
+        asUser: ''
       });
       setIsCreateModalOpen(false);
     } catch (error) {
@@ -924,6 +940,31 @@ export const Reports: React.FC = () => {
                   ))}
                 </Select>
               </FormControl>
+
+              {/* Admin Selection (Godmode only) */}
+              {isGodMode && newReport.teamSlug && (
+                <FormControl>
+                  <FormLabel>Act as Admin (optional)</FormLabel>
+                  <Select
+                    value={newReport.asUser}
+                    onChange={(e) => setNewReport({ ...newReport, asUser: e.target.value })}
+                    placeholder="Use your godmode identity"
+                  >
+                    {(() => {
+                      const selectedTeam = adminTeams.find(t => t.slug === newReport.teamSlug);
+                      const company = userCompanies.find(c => c.slug === selectedTeam?.company_slug);
+                      return company?.admins?.map((adminEmail) => (
+                        <option key={adminEmail} value={adminEmail}>
+                          {adminEmail}
+                        </option>
+                      )) || [];
+                    })()}
+                  </Select>
+                  <Text fontSize="xs" color="gray.500" mt={1}>
+                    Leave empty to create as yourself. Select an admin to impersonate them.
+                  </Text>
+                </FormControl>
+              )}
 
               {/* Report Name */}
               <FormControl isRequired>
