@@ -176,7 +176,7 @@ export const Reports: React.FC = () => {
     ? userCompanies.map(c => c.slug)  // Godmode can access all companies
     : userCompanies.filter(c => c.role === 'admin').map(c => c.slug);
   const adminTeams = userTeams.filter(t => adminCompanySlugs.includes(t.company_slug));
-  const canCreateReport = adminTeams.length > 0;
+  const canCreateReport = adminTeams.length > 0;  // Only show button if there are teams available
 
   // Debug logging
   React.useEffect(() => {
@@ -481,19 +481,6 @@ export const Reports: React.FC = () => {
     );
   }
 
-  if (availableAssets.length === 0) {
-    return (
-      <VStack spacing={2} py={8} textAlign="center">
-        <Text fontSize="sm" color="gray.600" fontWeight="medium">
-          No Reports Available
-        </Text>
-        <Text fontSize="xs" color="gray.500" lineHeight="1.4" maxWidth="300px">
-          Contact your team admin to set up scheduled reports
-        </Text>
-      </VStack>
-    );
-  }
-
   return (
     <VStack width="100%" align="stretch" spacing={4}>
       {/* Header */}
@@ -513,8 +500,23 @@ export const Reports: React.FC = () => {
         </HStack>
       </VStack>
 
+      {/* Empty State */}
+      {availableAssets.length === 0 && (
+        <VStack spacing={2} py={8} textAlign="center">
+          <Text fontSize="sm" color="gray.600" fontWeight="medium">
+            No Reports Available
+          </Text>
+          <Text fontSize="xs" color="gray.500" lineHeight="1.4" maxWidth="300px">
+            {canCreateReport
+              ? 'Get started by creating your first scheduled report'
+              : 'Contact your team admin to set up scheduled reports'}
+          </Text>
+        </VStack>
+      )}
+
       {/* Report Selection - Searchable Dropdown */}
-      <Box>
+      {availableAssets.length > 0 && (
+        <Box>
         <Popover
           isOpen={isAssetDropdownOpen}
           onClose={() => {
@@ -622,10 +624,11 @@ export const Reports: React.FC = () => {
             </PopoverBody>
           </PopoverContent>
         </Popover>
-      </Box>
+        </Box>
+      )}
 
       {/* Report Details */}
-      {selectedAsset && (
+      {availableAssets.length > 0 && selectedAsset && (
         <VStack align="stretch" spacing={4}>
           {/* Edit/View Mode Toggle */}
           {selectedAsset.permission === 'edit' && !isEditing && (
