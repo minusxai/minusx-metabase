@@ -510,28 +510,34 @@ function ImageComponent(props: any) {
   return <ZoomableImage src={props.src} alt={props.alt}/>
 }
 
-function generateMetabaseQuestionURL(query: any, queryType: string, databaseId: number | null = null, embedConfigs: EmbedConfigs = {}) {
+function generateMetabaseQuestionURL(query: any, queryType: string, databaseId: number | null = null, embedConfigs: EmbedConfigs = {}, existingTemplateTags: Record<string, any> = {}, existingParameters: any[] = []) {
   // Get Metabase origin from embed_configs if available, otherwise use iframe info
     const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
     let cardData: any = {};
     if (queryType === 'sql') {
-        const templateTags = getAllTemplateTagsInQuery(query);
-        // Get all template tags in the query (we don't have access to snippets here, so pass undefined)
+        // Extract template tags from the query
+        const extractedTemplateTags = getAllTemplateTagsInQuery(query);
+        // Merge existing template tags with extracted ones (extracted ones take precedence)
+        const mergedTemplateTags = {
+            ...existingTemplateTags,
+            ...extractedTemplateTags
+        };
+
         cardData = {
             "dataset_query": {
-            "database": databaseId,
-            "type": "native",
-            "native": {
-                "query": query,
-                "template-tags": templateTags
-            }
+              "database": databaseId,
+              "type": "native",
+              "native": {
+                  "query": query,
+                  "template-tags": mergedTemplateTags
+              }
             },
             "display": "table",
-            "parameters": [],
+            "parameters": existingParameters,
             "visualization_settings": {},
             "type": "question"
         };
-        
+
     }
     else if (queryType === 'mbql') {
            cardData = {
@@ -543,9 +549,9 @@ function generateMetabaseQuestionURL(query: any, queryType: string, databaseId: 
             "display": "table",
             "visualization_settings": {},
             "type": "question"
-        };     
+        };
     }
-  
+
   const hash = btoa(JSON.stringify(cardData));
   const origin = embedConfigs.embed_host;
   if (!origin || !isEmbedded) {
@@ -554,9 +560,20 @@ function generateMetabaseQuestionURL(query: any, queryType: string, databaseId: 
   return `${origin}/question?hash=${encodeURIComponent(hash)}`;
 }
 
+function parseJSONSafe(str: string, def: any): any {
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return def;
+  }
+}
+
 interface LastQuery {
     query: string;
     queryType: 'sql' | 'mbql';
+    templateTags?: Record<string, any>
+    parameters?: any[]
+    parameterValues?: Array<{id: string, value: string[]}>
 }
 
 function extractLastQueryFromMessages(messages: any[], currentMessageIndex: number, toolContext: any): LastQuery | null {
@@ -574,7 +591,13 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
           try {
             const args = JSON.parse(toolCall.function.arguments);
             if (args.sql) {
-              return {query: args.sql, queryType: 'sql'};
+              return {
+                query: args.sql,
+                queryType: 'sql',
+                templateTags: parseJSONSafe(args.template_tags, {}) || {},
+                parameters: parseJSONSafe(args.parameters, []) || [],
+                parameterValues: parseJSONSafe(args.parameter_values, []) || []
+              };
             }
           } catch (e) {
             // Ignore parsing errors
@@ -588,7 +611,10 @@ function extractLastQueryFromMessages(messages: any[], currentMessageIndex: numb
             const args = JSON.parse(toolCall.function.arguments);
             if (args.mbql) {
                 // Return the MBQL query directly
-                return {query: args.mbql, queryType: 'mbql'};
+                return {
+                  query: args.mbql,
+                  queryType: 'mbql',
+                };
             }
             } catch (e) {
                 // Ignore parsing errors
@@ -715,19 +741,27 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
     if (content.includes('{{MX_LAST_QUERY_URL}}')) {
       try {
         // Extract last SQL from messages before the current message
-        let lastQuery = messageIndex !== undefined 
+        let lastQuery = messageIndex !== undefined
           ? extractLastQueryFromMessages(currentThread?.messages || [], messageIndex, toolContext)
           : null;
         if (lastQuery) {
           // Get current database ID from app state
           const databaseId = toolContext?.dbId || null;
 
-          const questionURL = generateMetabaseQuestionURL(lastQuery.query, lastQuery.queryType, databaseId, embedConfigs);
+          // Pass existing template tags and parameters from lastQuery to merge with extracted ones
+          const questionURL = generateMetabaseQuestionURL(
+            lastQuery.query,
+            lastQuery.queryType,
+            databaseId,
+            embedConfigs,
+            lastQuery.templateTags || {},
+            lastQuery.parameters || []
+          );
 
           return renderString(content, {
             'MX_LAST_QUERY_URL': `\n\n --- \n\n Continue your analysis [here](${questionURL})`
           });
-        } 
+        }
         else {
             return content.replace('{{MX_LAST_QUERY_URL}}', ''); // Remove if no SQL found
         }
@@ -735,7 +769,7 @@ export function Markdown({content, messageIndex}: {content: string, messageIndex
         console.warn('Failed to generate MX_LAST_QUERY_URL:', error);
       }
     }
-    
+
     return content;
   }, [content, currentThread?.messages, toolContext?.dbId, messageIndex, settings, mxModels]);
 
