@@ -265,24 +265,24 @@ function ModifiedTable(props: any) {
         
         // Find thead and tbody
         children.forEach((child: any) => {
-            if (child?.type?.name === 'ModifiedThead') {
+            if (child?.type === ModifiedThead) {
                 thead = child;
-            } else if (child?.type?.name === 'ModifiedTbody') {
+            } else if (child?.type === ModifiedTbody) {
                 tbody = child;
                 if (tbody?.props?.children) {
                     const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
-                    totalRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').length;
+                    totalRows = tbodyChildren.filter((row: any) => row?.type === ModifiedTr).length;
                 }
             }
         });
-        
+
         if (!tbody || totalRows <= 3) {
             return props.children;
         }
-        
+
         // Limit tbody to first 3 rows
         const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
-        const visibleRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').slice(0, 3);
+        const visibleRows = tbodyChildren.filter((row: any) => row?.type === ModifiedTr).slice(0, 3);
         const hiddenRowsCount = totalRows - 3;
         
         // Create modified tbody with limited rows
@@ -316,24 +316,24 @@ function ModifiedTable(props: any) {
         
         // Find thead and tbody
         children.forEach((child: any) => {
-            if (child?.type?.name === 'ModifiedThead') {
+            if (child?.type === ModifiedThead) {
                 thead = child;
-            } else if (child?.type?.name === 'ModifiedTbody') {
+            } else if (child?.type === ModifiedTbody) {
                 tbody = child;
                 if (tbody?.props?.children) {
                     const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
-                    totalRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').length;
+                    totalRows = tbodyChildren.filter((row: any) => row?.type === ModifiedTr).length;
                 }
             }
         });
-        
+
         if (!tbody || totalRows <= 10) {
             return props.children;
         }
-        
+
         // Limit tbody to first 10 rows
         const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
-        const visibleRows = tbodyChildren.filter((row: any) => row?.type?.name === 'ModifiedTr').slice(0, 10);
+        const visibleRows = tbodyChildren.filter((row: any) => row?.type === ModifiedTr).slice(0, 10);
         const hiddenRowsCount = totalRows - 10;
         
         // Create modified tbody with limited rows
