@@ -5,10 +5,6 @@ import {
   HStack,
   VStack,
   Button,
-  Menu,
-  MenuButton,
-  MenuList,
-  MenuItem,
   Icon,
   Spinner,
   Badge,
@@ -38,7 +34,12 @@ import {
   ModalFooter,
   FormControl,
   FormLabel,
-  FormErrorMessage
+  InputGroup,
+  InputLeftElement,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody
 } from '@chakra-ui/react';
 import {
   BiChevronDown,
@@ -54,7 +55,8 @@ import {
   BiTrash,
   BiEdit,
   BiSave,
-  BiShow
+  BiShow,
+  BiSearch
 } from 'react-icons/bi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -146,6 +148,10 @@ export const Reports: React.FC = () => {
   const [selectedOutput, setSelectedOutput] = useState<any>(null);
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
 
+  // Asset search state
+  const [assetSearchQuery, setAssetSearchQuery] = useState('');
+  const [isAssetDropdownOpen, setIsAssetDropdownOpen] = useState(false);
+
   // Create modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newReport, setNewReport] = useState({
@@ -207,7 +213,21 @@ export const Reports: React.FC = () => {
   const handleAssetSelection = (assetSlug: string) => {
     setSelectedAssetSlug(assetSlug);
     setIsEditing(false);
+    setIsAssetDropdownOpen(false);
+    setAssetSearchQuery('');
   };
+
+  // Filter assets by search query
+  const filteredAssets = React.useMemo(() => {
+    if (!assetSearchQuery.trim()) return availableAssets;
+
+    const query = assetSearchQuery.toLowerCase();
+    return availableAssets.filter((asset) => {
+      const assetName = asset.name.toLowerCase();
+      const teamName = userTeams.find(t => t.slug === asset.team_slug)?.name?.toLowerCase() || '';
+      return assetName.includes(query) || teamName.includes(query);
+    });
+  }, [assetSearchQuery, availableAssets, userTeams]);
 
   const handleSave = async () => {
     if (!selectedAsset || !editedReport) return;
@@ -489,59 +509,114 @@ export const Reports: React.FC = () => {
         </HStack>
       </VStack>
 
-      {/* Report Selection */}
+      {/* Report Selection - Searchable Dropdown */}
       <Box>
-        <Menu>
-          <MenuButton
-            as={Button}
-            rightIcon={<BiChevronDown />}
-            size="sm"
+        <Popover
+          isOpen={isAssetDropdownOpen}
+          onClose={() => {
+            setIsAssetDropdownOpen(false);
+            setAssetSearchQuery('');
+          }}
+          placement="bottom-start"
+          matchWidth
+        >
+          <PopoverTrigger>
+            <Button
+              onClick={() => setIsAssetDropdownOpen(!isAssetDropdownOpen)}
+              rightIcon={<BiChevronDown />}
+              size="sm"
+              width="100%"
+              bg="white"
+              border="1px solid"
+              borderColor="gray.200"
+              color="minusxBW.800"
+              _hover={{ bg: 'gray.50', borderColor: 'gray.300' }}
+              _active={{ bg: 'gray.100', borderColor: 'gray.400' }}
+              fontWeight="normal"
+              textAlign="left"
+              justifyContent="space-between"
+            >
+              <VStack align="start" spacing={0} width="100%">
+                <Text fontSize="sm">{selectedAsset?.name || availableAssets[0]?.name}</Text>
+                {selectedAsset && (
+                  <Text fontSize="xs" color="gray.500">
+                    {userTeams.find(t => t.slug === selectedAsset.team_slug)?.name || ''}
+                  </Text>
+                )}
+              </VStack>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent
             width="100%"
-            bg="white"
-            border="1px solid"
-            borderColor="gray.200"
-            color="minusxBW.800"
-            _hover={{ bg: 'gray.50', borderColor: 'gray.300' }}
-            _active={{ bg: 'gray.100', borderColor: 'gray.400' }}
-            fontWeight="normal"
-            textAlign="left"
-            justifyContent="space-between"
-          >
-            {selectedAsset?.name || availableAssets[0]?.name}
-          </MenuButton>
-          <MenuList
             bg="white"
             border="1px solid"
             borderColor="gray.200"
             boxShadow="lg"
-            borderRadius="md"
-            py={1}
-            width="100%"
           >
-            {availableAssets.map((asset) => (
-              <MenuItem
-                key={`${asset.company_slug}-${asset.slug}`}
-                onClick={() => handleAssetSelection(asset.slug)}
-                bg="white"
-                _hover={{ bg: 'gray.50' }}
-                _focus={{ bg: 'gray.50' }}
-                py={2}
-                px={3}
-                color="minusxBW.800"
-                fontSize="sm"
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-                width="100%"
-              >
-                <Text>{asset.name}</Text>
-                {(selectedAssetSlug || availableAssets[0].slug) === asset.slug && (
-                  <Icon as={BiCheck} boxSize={4} color="minusxGreen.500" />
-                )}
-              </MenuItem>
-            ))}
-          </MenuList>
-        </Menu>
+            <PopoverBody p={0}>
+              <VStack spacing={0} align="stretch">
+                {/* Search Input */}
+                <Box p={2} borderBottom="1px solid" borderColor="gray.200">
+                  <InputGroup size="sm">
+                    <InputLeftElement pointerEvents="none">
+                      <Icon as={BiSearch} color="gray.400" />
+                    </InputLeftElement>
+                    <Input
+                      placeholder="Search reports or teams..."
+                      value={assetSearchQuery}
+                      onChange={(e) => setAssetSearchQuery(e.target.value)}
+                      autoFocus
+                    />
+                  </InputGroup>
+                </Box>
+
+                {/* Asset List */}
+                <Box maxH="300px" overflowY="auto">
+                  {filteredAssets.length === 0 ? (
+                    <Box p={4} textAlign="center">
+                      <Text fontSize="sm" color="gray.500">No reports found</Text>
+                    </Box>
+                  ) : (
+                    filteredAssets.map((asset) => {
+                      const team = userTeams.find(t => t.slug === asset.team_slug);
+                      const isSelected = (selectedAssetSlug || availableAssets[0]?.slug) === asset.slug;
+
+                      return (
+                        <Box
+                          key={`${asset.company_slug}-${asset.slug}`}
+                          onClick={() => handleAssetSelection(asset.slug)}
+                          px={3}
+                          py={2}
+                          cursor="pointer"
+                          bg={isSelected ? 'gray.50' : 'white'}
+                          _hover={{ bg: 'gray.50' }}
+                          borderBottom="1px solid"
+                          borderColor="gray.100"
+                        >
+                          <HStack justify="space-between" align="center">
+                            <VStack align="start" spacing={0} flex={1}>
+                              <Text fontSize="sm" color="minusxBW.800" fontWeight={isSelected ? 'medium' : 'normal'}>
+                                {asset.name}
+                              </Text>
+                              {team && (
+                                <Text fontSize="xs" color="gray.500">
+                                  {team.name}
+                                </Text>
+                              )}
+                            </VStack>
+                            {isSelected && (
+                              <Icon as={BiCheck} boxSize={4} color="minusxGreen.500" />
+                            )}
+                          </HStack>
+                        </Box>
+                      );
+                    })
+                  )}
+                </Box>
+              </VStack>
+            </PopoverBody>
+          </PopoverContent>
+        </Popover>
       </Box>
 
       {/* Report Details */}
