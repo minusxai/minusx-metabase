@@ -56,13 +56,35 @@ export const TeamMemory: React.FC = () => {
         return <Text>Coming soon!</Text>
     }
 
-    const blackListedEntities = selectedAsset?.content?.entity_blacklist?.filter(entity => entity.database_id === dbInfo.id) || []
+    // Extract whitelist and blacklist entities for current database
+    const assetContent = selectedAsset?.content as any;
+    const whiteListedEntities = assetContent?.entity_whitelist?.filter((entity: any) => entity.database_id === dbInfo.id) || []
+    const blackListedEntities = assetContent?.entity_blacklist?.filter((entity: any) => entity.database_id === dbInfo.id) || []
+
+    const whiteListedTableIds = whiteListedEntities.filter((entity: any) => entity.type === 'table').map((entity: any) => String(entity.id))
+    const whiteListedModelIds = whiteListedEntities.filter((entity: any) => entity.type === 'model').map((entity: any) => String(entity.id))
 
     const blackListedTableIds = blackListedEntities.filter((entity: any) => entity.type === 'table').map((entity: any) => String(entity.id))
     const blacListedModelIds = blackListedEntities.filter((entity: any) => entity.type === 'model').map((entity: any) => String(entity.id))
 
-    const finTables = allTables.filter(table => !blackListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
-    const finModels = allModels.filter(model => !blacListedModelIds.includes(String(model.modelId))).filter(model => model.dbId === dbInfo.id).sort((a, b) => String(a.collectionName).localeCompare(String(b.collectionName)) || a.name.localeCompare(b.name))
+    // Apply filtering: whitelist takes precedence over blacklist
+    let finTables, finModels;
+
+    if (whiteListedTableIds.length > 0) {
+      // Whitelist exists - only show whitelisted tables
+      finTables = allTables.filter(table => whiteListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
+    } else {
+      // No whitelist - apply blacklist
+      finTables = allTables.filter(table => !blackListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
+    }
+
+    if (whiteListedModelIds.length > 0) {
+      // Whitelist exists - only show whitelisted models
+      finModels = allModels.filter(model => whiteListedModelIds.includes(String(model.modelId))).filter(model => model.dbId === dbInfo.id).sort((a, b) => String(a.collectionName).localeCompare(String(b.collectionName)) || a.name.localeCompare(b.name))
+    } else {
+      // No whitelist - apply blacklist
+      finModels = allModels.filter(model => !blacListedModelIds.includes(String(model.modelId))).filter(model => model.dbId === dbInfo.id).sort((a, b) => String(a.collectionName).localeCompare(String(b.collectionName)) || a.name.localeCompare(b.name))
+    }
 
     return <>
         <VStack width={"100%"} align="stretch" spacing={0} mb={2}>
@@ -199,7 +221,7 @@ export const TeamMemory: React.FC = () => {
                                     </HStack>
                                 </VStack>
                                 
-{selectedAsset.content && !selectedAsset.content.isActive && (
+{selectedAsset.content && !(selectedAsset.content as any).isActive && (
                                     <VStack align="start" spacing={0}>
                                         <Text fontSize="xs" color="gray.500" fontWeight="medium">STATUS</Text>
                                         <Text fontSize="sm" fontWeight="medium" color="orange.600">
