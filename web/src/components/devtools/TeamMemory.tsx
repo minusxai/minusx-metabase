@@ -67,22 +67,16 @@ export const TeamMemory: React.FC = () => {
     const blackListedTableIds = blackListedEntities.filter((entity: any) => entity.type === 'table').map((entity: any) => String(entity.id))
     const blacListedModelIds = blackListedEntities.filter((entity: any) => entity.type === 'model').map((entity: any) => String(entity.id))
 
-    // Apply filtering: whitelist takes precedence over blacklist
+    // Apply filtering: if entity_whitelist property exists, use whitelist; else use blacklist
     let finTables, finModels;
 
-    if (whiteListedTableIds.length > 0) {
-      // Whitelist exists - only show whitelisted tables
+    if (assetContent?.entity_whitelist !== undefined) {
+      // entity_whitelist property exists - use whitelist filtering
       finTables = allTables.filter(table => whiteListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
-    } else {
-      // No whitelist - apply blacklist
-      finTables = allTables.filter(table => !blackListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
-    }
-
-    if (whiteListedModelIds.length > 0) {
-      // Whitelist exists - only show whitelisted models
       finModels = allModels.filter(model => whiteListedModelIds.includes(String(model.modelId))).filter(model => model.dbId === dbInfo.id).sort((a, b) => String(a.collectionName).localeCompare(String(b.collectionName)) || a.name.localeCompare(b.name))
     } else {
-      // No whitelist - apply blacklist
+      // entity_whitelist doesn't exist - use blacklist filtering
+      finTables = allTables.filter(table => !blackListedTableIds.includes(String(table.id))).sort((a, b) => a.schema.localeCompare(b.schema) || a.name.localeCompare(b.name))
       finModels = allModels.filter(model => !blacListedModelIds.includes(String(model.modelId))).filter(model => model.dbId === dbInfo.id).sort((a, b) => String(a.collectionName).localeCompare(String(b.collectionName)) || a.name.localeCompare(b.name))
     }
 
