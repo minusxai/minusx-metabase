@@ -210,7 +210,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       console.log('[minusx] Loaded assets from Atlas API:', atlasData.accessible_assets.length)
       dispatch(setAvailableAssets(atlasData.accessible_assets))
     } else {
-      dispatch(setAvailableAssets([]))
+      // dispatch(setAvailableAssets([]))
     }
 
     // Dispatch companies and teams data
