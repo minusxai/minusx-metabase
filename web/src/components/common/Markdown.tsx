@@ -140,6 +140,12 @@ function ModifiedCode(props: any) {
           );
         }
     }
+
+    if (props.children?.toString().length < 50) {
+        return <span style={{ color: "#14a085", fontWeight: 800, fontFamily: "monospace", backgroundColor: "#dbf5f0ff",
+            padding: "2px 4px", borderRadius: "4px"
+         }}>{props.children}</span>;
+    }
     
     // For code blocks, wrap in collapsible component
     return (

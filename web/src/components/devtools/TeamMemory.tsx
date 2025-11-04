@@ -312,7 +312,7 @@ const AssetContentDisplay: React.FC<{ asset: any; finTables: any[]; finModels: a
                                     </AccordionButton>
                                     <AccordionPanel pb={4}>
                                         <Box
-                                            maxHeight="200px"
+                                            maxHeight="450px"
                                             overflowY="auto"
                                         >
                                             {asset.content.text && asset.content.text.trim() !== '' ? <Markdown content={asset.content.text} /> : <Markdown content="> Note: Text context is empty" />}
