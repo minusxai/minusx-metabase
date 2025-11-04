@@ -66,10 +66,15 @@ import {
   useLazyGetJobRunHistoryQuery,
   useSendJobEmailMutation,
   useCreateAssetMutation,
+  useGetAtlasMeQuery,
   type JobRun,
   type JobStatus
 } from '../../app/api/atlasApi';
 import { configs } from '../../constants';
+import { getApp } from '../../helpers/app';
+import { MetabaseContext } from 'apps/types';
+
+const useAppStore = getApp().useStore();
 
 // Type for scheduled report content
 interface ScheduledReportContent {
@@ -135,6 +140,9 @@ export const Reports: React.FC = () => {
   const session_jwt = useSelector((state: RootState) => state.auth.session_jwt);
   const userCompanies = useSelector((state: RootState) => state.settings.userCompanies);
   const userTeams = useSelector((state: RootState) => state.settings.userTeams);
+  const toolContext: MetabaseContext = useAppStore((state) => state.toolContext);
+  const dbInfo = toolContext.dbInfo;
+  const availableDashboards = dbInfo.dashboards || [];
 
   // State
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
@@ -165,6 +173,7 @@ export const Reports: React.FC = () => {
   });
 
   // API hooks
+  const { refetch: refetchAtlasMe } = useGetAtlasMeQuery();
   const [executeJob, { isLoading: isExecuting }] = useExecuteJobMutation();
   const [getJobRunHistory, { data: runHistory = [], isFetching: historyLoading }] = useLazyGetJobRunHistoryQuery();
   const [sendJobEmail, { isLoading: sendingEmail }] = useSendJobEmailMutation();
@@ -189,6 +198,25 @@ export const Reports: React.FC = () => {
   // Helper to create unique asset ID
   const getAssetId = (asset: typeof availableAssets[0]) =>
     `${asset.company_slug}/${asset.team_slug}/${asset.slug}`;
+
+  // Helper to get metabase origin from selected team's company
+  const getMetabaseOriginForTeam = (teamSlug: string): string | undefined => {
+    const team = userTeams.find(t => t.slug === teamSlug);
+    if (!team) return undefined;
+    const company = userCompanies.find(c => c.slug === team.company_slug);
+    return company?.context?.metabaseOrigin;
+  };
+
+  // Helper to get dashboard name from URL
+  const getDashboardNameFromUrl = (url: string): string | null => {
+    if (!url) return null;
+    // Extract dashboard ID from URL pattern: .../dashboard/123
+    const match = url.match(/\/dashboard\/(\d+)/);
+    if (!match) return null;
+    const dashboardId = parseInt(match[1], 10);
+    const dashboard = availableDashboards.find(d => d.id === dashboardId);
+    return dashboard?.name || null;
+  };
 
   // Find selected asset
   const selectedAsset = availableAssets.find((asset) => getAssetId(asset) === selectedAssetId) ||
@@ -269,7 +297,8 @@ export const Reports: React.FC = () => {
           isClosable: true
         });
         setIsEditing(false);
-        // Optionally trigger a refetch of assets
+        // Refetch assets to update the view with new data
+        refetchAtlasMe();
       } else {
         throw new Error('Failed to update report');
       }
@@ -658,15 +687,29 @@ export const Reports: React.FC = () => {
             <VStack align="stretch" spacing={4} p={4} bg="gray.50" borderRadius="md">
               <Text fontSize="lg" fontWeight="semibold">Edit Report Configuration</Text>
 
-              {/* URL */}
+              {/* Dashboard Dropdown */}
               <Box>
-                <Text fontSize="sm" fontWeight="medium" mb={2}>Report URL *</Text>
-                <Input
-                  value={editedReport?.url || ''}
-                  onChange={(e) => setEditedReport({ ...editedReport, url: e.target.value })}
-                  placeholder="https://example.com/dashboard"
-                  size="sm"
-                />
+                <Text fontSize="sm" fontWeight="medium" mb={2}>Dashboard *</Text>
+                {availableDashboards.length === 0 ? (
+                  <Text fontSize="sm" color="gray.500">No dashboards available</Text>
+                ) : (
+                  <Select
+                    value={editedReport?.url || ''}
+                    onChange={(e) => setEditedReport({ ...editedReport, url: e.target.value })}
+                    placeholder="Select a dashboard"
+                    size="sm"
+                  >
+                    {availableDashboards.map((dashboard) => {
+                      const metabaseOrigin = getMetabaseOriginForTeam(selectedAsset?.team_slug || '');
+                      const dashboardUrl = metabaseOrigin ? `${metabaseOrigin}/dashboard/${dashboard.id}` : '';
+                      return (
+                        <option key={dashboard.id} value={dashboardUrl}>
+                          {dashboard.name}
+                        </option>
+                      );
+                    })}
+                  </Select>
+                )}
               </Box>
 
               {/* Questions */}
@@ -761,15 +804,29 @@ export const Reports: React.FC = () => {
           ) : (
             /* View Mode */
             <VStack align="stretch" spacing={3}>
-              {/* URL */}
+              {/* Dashboard */}
               <Box p={3} bg="gray.50" borderRadius="md">
                 <HStack mb={1}>
                   <Icon as={BiGlobe} color="minusxGreen.600" />
-                  <Text fontSize="sm" fontWeight="semibold">Report URL</Text>
+                  <Text fontSize="sm" fontWeight="semibold">Dashboard</Text>
                 </HStack>
-                <Text fontSize="xs" color="gray.700" fontFamily="monospace" wordBreak="break-all">
-                  {reportData.url || 'Not set'}
-                </Text>
+                {(() => {
+                  const dashboardName = getDashboardNameFromUrl(reportData.url || '');
+                  return dashboardName ? (
+                    <VStack align="start" spacing={1}>
+                      <Text fontSize="sm" color="gray.800" fontWeight="medium">
+                        {dashboardName}
+                      </Text>
+                      <Text fontSize="xs" color="gray.500" fontFamily="monospace" wordBreak="break-all">
+                        {reportData.url}
+                      </Text>
+                    </VStack>
+                  ) : (
+                    <Text fontSize="xs" color="gray.700" fontFamily="monospace" wordBreak="break-all">
+                      {reportData.url || 'Not set'}
+                    </Text>
+                  );
+                })()}
               </Box>
 
               {/* Schedule */}
@@ -1068,14 +1125,30 @@ export const Reports: React.FC = () => {
                 />
               </FormControl>
 
-              {/* URL */}
+              {/* Dashboard Dropdown */}
               <FormControl isRequired>
-                <FormLabel>Dashboard URL</FormLabel>
-                <Input
-                  value={newReport.url}
-                  onChange={(e) => setNewReport({ ...newReport, url: e.target.value })}
-                  placeholder="https://..."
-                />
+                <FormLabel>Dashboard</FormLabel>
+                {!newReport.teamSlug ? (
+                  <Text fontSize="sm" color="gray.500">Please select a team first</Text>
+                ) : availableDashboards.length === 0 ? (
+                  <Text fontSize="sm" color="gray.500">No dashboards available</Text>
+                ) : (
+                  <Select
+                    value={newReport.url}
+                    onChange={(e) => setNewReport({ ...newReport, url: e.target.value })}
+                    placeholder="Select a dashboard"
+                  >
+                    {availableDashboards.map((dashboard) => {
+                      const metabaseOrigin = getMetabaseOriginForTeam(newReport.teamSlug);
+                      const dashboardUrl = metabaseOrigin ? `${metabaseOrigin}/dashboard/${dashboard.id}` : '';
+                      return (
+                        <option key={dashboard.id} value={dashboardUrl}>
+                          {dashboard.name}
+                        </option>
+                      );
+                    })}
+                  </Select>
+                )}
               </FormControl>
 
               {/* Questions */}

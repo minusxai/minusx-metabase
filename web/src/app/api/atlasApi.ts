@@ -21,6 +21,9 @@ export interface CompanyInfo {
   role: 'admin' | 'member' | 'godmode_access'
   created_at: string
   admins?: string[]  // List of admin emails (visible to godmode users)
+  context?: {
+    metabaseOrigin?: string
+  }
 }
 
 export interface TeamInfo {
