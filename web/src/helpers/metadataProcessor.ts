@@ -12,7 +12,7 @@ import { get, isEmpty } from 'lodash';
 import { MetadataProcessingResult, MetadataHashInfo, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache } from '../state/settings/reducer';
 import { getState } from '../state/store';
 import { dispatch } from '../state/dispatch';
-import { getAllCardsAndModels, getDatabaseTablesAndModelsWithoutFields, getAllFields, getRelevantTablesAndDetailsForSelectedDb } from 'apps'
+import { getAllCardsAndModels, getDatabaseTablesAndModelsWithoutFields, getAllFields, getRelevantTablesAndDetailsForSelectedDb, getAllDashboards } from 'apps'
 import { fetchDatabaseFields } from '../../../apps/src/metabase/helpers/metabaseAPI';
 import { getSelectedDbId } from '../../../apps/src/metabase/helpers/metabaseStateAPI';
 import { getModelsWithFields } from '../../../apps/src/metabase/helpers/metabaseModels';
@@ -334,10 +334,11 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
   const processingPromise = (async () => {
     try {
       
-      const [dbSchema, { cards }, allFields] = await Promise.all([
+      const [dbSchema, { cards }, allFields, dashboards] = await Promise.all([
         getRelevantTablesAndDetailsForSelectedDb(selectedDbId, forceRefresh),
         getAllCardsAndModels(forceRefresh, selectedDbId),
-        forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId })
+        forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId }),
+        getAllDashboards(forceRefresh)
       ])
       console.log('[minusx] All API calls completed. Processing data...')
       
@@ -348,18 +349,20 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
       // Step 5: Process metadata for all four with filtered data
       console.log('[minusx] Processing metadata with filtered data...')
       
-      const [cardsHash, dbSchemaHash, fieldsHash] = await Promise.all([
+      const [cardsHash, dbSchemaHash, fieldsHash, dashboardsHash] = await Promise.all([
         processMetadataWithCaching('cards', async () => cards, selectedDbId),
         processMetadataWithCaching('dbSchema', async () => dbSchema, selectedDbId),
         processMetadataWithCaching('fields', async () => filteredFields, selectedDbId),
+        processMetadataWithCaching('dashboards', async () => dashboards, selectedDbId),
       ])
       
       console.log('[minusx] Coordinated metadata processing complete')
       
       const result = {
         cardsHash,
-        dbSchemaHash, 
+        dbSchemaHash,
         fieldsHash,
+        dashboardsHash,
         selectedDbId
       }
   
@@ -368,7 +371,7 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
       if (!is_authenticated) {
         console.warn('[minusx] User is not authenticated, not caching metadata processing result');
       }
-      else if (!result.cardsHash && !result.dbSchemaHash && !result.fieldsHash) {
+      else if (!result.cardsHash && !result.dbSchemaHash && !result.fieldsHash && !result.dashboardsHash) {
         console.warn('[minusx] All hashes are undefined. Not caching')
       } else {
         dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))

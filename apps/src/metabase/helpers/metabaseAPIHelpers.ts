@@ -31,6 +31,7 @@ import {
   fetchModels,
   fetchCard,
   fetchCards,
+  fetchDashboards,
   fetchDatabaseFields
 } from './metabaseAPI';
 import { Card, SearchApiResponse } from './types';
@@ -277,8 +278,37 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
   })
   const relevantTables = _.chain(tables).values().sortBy('count').reverse().value();
   console.log('Tables from cards:', relevantTables);
-  
+
   return { cards: processedCards, tables: relevantTables };
+}
+
+export async function getAllDashboards(forceRefresh = false) {
+  const dashboards = await handlePromise(
+    forceRefresh ? fetchDashboards.refresh({}) : fetchDashboards({}),
+    "[minusx] Error getting all dashboards",
+    []
+  );
+
+  console.log('[minusx] getAllDashboards - Total dashboards:', dashboards.length);
+
+  // Filter out archived dashboards
+  const activeDashboards = dashboards.filter((dashboard: any) => !dashboard.archived);
+
+  console.log('[minusx] getAllDashboards - Active dashboards:', activeDashboards.length);
+
+  // Map to simplified dashboard structure
+  return activeDashboards.map((dashboard: any) => ({
+    id: dashboard.id,
+    name: dashboard.name,
+    description: dashboard.description || null,
+    collection_id: dashboard.collection_id || null,
+    creator_email: get(dashboard, 'creator.email', ''),
+    creator_common_name: get(dashboard, 'creator.common_name', ''),
+    created_at: dashboard.created_at,
+    updated_at: dashboard.updated_at,
+    archived: dashboard.archived,
+    parameters: dashboard.parameters || []
+  }));
 }
 
 export async function getAllFields(currentDBId: number) {
@@ -389,6 +419,7 @@ export async function getDatabaseTablesAndModelsWithoutFields(db_id: number, for
 export async function getDatabaseTablesModelsCardsWithoutFields(db_id: number, forceRefreshModels: boolean = false, forceRefreshTables: boolean = false): Promise<DatabaseInfoWithTablesAndModels> {
   const tablesAndDetails = await getRelevantTablesAndDetailsForSelectedDb(db_id, forceRefreshTables);
   const cardsAndModels = await getAllCardsAndModels(forceRefreshModels, db_id);
+  const dashboards = await getAllDashboards(forceRefreshModels);
   const allCardsAndModels = cardsAndModels.cards || [];
   const cards = allCardsAndModels.filter(card => card.type == 'question');
   const models = allCardsAndModels.filter(card => card.type !== 'question');
@@ -407,7 +438,8 @@ export async function getDatabaseTablesModelsCardsWithoutFields(db_id: number, f
         name: card.name,
         id: card.id,
         description: card.description,
-      }))
+      })),
+      dashboards: dashboards
   };
 }
 

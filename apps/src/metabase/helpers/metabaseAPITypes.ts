@@ -69,6 +69,18 @@ export interface MetabaseCard {
   descption?: string;
 }
 
+export interface MetabaseDashboard {
+  id: number;
+  name: string;
+  description: string | null;
+  collection_id: number | null;
+  creator_email: string;
+  creator_common_name: string;
+  created_at: string;
+  updated_at: string;
+  archived: boolean;
+  parameters: any[];
+}
 
 export interface MetabaseTableOrModel {
   type: 'table' | 'model'
@@ -95,6 +107,7 @@ export interface DatabaseInfoWithTablesAndModels extends DatabaseInfo {
   tables: FormattedTable[];
   models: MetabaseModel[];
   cards: MetabaseCard[];
+  dashboards: MetabaseDashboard[];
 }
 
 export interface DatabaseResponse {

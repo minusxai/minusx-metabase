@@ -39,6 +39,10 @@ export const fetchCards = createAPI<{}>(
   '/api/card/'
 );
 
+export const fetchDashboards = createAPI<{}>(
+  '/api/dashboard'
+);
+
 export const fetchModelInfo = createAPI<{model_id: number}>(
   '/api/card/{{model_id}}/query_metadata',
   'GET'

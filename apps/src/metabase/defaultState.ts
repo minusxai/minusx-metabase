@@ -31,7 +31,9 @@ export const DB_INFO_DEFAULT: DatabaseInfoWithTablesAndModels = {
     semantic_version: []
   },
   tables: [],
-  models: []
+  models: [],
+  cards: [],
+  dashboards: []
 }
 
 export interface MinifiedDB {

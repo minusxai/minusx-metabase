@@ -1,7 +1,7 @@
 export { getAppStateConfigs } from "./appStateConfigs";
 export { applyTableDiffs } from "./common/utils";
 export { getTableContextYAML, filterTablesByCatalog } from "./metabase/helpers/catalog";
-export { getAllCardsAndModels, getTableData, getRelevantTablesAndDetailsForSelectedDb, getDatabaseTablesAndModelsWithoutFields, getAllCardsAndModels as getAllCards, getAllFields, getAllFieldsFiltered } from "./metabase/helpers/metabaseAPIHelpers";
+export { getAllCardsAndModels, getTableData, getRelevantTablesAndDetailsForSelectedDb, getDatabaseTablesAndModelsWithoutFields, getAllCardsAndModels as getAllCards, getAllFields, getAllFieldsFiltered, getAllDashboards } from "./metabase/helpers/metabaseAPIHelpers";
 export { fetchModelInfo } from "./metabase/helpers/metabaseAPI";
 export { getAllTemplateTagsInQuery, applySQLEdits, type SQLEdits } from "./metabase/helpers/sqlQuery";
 export { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels, replaceLLMFriendlyIdentifiersInSqlWithModels } from "./metabase/helpers/metabaseModels";

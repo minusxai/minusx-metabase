@@ -9,6 +9,7 @@ export interface MetadataProcessingResult {
   cardsHash?: string;
   dbSchemaHash?: string;
   fieldsHash?: string;
+  dashboardsHash?: string;
   selectedDbId?: number;
 }
 
