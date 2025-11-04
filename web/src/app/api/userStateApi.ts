@@ -2,6 +2,21 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { createConcurrencyBaseQuery } from './concurrency'
 import { configs } from '../../constants'
 
+export interface MemoryData {
+  content: string
+  updated_at: string | null
+}
+
+export interface UserState {
+  review: {
+    rating: number | null
+    comments: string | null
+    updated_at: string | null
+  }
+  memory: MemoryData
+  started_at: string
+}
+
 export const userStateApi = createApi({
   reducerPath: 'userStateApi',
   baseQuery: createConcurrencyBaseQuery(configs.SERVER_BASE_URL, 1),
@@ -54,11 +69,33 @@ export const userStateApi = createApi({
       },
       // Fire-and-forget - don't need to handle response
     }),
+
+    updateMemory: builder.mutation<UserState, { content: string }>({
+      query: ({ content }) => ({
+        url: 'user_state/memory',
+        method: 'POST',
+        body: { content },
+      }),
+      transformResponse: (response: any) => {
+        return response.success ? response.data : {}
+      },
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          dispatch(
+            userStateApi.util.updateQueryData('getUserState', undefined, () => data)
+          )
+        } catch {
+          // Request failed, do nothing
+        }
+      },
+    }),
   }),
 })
 
-export const { 
-  useGetUserStateQuery, 
+export const {
+  useGetUserStateQuery,
   useSubmitReviewMutation,
-  useSubmitMessageFeedbackMutation
+  useSubmitMessageFeedbackMutation,
+  useUpdateMemoryMutation
 } = userStateApi

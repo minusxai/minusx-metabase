@@ -1,43 +1,121 @@
-import { Button, VStack, Text, HStack, Box, Textarea } from '@chakra-ui/react';
+import { Button, VStack, Text, HStack, Box, Textarea, Spinner } from '@chakra-ui/react';
 import React, { useState, useEffect } from 'react';
 import { dispatch } from '../../state/dispatch';
-import { setAiRules } from '../../state/settings/reducer';
+import { setAiRules, setMemoryMigratedToServer } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { toast } from '../../app/toast';
 import { getParsedIframeInfo } from '../../helpers/origin';
 import { Markdown } from './Markdown';
 import { BsPencil, BsCheck, BsX } from 'react-icons/bs';
+import { useGetUserStateQuery, useUpdateMemoryMutation } from '../../app/api/userStateApi';
 
 export const AdditionalContext = () => {
   const aiRules = useSelector((state: RootState) => state.settings.aiRules)
+  const memoryMigratedToServer = useSelector((state: RootState) => state.settings.memoryMigratedToServer)
+  const { data: userState, isLoading, error } = useGetUserStateQuery({})
+  const [updateMemory, { isLoading: isSaving }] = useUpdateMemoryMutation()
   const [customInstructions, setCustomInstructions] = useState(aiRules)
   const [isEditMode, setIsEditMode] = useState(false)
-  const handleSave = () => {
-    dispatch(setAiRules(customInstructions))
-    setIsEditMode(false)
-    toast({
-      title: 'Custom Instructions Saved!',
-      description: "These instructions will be used from the next query onwards.",
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-      position: 'bottom-right',
-    })
-  }
-  const handleCancel = () => {
-    setCustomInstructions(aiRules)
-    setIsEditMode(false)
+
+  // Load memory from server and handle migration
+  useEffect(() => {
+    if (userState?.memory) {
+      const serverMemory = userState.memory.content
+
+      // Migration logic: if not migrated, server memory is empty, and local aiRules exist
+      if (!memoryMigratedToServer && !serverMemory && aiRules) {
+        // Automatically migrate local memory to server
+        updateMemory({ content: aiRules })
+          .unwrap()
+          .then(() => {
+            dispatch(setMemoryMigratedToServer(true))
+            toast({
+              title: 'Memory Migrated',
+              description: 'Your local memory has been synced to the server.',
+              status: 'info',
+              duration: 3000,
+              isClosable: true,
+              position: 'bottom-right',
+            })
+          })
+          .catch((error) => {
+            console.error('Failed to migrate memory:', error)
+          })
+      } else {
+        // Use server memory as source of truth
+        setCustomInstructions(serverMemory)
+        // Sync to Redux for backward compatibility
+        dispatch(setAiRules(serverMemory))
+      }
+    }
+  }, [userState, memoryMigratedToServer, aiRules])
+
+  const handleSave = async () => {
+    try {
+      await updateMemory({ content: customInstructions }).unwrap()
+      // Sync to Redux for backward compatibility
+      dispatch(setAiRules(customInstructions))
+      setIsEditMode(false)
+      toast({
+        title: 'Custom Instructions Saved!',
+        description: "These instructions will be used from the next query onwards.",
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'bottom-right',
+      })
+    } catch (error) {
+      console.error('Failed to save memory:', error)
+      toast({
+        title: 'Failed to save',
+        description: 'Could not save your custom instructions. Please try again.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'bottom-right',
+      })
+    }
   }
 
-    useEffect(() => {
-        setCustomInstructions(aiRules);
-    }, [aiRules]);
+  const handleCancel = () => {
+    setCustomInstructions(userState?.memory?.content || aiRules)
+    setIsEditMode(false)
+  }
 
   const tool = getParsedIframeInfo().tool
   let placeholder = `Example:\n1. Only use tables from "public" schema\n2. Always use plotly for plotting`
   if (tool == 'metabase') {
     placeholder = `Examples:\n## Project Name. \n\nProject Description \n\n\`\`\`sql\nSELECT * from MY_TABLE\nJOIN OTHER_TABLE\nWHERE CONDITION = VALUE\n\`\`\`\n\n## Project 2\n\nProject 2 Description\n...`
+  }
+
+  if (isLoading) {
+    return (
+      <VStack className='settings-body'
+        justifyContent="center"
+        alignItems="center"
+        flex={1}
+        height={'100%'}
+        width={"100%"}
+      >
+        <Spinner size="lg" color="minusxGreen.500" />
+        <Text fontSize="sm" color="gray.600">Loading memory...</Text>
+      </VStack>
+    )
+  }
+
+  if (error) {
+    return (
+      <VStack className='settings-body'
+        justifyContent="center"
+        alignItems="center"
+        flex={1}
+        height={'100%'}
+        width={"100%"}
+      >
+        <Text fontSize="sm" color="red.500">Failed to load memory. Please refresh the page.</Text>
+      </VStack>
+    )
   }
 
   return (
@@ -50,16 +128,17 @@ export const AdditionalContext = () => {
     overflow={"auto"}
     pt={2}
     >
-      <VStack alignItems={"start"} gap={1}> 
+      <VStack alignItems={"start"} gap={1}>
         <HStack justify={"space-between"} width={"100%"} alignItems={"center"}>
           <Text fontSize="sm" fontWeight="medium">Special instructions and saved memories</Text>
           {!isEditMode && (
-            <Button 
-              size="xs" 
-              variant="solid" 
-              colorScheme={"minusxGreen"} 
-              onClick={() => setIsEditMode(true)} 
+            <Button
+              size="xs"
+              variant="solid"
+              colorScheme={"minusxGreen"}
+              onClick={() => setIsEditMode(true)}
               leftIcon={<BsPencil />}
+              isDisabled={isLoading || isSaving}
             >
               Edit
             </Button>
@@ -102,7 +181,7 @@ export const AdditionalContext = () => {
                 pointerEvents="none"
               >
                 {customInstructions.trim().split(/\s+/).filter(word => word.length > 0).length} words
-                {aiRules === customInstructions && (
+                {userState?.memory?.content === customInstructions && (
                   <Text as="span" color="green.600" ml={2}>• Saved</Text>
                 )}
               </Box>
@@ -114,14 +193,21 @@ export const AdditionalContext = () => {
             )}
             <HStack justify={"space-between"} width={"100%"} alignItems={"center"} pt={2}>
               <HStack spacing={2}>
-                <Button size="sm" colorScheme="minusxGreen" onClick={handleSave} isDisabled={aiRules === customInstructions} leftIcon={<BsCheck />}>
+                <Button
+                  size="sm"
+                  colorScheme="minusxGreen"
+                  onClick={handleSave}
+                  isDisabled={userState?.memory?.content === customInstructions || isSaving}
+                  isLoading={isSaving}
+                  leftIcon={<BsCheck />}
+                >
                   Save
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleCancel} leftIcon={<BsX />}>
+                <Button size="sm" variant="outline" onClick={handleCancel} leftIcon={<BsX />} isDisabled={isSaving}>
                   Cancel
                 </Button>
               </HStack>
-              {aiRules != customInstructions && (
+              {userState?.memory?.content != customInstructions && !isSaving && (
                 <Text color={"red.500"} fontSize="xs" fontWeight={"bold"}>unsaved changes!</Text>
               )}
             </HStack>

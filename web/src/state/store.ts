@@ -591,6 +591,12 @@ const migrations = {
     newState.settings.userCompanies = []
     newState.settings.userTeams = []
     return newState
+  },
+  67: (state: RootState) => {
+    let newState = {...state}
+    // Add memoryMigratedToServer flag for server-side memory migration
+    newState.settings.memoryMigratedToServer = false
+    return newState
   }
 }
 
@@ -598,7 +604,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 66,
+  version: 67,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
