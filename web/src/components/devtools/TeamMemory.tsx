@@ -47,9 +47,8 @@ export const TeamMemory: React.FC = () => {
         dispatch(setUseTeamMemory(checked))
     }
     
-    // Find the selected asset for display, fallback to first asset if available
-    const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || 
-                         (availableAssets.length > 0 ? availableAssets[0] : null)
+    // Find the selected asset for display
+    const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || null
     
 
     if (tool != 'metabase') {
@@ -134,7 +133,7 @@ export const TeamMemory: React.FC = () => {
                             textAlign="left"
                             justifyContent="space-between"
                         >
-                            {selectedAsset?.name || availableAssets[0]?.name}
+                            {selectedAsset?.name || 'Select an asset'}
                         </MenuButton>
                         <MenuList
                             bg="white"
@@ -166,10 +165,10 @@ export const TeamMemory: React.FC = () => {
                                     width={"100%"}
                                 >
                                     <Text>{asset.name}</Text>
-                                    {(selectedAssetId || availableAssets[0].slug) === asset.slug && (
-                                        <Icon 
-                                            as={BiCheck} 
-                                            boxSize={4} 
+                                    {selectedAssetId === asset.slug && (
+                                        <Icon
+                                            as={BiCheck}
+                                            boxSize={4}
                                             color="minusxGreen.500"
                                         />
                                     )}

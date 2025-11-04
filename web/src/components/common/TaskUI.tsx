@@ -102,7 +102,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const manuallyLimitContext = useSelector((state: RootState) => state.settings.manuallyLimitContext)
   const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
   const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
-  const selectedAssetName = availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None'
+  const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
+  const selectedAssetName = assetsLoading
+    ? 'Loading...'
+    : (availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None')
       
 
   const credits = useSelector((state: RootState) => state.billing.credits)

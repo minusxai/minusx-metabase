@@ -318,9 +318,16 @@ export const settingsSlice = createSlice({
     },
     setAvailableAssets: (state, action: PayloadAction<AssetInfo[]>) => {
       state.availableAssets = action.payload
-      // Auto-select first asset if no asset is currently selected and assets are available
-      if (action.payload.length > 0 && !state.selectedAssetId) {
+      // Validate that the currently selected asset still exists
+      const selectedAssetExists = state.selectedAssetId &&
+        action.payload.some(asset => asset.slug === state.selectedAssetId)
+
+      // If selected asset doesn't exist anymore or no asset is selected, auto-select first one
+      if (action.payload.length > 0 && !selectedAssetExists) {
         state.selectedAssetId = action.payload[0].slug
+      } else if (action.payload.length === 0) {
+        // If no assets available, clear selection
+        state.selectedAssetId = null
       }
     },
     setSelectedAssetId: (state, action: PayloadAction<string | null>) => {
