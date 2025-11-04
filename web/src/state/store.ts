@@ -597,6 +597,21 @@ const migrations = {
     // Add memoryMigratedToServer flag for server-side memory migration
     newState.settings.memoryMigratedToServer = false
     return newState
+  },
+  68: (state: RootState) => {
+    let newState = {...state}
+    // Fix selectedAssetId to only point to 'context' type assets
+    if (newState.settings.selectedAssetId) {
+      const selectedAsset = newState.settings.availableAssets.find(
+        asset => asset.slug === newState.settings.selectedAssetId
+      )
+      // If selected asset is not a 'context' type, reset to first context asset
+      if (selectedAsset && selectedAsset.type !== 'context') {
+        const contextAssets = newState.settings.availableAssets.filter(asset => asset.type === 'context')
+        newState.settings.selectedAssetId = contextAssets.length > 0 ? contextAssets[0].slug : null
+      }
+    }
+    return newState
   }
 }
 
@@ -604,7 +619,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 67,
+  version: 68,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

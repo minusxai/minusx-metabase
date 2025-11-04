@@ -319,15 +319,19 @@ export const settingsSlice = createSlice({
     },
     setAvailableAssets: (state, action: PayloadAction<AssetInfo[]>) => {
       state.availableAssets = action.payload
-      // Validate that the currently selected asset still exists
-      const selectedAssetExists = state.selectedAssetId &&
-        action.payload.some(asset => asset.slug === state.selectedAssetId)
 
-      // If selected asset doesn't exist anymore or no asset is selected, auto-select first one
-      if (action.payload.length > 0 && !selectedAssetExists) {
-        state.selectedAssetId = action.payload[0].slug
-      } else if (action.payload.length === 0) {
-        // If no assets available, clear selection
+      // Filter to only 'context' type assets for Team Memory
+      const contextAssets = action.payload.filter(asset => asset.type === 'context')
+
+      // Validate that the currently selected asset still exists AND is a 'context' type
+      const selectedAssetExists = state.selectedAssetId &&
+        contextAssets.some(asset => asset.slug === state.selectedAssetId)
+
+      // If selected asset doesn't exist or is wrong type, auto-select first context asset
+      if (contextAssets.length > 0 && !selectedAssetExists) {
+        state.selectedAssetId = contextAssets[0].slug
+      } else if (contextAssets.length === 0) {
+        // If no context assets available, clear selection
         state.selectedAssetId = null
       }
     },
