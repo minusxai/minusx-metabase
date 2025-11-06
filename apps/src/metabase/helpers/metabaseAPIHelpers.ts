@@ -305,7 +305,6 @@ export async function getAllDashboards(forceRefresh = false) {
     creator_email: get(dashboard, 'creator.email', ''),
     creator_common_name: get(dashboard, 'creator.common_name', ''),
     created_at: dashboard.created_at,
-    updated_at: dashboard.updated_at,
     archived: dashboard.archived,
     parameters: dashboard.parameters || []
   }));
