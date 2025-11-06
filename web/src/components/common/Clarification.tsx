@@ -17,6 +17,7 @@ import { dispatch } from '../../state/dispatch'
 import { setClarificationAnswer, toggleClarification } from '../../state/chat/reducer'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../state/store'
+import { get } from 'lodash'
 
 export const Clarification = () => {
   const thread = useSelector((state: RootState) => state.chat.activeThread)
@@ -42,7 +43,7 @@ export const Clarification = () => {
   
   // Add standard options: "Figure it out" and custom input
   const allOptions = [
-    ...currentQuestion.options,
+    ...get(currentQuestion, 'options', []),
     "Figure it out!"
   ]
 
