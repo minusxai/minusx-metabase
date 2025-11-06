@@ -158,7 +158,7 @@ const initialState: Settings = {
   availableAssets: [],
   selectedAssetId: null,
   assetsLoading: false,
-  useTeamMemory: false,
+  useTeamMemory: true,
   savedQuestions: [],
   notifyUserStatus: 'incoming',
   userCompanies: [],

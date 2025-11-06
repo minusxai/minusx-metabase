@@ -612,6 +612,11 @@ const migrations = {
       }
     }
     return newState
+  },
+  69: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.useTeamMemory = true
+    return newState
   }
 }
 
@@ -619,7 +624,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 68,
+  version: 69,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
