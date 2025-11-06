@@ -23,7 +23,7 @@ import {
 import {
   searchTables,
 } from "./helpers/getDatabaseSchema";
-import { isEmpty, map, sample, truncate } from "lodash";
+import { get, isEmpty, map, sample, truncate } from "lodash";
 import {
   DashboardMetabaseState,
   DashcardDetails,
@@ -550,7 +550,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     labelTask: "Clarifying questions answered",
     description: "Asks the user clarifying questions to better understand their request.",
     renderBody: ({ questions }: { questions: Array<{question: string, options: string[]}> }) => {
-      const questionsText = questions.map((q, i) => `${i + 1}. ${q.question}\n   Options: ${q.options.join(', ')}`).join('\n')
+      const questionsText = questions.map((q, i) => `${i + 1}. ${q.question}\n   Options: ${get(q, 'options', []).join(', ')}`).join('\n')
       return { text: null, code: null }
     }
   })
