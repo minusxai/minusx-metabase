@@ -1,4 +1,4 @@
-const BASE_URL = "https://v1.minusxapi.com";
+const BASE_URL = "https://v2.minusxapi.com";
 const LLM_RESPONSE_URL = BASE_URL + "/planner/getLLMResponse";
 const SCRAPE_URL = BASE_URL + "/web/scrape";
 

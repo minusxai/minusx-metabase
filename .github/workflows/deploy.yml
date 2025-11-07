@@ -13,13 +13,13 @@ jobs:
         echo "${{ secrets.PROD_SERVER_SSH_PUB_KEY }}" > ~/.ssh/id_rsa.pub
         chmod 600 ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa.pub
-        ssh-keyscan -H v1.minusxapi.com >> ~/.ssh/known_hosts
+        ssh-keyscan -H web.minusxapi.com >> ~/.ssh/known_hosts
 
     - name: Run frontend server (v1)
       env:
         REF: ${{ github.sha }} # ref to checkout
       run: |
-        ssh minusx@v1.minusxapi.com << EOF
+        ssh minusx@web.minusxapi.com << EOF
           set -e  # Exit on any error
           cd /home/minusx/minusx/web
           git fetch --all --tags
