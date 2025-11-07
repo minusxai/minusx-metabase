@@ -111,10 +111,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
         // Wrap in async IIFE to properly await the async updateIntroBanner call
         const selectedAssetName = availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None';
         (async () => {
-            if (selectedAssetName === 'None' || selectedAssetName === 'Loading...') {
+            if (selectedAssetName === 'None' || selectedAssetName === 'Loading...' || !useTeamMemory) {
                 await (app as any)?.updateIntroBanner?.({
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
-                    description: `What would you like to analyze today? ${selectedAssetName}`,
+                    description: `What would you like to analyze today?`,
                     className: 'minusx-intro-summary-banner',
                     zIndex: 240,
                     supportedQuestions: [
@@ -126,10 +126,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 });
                 return;
             }
-            if (selectedAssetName !== 'None' && selectedAssetName !== 'Loading...') {
+            else {
                 await (app as any)?.updateIntroBanner?.({
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
-                    description: `What would you like to analyze today? Team Memory: ${selectedAssetName}`,
+                    description: `What would you like to analyze today?`,
                     className: 'minusx-intro-summary-banner',
                     zIndex: 250,
                     dimensions: ["Region", "Department", "Category"],
@@ -140,10 +140,14 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                         "Show me something fun about my data!",
                         "Looking at my tables, give me a few hypotheses I can explore.",
                     ],
+                    unsupportedQuestions: [
+                        "What is the meaning of life?",
+                        "Can you predict the future?",
+                    ]
                 });
             }
         })();
-    }, [selectedAssetId]);
+    }, [selectedAssetId, useTeamMemory]);
 
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)

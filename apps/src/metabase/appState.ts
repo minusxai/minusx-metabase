@@ -30,7 +30,6 @@ async function createIntroBannerElement(options: {
   supportedQuestions?: string[];
   unsupportedQuestions?: string[];
   zIndex?: number;
-  teamMemoryUrl?: string;
 } = {}): Promise<HTMLJSONNode> {
   const {
     title = 'Welcome to MinusX!',
@@ -41,7 +40,6 @@ async function createIntroBannerElement(options: {
     supportedQuestions = [],
     unsupportedQuestions = [],
     zIndex = 240,
-    teamMemoryUrl = ''
   } = options;
   // Helper function to create tag elements
   const createTags = (items: string[], color: string) => items.map(item => ({
@@ -53,46 +51,56 @@ async function createIntroBannerElement(options: {
     children: [item]
   }));
 
+  // Check if dbId is defined
+  const dbId = await getSelectedDbId();
+  const showAskButton = dbId !== undefined && dbId !== null;
+
   // Create question list items with event listeners
   const questionListItems: HTMLJSONNode[] = await Promise.all(supportedQuestions.map(async (q, index) => {
     const buttonId = `minusx-intro-ask-btn-${Date.now()}-${index}`;
 
-    // Set up event listener for this specific button
-    addNativeEventListener({
-      type: "CSS",
-      selector: `#${buttonId}`,
-    }, async () => {
-      console.log('Question button clicked:', q);
-      RPCs.createNewThreadIfNeeded();
-      RPCs.toggleMinusXRoot('closed', false);
-      RPCs.addUserMessage({
-        content: {
-          type: "DEFAULT",
-          text: q,
-          images: []
+    const listItemChildren: (string | HTMLJSONNode)[] = [
+      {
+        tag: 'span',
+        attributes: { style: '', class: '' },
+        children: [`• ${q}`]
+      }
+    ];
+
+    // Only add the Ask button if dbId is defined
+    if (showAskButton) {
+      // Set up event listener for this specific button
+      addNativeEventListener({
+        type: "CSS",
+        selector: `#${buttonId}`,
+      }, async () => {
+        console.log('Question button clicked:', q);
+        RPCs.createNewThreadIfNeeded();
+        RPCs.toggleMinusXRoot('closed', false);
+        RPCs.addUserMessage({
+          content: {
+            type: "DEFAULT",
+            text: q,
+            images: []
+          },
+        });
+      }, ['click']);
+
+      listItemChildren.push({
+        tag: 'button',
+        attributes: {
+          style: 'background-color: #16a085; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; margin-left: 8px; display: flex; align-items: center; justify-content: center; padding: 2px 5px;',
+          id: buttonId,
+          class: `minusx-intro-ask-btn`
         },
+        children: ['Ask 🔍']
       });
-    }, ['click']);
+    }
 
     const listItem: HTMLJSONNode = {
       tag: 'li',
       attributes: { style: 'margin-bottom: 12px; display: flex; align-items: center;', class: '' },
-      children: [
-        {
-          tag: 'span',
-          attributes: { style: '', class: '' },
-          children: [`• ${q}`]
-        },
-        {
-          tag: 'button',
-          attributes: {
-            style: 'background-color: #16a085; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; margin-left: 8px; display: flex; align-items: center; justify-content: center; padding: 2px 5px;',
-            id: buttonId,
-            class: `minusx-intro-ask-btn`
-          },
-          children: ['Ask 🔍']
-        }
-      ]
+      children: listItemChildren
     };
     return listItem;
   }));
@@ -264,17 +272,27 @@ async function createIntroBannerElement(options: {
     }
   ];
 
-  // Only add team memory link if URL is provided
-  if (teamMemoryUrl && teamMemoryUrl.trim() !== '') {
-    signOffChildren.push({
+  // Create container for buttons
+  const buttonContainer: HTMLJSONNode[] = [];
+    buttonContainer.push({
       tag: 'a',
       attributes: {
-        style: 'background-color: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block;',
-        class: 'minusx-intro-source-btn',
-        href: teamMemoryUrl,
+        style: 'background-color: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 10px;',
+        class: 'minusx-intro-docs-btn',
+        href: 'https://docs.minusx.ai',
         target: '_blank'
       },
-      children: ['See Team Memory →']
+      children: ['Docs →']
+    });
+
+  if (buttonContainer.length > 0) {
+    signOffChildren.push({
+      tag: 'div',
+      attributes: {
+        style: 'display: flex; justify-content: center; align-items: center;',
+        class: ''
+      },
+      children: buttonContainer
     });
   }
 
@@ -887,27 +905,14 @@ Here's what I need modified:
     description?: string;
     className?: string;
     zIndex?: number;
-    teamMemoryUrl?: string;
     metrics?: string[];
     dimensions?: string[];
     supportedQuestions?: string[];
     unsupportedQuestions?: string[];
   } = {}) {
     try {
-      // Remove any existing banners first to prevent overlapping
-    //   await RPCs.uHighlight({
-    //     type: "CSS",
-    //     selector: '.minusx-intro-summary-banner, .minusx-intro-summary-banner-tm',
-    //   }, 0, {
-    //     display: 'none',
-    //   }).catch(() => {
-    //     // Ignore errors if banner doesn't exist yet
-    //   });
-
       const introSummarySelector = querySelectorMap['intro_summary']
       const bannerElement = await createIntroBannerElement(options);
-      console.log('updateIntroBanner: created banner element', bannerElement);
-      console.log(options);
       await RPCs.addNativeElements(
         introSummarySelector,
         bannerElement,
