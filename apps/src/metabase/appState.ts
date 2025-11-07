@@ -894,39 +894,24 @@ Here's what I need modified:
     unsupportedQuestions?: string[];
   } = {}) {
     try {
+      // Remove any existing banners first to prevent overlapping
+    //   await RPCs.uHighlight({
+    //     type: "CSS",
+    //     selector: '.minusx-intro-summary-banner, .minusx-intro-summary-banner-tm',
+    //   }, 0, {
+    //     display: 'none',
+    //   }).catch(() => {
+    //     // Ignore errors if banner doesn't exist yet
+    //   });
+
       const introSummarySelector = querySelectorMap['intro_summary']
-
-      // Retry mechanism: wait for the target element to exist (up to 3 seconds)
-      let targetElement = null;
-      const maxRetries = 5;
-      const retryDelay = 300; // ms
-
-      for (let i = 0; i < maxRetries; i++) {
-        targetElement = await RPCs.queryDOMSingle({
-          selector: introSummarySelector,
-          attrs: ['class']
-        });
-
-        if (targetElement && targetElement.length > 0) {
-          break;
-        }
-
-        if (i < maxRetries - 1) {
-          console.log(`updateIntroBanner: target element not found, retrying in ${retryDelay}ms (attempt ${i + 1}/${maxRetries})`);
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-        }
-      }
-
-      if (!targetElement || targetElement.length === 0) {
-        console.log('updateIntroBanner: target element not found after retries, skipping banner update');
-        return;
-      }
-
-      console.log('updateIntroBanner: adding banner with options', options);
       const bannerElement = await createIntroBannerElement(options);
+      console.log('updateIntroBanner: created banner element', bannerElement);
+      console.log(options);
       await RPCs.addNativeElements(
         introSummarySelector,
-        bannerElement
+        bannerElement,
+        "lastChild"
       )
       console.log('updateIntroBanner: banner added successfully');
     } catch (error) {

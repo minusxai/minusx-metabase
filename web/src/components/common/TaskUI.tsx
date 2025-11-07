@@ -103,16 +103,15 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
   const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
   const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
-  const loadedOnceRef = useRef(false)
   const selectedAssetName = assetsLoading
     ? 'Loading...'
     : (availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None')
 
     useEffect(() => {
         // Wrap in async IIFE to properly await the async updateIntroBanner call
+        const selectedAssetName = availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None';
         (async () => {
             if (selectedAssetName === 'None' || selectedAssetName === 'Loading...') {
-                loadedOnceRef.current = true;
                 await (app as any)?.updateIntroBanner?.({
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
                     description: `What would you like to analyze today? ${selectedAssetName}`,
@@ -127,17 +126,24 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                 });
                 return;
             }
-            if (!loadedOnceRef.current) return;
-            if (loadedOnceRef.current && selectedAssetName !== 'None' && selectedAssetName !== 'Loading...') {
+            if (selectedAssetName !== 'None' && selectedAssetName !== 'Loading...') {
                 await (app as any)?.updateIntroBanner?.({
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
-                    description: 'What would you like to analyze today?',
-                    className: 'minusx-intro-summary-banner-tm',
-                    zIndex: 250
+                    description: `What would you like to analyze today? Team Memory: ${selectedAssetName}`,
+                    className: 'minusx-intro-summary-banner',
+                    zIndex: 250,
+                    dimensions: ["Region", "Department", "Category"],
+                    metrics: ["Total Sales", "Avg. Order Value", "Customer Count"],
+                    supportedQuestions: [
+                        "What tables can you see?",
+                        "What are some interesting questions I can ask about my data?",
+                        "Show me something fun about my data!",
+                        "Looking at my tables, give me a few hypotheses I can explore.",
+                    ],
                 });
             }
         })();
-    }, [selectedAssetName]);
+    }, [selectedAssetId]);
 
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
