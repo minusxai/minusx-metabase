@@ -11,6 +11,7 @@ import {
   Link,
   Box,
   Flex,
+  Circle,
     Menu,
     MenuButton,
     MenuList,
@@ -183,6 +184,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
   const email = useSelector((state: RootState) => state.auth.email)
 
+  // Socket connection status: 'disconnected' | 'connected' | 'error'
+  const [socketStatus, setSocketStatus] = useState<'disconnected' | 'connected' | 'error'>('disconnected')
+
   const agentIconMap: Record<AgentType, any> = {
     [AGENTS.EXPLORER]: BiSolidMapAlt,
     [AGENTS.SIMPLE]: BiCode,
@@ -275,13 +279,16 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     },
     onConnect: () => {
       console.log('Socket.io connected successfully');
+      setSocketStatus('connected');
     },
     onDisconnect: (reason) => {
       console.log('Socket.io disconnected:', reason);
+      setSocketStatus('disconnected');
     },
     onError: (error) => {
       console.log(error.message)
       console.error('Socket.io connection error:', error);
+      setSocketStatus('error');
     }
   });
 
@@ -421,7 +428,20 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             <Image src={logo} alt="MinusX" maxWidth='150px'/>
             {/* <MXMode /> */}
           </VStack>
-          <HStack aria-label="mx-controls">
+          <HStack aria-label="mx-controls" spacing={2}>
+            <Tooltip
+              hasArrow
+              label={socketStatus === 'connected' ? 'Connected' : socketStatus === 'error' ? 'Connection Error' : 'Connecting...'}
+              placement='bottom'
+              borderRadius={5}
+              openDelay={500}
+            >
+              <Circle
+                size='8px'
+                bg={socketStatus === 'connected' ? 'green.500' : 'yellow.500'}
+                boxShadow={socketStatus === 'connected' ? '0 0 4px green.500' : '0 0 4px yellow.500'}
+              />
+            </Tooltip>
             <Tooltip hasArrow label="Start New Chat" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
                 variant={'ghost'}

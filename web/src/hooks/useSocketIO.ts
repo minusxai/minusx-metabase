@@ -44,8 +44,8 @@ export function useSocketIO({
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       randomizationFactor: 0.5,
-      transports: ['websocket'],
-      timeout: 20000,
+      transports: ['websocket', 'polling'],
+      timeout: 5000,
       path: configs.SOCKET_ENDPOINT
     });
 
