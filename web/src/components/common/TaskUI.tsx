@@ -13,7 +13,7 @@ import {
   MenuList,
   MenuItem
 } from '@chakra-ui/react'
-import React, { forwardRef, useCallback, useEffect, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { ChatSection } from './Chat'
 import { BiTable, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand, BiChevronDown } from 'react-icons/bi'
@@ -103,10 +103,41 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const availableAssets = useSelector((state: RootState) => state.settings.availableAssets)
   const selectedAssetId = useSelector((state: RootState) => state.settings.selectedAssetId)
   const assetsLoading = useSelector((state: RootState) => state.settings.assetsLoading)
+  const loadedOnceRef = useRef(false)
   const selectedAssetName = assetsLoading
     ? 'Loading...'
     : (availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None')
-      
+
+    useEffect(() => {
+        // Wrap in async IIFE to properly await the async updateIntroBanner call
+        (async () => {
+            if (selectedAssetName === 'None' || selectedAssetName === 'Loading...') {
+                loadedOnceRef.current = true;
+                await (app as any)?.updateIntroBanner?.({
+                    title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
+                    description: `What would you like to analyze today? ${selectedAssetName}`,
+                    className: 'minusx-intro-summary-banner',
+                    zIndex: 240,
+                    supportedQuestions: [
+                        "What tables can you see?",
+                        "What are some interesting questions I can ask about my data?",
+                        "Show me something fun about my data!",
+                        "Looking at my tables, give me a few hypotheses I can explore.",
+                    ],
+                });
+                return;
+            }
+            if (!loadedOnceRef.current) return;
+            if (loadedOnceRef.current && selectedAssetName !== 'None' && selectedAssetName !== 'Loading...') {
+                await (app as any)?.updateIntroBanner?.({
+                    title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
+                    description: 'What would you like to analyze today?',
+                    className: 'minusx-intro-summary-banner-tm',
+                    zIndex: 250
+                });
+            }
+        })();
+    }, [selectedAssetName]);
 
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)

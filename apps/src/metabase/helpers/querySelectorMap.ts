@@ -142,5 +142,17 @@ export const querySelectorMap: QuerySelectorMap = {
     type: 'XPATH',
     selector: '//button[.//span[text()="Editor"]]',
   },
+  intro_summary: {
+    type: 'XPATH',
+    selector: '//div[@data-testid="home-page"]'
+  },
+  intro_generic: {
+    type: 'XPATH',
+    selector: '//div[contains(@class, "minusx-intro-summary-banner")]'
+  },
+  intro_tm: {
+    type: 'XPATH',
+    selector: '//div[contains(@class, "minusx-intro-summary-banner-tm")]'
+  },
   ...visualizationSelectors
 };

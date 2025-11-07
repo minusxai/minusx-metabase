@@ -4,7 +4,7 @@ import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
-import { DOMQueryMapResponse } from "extension/types";
+import type { DOMQueryMapResponse, HTMLJSONNode } from "extension/types";
 import { subscribe, setInstructions, dispatch } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo, getDatabaseTablesModelsCardsWithoutFields } from "./helpers/metabaseAPIHelpers";
@@ -17,6 +17,285 @@ import { MetabasePageType, determineMetabasePageType } from "./helpers/utils";
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
 const highlightTasks = createRunner()
+
+/**
+ * Create intro banner HTML structure
+ */
+async function createIntroBannerElement(options: {
+  title?: string;
+  description?: string;
+  className?: string;
+  metrics?: string[];
+  dimensions?: string[];
+  supportedQuestions?: string[];
+  unsupportedQuestions?: string[];
+  zIndex?: number;
+  teamMemoryUrl?: string;
+} = {}): Promise<HTMLJSONNode> {
+  const {
+    title = 'Welcome to MinusX!',
+    description = 'What would you like to analyze today?',
+    className = 'minusx-intro-summary-banner',
+    metrics = [],
+    dimensions = [],
+    supportedQuestions = [],
+    unsupportedQuestions = [],
+    zIndex = 240,
+    teamMemoryUrl = ''
+  } = options;
+  // Helper function to create tag elements
+  const createTags = (items: string[], color: string) => items.map(item => ({
+    tag: 'span',
+    attributes: {
+      style: `display: inline-block; background-color: ${color}; color: white; padding: 6px 12px; margin: 4px; border-radius: 16px; font-size: 13px; font-weight: 500;`,
+      class: ''
+    },
+    children: [item]
+  }));
+
+  // Create question list items with event listeners
+  const questionListItems: HTMLJSONNode[] = await Promise.all(supportedQuestions.map(async (q, index) => {
+    const buttonId = `minusx-intro-ask-btn-${Date.now()}-${index}`;
+
+    // Set up event listener for this specific button
+    addNativeEventListener({
+      type: "CSS",
+      selector: `#${buttonId}`,
+    }, async () => {
+      console.log('Question button clicked:', q);
+      RPCs.createNewThreadIfNeeded();
+      RPCs.toggleMinusXRoot('closed', false);
+      RPCs.addUserMessage({
+        content: {
+          type: "DEFAULT",
+          text: q,
+          images: []
+        },
+      });
+    }, ['click']);
+
+    const listItem: HTMLJSONNode = {
+      tag: 'li',
+      attributes: { style: 'margin-bottom: 12px; display: flex; align-items: center;', class: '' },
+      children: [
+        {
+          tag: 'span',
+          attributes: { style: '', class: '' },
+          children: [`• ${q}`]
+        },
+        {
+          tag: 'button',
+          attributes: {
+            style: 'background-color: #16a085; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; margin-left: 8px; display: flex; align-items: center; justify-content: center; padding: 2px 5px;',
+            id: buttonId,
+            class: `minusx-intro-ask-btn`
+          },
+          children: ['Ask 🔍']
+        }
+      ]
+    };
+    return listItem;
+  }));
+
+
+  // Build children array conditionally
+  const children: (string | HTMLJSONNode)[] = [
+    // Title
+    {
+      tag: 'div',
+      attributes: {
+        style: 'color: #222222; font-size: 24px; font-weight: bold; margin-bottom: 15px;',
+        class: ''
+      },
+      children: [title]
+    },
+    // Description
+    {
+      tag: 'div',
+      attributes: {
+        style: 'color: #222222; font-size: 16px; line-height: 1.5; margin-bottom: 25px;',
+        class: ''
+      },
+      children: [description]
+    }
+  ];
+
+  // Add metrics and dimensions section only if at least one has content
+  if (metrics.length > 0 || dimensions.length > 0) {
+    const metricsAndDimensionsChildren: HTMLJSONNode[] = [];
+
+    if (metrics.length > 0) {
+      metricsAndDimensionsChildren.push({
+        tag: 'div',
+        attributes: {
+          style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+          class: ''
+        },
+        children: [
+          {
+            tag: 'h3',
+            attributes: {
+              style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+              class: ''
+            },
+            children: ['Common Metrics']
+          },
+          {
+            tag: 'div',
+            attributes: {
+              style: 'display: flex; flex-wrap: wrap; gap: 4px;',
+              class: ''
+            },
+            children: createTags(metrics, '#3498db')
+          }
+        ]
+      });
+    }
+
+    if (dimensions.length > 0) {
+      metricsAndDimensionsChildren.push({
+        tag: 'div',
+        attributes: {
+          style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+          class: ''
+        },
+        children: [
+          {
+            tag: 'h3',
+            attributes: {
+              style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+              class: ''
+            },
+            children: ['Common Dimensions']
+          },
+          {
+            tag: 'div',
+            attributes: {
+              style: 'display: flex; flex-wrap: wrap; gap: 4px;',
+              class: ''
+            },
+            children: createTags(dimensions, '#e74c3c')
+          }
+        ]
+      });
+    }
+
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: `display: grid; grid-template-columns: ${metricsAndDimensionsChildren.length === 2 ? '1fr 1fr' : '1fr'}; gap: 20px; margin-bottom: 20px;`,
+        class: ''
+      },
+      children: metricsAndDimensionsChildren
+    });
+  }
+
+  // Add supported questions section only if there are questions
+  if (supportedQuestions.length > 0) {
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: 'background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+        class: ''
+      },
+      children: [
+        {
+          tag: 'h3',
+          attributes: {
+            style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+            class: ''
+          },
+          children: ['✅ Here are all the things you can ask']
+        },
+        {
+          tag: 'ul',
+          attributes: {
+            style: 'color: #555; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 0; list-style-type: none;',
+            class: ''
+          },
+          children: questionListItems
+        }
+      ]
+    });
+  }
+
+  // Add unsupported questions section only if there are questions
+  if (unsupportedQuestions.length > 0) {
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: 'background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+        class: ''
+      },
+      children: [
+        {
+          tag: 'h3',
+          attributes: {
+            style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+            class: ''
+          },
+          children: ['🚧 Questions not supported (yet)']
+        },
+        {
+          tag: 'ul',
+          attributes: {
+            style: 'color: #999; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px; list-style-type: disc;',
+            class: ''
+          },
+          children: unsupportedQuestions.map(q => ({
+            tag: 'li',
+            attributes: { style: 'margin-bottom: 8px;', class: '' },
+            children: [q]
+          }))
+        }
+      ]
+    });
+  }
+
+  // Sign-off Section (absolutely positioned at bottom)
+  const signOffChildren: (string | HTMLJSONNode)[] = [
+    {
+      tag: 'div',
+      attributes: {
+        style: 'color: #555; font-size: 16px; font-weight: 800; margin-bottom: 10px;',
+        class: ''
+      },
+      children: ['Happy Analysis!']
+    }
+  ];
+
+  // Only add team memory link if URL is provided
+  if (teamMemoryUrl && teamMemoryUrl.trim() !== '') {
+    signOffChildren.push({
+      tag: 'a',
+      attributes: {
+        style: 'background-color: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block;',
+        class: 'minusx-intro-source-btn',
+        href: teamMemoryUrl,
+        target: '_blank'
+      },
+      children: ['See Team Memory →']
+    });
+  }
+
+  children.push({
+    tag: 'div',
+    attributes: {
+      style: 'position: absolute; bottom: 0; left: 0; right: 0; text-align: center; padding: 20px 30px; background-color: #eee; border-top: 1px solid #ddd; border-radius: 0 0 10px 10px;',
+      class: ''
+    },
+    children: signOffChildren
+  });
+
+  return {
+    tag: 'div',
+    attributes: {
+      style: `position: absolute; top: 50px; left: 5%; width: 90%; height: 90%; z-index: ${zIndex}; background-color: #eee; padding: 30px 30px 80px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); min-width: 300px; overflow-y: auto;`,
+      class: className
+    },
+    children
+  }
+}
 
 const getBaseStyles = () => `
   .minusx_style_error_button {
@@ -502,6 +781,24 @@ Here's what I need modified:
         'children': childNotifs
       }]
     })
+
+    // Add sample styled div to intro-summary - Subscribe to detect when on home page
+    // await subscribe({
+    //   intro_page: {
+    //     selector: querySelectorMap['intro_addon'],
+    //     attrs: ['class']
+    //   }
+    // }, async ({elements}) => {
+    //   const introExists = (get(elements, 'intro_page') || []).length > 0;
+    //   if (!introExists) {
+    //     const introSummarySelector = querySelectorMap['intro_summary']
+    //     const bannerElement = await createIntroBannerElement();
+    //     await RPCs.addNativeElements(
+    //       introSummarySelector,
+    //       bannerElement
+    //     )
+    //   }
+    // })
     // const entityMenuSelector = querySelectorMap['dashboard_header']
     // const entityMenuId = await RPCs.addNativeElements(entityMenuSelector, {
     //   tag: 'button',
@@ -570,7 +867,7 @@ Here's what I need modified:
   public async manuallySelectDb(dbId: number) {
     const state = this.useStore();
     const currentDbId = state.getState().toolContext.dbId;
-    
+
     state.getState().update((oldState) => ({
       ...oldState,
       toolContext: {
@@ -578,8 +875,63 @@ Here's what I need modified:
         dbId
       }
     }));
-    
+
     await this.loadDatabaseData(dbId, currentDbId);
+  }
+
+  /**
+   * Update the intro banner content dynamically by replacing it with new content
+   */
+  public async updateIntroBanner(options: {
+    title?: string;
+    description?: string;
+    className?: string;
+    zIndex?: number;
+    teamMemoryUrl?: string;
+    metrics?: string[];
+    dimensions?: string[];
+    supportedQuestions?: string[];
+    unsupportedQuestions?: string[];
+  } = {}) {
+    try {
+      const introSummarySelector = querySelectorMap['intro_summary']
+
+      // Retry mechanism: wait for the target element to exist (up to 3 seconds)
+      let targetElement = null;
+      const maxRetries = 5;
+      const retryDelay = 300; // ms
+
+      for (let i = 0; i < maxRetries; i++) {
+        targetElement = await RPCs.queryDOMSingle({
+          selector: introSummarySelector,
+          attrs: ['class']
+        });
+
+        if (targetElement && targetElement.length > 0) {
+          break;
+        }
+
+        if (i < maxRetries - 1) {
+          console.log(`updateIntroBanner: target element not found, retrying in ${retryDelay}ms (attempt ${i + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        }
+      }
+
+      if (!targetElement || targetElement.length === 0) {
+        console.log('updateIntroBanner: target element not found after retries, skipping banner update');
+        return;
+      }
+
+      console.log('updateIntroBanner: adding banner with options', options);
+      const bannerElement = await createIntroBannerElement(options);
+      await RPCs.addNativeElements(
+        introSummarySelector,
+        bannerElement
+      )
+      console.log('updateIntroBanner: banner added successfully');
+    } catch (error) {
+      console.error('updateIntroBanner: failed to update banner', error);
+    }
   }
 }
 
