@@ -19,6 +19,20 @@ export function useSocketIO({
 }: UseSocketIOOptions = {}) {
   const socketRef = useRef<Socket | null>(null);
 
+  // Store callbacks in refs to avoid stale closures
+  const onMessageRef = useRef(onMessage);
+  const onConnectRef = useRef(onConnect);
+  const onDisconnectRef = useRef(onDisconnect);
+  const onErrorRef = useRef(onError);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+    onConnectRef.current = onConnect;
+    onDisconnectRef.current = onDisconnect;
+    onErrorRef.current = onError;
+  }, [onMessage, onConnect, onDisconnect, onError]);
+
   useEffect(() => {
     // Only connect if we have a session token
     if (!sessionToken) {
@@ -44,7 +58,7 @@ export function useSocketIO({
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       randomizationFactor: 0.5,
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       timeout: 5000,
       path: configs.SOCKET_ENDPOINT
     });
@@ -53,22 +67,22 @@ export function useSocketIO({
 
     // Connection events
     socket.on('connect', () => {
-      onConnect?.();
+      onConnectRef.current?.();
     });
 
     socket.on('disconnect', (reason) => {
-      onDisconnect?.(reason);
+      onDisconnectRef.current?.(reason);
     });
 
     socket.on('connect_error', (error) => {
       console.error('Socket.io connection error:', error);
-      onError?.(error);
+      onErrorRef.current?.(error);
     });
 
-    // Message events
-    if (onMessage) {
-      socket.on('message', onMessage);
-    }
+    // Message events - always register listener with ref
+    socket.on('message', (message) => {
+      onMessageRef.current?.(message);
+    });
 
     // Cleanup on unmount
     return () => {

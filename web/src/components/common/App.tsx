@@ -270,7 +270,9 @@ const AppLoggedIn = forwardRef((_props, ref) => {
         }));
       }
       // Handle streaming content chunks
+      console.log('Message is', message)
       if (message?.type === 'content' && message?.id && message?.content && message?.conversationID) {
+        console.log('Appending to stream')
         dispatch(appendStreamingContent({
           id: message.id,
           chunk: message.content,
