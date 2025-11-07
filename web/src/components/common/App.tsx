@@ -252,6 +252,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
 
         // Skip task_id 0 (main agent)
         if (taskId === 0) {
+          console.warn('[minusx] Socket.io: Skipping message with task_id 0 (main agent)', message);
           return;
         }
 
@@ -275,6 +276,15 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           chunk: message.content,
           conversationID: message.conversationID
         }));
+      } else if (message?.type === 'content') {
+        console.warn('[minusx] Socket.io: Received malformed content message (missing id, content, or conversationID)', message);
+      }
+
+      // Warn about unhandled message types
+      if (message?.type === 'message' && (!message?.content?.agent || !message?.conversationID)) {
+        console.warn('[minusx] Socket.io: Received malformed message (missing agent or conversationID)', message);
+      } else if (message?.type && message?.type !== 'message' && message?.type !== 'content' && message?.type !== 'system') {
+        console.warn('[minusx] Socket.io: Received message with unhandled type', message);
       }
     },
     onConnect: () => {

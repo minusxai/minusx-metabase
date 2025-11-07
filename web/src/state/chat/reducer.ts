@@ -921,6 +921,8 @@ export const chatSlice = createSlice({
       const targetThread = state.threads.find(thread => thread.id === conversationID)
       if (targetThread) {
         targetThread.planningMessage = { message, conversationID }
+      } else {
+        console.warn('[minusx] setPlanningMessage: No thread found for conversationID', conversationID, 'Available threads:', state.threads.map(t => t.id))
       }
     },
     clearPlanningMessage: (state) => {
@@ -933,6 +935,7 @@ export const chatSlice = createSlice({
       // Find the thread with matching conversationID
       const targetThread = state.threads.find(thread => thread.id === conversationID)
       if (!targetThread) {
+        console.warn('[minusx] appendStreamingContent: No thread found for conversationID', conversationID, 'Available threads:', state.threads.map(t => t.id))
         return
       }
 
@@ -962,6 +965,7 @@ export const chatSlice = createSlice({
       // Find the thread with matching conversationID
       const targetThread = state.threads.find(thread => thread.id === conversationID)
       if (!targetThread) {
+        console.warn('[minusx] appendStreamingToolCall: No thread found for conversationID', conversationID, 'Available threads:', state.threads.map(t => t.id))
         return
       }
 
