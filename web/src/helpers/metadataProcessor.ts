@@ -116,6 +116,9 @@ const ongoingUploads = new Map<string, Promise<string>>();
 // Global map to track ongoing metadata processing by dbId
 const ongoingMetadataProcessing = new Map<number, Promise<MetadataProcessingResult>>();
 
+// Global map to track ongoing stale refreshes by dbId
+const ongoingStaleRefresh = new Map<number, Promise<void>>();
+
 /**
  * Generic function to upload any metadata type to the backend
  * @param metadataType The type of metadata (e.g., 'cards', 'dbSchema')
@@ -292,6 +295,72 @@ async function processMetadataWithCaching(
   return currentHash
 }
 
+/**
+ * Core function that fetches and processes all metadata for a database
+ * Used by both regular processing and stale refresh flows
+ */
+async function performMetadataFetch(selectedDbId: number, forceRefresh: boolean): Promise<MetadataProcessingResult> {
+  // Fetch all data in parallel
+  const [dbSchema, { cards }, allFields, dashboards] = await Promise.all([
+    getRelevantTablesAndDetailsForSelectedDb(selectedDbId, forceRefresh),
+    getAllCardsAndModels(forceRefresh, selectedDbId),
+    forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId }),
+    getAllDashboards(forceRefresh)
+  ])
+  console.log('[minusx] All API calls completed. Processing data...')
+
+  const filteredFields = allFields // Not filtering in new flow
+
+  // Process metadata for all four with filtered data
+  const [cardsHash, dbSchemaHash, fieldsHash, dashboardsHash] = await Promise.all([
+    processMetadataWithCaching('cards', async () => cards, selectedDbId),
+    processMetadataWithCaching('dbSchema', async () => dbSchema, selectedDbId),
+    processMetadataWithCaching('fields', async () => filteredFields, selectedDbId),
+    processMetadataWithCaching('dashboards', async () => dashboards, selectedDbId),
+  ])
+
+  const result = {
+    cardsHash,
+    dbSchemaHash,
+    fieldsHash,
+    dashboardsHash,
+    selectedDbId
+  }
+
+  // Cache the result for this database ID
+  const is_authenticated = getState().auth.is_authenticated;
+  if (!is_authenticated) {
+    console.warn('[minusx] User is not authenticated, not caching metadata processing result');
+  }
+  else if (!result.cardsHash && !result.dbSchemaHash && !result.fieldsHash && !result.dashboardsHash) {
+    console.warn('[minusx] All hashes are undefined. Not caching')
+  } else {
+    dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
+    console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
+  }
+
+  return result
+}
+
+/**
+ * Performs background refresh of stale metadata without blocking the caller
+ * Updates cache on success, preserves stale data on error
+ */
+async function performStaleRefresh(selectedDbId: number): Promise<void> {
+  console.log(`[minusx] Starting background stale refresh for database ${selectedDbId}`)
+
+  try {
+    await performMetadataFetch(selectedDbId, true)
+    console.log(`[minusx] Background refresh: Successfully updated cache for database ${selectedDbId}`)
+  } catch (error) {
+    // On error, preserve stale data by not updating cache
+    console.warn(`[minusx] Background refresh failed for database ${selectedDbId}, preserving stale data:`, error)
+  } finally {
+    // Clean up the ongoing stale refresh tracking
+    ongoingStaleRefresh.delete(selectedDbId)
+  }
+}
+
 export async function processAllMetadata(forceRefresh:boolean = false, currentDBId: number) : Promise<MetadataProcessingResult> {
   console.log('[minusx] Starting coordinated metadata processing with parallel API calls...') 
   
@@ -304,23 +373,47 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
   }
   if (forceRefresh) {
     dispatch(clearMetadataProcessingCache(selectedDbId))
+
+    // If there's an ongoing stale refresh, reuse it (it's already doing forceRefresh=true)
+    if (ongoingStaleRefresh.has(selectedDbId)) {
+      console.log(`[minusx] Force refresh requested but stale refresh already in progress for database ${selectedDbId}, reusing it`)
+      await ongoingStaleRefresh.get(selectedDbId)
+      // Return the freshly updated cache
+      const updatedState = getState()
+      const updatedCache = updatedState.settings.metadataProcessingCache[selectedDbId]
+      if (updatedCache) {
+        return updatedCache.result
+      }
+      // If cache wasn't updated (error case), fall through to normal processing
+    }
   }
-  
+
   // Check cache for this database ID first (synchronous)
   const currentState = getState()
   const cacheEntry = currentState.settings.metadataProcessingCache[selectedDbId]
   
   if (!forceRefresh && cacheEntry) {
-    const ONE_HOUR_MS = 1 * 60 * 60 * 1000
-    const isStale = Date.now() - cacheEntry.timestamp > ONE_HOUR_MS
+    const SIX_HOUR_MS = 6 * 60 * 60 * 1000
+    const isStale = Date.now() - cacheEntry.timestamp > SIX_HOUR_MS
     
     if (!isStale) {
       console.log(`[minusx] Using cached metadata for database ${selectedDbId}`)
       return cacheEntry.result
     } else {
-      console.log(`[minusx] Cached metadata for database ${selectedDbId} is stale, clearing cache`)
-      // Clear stale cache entry using proper Redux action
-      dispatch(clearMetadataProcessingCache(selectedDbId))
+      // Stale data detected - return it immediately and refresh in background
+      console.log(`[minusx] Cached metadata for database ${selectedDbId} is stale, returning stale data and refreshing in background`)
+
+      // Check if a stale refresh is already in progress
+      if (!ongoingStaleRefresh.has(selectedDbId)) {
+        // Start background refresh (fire-and-forget)
+        const refreshPromise = performStaleRefresh(selectedDbId)
+        ongoingStaleRefresh.set(selectedDbId, refreshPromise)
+      } else {
+        console.log(`[minusx] Stale refresh already in progress for database ${selectedDbId}, skipping duplicate refresh`)
+      }
+
+      // Return stale data immediately
+      return cacheEntry.result
     }
   }
   
@@ -333,51 +426,9 @@ export async function processAllMetadata(forceRefresh:boolean = false, currentDB
   // Create and store the processing promise
   const processingPromise = (async () => {
     try {
-      
-      const [dbSchema, { cards }, allFields, dashboards] = await Promise.all([
-        getRelevantTablesAndDetailsForSelectedDb(selectedDbId, forceRefresh),
-        getAllCardsAndModels(forceRefresh, selectedDbId),
-        forceRefresh ? fetchDatabaseFields.refresh({ db_id: selectedDbId }) : fetchDatabaseFields({ db_id: selectedDbId }),
-        getAllDashboards(forceRefresh)
-      ])
-      console.log('[minusx] All API calls completed. Processing data...')
-      
-      const filteredFields = allFields // Not filtering in new flow
-      
-      console.log('[minusx] Fields after filtering:', filteredFields.length, 'out of', allFields.length)
-      
-      // Step 5: Process metadata for all four with filtered data
       console.log('[minusx] Processing metadata with filtered data...')
-      
-      const [cardsHash, dbSchemaHash, fieldsHash, dashboardsHash] = await Promise.all([
-        processMetadataWithCaching('cards', async () => cards, selectedDbId),
-        processMetadataWithCaching('dbSchema', async () => dbSchema, selectedDbId),
-        processMetadataWithCaching('fields', async () => filteredFields, selectedDbId),
-        processMetadataWithCaching('dashboards', async () => dashboards, selectedDbId),
-      ])
-      
+      const result = await performMetadataFetch(selectedDbId, forceRefresh)
       console.log('[minusx] Coordinated metadata processing complete')
-      
-      const result = {
-        cardsHash,
-        dbSchemaHash,
-        fieldsHash,
-        dashboardsHash,
-        selectedDbId
-      }
-  
-      // Cache the result for this database ID
-      const is_authenticated = getState().auth.is_authenticated;
-      if (!is_authenticated) {
-        console.warn('[minusx] User is not authenticated, not caching metadata processing result');
-      }
-      else if (!result.cardsHash && !result.dbSchemaHash && !result.fieldsHash && !result.dashboardsHash) {
-        console.warn('[minusx] All hashes are undefined. Not caching')
-      } else {
-        dispatch(setMetadataProcessingCache({ dbId: selectedDbId, result }))
-        console.log(`[minusx] Cached metadata processing result for database ${selectedDbId}`)
-      }
-      
       return result
     } finally {
       // Clean up the ongoing processing tracking
