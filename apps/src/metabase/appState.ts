@@ -1019,6 +1019,11 @@ Here's what I need modified:
     unsupportedQuestions?: string[];
     info?: { text: string; linkText?: string; linkUrl?: string };
   } = {}) {
+    const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
+    if (isEmbedded) {
+        console.log('updateIntroBanner: Skipping banner update in embedded mode');
+        return;
+    }
     try {
       const introSummarySelector = querySelectorMap['intro_summary']
       const bannerElement = await createIntroBannerElement(options);
