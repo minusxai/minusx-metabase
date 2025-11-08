@@ -4,7 +4,7 @@ import { MetabaseController } from "./appController";
 import { DB_INFO_DEFAULT, metabaseInternalState } from "./defaultState";
 import { convertDOMtoState, MetabaseAppState } from "./helpers/DOMToState";
 import { cloneDeep, get, isEmpty, memoize, times } from "lodash";
-import { DOMQueryMapResponse } from "extension/types";
+import type { DOMQueryMapResponse, HTMLJSONNode } from "extension/types";
 import { subscribe, setInstructions, dispatch } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo, getDatabaseTablesModelsCardsWithoutFields } from "./helpers/metabaseAPIHelpers";
@@ -17,6 +17,411 @@ import { MetabasePageType, determineMetabasePageType } from "./helpers/utils";
 const runStoreTasks = createRunner()
 const explainSQLTasks = createRunner()
 const highlightTasks = createRunner()
+
+/**
+ * Create intro banner HTML structure
+ */
+async function createIntroBannerElement(options: {
+  title?: string;
+  description?: string;
+  className?: string;
+  metrics?: string[];
+  dimensions?: string[];
+  supportedQuestions?: string[];
+  unsupportedQuestions?: string[];
+  info?: { text: string; linkText?: string; linkUrl?: string };
+  zIndex?: number;
+} = {}): Promise<HTMLJSONNode> {
+  const {
+    title = 'Welcome to MinusX!',
+    description = 'What would you like to analyze today?',
+    className = 'minusx-intro-summary-banner',
+    metrics = [],
+    dimensions = [],
+    supportedQuestions = [],
+    unsupportedQuestions = [],
+    info,
+    zIndex = 240,
+  } = options;
+  // Helper function to create tag elements
+  const createTags = (items: string[], color: string) => items.map(item => ({
+    tag: 'span',
+    attributes: {
+      style: `display: inline-block; background-color: ${color}; color: white; padding: 6px 12px; margin: 4px; border-radius: 16px; font-size: 13px; font-weight: 500;`,
+      class: ''
+    },
+    children: [item]
+  }));
+
+  // Check if dbId is defined
+  const dbId = await getSelectedDbId();
+  const showAskButton = dbId !== undefined && dbId !== null;
+
+  // Create question list items with event listeners
+  const questionListItems: HTMLJSONNode[] = await Promise.all(supportedQuestions.map(async (q, index) => {
+    const buttonId = `minusx-intro-ask-btn-${Date.now()}-${index}`;
+
+    const listItemChildren: (string | HTMLJSONNode)[] = [`• ${q} `];
+
+    // Only add the Ask button if dbId is defined
+    if (showAskButton) {
+      // Set up event listener for this specific button
+      addNativeEventListener({
+        type: "CSS",
+        selector: `#${buttonId}`,
+      }, async () => {
+        console.log('Question button clicked:', q);
+        RPCs.createNewThreadIfNeeded();
+        RPCs.toggleMinusXRoot('closed', false);
+        RPCs.addUserMessage({
+          content: {
+            type: "DEFAULT",
+            text: q,
+            images: []
+          },
+        });
+      }, ['click']);
+
+      listItemChildren.push({
+        tag: 'span',
+        attributes: {
+          style: 'background-color: #16a085; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 4px; padding: 1px 8px; display: inline-block; font-weight: 500;',
+          id: buttonId,
+          class: `minusx-intro-ask-btn`
+        },
+        children: ['Ask 🔍']
+      });
+    }
+
+    const listItem: HTMLJSONNode = {
+      tag: 'li',
+      attributes: { style: 'margin-bottom: 8px;', class: '' },
+      children: listItemChildren
+    };
+    return listItem;
+  }));
+
+
+  // Build children array conditionally
+  const children: (string | HTMLJSONNode)[] = [
+    // Title
+    {
+      tag: 'div',
+      attributes: {
+        style: 'color: #222222; font-size: 24px; font-weight: bold; margin-bottom: 15px;',
+        class: ''
+      },
+      children: [title]
+    },
+    // Description
+    {
+      tag: 'div',
+      attributes: {
+        style: 'color: #222222; font-size: 16px; line-height: 1.5; margin-bottom: 25px;',
+        class: ''
+      },
+      children: [description]
+    }
+  ];
+
+  // Always show metrics and dimensions sections
+  const metricsAndDimensionsChildren: HTMLJSONNode[] = [];
+
+  // Metrics section
+  metricsAndDimensionsChildren.push({
+    tag: 'div',
+    attributes: {
+      style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+      class: ''
+    },
+    children: [
+      {
+        tag: 'h3',
+        attributes: {
+          style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+          class: ''
+        },
+        children: ['Common Metrics']
+      },
+      {
+        tag: 'div',
+        attributes: {
+          style: 'display: flex; flex-wrap: wrap; gap: 4px;',
+          class: ''
+        },
+        children: metrics.length > 0
+          ? createTags(metrics, '#3498db')
+          : [{
+              tag: 'span',
+              attributes: {
+                style: 'color: #999; font-style: italic; font-size: 14px;',
+                class: ''
+              },
+              children: ['Not set up yet']
+            }]
+      }
+    ]
+  });
+
+  // Dimensions section
+  metricsAndDimensionsChildren.push({
+    tag: 'div',
+    attributes: {
+      style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+      class: ''
+    },
+    children: [
+      {
+        tag: 'h3',
+        attributes: {
+          style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+          class: ''
+        },
+        children: ['Common Dimensions']
+      },
+      {
+        tag: 'div',
+        attributes: {
+          style: 'display: flex; flex-wrap: wrap; gap: 4px;',
+          class: ''
+        },
+        children: dimensions.length > 0
+          ? createTags(dimensions, '#e74c3c')
+          : [{
+              tag: 'span',
+              attributes: {
+                style: 'color: #999; font-style: italic; font-size: 14px;',
+                class: ''
+              },
+              children: ['Not set up yet']
+            }]
+      }
+    ]
+  });
+
+  children.push({
+    tag: 'div',
+    attributes: {
+      style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;',
+      class: ''
+    },
+    children: metricsAndDimensionsChildren
+  });
+
+  // Helper function to split items into two columns
+  const splitIntoColumns = (items: any[]) => {
+    const mid = Math.ceil(items.length / 2);
+    return [items.slice(0, mid), items.slice(mid)];
+  };
+
+  // Add supported questions section with 2-column layout
+  if (supportedQuestions.length > 0) {
+    const [leftItems, rightItems] = splitIntoColumns(questionListItems);
+
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: 'background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+        class: ''
+      },
+      children: [
+        {
+          tag: 'h3',
+          attributes: {
+            style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+            class: ''
+          },
+          children: ['✅ Here are a few things you can ask MinusX']
+        },
+        {
+          tag: 'div',
+          attributes: {
+            style: 'display: flex; gap: 20px;',
+            class: ''
+          },
+          children: [
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #555; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 0; list-style-type: none;',
+                class: ''
+              },
+              children: leftItems
+            },
+            {
+              tag: 'div',
+              attributes: {
+                style: 'width: 2px; background-color: #ddd;',
+                class: ''
+              },
+              children: []
+            },
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #555; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 0; list-style-type: none;',
+                class: ''
+              },
+              children: rightItems
+            }
+          ]
+        }
+      ]
+    });
+  }
+
+  // Add unsupported questions section with 2-column layout
+  if (unsupportedQuestions.length > 0) {
+    const unsupportedItems = unsupportedQuestions.map(q => ({
+      tag: 'li',
+      children: [q]
+    }));
+    const [leftItems, rightItems] = splitIntoColumns(unsupportedItems);
+
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: 'background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+        class: ''
+      },
+      children: [
+        {
+          tag: 'h3',
+          attributes: {
+            style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+            class: ''
+          },
+          children: ['🚧 Questions not supported (yet)']
+        },
+        {
+          tag: 'div',
+          attributes: {
+            style: 'display: flex; gap: 20px;',
+            class: ''
+          },
+          children: [
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #999; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px; list-style-type: disc;',
+                class: ''
+              },
+              children: leftItems
+            },
+            {
+              tag: 'div',
+              attributes: {
+                style: 'width: 2px; background-color: #ddd;',
+                class: ''
+              },
+              children: []
+            },
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #999; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px; list-style-type: disc;',
+                class: ''
+              },
+              children: rightItems
+            }
+          ]
+        }
+      ]
+    });
+  }
+
+  // Add info section only if there is info content
+  if (info) {
+    const infoChildren: (string | HTMLJSONNode)[] = [info.text];
+
+    // Add link if provided
+    if (info.linkText && info.linkUrl) {
+      infoChildren.push(' ');
+      infoChildren.push({
+        tag: 'a',
+        attributes: {
+          style: 'color: #3498db; text-decoration: underline; font-weight: 500;',
+          class: '',
+          href: info.linkUrl,
+          target: '_blank'
+        },
+        children: [info.linkText]
+      });
+    }
+
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: 'background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border-left: 4px solid #3498db;',
+        class: ''
+      },
+      children: [
+        {
+          tag: 'p',
+          attributes: {
+            style: 'color: #555; font-size: 14px; line-height: 1.6; margin: 0;',
+            class: ''
+          },
+          children: infoChildren
+        }
+      ]
+    });
+  }
+
+  // Sign-off Section (absolutely positioned at bottom)
+  const signOffChildren: (string | HTMLJSONNode)[] = [
+    {
+      tag: 'div',
+      attributes: {
+        style: 'color: #555; font-size: 16px; font-weight: 800; margin-bottom: 10px;',
+        class: ''
+      },
+      children: ['Happy Analysis!']
+    }
+  ];
+
+  // Create container for buttons
+  const buttonContainer: HTMLJSONNode[] = [];
+    buttonContainer.push({
+      tag: 'a',
+      attributes: {
+        style: 'background-color: #3498db; color: white; border: none; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-right: 10px;',
+        class: 'minusx-intro-docs-btn',
+        href: 'https://docs.minusx.ai',
+        target: '_blank'
+      },
+      children: ['Docs →']
+    });
+
+  if (buttonContainer.length > 0) {
+    signOffChildren.push({
+      tag: 'div',
+      attributes: {
+        style: 'display: flex; justify-content: center; align-items: center;',
+        class: ''
+      },
+      children: buttonContainer
+    });
+  }
+
+  children.push({
+    tag: 'div',
+    attributes: {
+      style: 'text-align: center; padding: 20px 30px; background-color: #eee; border-top: 1px solid #ddd; border-radius: 0 0 10px 10px;',
+      class: ''
+    },
+    children: signOffChildren
+  });
+
+  return {
+    tag: 'div',
+    attributes: {
+      style: `position: absolute; top: 50px; left: 5%; width: 90%; z-index: ${zIndex}; background-color: #eee; padding: 30px 30px 20px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); min-width: 300px; overflow-y: auto;`,
+      class: className
+    },
+    children
+  }
+}
 
 const getBaseStyles = () => `
   .minusx_style_error_button {
@@ -502,6 +907,24 @@ Here's what I need modified:
         'children': childNotifs
       }]
     })
+
+    // Add sample styled div to intro-summary - Subscribe to detect when on home page
+    // await subscribe({
+    //   intro_page: {
+    //     selector: querySelectorMap['intro_addon'],
+    //     attrs: ['class']
+    //   }
+    // }, async ({elements}) => {
+    //   const introExists = (get(elements, 'intro_page') || []).length > 0;
+    //   if (!introExists) {
+    //     const introSummarySelector = querySelectorMap['intro_summary']
+    //     const bannerElement = await createIntroBannerElement();
+    //     await RPCs.addNativeElements(
+    //       introSummarySelector,
+    //       bannerElement
+    //     )
+    //   }
+    // })
     // const entityMenuSelector = querySelectorMap['dashboard_header']
     // const entityMenuId = await RPCs.addNativeElements(entityMenuSelector, {
     //   tag: 'button',
@@ -570,7 +993,7 @@ Here's what I need modified:
   public async manuallySelectDb(dbId: number) {
     const state = this.useStore();
     const currentDbId = state.getState().toolContext.dbId;
-    
+
     state.getState().update((oldState) => ({
       ...oldState,
       toolContext: {
@@ -578,8 +1001,36 @@ Here's what I need modified:
         dbId
       }
     }));
-    
+
     await this.loadDatabaseData(dbId, currentDbId);
+  }
+
+  /**
+   * Update the intro banner content dynamically by replacing it with new content
+   */
+  public async updateIntroBanner(options: {
+    title?: string;
+    description?: string;
+    className?: string;
+    zIndex?: number;
+    metrics?: string[];
+    dimensions?: string[];
+    supportedQuestions?: string[];
+    unsupportedQuestions?: string[];
+    info?: { text: string; linkText?: string; linkUrl?: string };
+  } = {}) {
+    try {
+      const introSummarySelector = querySelectorMap['intro_summary']
+      const bannerElement = await createIntroBannerElement(options);
+      await RPCs.addNativeElements(
+        introSummarySelector,
+        bannerElement,
+        "lastChild"
+      )
+      console.log('updateIntroBanner: banner added successfully');
+    } catch (error) {
+      console.error('updateIntroBanner: failed to update banner', error);
+    }
   }
 }
 

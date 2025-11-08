@@ -13,7 +13,7 @@ import {
   MenuList,
   MenuItem
 } from '@chakra-ui/react'
-import React, { forwardRef, useCallback, useEffect, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { ChatSection } from './Chat'
 import { BiTable, BiStopCircle, BiMemoryCard, BiGroup, BiSolidCheckCircle, BiSolidXCircle, BiSolidHand, BiSolidMagicWand, BiChevronDown } from 'react-icons/bi'
@@ -106,7 +106,52 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const selectedAssetName = assetsLoading
     ? 'Loading...'
     : (availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None')
-      
+  const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || null
+  const defaultSupportedQuestions = [
+        "What tables can you see?",
+        "What are some interesting questions I can ask about my data?",
+        "Looking at my tables and cards, give me a few fun hypotheses I can explore.",
+        "What do you think my business is about?",
+    ]
+
+    useEffect(() => {
+        // Wrap in async IIFE to properly await the async updateIntroBanner call
+        const selectedAssetName = availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None';
+        (async () => {
+            if (selectedAssetName === 'None' || selectedAssetName === 'Loading...' || !useTeamMemory) {
+                await (app as any)?.updateIntroBanner?.({
+                    title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
+                    description: `What would you like to analyze today? 🚀`,
+                    className: 'minusx-intro-summary-banner',
+                    zIndex: 240,
+                    supportedQuestions: defaultSupportedQuestions,
+                    info: {
+                        text: "Organize your company's information and put more MinusX agents to work!",
+                        linkText: "Find out more.",
+                        linkUrl: "https://minusx.ai/demo"
+                    }
+                });
+                return;
+            }
+            else {
+                await (app as any)?.updateIntroBanner?.({
+                    title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
+                    description: `What would you like to analyze today? 🚀`,
+                    className: 'minusx-intro-summary-banner',
+                    zIndex: 250,
+                    dimensions: selectedAsset?.content?.homePageInfo?.dimensions || [],
+                    metrics: selectedAsset?.content?.homePageInfo?.measures || [],
+                    supportedQuestions: selectedAsset?.content?.homePageInfo?.supportedQuestions || defaultSupportedQuestions,
+                    unsupportedQuestions: selectedAsset?.content?.homePageInfo?.unsupportedQuestions || [],
+                    info: {
+                        text: "Organize your company's information and put more MinusX agents to work!",
+                        linkText: "Find out more.",
+                        linkUrl: "https://minusx.ai/demo"
+                    }
+                });
+            }
+        })();
+    }, [selectedAssetId, useTeamMemory]);
 
   const credits = useSelector((state: RootState) => state.billing.credits)
   const infoLoaded = useSelector((state: RootState) => state.billing.infoLoaded)
