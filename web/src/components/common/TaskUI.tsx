@@ -114,13 +114,14 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             if (selectedAssetName === 'None' || selectedAssetName === 'Loading...' || !useTeamMemory) {
                 await (app as any)?.updateIntroBanner?.({
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
-                    description: `What would you like to analyze today?`,
+                    description: `What would you like to analyze today? 🚀`,
                     className: 'minusx-intro-summary-banner',
                     zIndex: 240,
                     supportedQuestions: [
                         "What tables can you see?",
                         "What are some interesting questions I can ask about my data?",
                         "Looking at my tables and cards, give me a few fun hypotheses I can explore.",
+                        "What do you think my business is about?",
                     ],
                     info: {
                         text: "Organize your company's information and put more MinusX agents to work!",
@@ -133,7 +134,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
             else {
                 await (app as any)?.updateIntroBanner?.({
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
-                    description: `What would you like to analyze today?`,
+                    description: `What would you like to analyze today? 🚀`,
                     className: 'minusx-intro-summary-banner',
                     zIndex: 250,
                     dimensions: ["Region", "Department", "Category"],

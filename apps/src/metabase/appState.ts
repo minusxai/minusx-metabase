@@ -61,13 +61,7 @@ async function createIntroBannerElement(options: {
   const questionListItems: HTMLJSONNode[] = await Promise.all(supportedQuestions.map(async (q, index) => {
     const buttonId = `minusx-intro-ask-btn-${Date.now()}-${index}`;
 
-    const listItemChildren: (string | HTMLJSONNode)[] = [
-      {
-        tag: 'span',
-        attributes: { style: '', class: '' },
-        children: [`• ${q}`]
-      }
-    ];
+    const listItemChildren: (string | HTMLJSONNode)[] = [`• ${q} `];
 
     // Only add the Ask button if dbId is defined
     if (showAskButton) {
@@ -89,9 +83,9 @@ async function createIntroBannerElement(options: {
       }, ['click']);
 
       listItemChildren.push({
-        tag: 'button',
+        tag: 'span',
         attributes: {
-          style: 'background-color: #16a085; color: white; border: none; border-radius: 5px; font-size: 14px; cursor: pointer; margin-left: 8px; display: flex; align-items: center; justify-content: center; padding: 2px 5px;',
+          style: 'background-color: #16a085; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 4px; padding: 1px 8px; display: inline-block; font-weight: 500;',
           id: buttonId,
           class: `minusx-intro-ask-btn`
         },
@@ -101,7 +95,7 @@ async function createIntroBannerElement(options: {
 
     const listItem: HTMLJSONNode = {
       tag: 'li',
-      attributes: { style: 'margin-bottom: 12px; display: flex; align-items: center;', class: '' },
+      attributes: { style: 'margin-bottom: 8px;', class: '' },
       children: listItemChildren
     };
     return listItem;
@@ -214,8 +208,16 @@ async function createIntroBannerElement(options: {
     children: metricsAndDimensionsChildren
   });
 
-  // Add supported questions section only if there are questions
+  // Helper function to split items into two columns
+  const splitIntoColumns = (items: any[]) => {
+    const mid = Math.ceil(items.length / 2);
+    return [items.slice(0, mid), items.slice(mid)];
+  };
+
+  // Add supported questions section with 2-column layout
   if (supportedQuestions.length > 0) {
+    const [leftItems, rightItems] = splitIntoColumns(questionListItems);
+
     children.push({
       tag: 'div',
       attributes: {
@@ -232,19 +234,50 @@ async function createIntroBannerElement(options: {
           children: ['✅ Here are a few things you can ask MinusX']
         },
         {
-          tag: 'ul',
+          tag: 'div',
           attributes: {
-            style: 'color: #555; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 0; list-style-type: none;',
+            style: 'display: flex; gap: 20px;',
             class: ''
           },
-          children: questionListItems
+          children: [
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #555; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 0; list-style-type: none;',
+                class: ''
+              },
+              children: leftItems
+            },
+            {
+              tag: 'div',
+              attributes: {
+                style: 'width: 2px; background-color: #ddd;',
+                class: ''
+              },
+              children: []
+            },
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #555; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 0; list-style-type: none;',
+                class: ''
+              },
+              children: rightItems
+            }
+          ]
         }
       ]
     });
   }
 
-  // Add unsupported questions section only if there are questions
+  // Add unsupported questions section with 2-column layout
   if (unsupportedQuestions.length > 0) {
+    const unsupportedItems = unsupportedQuestions.map(q => ({
+      tag: 'li',
+      children: [q]
+    }));
+    const [leftItems, rightItems] = splitIntoColumns(unsupportedItems);
+
     children.push({
       tag: 'div',
       attributes: {
@@ -261,16 +294,37 @@ async function createIntroBannerElement(options: {
           children: ['🚧 Questions not supported (yet)']
         },
         {
-          tag: 'ul',
+          tag: 'div',
           attributes: {
-            style: 'color: #999; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px; list-style-type: disc;',
+            style: 'display: flex; gap: 20px;',
             class: ''
           },
-          children: unsupportedQuestions.map(q => ({
-            tag: 'li',
-            attributes: { style: 'margin-bottom: 8px;', class: '' },
-            children: [q]
-          }))
+          children: [
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #999; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px; list-style-type: disc;',
+                class: ''
+              },
+              children: leftItems
+            },
+            {
+              tag: 'div',
+              attributes: {
+                style: 'width: 2px; background-color: #ddd;',
+                class: ''
+              },
+              children: []
+            },
+            {
+              tag: 'ul',
+              attributes: {
+                style: 'flex: 1; color: #999; font-size: 14px; line-height: 1.8; margin: 0; padding-left: 20px; list-style-type: disc;',
+                class: ''
+              },
+              children: rightItems
+            }
+          ]
         }
       ]
     });
@@ -353,7 +407,7 @@ async function createIntroBannerElement(options: {
   children.push({
     tag: 'div',
     attributes: {
-      style: 'position: absolute; bottom: 0; left: 0; right: 0; text-align: center; padding: 20px 30px; background-color: #eee; border-top: 1px solid #ddd; border-radius: 0 0 10px 10px;',
+      style: 'text-align: center; padding: 20px 30px; background-color: #eee; border-top: 1px solid #ddd; border-radius: 0 0 10px 10px;',
       class: ''
     },
     children: signOffChildren
@@ -362,7 +416,7 @@ async function createIntroBannerElement(options: {
   return {
     tag: 'div',
     attributes: {
-      style: `position: absolute; top: 50px; left: 5%; width: 90%; height: 90%; z-index: ${zIndex}; background-color: #eee; padding: 30px 30px 80px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); min-width: 300px; overflow-y: auto;`,
+      style: `position: absolute; top: 50px; left: 5%; width: 90%; z-index: ${zIndex}; background-color: #eee; padding: 30px 30px 20px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); min-width: 300px; overflow-y: auto;`,
       class: className
     },
     children
