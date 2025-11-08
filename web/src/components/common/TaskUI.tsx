@@ -106,6 +106,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
   const selectedAssetName = assetsLoading
     ? 'Loading...'
     : (availableAssets.find(asset => asset.slug === selectedAssetId)?.name || 'None')
+  const selectedAsset = availableAssets.find(asset => asset.slug === selectedAssetId) || null
+  const defaultSupportedQuestions = [
+        "What tables can you see?",
+        "What are some interesting questions I can ask about my data?",
+        "Looking at my tables and cards, give me a few fun hypotheses I can explore.",
+        "What do you think my business is about?",
+    ]
 
     useEffect(() => {
         // Wrap in async IIFE to properly await the async updateIntroBanner call
@@ -117,12 +124,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     description: `What would you like to analyze today? 🚀`,
                     className: 'minusx-intro-summary-banner',
                     zIndex: 240,
-                    supportedQuestions: [
-                        "What tables can you see?",
-                        "What are some interesting questions I can ask about my data?",
-                        "Looking at my tables and cards, give me a few fun hypotheses I can explore.",
-                        "What do you think my business is about?",
-                    ],
+                    supportedQuestions: defaultSupportedQuestions,
                     info: {
                         text: "Organize your company's information and put more MinusX agents to work!",
                         linkText: "Find out more.",
@@ -137,18 +139,10 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     description: `What would you like to analyze today? 🚀`,
                     className: 'minusx-intro-summary-banner',
                     zIndex: 250,
-                    dimensions: ["Region", "Department", "Category"],
-                    metrics: ["Total Sales", "Avg. Order Value", "Customer Count"],
-                    supportedQuestions: [
-                        "What tables can you see?",
-                        "What are some interesting questions I can ask about my data?",
-                        "Show me something fun about my data!",
-                        "Looking at my tables, give me a few hypotheses I can explore.",
-                    ],
-                    unsupportedQuestions: [
-                        "What is the meaning of life?",
-                        "Can you predict the future?",
-                    ],
+                    dimensions: selectedAsset?.content?.homePageInfo?.dimensions || [],
+                    metrics: selectedAsset?.content?.homePageInfo?.measures || [],
+                    supportedQuestions: selectedAsset?.content?.homePageInfo?.supportedQuestions || defaultSupportedQuestions,
+                    unsupportedQuestions: selectedAsset?.content?.homePageInfo?.unsupportedQuestions || [],
                     info: {
                         text: "Organize your company's information and put more MinusX agents to work!",
                         linkText: "Find out more.",
