@@ -120,9 +120,13 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     supportedQuestions: [
                         "What tables can you see?",
                         "What are some interesting questions I can ask about my data?",
-                        "Show me something fun about my data!",
-                        "Looking at my tables, give me a few hypotheses I can explore.",
+                        "Looking at my tables and cards, give me a few fun hypotheses I can explore.",
                     ],
+                    info: {
+                        text: "Organize your company's information and put more MinusX agents to work!",
+                        linkText: "Find out more.",
+                        linkUrl: "https://minusx.ai/demo"
+                    }
                 });
                 return;
             }
@@ -143,7 +147,12 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     unsupportedQuestions: [
                         "What is the meaning of life?",
                         "Can you predict the future?",
-                    ]
+                    ],
+                    info: {
+                        text: "Organize your company's information and put more MinusX agents to work!",
+                        linkText: "Find out more.",
+                        linkUrl: "https://minusx.ai/demo"
+                    }
                 });
             }
         })();

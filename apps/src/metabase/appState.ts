@@ -29,6 +29,7 @@ async function createIntroBannerElement(options: {
   dimensions?: string[];
   supportedQuestions?: string[];
   unsupportedQuestions?: string[];
+  info?: { text: string; linkText?: string; linkUrl?: string };
   zIndex?: number;
 } = {}): Promise<HTMLJSONNode> {
   const {
@@ -39,6 +40,7 @@ async function createIntroBannerElement(options: {
     dimensions = [],
     supportedQuestions = [],
     unsupportedQuestions = [],
+    info,
     zIndex = 240,
   } = options;
   // Helper function to create tag elements
@@ -128,75 +130,89 @@ async function createIntroBannerElement(options: {
     }
   ];
 
-  // Add metrics and dimensions section only if at least one has content
-  if (metrics.length > 0 || dimensions.length > 0) {
-    const metricsAndDimensionsChildren: HTMLJSONNode[] = [];
+  // Always show metrics and dimensions sections
+  const metricsAndDimensionsChildren: HTMLJSONNode[] = [];
 
-    if (metrics.length > 0) {
-      metricsAndDimensionsChildren.push({
-        tag: 'div',
+  // Metrics section
+  metricsAndDimensionsChildren.push({
+    tag: 'div',
+    attributes: {
+      style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+      class: ''
+    },
+    children: [
+      {
+        tag: 'h3',
         attributes: {
-          style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+          style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
           class: ''
         },
-        children: [
-          {
-            tag: 'h3',
-            attributes: {
-              style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
-              class: ''
-            },
-            children: ['Common Metrics']
-          },
-          {
-            tag: 'div',
-            attributes: {
-              style: 'display: flex; flex-wrap: wrap; gap: 4px;',
-              class: ''
-            },
-            children: createTags(metrics, '#3498db')
-          }
-        ]
-      });
-    }
-
-    if (dimensions.length > 0) {
-      metricsAndDimensionsChildren.push({
-        tag: 'div',
-        attributes: {
-          style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
-          class: ''
-        },
-        children: [
-          {
-            tag: 'h3',
-            attributes: {
-              style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
-              class: ''
-            },
-            children: ['Common Dimensions']
-          },
-          {
-            tag: 'div',
-            attributes: {
-              style: 'display: flex; flex-wrap: wrap; gap: 4px;',
-              class: ''
-            },
-            children: createTags(dimensions, '#e74c3c')
-          }
-        ]
-      });
-    }
-
-    children.push({
-      tag: 'div',
-      attributes: {
-        style: `display: grid; grid-template-columns: ${metricsAndDimensionsChildren.length === 2 ? '1fr 1fr' : '1fr'}; gap: 20px; margin-bottom: 20px;`,
-        class: ''
+        children: ['Common Metrics']
       },
-      children: metricsAndDimensionsChildren
-    });
-  }
+      {
+        tag: 'div',
+        attributes: {
+          style: 'display: flex; flex-wrap: wrap; gap: 4px;',
+          class: ''
+        },
+        children: metrics.length > 0
+          ? createTags(metrics, '#3498db')
+          : [{
+              tag: 'span',
+              attributes: {
+                style: 'color: #999; font-style: italic; font-size: 14px;',
+                class: ''
+              },
+              children: ['Not set up yet']
+            }]
+      }
+    ]
+  });
+
+  // Dimensions section
+  metricsAndDimensionsChildren.push({
+    tag: 'div',
+    attributes: {
+      style: 'background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);',
+      class: ''
+    },
+    children: [
+      {
+        tag: 'h3',
+        attributes: {
+          style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
+          class: ''
+        },
+        children: ['Common Dimensions']
+      },
+      {
+        tag: 'div',
+        attributes: {
+          style: 'display: flex; flex-wrap: wrap; gap: 4px;',
+          class: ''
+        },
+        children: dimensions.length > 0
+          ? createTags(dimensions, '#e74c3c')
+          : [{
+              tag: 'span',
+              attributes: {
+                style: 'color: #999; font-style: italic; font-size: 14px;',
+                class: ''
+              },
+              children: ['Not set up yet']
+            }]
+      }
+    ]
+  });
+
+  children.push({
+    tag: 'div',
+    attributes: {
+      style: 'display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;',
+      class: ''
+    },
+    children: metricsAndDimensionsChildren
+  });
 
   // Add supported questions section only if there are questions
   if (supportedQuestions.length > 0) {
@@ -213,7 +229,7 @@ async function createIntroBannerElement(options: {
             style: 'color: #333; font-size: 18px; font-weight: 600; margin: 0 0 12px 0;',
             class: ''
           },
-          children: ['✅ Here are all the things you can ask']
+          children: ['✅ Here are a few things you can ask MinusX']
         },
         {
           tag: 'ul',
@@ -255,6 +271,44 @@ async function createIntroBannerElement(options: {
             attributes: { style: 'margin-bottom: 8px;', class: '' },
             children: [q]
           }))
+        }
+      ]
+    });
+  }
+
+  // Add info section only if there is info content
+  if (info) {
+    const infoChildren: (string | HTMLJSONNode)[] = [info.text];
+
+    // Add link if provided
+    if (info.linkText && info.linkUrl) {
+      infoChildren.push(' ');
+      infoChildren.push({
+        tag: 'a',
+        attributes: {
+          style: 'color: #3498db; text-decoration: underline; font-weight: 500;',
+          class: '',
+          href: info.linkUrl,
+          target: '_blank'
+        },
+        children: [info.linkText]
+      });
+    }
+
+    children.push({
+      tag: 'div',
+      attributes: {
+        style: 'background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); border-left: 4px solid #3498db;',
+        class: ''
+      },
+      children: [
+        {
+          tag: 'p',
+          attributes: {
+            style: 'color: #555; font-size: 14px; line-height: 1.6; margin: 0;',
+            class: ''
+          },
+          children: infoChildren
         }
       ]
     });
@@ -909,6 +963,7 @@ Here's what I need modified:
     dimensions?: string[];
     supportedQuestions?: string[];
     unsupportedQuestions?: string[];
+    info?: { text: string; linkText?: string; linkUrl?: string };
   } = {}) {
     try {
       const introSummarySelector = querySelectorMap['intro_summary']
