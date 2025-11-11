@@ -127,29 +127,12 @@ const ongoingStaleRefresh = new Map<number, Promise<void>>();
  * @returns The hash returned from the server
  */
 
-// async function gzipBase64(obj: any): Promise<string> {
-//   const json = JSON.stringify(obj);
-//   const enc = new TextEncoder().encode(json);
-//   const stream = new Blob([enc]).stream().pipeThrough(new CompressionStream('gzip'));
-//   const gzBytes = new Uint8Array(await new Response(stream).arrayBuffer());
-//   return btoa(String.fromCharCode(...gzBytes));
-// }
-
 async function gzipBase64(obj: any): Promise<string> {
   const json = JSON.stringify(obj);
   const enc = new TextEncoder().encode(json);
-
   const stream = new Blob([enc]).stream().pipeThrough(new CompressionStream('gzip'));
-  const blob = await new Response(stream).blob();
-
-  // Produces a data URL; strip the prefix
-  const b64 = await new Promise<string>((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve((r.result as string).split(',')[1]);
-    r.onerror = reject;
-    r.readAsDataURL(blob);
-  });
-  return b64;
+  const gzBytes = new Uint8Array(await new Response(stream).arrayBuffer());
+  return btoa(String.fromCharCode(...gzBytes));
 }
 
 /**
@@ -180,28 +163,30 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
   }
 
   const uploadPromise = (async () => {
-    let metadata_value = { [metadataType]: data }
-    
+    let metadata_value: any;
+
     try {
       const compressedData = await gzipBase64(data);
-      
+      // Clear original data reference immediately after compression
+      data = null;
+
       try {
         const objectData = await generateObjectKey(metadataType, database_id);
-        
+
         await axios.put(objectData.url, compressedData, {
           headers: {
             'Content-Type': 'application/octet-stream',
           }
         });
         console.log('[minusx] Successfull new obj flow:', objectData);
-        
+
         metadata_value = {
           type: 'gzip_objstore',
           [metadataType]: objectData
         }
       } catch (objError) {
         console.warn(`Failed to process ${metadataType}, falling back to older method:`, objError);
-        
+
         // Fallback to direct upload
         metadata_value = {
           type: 'gzip',
@@ -210,6 +195,9 @@ async function uploadMetadata(metadataType: string, data: any, metadataHash: str
       }
     } catch (error) {
       console.warn(`Failed to compress ${metadataType} data, using uncompressed version`, error);
+      // Use uncompressed data as fallback
+      metadata_value = { [metadataType]: data }
+      data = null;
     }
     
     const metadataItem: MetadataItem = {
@@ -244,7 +232,7 @@ async function processMetadataWithCaching(
   dataFetcher: () => Promise<any>,
   database_id: number): Promise<string | undefined> {
   // Fetch the data
-  const data = await dataFetcher()
+  let data = await dataFetcher()
   if (isEmpty(data)) {
     console.warn(`[minusx] No data found for ${metadataType}, skipping upload`)
     return undefined; // No data to process
@@ -262,6 +250,7 @@ async function processMetadataWithCaching(
     try {
       console.log(`[minusx] ${metadataType} data changed, uploading to metadata endpoint`)
       const serverHash = await uploadMetadata(metadataType, data, currentHash, database_id)
+      // Note: uploadMetadata will null out data internally after compression
 
       // Store the new hash in Redux
       if (!serverHash) {
@@ -290,6 +279,9 @@ async function processMetadataWithCaching(
   } else {
     console.log(`[minusx] ${metadataType} data unchanged, skipping metadata upload`)
   }
+
+  // Clear data reference before returning
+  data = null;
 
   // Return the hash
   return currentHash
