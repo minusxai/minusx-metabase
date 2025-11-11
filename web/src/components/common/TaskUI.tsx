@@ -123,7 +123,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
                     description: `What would you like to analyze today? 🚀`,
                     className: 'minusx-intro-summary-banner',
-                    zIndex: 240,
+                    zIndex: 140,
                     supportedQuestions: defaultSupportedQuestions,
                     info: {
                         text: "Organize your company's information and put more MinusX agents to work!",
@@ -138,7 +138,7 @@ const TaskUI = forwardRef<HTMLTextAreaElement>((_props, ref) => {
                     title: `Welcome back, ${email?.split('@')[0] || 'Traveller'}!`,
                     description: `What would you like to analyze today? 🚀`,
                     className: 'minusx-intro-summary-banner',
-                    zIndex: 250,
+                    zIndex: 150,
                     dimensions: selectedAsset?.content?.homePageInfo?.dimensions || [],
                     metrics: selectedAsset?.content?.homePageInfo?.measures || [],
                     supportedQuestions: selectedAsset?.content?.homePageInfo?.supportedQuestions || defaultSupportedQuestions,
