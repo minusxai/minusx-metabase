@@ -277,7 +277,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
           id: message.id,
           chunk: message.content,
           conversationID: message.conversationID,
-          seq: message._seq
+          seq: message._seq?? 0
         }));
       } else if (message?.type === 'content') {
         console.warn('[minusx] Socket.io: Received malformed content message (missing id, content, conversationID, or _seq)', message);
