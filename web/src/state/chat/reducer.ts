@@ -153,9 +153,14 @@ export interface StreamingToolCall {
   timestamp: number
 }
 
+export interface StreamingContentChunk {
+  seq: number
+  text: string
+}
+
 export interface StreamingContent {
   id: string
-  text: string
+  chunks: Array<StreamingContentChunk>
   conversationID: string
   timestamp: number
 }
@@ -929,8 +934,8 @@ export const chatSlice = createSlice({
       const activeThread = getActiveThread(state)
       activeThread.planningMessage = undefined
     },
-    appendStreamingContent: (state, action: PayloadAction<{ id: string, chunk: string, conversationID: string }>) => {
-      const { id, chunk, conversationID } = action.payload
+    appendStreamingContent: (state, action: PayloadAction<{ id: string, chunk: string, conversationID: string, seq: number }>) => {
+      const { id, chunk, conversationID, seq } = action.payload
 
       // Find the thread with matching conversationID
       const targetThread = state.threads.find(thread => thread.id === conversationID)
@@ -948,11 +953,24 @@ export const chatSlice = createSlice({
       const existingEntry = targetThread.streamingContents.find(entry => entry.id === id)
 
       if (existingEntry) {
-        // Append chunk to existing entry (keep original timestamp)
-        existingEntry.text += chunk
+        // Find insertion point to maintain sorted order
+        const insertIndex = existingEntry.chunks.findIndex(c => c.seq > seq)
+
+        if (insertIndex === -1) {
+          // Append to end
+          existingEntry.chunks.push({ seq, text: chunk })
+        } else {
+          // Insert at correct position
+          existingEntry.chunks.splice(insertIndex, 0, { seq, text: chunk })
+        }
       } else {
         // Add new entry with current timestamp
-        targetThread.streamingContents.push({ id, text: chunk, conversationID, timestamp: Date.now() })
+        targetThread.streamingContents.push({
+          id,
+          chunks: [{ seq, text: chunk }],
+          conversationID,
+          timestamp: Date.now()
+        })
       }
     },
     clearStreamingContent: (state) => {

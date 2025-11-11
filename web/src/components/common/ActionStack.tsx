@@ -375,16 +375,23 @@ export const PlanningActionStack: React.FC = () => {
   }))
 
   // Contents: transform to message format
-  const contentItems = relevantStreamingContents.map((streamingContent) => ({
-    id: streamingContent.id,
-    type: 'content' as const,
-    timestamp: streamingContent.timestamp,
-    content: {
-      type: 'DEFAULT' as const,
-      text: streamingContent.text,
-      images: []
+  // Reconstruct text from chunks in sequence order
+  const contentItems = relevantStreamingContents.map((streamingContent) => {
+    const text = streamingContent.chunks
+      .map(chunk => chunk.text)
+      .join('')
+
+    return {
+      id: streamingContent.id,
+      type: 'content' as const,
+      timestamp: streamingContent.timestamp,
+      content: {
+        type: 'DEFAULT' as const,
+        text: text,
+        images: []
+      }
     }
-  }))
+  })
 
   // Combine and sort by timestamp for chronological order
   const allStreamingItems = [...toolCallItems, ...contentItems].sort((a, b) => a.timestamp - b.timestamp)

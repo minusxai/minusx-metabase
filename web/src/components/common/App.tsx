@@ -271,15 +271,16 @@ const AppLoggedIn = forwardRef((_props, ref) => {
       }
       // Handle streaming content chunks
       console.log('Message is', message)
-      if (message?.type === 'content' && message?.id && message?.content && message?.conversationID) {
+      if (message?.type === 'content' && message?.id && message?.content && message?.conversationID && message?._seq !== undefined) {
         console.log('Appending to stream')
         dispatch(appendStreamingContent({
           id: message.id,
           chunk: message.content,
-          conversationID: message.conversationID
+          conversationID: message.conversationID,
+          seq: message._seq
         }));
       } else if (message?.type === 'content') {
-        console.warn('[minusx] Socket.io: Received malformed content message (missing id, content, or conversationID)', message);
+        console.warn('[minusx] Socket.io: Received malformed content message (missing id, content, conversationID, or _seq)', message);
       }
 
       // Warn about unhandled message types
