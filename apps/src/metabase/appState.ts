@@ -41,7 +41,7 @@ async function createIntroBannerElement(options: {
     supportedQuestions = [],
     unsupportedQuestions = [],
     info,
-    zIndex = 240,
+    // zIndex = 240,
   } = options;
   // Helper function to create tag elements
   const createTags = (items: string[], color: string) => items.map(item => ({
@@ -416,7 +416,7 @@ async function createIntroBannerElement(options: {
   return {
     tag: 'div',
     attributes: {
-      style: `position: absolute; top: 50px; left: 5%; width: 90%; z-index: ${zIndex}; background-color: #eee; padding: 30px 30px 20px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); min-width: 300px; overflow-y: auto;`,
+      style: `background-color: #eee; padding: 30px 30px 20px 30px; margin-bottom: 200px; border-radius: 10px; min-width: 300px; overflow-y: auto;`,
       class: className
     },
     children
@@ -498,6 +498,9 @@ const getBaseStyles = () => `
     position: absolute;
     top: 0;
     left: 0;
+  }
+  body div.minusx-intro-summary-banner:nth-of-type(n+2) {
+    display: none !important;
   }
 `;
 
@@ -1030,7 +1033,7 @@ Here's what I need modified:
       await RPCs.addNativeElements(
         introSummarySelector,
         bannerElement,
-        "lastChild"
+        "firstChild"
       )
       console.log('updateIntroBanner: banner added successfully');
     } catch (error) {
