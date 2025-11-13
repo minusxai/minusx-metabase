@@ -36,7 +36,7 @@ export const Clarification = () => {
     }
   }, [clarification.show, clarification.questions])
 
-  if (!clarification.show || clarification.questions.length === 0) return null
+  if (!clarification.show || clarification.questions.length === 0 || currentQuestionIndex >= clarification.questions.length) return null
 
   const currentQuestion = clarification.questions[currentQuestionIndex]
   const isLastQuestion = currentQuestionIndex === clarification.questions.length - 1

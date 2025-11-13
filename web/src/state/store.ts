@@ -629,7 +629,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 70,
+  version: 69,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore
