@@ -14,7 +14,7 @@ import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
 import { Tasks } from './Tasks'
-import { TasksLite } from './TasksLite'
+import { TasksLite, TasksLite2 } from './TasksLite'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { DemoHelperMessage, DemoSuggestions } from './DemoComponents';
 import { configs } from '../../constants'
@@ -338,17 +338,44 @@ const useAppStore = getApp().useStore()
 
 export const ChatSection = () => {
   const lastMessageRef = useRef<HTMLDivElement>(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const thread = useSelector((state: RootState) => state.chat.activeThread)
   const activeThread = useSelector((state: RootState) => state.chat.threads[thread])
   const messages = activeThread.messages
   const tasks = activeThread.tasks
   const url = useAppStore((state) => state.toolContext)?.url || ''
 
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Use IntersectionObserver to detect if last message is visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show button when last message is NOT visible
+        setShowScrollButton(!entry.isIntersecting && messages.length > 0);
+      },
+      { threshold: 0.1 }
+    );
+
+    if (lastMessageRef.current) {
+      observer.observe(lastMessageRef.current);
+    }
+
+    return () => {
+      if (lastMessageRef.current) {
+        observer.unobserve(lastMessageRef.current);
+      }
+    };
+  }, [messages.length, tasks.length]);
+
   // Auto-scroll to last message when thread status is not FINISHED (ongoing action)
   useEffect(() => {
     if (activeThread.status !== 'FINISHED') {
       setTimeout(() => {
-        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToBottom();
       }, 100);
     }
   }, [activeThread.status]);
@@ -385,17 +412,40 @@ export const ChatSection = () => {
     ))
 
   return (
-  <VStack justifyContent="space-between" alignItems="stretch" height={"100%"} width={"100%"}>
-  <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
-    {Chats}
-    { configs.IS_DEV && tasks.length && <Tasks /> }
-    { !configs.IS_DEV &&  tasks.length && <TasksLite /> }
-    {/* { tasks.length && <TasksLite /> } */}
-    {/* <OngoingActionStack /> */}
-    {activeThread.status === 'PLANNING' && <PlanningActionStack />}
-    <div style={{ height: '10px', width: '100%' }} ref={lastMessageRef} />
-  </HStack>
-  <DemoSuggestions url={url}/>
+  <VStack justifyContent="space-between" alignItems="stretch" height={"100%"} width={"100%"} position="relative">
+    <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
+      {Chats}
+      { configs.IS_DEV && tasks.length && <Tasks /> }
+      {/* { configs.IS_DEV &&  tasks.length && <TasksLite /> } */}
+      { !configs.IS_DEV && <TasksLite2 /> }
+      {/* <OngoingActionStack /> */}
+      {activeThread.status === 'PLANNING' && <PlanningActionStack />}
+      <div style={{ height: '1px', width: '100%' }} ref={lastMessageRef} />
+    </HStack>
+
+    {/* Scroll to bottom button */}
+    {showScrollButton && (
+      <IconButton
+        aria-label="Scroll to bottom"
+        icon={<ChevronDownIcon boxSize={5} color={"minusxGreen.600"}/>}
+        position="absolute"
+        bottom="10px"
+        left="50%"
+        transform="translateX(-50%)"
+        isRound
+        size="md"
+        bg="minusxBW.300"
+        boxShadow="lg"
+        border="1px"
+        borderColor="minusxGreen.600"
+        zIndex={10}
+        onClick={scrollToBottom}
+        _hover={{ transform: 'translateX(-50%) scale(1.1)' }}
+        transition="all 0.2s"
+      />
+    )}
+
+    <DemoSuggestions url={url}/>
   </VStack>
   )
 }
