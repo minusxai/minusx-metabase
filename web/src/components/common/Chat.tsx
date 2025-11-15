@@ -14,7 +14,7 @@ import { getApp } from '../../helpers/app';
 import { SettingsBlock } from './SettingsBlock'
 import { Markdown } from './Markdown';
 import { Tasks } from './Tasks'
-import { TasksLite } from './TasksLite'
+import { TasksLite, TasksLite2 } from './TasksLite'
 import { getParsedIframeInfo } from '../../helpers/origin'
 import { DemoHelperMessage, DemoSuggestions } from './DemoComponents';
 import { configs } from '../../constants'
@@ -355,7 +355,7 @@ export const ChatSection = () => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         // Show button when last message is NOT visible
-        setShowScrollButton(!entry.isIntersecting);
+        setShowScrollButton(!entry.isIntersecting && messages.length > 0);
       },
       { threshold: 0.1 }
     );
@@ -416,11 +416,11 @@ export const ChatSection = () => {
     <HStack className='chat-section' wrap="wrap" style={{ overflowY: 'scroll' }} width={'100%'} gap={1.5}>
       {Chats}
       { configs.IS_DEV && tasks.length && <Tasks /> }
-      { !configs.IS_DEV &&  tasks.length && <TasksLite /> }
-      {/* { tasks.length && <TasksLite /> } */}
+      {/* { configs.IS_DEV &&  tasks.length && <TasksLite /> } */}
+      { !configs.IS_DEV && <TasksLite2 /> }
       {/* <OngoingActionStack /> */}
       {activeThread.status === 'PLANNING' && <PlanningActionStack />}
-      <div style={{ height: '10px', width: '100%' }} ref={lastMessageRef} />
+      <div style={{ height: '1px', width: '100%' }} ref={lastMessageRef} />
     </HStack>
 
     {/* Scroll to bottom button */}

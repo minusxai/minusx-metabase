@@ -123,7 +123,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
                     >
                       <HStack spacing={1} align="start">
                         <Text fontSize="xs">Review Mode</Text>
-                        <Badge size="sm" colorScheme="blue" fontSize="xs">NEW</Badge>
+                        {/* <Badge size="sm" colorScheme="blue" fontSize="xs">NEW</Badge> */}
                       </HStack>
                     </Checkbox>
                   )}

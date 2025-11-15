@@ -9,6 +9,7 @@ import {
   Spinner,
   Text,
   Textarea,
+  Tooltip,
   VStack,
 } from '@chakra-ui/react';
 import {
@@ -19,6 +20,7 @@ import { BiCircle } from 'react-icons/bi';
 import { MdBlock } from 'react-icons/md';
 import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
 import { BsFillHandThumbsUpFill, BsFillHandThumbsDownFill } from 'react-icons/bs';
+import { PiShareFatFill } from 'react-icons/pi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { Task, Tasks as TasksInfo } from '../../state/chat/reducer';
@@ -480,7 +482,220 @@ export const TasksLite: React.FC = () => {
                   fontWeight="bold"
                   textDecoration="underline"
                 >
-                  Chrome Web Store. 
+                  Chrome Web Store.
+                </Link>
+                &nbsp; to support our work!
+              </Text>
+            )}
+          </VStack>
+        )}
+      </VStack>
+    </Box>
+  );
+};
+
+export const TasksLite2: React.FC = () => {
+  const [feedback, setFeedback] = useState<'positive' | 'negative' | null>(null);
+  const [negativeText, setNegativeText] = useState('');
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const [showShareLink, setShowShareLink] = useState(false);
+  const thread = useSelector((state: RootState) => state.chat.activeThread);
+  const activeThread = useSelector((state: RootState) => state.chat.threads[thread]);
+  const taskInProgress = !(activeThread.status === 'FINISHED')
+  const isEmbedded = getParsedIframeInfo()?.isEmbedded as unknown === 'true';
+  const userCompanies = useSelector((state: RootState) => state.settings.userCompanies);
+  const companySlug = userCompanies.length > 0 ? userCompanies[0].slug : 'unknown';
+
+  const [submitMessageFeedback] = useSubmitMessageFeedbackMutation();
+
+  const messages = activeThread?.messages || [];
+  const shareLink = `https://atlas.minusx.ai/company/${companySlug}/conversation/${activeThread.id}`;
+
+  const handlePositiveFeedback = () => {
+    setFeedback('positive');
+
+    const lastAssistantMessage = activeThread.messages
+      .slice()
+      .reverse()
+      .find(msg => msg.role === 'assistant');
+
+    if (lastAssistantMessage) {
+      submitMessageFeedback({
+        conversation_id: activeThread.id,
+        message_index: lastAssistantMessage.index,
+        feedback_type: 'positive',
+        feedback_text: null
+      }).catch(error => {
+        console.warn('Failed to submit positive feedback:', error);
+      });
+    }
+  };
+
+  const handleNegativeFeedback = () => {
+    setFeedback('negative');
+  };
+
+  const handleSubmitNegativeFeedback = () => {
+    setFeedbackSubmitted(true);
+
+    const lastAssistantMessage = activeThread.messages
+      .slice()
+      .reverse()
+      .find(msg => msg.role === 'assistant');
+
+    if (lastAssistantMessage) {
+      submitMessageFeedback({
+        conversation_id: activeThread.id,
+        message_index: lastAssistantMessage.index,
+        feedback_type: 'negative',
+        feedback_text: negativeText.trim() || null
+      }).catch(error => {
+        console.warn('Failed to submit negative feedback:', error);
+      });
+    }
+  };
+
+  const handleShare = () => {
+    setShowShareLink(!showShareLink);
+  };
+
+  const showFeedbackButtons = !taskInProgress && (feedback === null);
+  const showShare = companySlug !== 'unknown';
+
+  if (messages.length == 0){
+    return <></>
+  }
+
+  return (
+    <Box
+      bg={'minusxBW.300'}
+      p={3}
+      borderRadius={5}
+      color={'minusxBW.600'}
+      width={"100%"}
+    >
+      <VStack align="stretch" width={"100%"} spacing={2}>
+        {showShareLink && (
+          <VStack spacing={2} pt={0}>
+            <Text fontSize="xs" color="minusxBW.700" textAlign="center" fontWeight="600">
+              Share this conversation:
+            </Text>
+            <Box
+              bg="minusxBW.200"
+              p={2}
+              borderRadius={5}
+              border="1px solid"
+              borderColor="minusxBW.500"
+              width="100%"
+            >
+              <Text
+                fontSize="xs"
+                color="minusxBW.800"
+                fontFamily="monospace"
+                wordBreak="break-all"
+                userSelect="all"
+              >
+                {shareLink}
+              </Text>
+            </Box>
+          </VStack>
+        )}
+
+        {showFeedbackButtons && (
+          <VStack spacing={1} pt={0}>
+            <Text fontSize="11" color="minusxBW.600" textAlign="center">
+              Were you satisfied with this answer? Feedback helps the agent improve and better adapt to you!
+            </Text>
+            <HStack justifyContent="center" spacing={2} w={"100%"}>
+              <Tooltip label="Satisfied" placement="top">
+                <IconButton
+                  aria-label="Thumbs up"
+                  icon={<BsFillHandThumbsUpFill />}
+                  size="xs"
+                  width={showShare ? "25%" : "33%"}
+                  height="24px"
+                  variant='outline'
+                  onClick={handlePositiveFeedback}
+                />
+              </Tooltip>
+              <Tooltip label="Dissatisfied" placement="top">
+                <IconButton
+                  aria-label="Thumbs down"
+                  icon={<BsFillHandThumbsDownFill />}
+                  size="xs"
+                  width={showShare ? "25%" : "33%"}
+                  height="24px"
+                  variant='outline'
+                  onClick={handleNegativeFeedback}
+                  color='red.400'
+                  borderColor={'red.400'}
+                  _hover={{ bg: 'red.400', color: 'white' }}
+                />
+              </Tooltip>
+              {showShare && (
+                <Tooltip label="Share" placement="top">
+                  <IconButton
+                    aria-label="Share"
+                    icon={<PiShareFatFill />}
+                    size="xs"
+                    width="25%"
+                    height="24px"
+                    variant='outline'
+                    onClick={handleShare}
+                    color='blue.400'
+                    borderColor={'blue.400'}
+                    _hover={{ bg: 'blue.400', color: 'white' }}
+                  />
+                </Tooltip>
+              )}
+            </HStack>
+          </VStack>
+        )}
+
+        {feedback === 'negative' && !feedbackSubmitted && (
+          <VStack spacing={2} pt={2}>
+            <Textarea
+              placeholder="Please tell us what went wrong..."
+              value={negativeText}
+              onChange={(e) => setNegativeText(e.target.value)}
+              size="xs"
+              resize="vertical"
+              minH="60px"
+              bg="minusxBW.200"
+              border="1px solid"
+              borderColor="minusxBW.500"
+              borderRadius={5}
+              _focus={{ borderColor: "minusxBW.700" }}
+            />
+            <Button
+              size="xs"
+              colorScheme="minusxGreen"
+              onClick={handleSubmitNegativeFeedback}
+              isDisabled={!negativeText.trim()}
+            >
+              Submit Feedback
+            </Button>
+          </VStack>
+        )}
+
+        {((feedback == 'positive') || (feedbackSubmitted)) && (
+          <VStack spacing={1} pt={2}>
+            <Text fontSize="xs" color="minusxBW.600" textAlign="center" fontWeight="500">
+              Thanks for the feedback!
+            </Text>
+            {!isEmbedded && (
+              <Text fontSize="xs" color="minusxBW.600" textAlign="center" fontWeight="500">
+                Please consider rating us on the &nbsp;
+                <Link
+                  href="https://chromewebstore.google.com/detail/minusx/ngneijhbpnongpekeimkbjinkkpfkaop"
+                  isExternal
+                  color="minusxGreen.600"
+                  display={'inline'}
+                  fontSize="xs"
+                  fontWeight="bold"
+                  textDecoration="underline"
+                >
+                  Chrome Web Store.
                 </Link>
                 &nbsp; to support our work!
               </Text>
