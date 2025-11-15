@@ -434,10 +434,11 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             <Image src={logo} alt="MinusX" maxWidth='150px'/>
             {/* <MXMode /> */}
           </VStack>
-          <HStack aria-label="mx-logos" spacing={2}>
+          <HStack aria-label="mx-controls" spacing={2}>
             <Tooltip
               hasArrow
               label="MinusX is Open Source! Star us if you like what we do :)"
+              aria-label="mx-logos"
               placement='bottom'
               borderRadius={5}
               openDelay={500}
