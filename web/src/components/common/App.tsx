@@ -11,7 +11,6 @@ import {
   Link,
   Box,
   Flex,
-  Circle,
     Menu,
     MenuButton,
     MenuList,
@@ -25,7 +24,7 @@ import {
 
 } from '@chakra-ui/react'
 import logo from '../../assets/img/logo.svg'
-import React, { forwardRef, useEffect, useState } from 'react'
+import React, { forwardRef, useEffect } from 'react'
 import {DevToolsToggle} from '../devtools/Settings'
 import TaskUI from './TaskUI'
 import { BiCog, BiMessage, BiMessageAdd, BiFolder, BiFolderOpen, BiSolidLockAlt, BiSolidStar, BiSolidRocket, BiChevronDown, BiSolidMapAlt, BiCode, BiSolidBusiness } from 'react-icons/bi'
@@ -184,9 +183,6 @@ const AppLoggedIn = forwardRef((_props, ref) => {
   const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true'
   const email = useSelector((state: RootState) => state.auth.email)
 
-  // Socket connection status: 'disconnected' | 'connected' | 'error'
-  const [socketStatus, setSocketStatus] = useState<'disconnected' | 'connected' | 'error'>('disconnected')
-
   const agentIconMap: Record<AgentType, any> = {
     [AGENTS.EXPLORER]: BiSolidMapAlt,
     [AGENTS.SIMPLE]: BiCode,
@@ -292,16 +288,13 @@ const AppLoggedIn = forwardRef((_props, ref) => {
     },
     onConnect: () => {
       console.log('Socket.io connected successfully');
-      setSocketStatus('connected');
     },
     onDisconnect: (reason) => {
       console.log('Socket.io disconnected:', reason);
-      setSocketStatus('disconnected');
     },
     onError: (error) => {
       console.log(error.message)
       console.error('Socket.io connection error:', error);
-      setSocketStatus('error');
     }
   });
 
@@ -441,19 +434,25 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             <Image src={logo} alt="MinusX" maxWidth='150px'/>
             {/* <MXMode /> */}
           </VStack>
-          <HStack aria-label="mx-controls" spacing={2}>
+          <HStack aria-label="mx-logos" spacing={2}>
             <Tooltip
               hasArrow
-              label={socketStatus === 'connected' ? 'Connected' : socketStatus === 'error' ? 'Connection Error' : 'Connecting...'}
+              label="MinusX is Open Source! Star us if you like what we do :)"
               placement='bottom'
               borderRadius={5}
               openDelay={500}
             >
-              <Circle
-                size='8px'
-                bg={socketStatus === 'connected' ? 'green.500' : 'yellow.500'}
-                boxShadow={socketStatus === 'connected' ? '0 0 4px green.500' : '0 0 4px yellow.500'}
-              />
+              <Box>
+                <iframe
+                  src="https://ghbtns.com/github-btn.html?user=minusxai&repo=minusx&type=star&count=true&size=small"
+                  frameBorder="0"
+                  scrolling="0"
+                  width="90"
+                  height="20"
+                  title="GitHub Star"
+                  style={{ border: 'none' }}
+                />
+              </Box>
             </Tooltip>
             <Tooltip hasArrow label="Start New Chat" placement='bottom' borderRadius={5} openDelay={500}>
               <IconButton
