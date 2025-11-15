@@ -560,7 +560,8 @@ export const TasksLite2: React.FC = () => {
   };
 
   const showFeedbackButtons = !taskInProgress && (feedback === null);
-  const showShare = companySlug !== 'unknown';
+  const showShare = !isEmbedded;
+  const shareDisabled = companySlug === 'unknown';
 
   if (messages.length == 0){
     return <></>
@@ -612,7 +613,7 @@ export const TasksLite2: React.FC = () => {
                   aria-label="Thumbs up"
                   icon={<BsFillHandThumbsUpFill />}
                   size="xs"
-                  width={showShare ? "25%" : "33%"}
+                  width="25%"
                   height="24px"
                   variant='outline'
                   onClick={handlePositiveFeedback}
@@ -623,7 +624,7 @@ export const TasksLite2: React.FC = () => {
                   aria-label="Thumbs down"
                   icon={<BsFillHandThumbsDownFill />}
                   size="xs"
-                  width={showShare ? "25%" : "33%"}
+                  width="25%"
                   height="24px"
                   variant='outline'
                   onClick={handleNegativeFeedback}
@@ -633,7 +634,7 @@ export const TasksLite2: React.FC = () => {
                 />
               </Tooltip>
               {showShare && (
-                <Tooltip label="Share" placement="top">
+                <Tooltip label={shareDisabled ? "Unlock with MinusX Team" : "Share"} placement="top">
                   <IconButton
                     aria-label="Share"
                     icon={<PiShareFatFill />}
@@ -642,9 +643,10 @@ export const TasksLite2: React.FC = () => {
                     height="24px"
                     variant='outline'
                     onClick={handleShare}
-                    color='blue.400'
-                    borderColor={'blue.400'}
-                    _hover={{ bg: 'blue.400', color: 'white' }}
+                    isDisabled={shareDisabled}
+                    color='minusxBW.600'
+                    borderColor={'minusxBW.600'}
+                    _hover={shareDisabled ? {} : { bg: 'minusxBW.600', color: 'white' }}
                   />
                 </Tooltip>
               )}
