@@ -443,7 +443,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
               borderRadius={5}
               openDelay={500}
             >
-              <Box>
+              <Box aria-label="mx-logos">
                 <iframe
                   src="https://ghbtns.com/github-btn.html?user=minusxai&repo=minusx&type=star&count=true&size=small"
                   frameBorder="0"
