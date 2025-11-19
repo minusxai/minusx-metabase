@@ -117,7 +117,6 @@ interface Settings {
   notifyUserStatus: 'incoming' | 'ongoing' | 'complete'
   userCompanies: CompanyInfo[]
   userTeams: TeamInfo[]
-  memoryMigratedToServer: boolean
 }
 
 const initialState: Settings = {
@@ -163,7 +162,6 @@ const initialState: Settings = {
   notifyUserStatus: 'incoming',
   userCompanies: [],
   userTeams: [],
-  memoryMigratedToServer: false
 }
 
 export const settingsSlice = createSlice({
@@ -360,9 +358,6 @@ export const settingsSlice = createSlice({
     },
     setUserTeams: (state, action: PayloadAction<TeamInfo[]>) => {
       state.userTeams = action.payload
-    },
-    setMemoryMigratedToServer: (state, action: PayloadAction<boolean>) => {
-      state.memoryMigratedToServer = action.payload
     }
   },
 })
@@ -376,7 +371,7 @@ export const { updateIsLocal, updateUploadLogs,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode,
   resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
   updateManualContextSelection, setUseV2States, setUseV2API, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, addSavedQuestion, removeSavedQuestion, setSavedQuestions,
-  updateNotifyUserStatus, setUserCompanies, setUserTeams, setMemoryMigratedToServer
+  updateNotifyUserStatus, setUserCompanies, setUserTeams
 } = settingsSlice.actions
 
 export default settingsSlice.reducer

@@ -1,7 +1,7 @@
 import { Button, VStack, Text, HStack, Box, Textarea, Spinner } from '@chakra-ui/react';
 import React, { useState, useEffect } from 'react';
 import { dispatch } from '../../state/dispatch';
-import { setAiRules, setMemoryMigratedToServer } from '../../state/settings/reducer';
+import { setAiRules } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { toast } from '../../app/toast';
@@ -12,44 +12,21 @@ import { useGetUserStateQuery, useUpdateMemoryMutation } from '../../app/api/use
 
 export const AdditionalContext = () => {
   const aiRules = useSelector((state: RootState) => state.settings.aiRules)
-  const memoryMigratedToServer = useSelector((state: RootState) => state.settings.memoryMigratedToServer)
-  const { data: userState, isLoading, error } = useGetUserStateQuery({})
+  const { data: userState, isLoading, error, refetch } = useGetUserStateQuery({})
   const [updateMemory, { isLoading: isSaving }] = useUpdateMemoryMutation()
   const [customInstructions, setCustomInstructions] = useState(aiRules)
   const [isEditMode, setIsEditMode] = useState(false)
+  console.log('User state is', userState)
 
-  // Load memory from server and handle migration
+  // Load memory from server initially
   useEffect(() => {
-    if (userState?.memory) {
-      const serverMemory = userState.memory.content
-
-      // Migration logic: if not migrated, server memory is empty, and local aiRules exist
-      if (!memoryMigratedToServer && !serverMemory && aiRules) {
-        // Automatically migrate local memory to server
-        updateMemory({ content: aiRules })
-          .unwrap()
-          .then(() => {
-            dispatch(setMemoryMigratedToServer(true))
-            toast({
-              title: 'Memory Migrated',
-              description: 'Your local memory has been synced to the server.',
-              status: 'info',
-              duration: 3000,
-              isClosable: true,
-              position: 'bottom-right',
-            })
-          })
-          .catch((error) => {
-            console.error('Failed to migrate memory:', error)
-          })
-      } else {
-        // Use server memory as source of truth
-        setCustomInstructions(serverMemory)
-        // Sync to Redux for backward compatibility
-        dispatch(setAiRules(serverMemory))
+    refetch().then(({ data }) => {
+      if (data && data.memory && data.memory.content) {
+        setCustomInstructions(data.memory.content)
+        dispatch(setAiRules(data.memory.content))
       }
-    }
-  }, [userState, memoryMigratedToServer, aiRules])
+    })
+  }, [])
 
   const handleSave = async () => {
     try {
