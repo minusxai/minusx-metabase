@@ -568,7 +568,7 @@ export const TasksLite2: React.FC = () => {
   }
 
   return (
-    <Box
+    !taskInProgress && <Box
       bg={'minusxBW.300'}
       p={3}
       borderRadius={5}
