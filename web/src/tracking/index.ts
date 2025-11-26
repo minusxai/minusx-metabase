@@ -23,11 +23,18 @@ export const GLOBAL_EVENTS = {
     "metabase_settings": "global/metabase_settings",
 }
 
+const IGNORED_EVENTS = [
+    "chat/appendStreamingContent",
+]
+
 export const captureEvent = (type: string, payload?: object) => {
     const clientTimestamp = Date.now()
     const eventPayload = {
         ...payload,
         clientTimestamp
+    }
+    if (IGNORED_EVENTS.includes(type)) {
+        return
     }
     capturePosthogEvent(type, eventPayload)
     // captureCustomEvent(type, payload)
