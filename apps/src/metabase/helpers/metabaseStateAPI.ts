@@ -9,6 +9,8 @@ import { RPCs } from 'web';
 import { get, isEmpty } from 'lodash';
 import { isDashboardPageUrl } from './dashboard/util';
 import _ from 'lodash';
+import { Card, CardV2 } from './types';
+import { getCardProp } from './utils';
 
 const { getMetabaseState } = RPCs;
 
@@ -95,7 +97,8 @@ export async function getSelectedDbId(): Promise<number | undefined> {
  * Get current query from Metabase state
  */
 export async function getCurrentQuery(): Promise<string | undefined> {
-  return await getMetabaseState('qb.card.dataset_query.native.query') as string;
+  const currentCard = await getCurrentCard() as Card | CardV2
+  return getCardProp(currentCard, 'query') || getCardProp(currentCard, 'native')
 }
 
 
