@@ -20,8 +20,20 @@ export const COMMON_ACTION_DESCRIPTIONS: ActionDescription[] = [
 ]
 
 const NEW_ACTION_DESCRIPTIONS: ActionDescription[] =  [
-    {
+  {
     name: 'ExecuteMBQLQuery',
+    args: {
+      mbql: {
+        type: 'string',
+        description: "The MBQL of the query"
+      },
+    },
+    description: `Updates the MBQL query and runs it.
+    `,
+    required: ["mbql"],
+  },
+  {
+    name: 'ExecuteMBQLQueryV2',
     args: {
       mbql: {
         type: 'string',
