@@ -17,7 +17,7 @@ import { MBQLInfo } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels, modifySqlForMetabaseModels} from './metabaseModels';
 import { MetabaseAppStateSQLEditorV2, MetabaseAppStateType, processCard } from './analystModeTypes';
 import { MetabaseTableOrModel } from './metabaseAPITypes';
-import { determineMetabasePageType, MetabasePageType, getLimitedEntities } from './utils';
+import { determineMetabasePageType, MetabasePageType, getLimitedEntities, getCardProp } from './utils';
 
 
 export interface ExtractedDataBase {
@@ -316,7 +316,8 @@ async function getSqlVariables() {
     return {};
   }
   const currentParameterValues = await getParameterValues() as ParameterValues;
-  const parameters = get(currentCard, 'dataset_query.native.template-tags', {});
+  // const parameters = get(currentCard, 'dataset_query.native.template-tags', {});
+  const parameters = getCardProp(currentCard, 'template-tags')
   const sqlVariables: Record<string, {
     value: string,
     type: string,
