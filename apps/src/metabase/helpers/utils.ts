@@ -32,9 +32,12 @@ function getCardNativeObject(card: Card | CardV2) {
   return card.dataset_query.native
 }
 
-export function getCardProp(card: CardV2 | Card, keyPath: string) {
+export function getCardProp(card: CardV2 | Card, keyPath?: string) {
   const nativeObj = getCardNativeObject(card)
-  return get(nativeObj, keyPath)
+  if (keyPath) {
+    return get(nativeObj, keyPath)
+  }
+  return nativeObj
 }
 
 export function setCardProp(card: CardV2 | Card, keyPath: string, value: any) {

@@ -213,16 +213,16 @@ export async function getDashboardState(): Promise<any> {
   return await getMetabaseState('dashboard');
 }
 
-export async function getMBQLState(): Promise<any> {
-  return await getMetabaseState('qb.card')
-}
-
 export async function getQLType(): Promise<string> {
   try {
     const stages = await getMetabaseState('qb.card.dataset_query.stages') as object[];
     const lastStage = stages[stages.length - 1]
-    if (get(lastStage,'lib/type', '').includes('native')) {
+    const libType = get(lastStage,'lib/type', '')
+    if (libType.includes('native')) {
       return 'native'
+    }
+    if (libType.includes('query') || libType.includes('mbql')) {
+      return 'query'
     }
   } catch {
 

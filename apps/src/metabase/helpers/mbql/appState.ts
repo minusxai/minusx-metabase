@@ -1,7 +1,7 @@
 import { MetabaseAppStateMBQLEditor} from '../DOMToState';
 import { getParsedIframeInfo, RPCs } from 'web';
 import { MBQLInfo, getSourceTableIds } from './utils';
-import { getMBQLState, getSelectedDbId } from '../metabaseStateAPI';
+import { getCurrentCard, getSelectedDbId } from '../metabaseStateAPI';
 import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, handleEmpty } from '../metabaseAPIHelpers';
 import { get, find } from 'lodash';
 import { getTableContextYAML } from '../catalog';
@@ -9,6 +9,7 @@ import { getTablesWithFields } from '../getDatabaseSchema';
 import { getModelsWithFields, getSelectedAndRelevantModels } from '../metabaseModels';
 import { getAndFormatOutputTable } from '../operations';
 import { MetabaseAppStateType } from '../analystModeTypes';
+import { getCardProp } from '../utils';
 
 
 export async function getMBQLAppState(currentDBId: number): Promise<MetabaseAppStateMBQLEditor | null> {
@@ -30,14 +31,16 @@ export async function getMBQLAppState(currentDBId: number): Promise<MetabaseAppS
     }
   }) : undefined
   const defaultSchema = selectedDatabaseInfo?.default_schema;
-  const mbqlState = await getMBQLState();
+  const mbqlState = await getCurrentCard()
   const outputTableMarkdown = await getAndFormatOutputTable()
+  const mbqlQuery = getCardProp(mbqlState, 'query') || getCardProp(mbqlState)
   const mbqlInfo: MBQLInfo = {
-    mbqlQuery: mbqlState.dataset_query.query,
+    // mbqlQuery: mbqlState.dataset_query.query,
+    mbqlQuery,
     outputTableMarkdown
   }
 
-  const sourceTableModelIds = getSourceTableIds(mbqlState?.dataset_query?.query);
+  const sourceTableModelIds = getSourceTableIds(mbqlQuery);
   const allModels = dbId ?  await handleEmpty(getAllRelevantModelsForSelectedDb(dbId), []) : []
   const relevantModels = await getSelectedAndRelevantModels('', appSettings.selectedModels, allModels, sourceTableModelIds)
   const relevantModelsWithFields = await handleEmpty(getModelsWithFields(relevantModels), [])

@@ -464,7 +464,9 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         dataset_query: {
             database: dbID,
             type: "query",
-            query: mbql
+            query: mbql,
+            "lib/type": "mbql/query",
+            "stages": [mbql]
         }
     };
 
