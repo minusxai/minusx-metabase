@@ -7,9 +7,10 @@ import { getSelectedDbId } from './metabaseStateAPI';
 import { getAllRelevantTablesForSelectedDb, getRelevantTablesForSelectedDb, getTablesWithFields, validateTablesInDB } from './getDatabaseSchema';
 import { getAllRelevantModelsForSelectedDb, getDatabaseInfo, getDatabases, getTableData } from './metabaseAPIHelpers';
 import { getTablesFromSqlRegex } from './parseSql';
-import { find, get } from 'lodash';
+import { find, get, set } from 'lodash';
 import { getSourceTableIds } from './mbql/utils';
 import { getModelsWithFields, getSelectedAndRelevantModels } from './metabaseModels';
+import { Card, CardV2 } from "./types";
 
 
 export const isQuestionPageUrl = (url: string) => {
@@ -22,6 +23,27 @@ export const isModelPageUrl = (url: string) => {
 
 export type MetabasePageType = 'sql' | 'dashboard' | 'mbql' | 'unknown';
 
+function getCardNativeObject(card: Card | CardV2) {
+  try {
+    const stages = card.dataset_query.stages
+    const lastStage = stages[stages.length - 1]
+    return lastStage
+  } catch {}
+  return card.dataset_query.native
+}
+
+export function getCardProp(card: CardV2 | Card, keyPath?: string) {
+  const nativeObj = getCardNativeObject(card)
+  if (keyPath) {
+    return get(nativeObj, keyPath)
+  }
+  return nativeObj
+}
+
+export function setCardProp(card: CardV2 | Card, keyPath: string, value: any) {
+  const nativeObj = getCardNativeObject(card)
+  set(nativeObj, keyPath, value)
+}
 
 export function determineMetabasePageType(elements: DOMQueryMapResponse, url: string, queryType: string): MetabasePageType {
     console.log('determineMetabasePageType', { url, queryType, })

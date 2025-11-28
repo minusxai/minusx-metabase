@@ -41,27 +41,45 @@ export interface QBTemplateTag {
 export interface QBTemplateTags {
   [key: string]: QBTemplateTag
 }
+
+interface BaseCard {
+  display: VisualizationTypeLower;
+  displayIsLocked: boolean;
+  visualization_settings: visualizationSettings;
+  type: string;
+  parameters?: QBParameters;
+  name: string;
+  id: number;
+  description?: string;
+  collection_id?: number;
+  collection?: object;
+}
+
 // qb.card
-export interface Card {
-    dataset_query: {
-        database: number;
-        type: string;
-        native?: {
-            query: string
-            'template-tags': QBTemplateTags
-        };
-        query?: object; // MBQL query object
-    };
-    display: VisualizationTypeLower;
-    displayIsLocked: boolean;
-    visualization_settings: visualizationSettings;
-    type: string;
-    parameters?: QBParameters;
-    name: string;
-    id: number;
-    description?: string;
-    collection_id?: number;
-    collection?: object;
+export interface Card extends BaseCard {
+  dataset_query: {
+      database: number;
+      type: string;
+      native?: {
+          query: string
+          'template-tags': QBTemplateTags
+      };
+      query?: object; // MBQL query object
+  };
+}
+
+interface CardV2Stage {
+  "native": string
+  "lib/type": string
+  "template-tags": QBTemplateTags
+}
+
+export interface CardV2 extends BaseCard {
+  dataset_query: {
+    "database": number,
+    "lib/type": string
+    "stages": CardV2Stage[]
+  }
 }
 
 export interface SavedCard extends Card {

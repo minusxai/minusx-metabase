@@ -9,7 +9,7 @@ import {
   MetabaseAppStateMBQLEditor,
 } from "./helpers/DOMToState";
 
-import { MetabasePageType } from "./helpers/utils";
+import { getCardProp, MetabasePageType, setCardProp } from "./helpers/utils";
 
 import { MetabaseAppStateSQLEditorV2 } from "./helpers/analystModeTypes";
 
@@ -35,6 +35,7 @@ import {
   Card,
   toLowerVisualizationType,
   ParameterValues,
+  CardV2,
  } from "./helpers/types";
 import {
   getTemplateTags as getTemplateTagsForVars,
@@ -122,12 +123,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     if (state.sqlEditorState == "closed") {
       await this.toggleSQLEditor("open");
     }
-    const currentCard = await getCurrentCard() as Card;
+    const currentCard = await getCurrentCard() as Card | CardV2;
     
     // Get existing template tags and parameters to merge with provided ones
     const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
     const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict)
-    const existingTemplateTags = currentCard.dataset_query.native['template-tags'] || {};
+    // const existingTemplateTags = currentCard.dataset_query.native['template-tags'] || {};
+    const existingTemplateTags = getCardProp(currentCard, 'template-tags')
     const existingParameters = currentCard.parameters || [];
     
     // Merge provided template tags with existing ones (provided ones take precedence)
@@ -150,9 +152,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       });
     }
     
-    currentCard.dataset_query.native['template-tags'] = mergedTemplateTags;
+    setCardProp(currentCard, 'template-tags', mergedTemplateTags)
     currentCard.parameters = mergedParameters;
-    currentCard.dataset_query.native.query = sql;
+    setCardProp(currentCard, 'query', sql)
+    setCardProp(currentCard, 'native', sql)
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_QUESTION', { card: currentCard });
     await RPCs.dispatchMetabaseAction('metabase/qb/UPDATE_URL');
     await RPCs.dispatchMetabaseAction('metabase/qb/TOGGLE_TEMPLATE_TAGS_EDITOR');
@@ -461,9 +464,18 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         dataset_query: {
             database: dbID,
             type: "query",
-            query: mbql
+            query: mbql,
         }
     };
+    const currentCard = await getCurrentCard() as Card;
+    const nativeCard = getCardProp(currentCard)
+    if (get(nativeCard, 'lib/type')) {
+      finCard['dataset_query'] = {
+          database: dbID,
+          "lib/type": "mbql/query",
+          "stages": [mbql]
+      }
+    }
 
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType as MetabasePageType;
