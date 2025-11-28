@@ -6,7 +6,7 @@
  */
 
 import { RPCs } from 'web';
-import { isEmpty } from 'lodash';
+import { get, isEmpty } from 'lodash';
 import { isDashboardPageUrl } from './dashboard/util';
 import _ from 'lodash';
 
@@ -215,6 +215,15 @@ export async function getMBQLState(): Promise<any> {
 }
 
 export async function getQLType(): Promise<string> {
+  try {
+    const stages = await getMetabaseState('qb.card.dataset_query.stages') as object[];
+    const lastStage = stages[stages.length - 1]
+    if (get(lastStage,'lib/type', '').includes('native')) {
+      return 'native'
+    }
+  } catch {
+
+  }
   const queryType = await getMetabaseState('qb.card.dataset_query.type') as string;
   return queryType
 }

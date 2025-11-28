@@ -9,7 +9,7 @@ import { subscribe, setInstructions, dispatch } from "web";
 import { getRelevantTablesForSelectedDb } from "./helpers/getDatabaseSchema";
 import { getDatabaseTablesAndModelsWithoutFields, getDatabaseInfo, getDatabaseTablesModelsCardsWithoutFields } from "./helpers/metabaseAPIHelpers";
 import { querySelectorMap } from "./helpers/querySelectorMap";
-import { getSelectedDbId } from "./helpers/metabaseStateAPI";
+import { getQLType, getSelectedDbId } from "./helpers/metabaseStateAPI";
 import { abortable, createRunner, handlePromise } from "../common/utils";
 import { subscribeMB } from "./helpers/stateSubscriptions";
 import { MetabasePageType, determineMetabasePageType } from "./helpers/utils";
@@ -587,7 +587,7 @@ export class MetabaseState extends DefaultAppState<MetabaseAppState> {
 
   private async triggerMetabaseStateUpdate(url: string, elements: DOMQueryMapResponse) {
     const [queryType, dbId, allDBs] = await Promise.all([
-      RPCs.getMetabaseState('qb.card.dataset_query.type') as Promise<string>,
+      getQLType(),
       getSelectedDbId(),
       RPCs.getMetabaseState('entities.databases')
     ]);

@@ -111,6 +111,7 @@ export async function convertDOMtoStateSQLQueryV2(pageType: MetabasePageType, cu
     getAndFormatOutputTable(),
     getParameterValues() as Promise<ParameterValues>
   ]);
+  console.log('Metabase page type is', pageType)
   const currentCard = processCard(currentCardRaw);
   const metabaseOrigin = new URL(metabaseUrl).origin;
   const isEmbedded = getParsedIframeInfo().isEmbedded
