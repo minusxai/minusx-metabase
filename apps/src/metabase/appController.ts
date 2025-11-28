@@ -465,10 +465,17 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             database: dbID,
             type: "query",
             query: mbql,
-            "lib/type": "mbql/query",
-            "stages": [mbql]
         }
     };
+    const currentCard = await getCurrentCard() as Card;
+    const nativeCard = getCardProp(currentCard)
+    if (get(nativeCard, 'lib/type')) {
+      finCard['dataset_query'] = {
+          database: dbID,
+          "lib/type": "mbql/query",
+          "stages": [mbql]
+      }
+    }
 
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType as MetabasePageType;
