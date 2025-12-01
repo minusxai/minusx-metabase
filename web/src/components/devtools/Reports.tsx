@@ -39,7 +39,8 @@ import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-  PopoverBody
+  PopoverBody,
+  Textarea
 } from '@chakra-ui/react';
 import {
   BiChevronDown,
@@ -56,7 +57,8 @@ import {
   BiEdit,
   BiSave,
   BiShow,
-  BiSearch
+  BiSearch,
+  BiQuestionMark
 } from 'react-icons/bi';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
@@ -84,6 +86,7 @@ interface ScheduledReportContent {
   emails?: string[];
   template?: string;
   isActive?: boolean;
+  special_instructions?: string;
 }
 
 // Schedule options
@@ -169,7 +172,8 @@ export const Reports: React.FC = () => {
     questions: [''],
     schedule: SCHEDULE_OPTIONS[0].value,
     emails: [''],
-    asUser: ''  // For godmode: which admin to act as
+    asUser: '',  // For godmode: which admin to act as
+    special_instructions: ''
   });
 
   // API hooks
@@ -235,7 +239,8 @@ export const Reports: React.FC = () => {
         url: reportData.url || '',
         questions: reportData.questions || [],
         schedule: reportData.schedule || SCHEDULE_OPTIONS[0].value,
-        emails: reportData.emails || []
+        emails: reportData.emails || [],
+        special_instructions: reportData.special_instructions || ''
       });
     }
   }, [isEditing, selectedAsset, reportData]);
@@ -446,7 +451,8 @@ export const Reports: React.FC = () => {
             url: newReport.url,
             questions: validQuestions,
             schedule: newReport.schedule,
-            emails: validEmails
+            emails: validEmails,
+            special_instructions: newReport.special_instructions || undefined
           }
         },
         asUser: isGodMode && newReport.asUser ? newReport.asUser : undefined
@@ -467,7 +473,8 @@ export const Reports: React.FC = () => {
         questions: [''],
         schedule: SCHEDULE_OPTIONS[0].value,
         emails: [''],
-        asUser: ''
+        asUser: '',
+        special_instructions: ''
       });
       setIsCreateModalOpen(false);
     } catch (error) {
@@ -779,6 +786,39 @@ export const Reports: React.FC = () => {
                 </Text>
               </Box>
 
+              {/* Special Instructions */}
+              <Box>
+                <FormControl>
+                  <HStack mb={2}>
+                    <FormLabel fontSize="sm" fontWeight="medium" mb={0}>
+                      Special Instructions (Optional)
+                    </FormLabel>
+                    <Tooltip
+                      label="Additional instructions or context for processing this report"
+                      placement="top"
+                      hasArrow
+                    >
+                      <Box cursor="help" color="gray.500">
+                        <Icon as={BiQuestionMark} boxSize={4} />
+                      </Box>
+                    </Tooltip>
+                  </HStack>
+                  <Textarea
+                    value={editedReport?.special_instructions || ''}
+                    onChange={(e) => {
+                      setEditedReport({
+                        ...editedReport,
+                        special_instructions: e.target.value
+                      });
+                    }}
+                    placeholder="Enter any special instructions for report generation..."
+                    rows={3}
+                    size="sm"
+                    resize="vertical"
+                  />
+                </FormControl>
+              </Box>
+
               {/* Action Buttons */}
               <HStack justify="flex-end" spacing={2}>
                 <Button
@@ -858,6 +898,24 @@ export const Reports: React.FC = () => {
                   ))}
                 </VStack>
               </Box>
+
+              {/* Special Instructions */}
+              {reportData.special_instructions && (
+                <Box p={3} bg="gray.50" borderRadius="md">
+                  <HStack mb={1}>
+                    <Icon as={BiQuestionMark} color="minusxGreen.600" />
+                    <Text fontSize="sm" fontWeight="semibold">Special Instructions</Text>
+                  </HStack>
+                  <Text
+                    fontSize="xs"
+                    color="gray.700"
+                    whiteSpace="pre-wrap"
+                    wordBreak="break-word"
+                  >
+                    {reportData.special_instructions}
+                  </Text>
+                </Box>
+              )}
 
               {/* Recipients */}
               <Box p={3} bg="gray.50" borderRadius="md">
@@ -1247,6 +1305,31 @@ export const Reports: React.FC = () => {
                     Add Email
                   </Button>
                 </VStack>
+              </FormControl>
+
+              {/* Special Instructions */}
+              <FormControl>
+                <HStack mb={2}>
+                  <FormLabel mb={0}>Special Instructions (Optional)</FormLabel>
+                  <Tooltip
+                    label="Additional instructions or context for processing this report"
+                    placement="top"
+                    hasArrow
+                  >
+                    <Box cursor="help" color="gray.500">
+                      <Icon as={BiQuestionMark} boxSize={4} />
+                    </Box>
+                  </Tooltip>
+                </HStack>
+                <Textarea
+                  value={newReport.special_instructions}
+                  onChange={(e) => {
+                    setNewReport({ ...newReport, special_instructions: e.target.value });
+                  }}
+                  placeholder="Enter any special instructions for report generation..."
+                  rows={3}
+                  resize="vertical"
+                />
               </FormControl>
             </VStack>
           </ModalBody>

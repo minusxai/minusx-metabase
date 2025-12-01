@@ -101,6 +101,7 @@ export interface CreateAssetRequest {
     schedule: string
     emails: string[]
     template?: string
+    special_instructions?: string
   }
 }
 
