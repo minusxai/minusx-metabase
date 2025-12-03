@@ -58,8 +58,8 @@ import {
   BiSave,
   BiShow,
   BiSearch,
-  BiQuestionMark
 } from 'react-icons/bi';
+import { BsFillQuestionCircleFill } from 'react-icons/bs';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { JobOutputModal } from './JobOutputModal';
@@ -794,13 +794,13 @@ export const Reports: React.FC = () => {
                       Special Instructions (Optional)
                     </FormLabel>
                     <Tooltip
-                      label="Additional instructions or context for processing this report"
+                      label="Instructions to guide the report generation process."
                       placement="top"
                       hasArrow
                     >
-                      <Box cursor="help" color="gray.500">
-                        <Icon as={BiQuestionMark} boxSize={4} />
-                      </Box>
+                      <VStack cursor="help" color="gray.500" justify={"center"}>
+                        <BsFillQuestionCircleFill color='minusxGreen.600' />
+                      </VStack>
                     </Tooltip>
                   </HStack>
                   <Textarea
@@ -811,7 +811,7 @@ export const Reports: React.FC = () => {
                         special_instructions: e.target.value
                       });
                     }}
-                    placeholder="Enter any special instructions for report generation..."
+                    placeholder="Enter any special instructions for report generation. You can use this to guide the structure, style or prioritization of the report."
                     rows={3}
                     size="sm"
                     resize="vertical"
@@ -903,7 +903,7 @@ export const Reports: React.FC = () => {
               {reportData.special_instructions && (
                 <Box p={3} bg="gray.50" borderRadius="md">
                   <HStack mb={1}>
-                    <Icon as={BiQuestionMark} color="minusxGreen.600" />
+                    <Icon as={BsFillQuestionCircleFill} color="minusxGreen.600" />
                     <Text fontSize="sm" fontWeight="semibold">Special Instructions</Text>
                   </HStack>
                   <Text
@@ -1312,13 +1312,13 @@ export const Reports: React.FC = () => {
                 <HStack mb={2}>
                   <FormLabel mb={0}>Special Instructions (Optional)</FormLabel>
                   <Tooltip
-                    label="Additional instructions or context for processing this report"
+                    label="Instructions to guide the report generation process."
                     placement="top"
                     hasArrow
                   >
-                    <Box cursor="help" color="gray.500">
-                      <Icon as={BiQuestionMark} boxSize={4} />
-                    </Box>
+                    <VStack cursor="help" color="gray.500" justify={"center"}>
+                      <BsFillQuestionCircleFill color="minusxGreen.600" />
+                    </VStack>
                   </Tooltip>
                 </HStack>
                 <Textarea
@@ -1326,7 +1326,7 @@ export const Reports: React.FC = () => {
                   onChange={(e) => {
                     setNewReport({ ...newReport, special_instructions: e.target.value });
                   }}
-                  placeholder="Enter any special instructions for report generation..."
+                  placeholder="Enter any special instructions for report generation. You can use this to guide the structure, style or prioritization of the report."
                   rows={3}
                   resize="vertical"
                 />
