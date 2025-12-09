@@ -398,6 +398,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
     }
   })
   async ExecuteMBQLQueryV2({ mbql, explanation }: { mbql: any, explanation: string }) {
+    if (typeof(mbql) == 'string') {
+      try {
+        mbql = JSON.parse(mbql)
+      } catch (err) {
+        console.log('Failed to parse string mbql', mbql)
+      }
+    }
     return await this.ExecuteMBQLQuery({ mbql, explanation });
   }
   
