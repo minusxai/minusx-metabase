@@ -427,6 +427,7 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         actionContent.content = "This MBQL query has errors: " + explanation;
         return actionContent;
     }
+    console.log('Executing MBQL', mbql)
 
 
     try {
@@ -457,29 +458,30 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         await updateMBEntities(table_ids)
     }
 
-    const finCard = {
-        type: "question",
-        visualization_settings: {},
-        display: "table",
-        dataset_query: {
-            database: dbID,
-            type: "query",
-            query: mbql,
-        }
-    };
-    const currentCard = await getCurrentCard() as Card;
-    const nativeCard = getCardProp(currentCard)
-    if (get(nativeCard, 'lib/type')) {
-      finCard['dataset_query'] = {
-          database: dbID,
-          "lib/type": "mbql/query",
-          "stages": [mbql]
-      }
-    }
+    
 
     const metabaseState = this.app as App<MetabaseAppState>;
     const pageType = metabaseState.useStore().getState().toolContext?.pageType as MetabasePageType;
     if (pageType === 'mbql') {
+        const finCard = {
+          type: "question",
+          visualization_settings: {},
+          display: "table",
+          dataset_query: {
+              database: dbID,
+              type: "query",
+              query: mbql,
+          }
+      };
+      const currentCard = await getCurrentCard() as Card;
+      const nativeCard = getCardProp(currentCard)
+      if (get(nativeCard, 'lib/type')) {
+        finCard['dataset_query'] = {
+            database: dbID,
+            "lib/type": "mbql/query",
+            "stages": [mbql]
+        }
+      }
       // # Ensure you're in mbql editor mode
       await RPCs.dispatchMetabaseAction('metabase/qb/SET_UI_CONTROLS', {
         queryBuilderMode: "notebook",
