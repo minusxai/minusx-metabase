@@ -29,7 +29,7 @@ function getCardNativeObject(card: Card | CardV2) {
     const lastStage = stages[stages.length - 1]
     return lastStage
   } catch {}
-  return card.dataset_query.native
+  return card?.dataset_query?.native || card?.dataset_query?.query
 }
 
 export function getCardProp(card: CardV2 | Card, keyPath?: string) {
