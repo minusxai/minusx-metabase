@@ -252,13 +252,27 @@ export const Reports: React.FC = () => {
   // Initialize edited report when entering edit mode
   useEffect(() => {
     if (isEditing && selectedAsset) {
+      const currentSchedule = reportData.schedule || SCHEDULE_OPTIONS[0].value;
+      const isCustomSchedule = !SCHEDULE_OPTIONS.find(opt => opt.value === currentSchedule);
+
       setEditedReport({
         url: reportData.url || '',
         questions: reportData.questions || [],
-        schedule: reportData.schedule || SCHEDULE_OPTIONS[0].value,
+        schedule: currentSchedule,
+        timezone: reportData.timezone || 'UTC',
         emails: reportData.emails || [],
         special_instructions: reportData.special_instructions || ''
       });
+
+      // Set custom cron input state if schedule is custom
+      if (isCustomSchedule) {
+        setShowCustomCronInput(true);
+        setCustomCronExpression(currentSchedule);
+      } else {
+        setShowCustomCronInput(false);
+        setCustomCronExpression('');
+      }
+      setCronValidationError(null);
     }
   }, [isEditing, selectedAsset, reportData]);
 
@@ -538,6 +552,9 @@ export const Reports: React.FC = () => {
         asUser: '',
         special_instructions: ''
       });
+      setShowCustomCronInput(false);
+      setCustomCronExpression('');
+      setCronValidationError(null);
       setIsCreateModalOpen(false);
     } catch (error) {
       toast({
@@ -820,7 +837,8 @@ export const Reports: React.FC = () => {
                 <Text fontSize="sm" fontWeight="medium" mb={2}>Schedule *</Text>
                 <VStack align="stretch" spacing={2}>
                   <Select
-                    value={editedReport?.schedule === 'custom' ||
+                    value={showCustomCronInput ||
+                           editedReport?.schedule === 'custom' ||
                            !SCHEDULE_OPTIONS.find(opt => opt.value === editedReport?.schedule)
                            ? 'custom'
                            : editedReport?.schedule || SCHEDULE_OPTIONS[0].value}
@@ -953,6 +971,9 @@ export const Reports: React.FC = () => {
                   onClick={() => {
                     setIsEditing(false);
                     setEditedReport(null);
+                    setShowCustomCronInput(false);
+                    setCustomCronExpression('');
+                    setCronValidationError(null);
                   }}
                 >
                   Cancel
@@ -1259,7 +1280,12 @@ export const Reports: React.FC = () => {
       />
 
       {/* Create Report Modal */}
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} size="xl">
+      <Modal isOpen={isCreateModalOpen} onClose={() => {
+        setIsCreateModalOpen(false);
+        setShowCustomCronInput(false);
+        setCustomCronExpression('');
+        setCronValidationError(null);
+      }} size="xl">
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>Create New Report</ModalHeader>
@@ -1389,7 +1415,8 @@ export const Reports: React.FC = () => {
                 <FormLabel>Schedule</FormLabel>
                 <VStack align="stretch" spacing={2}>
                   <Select
-                    value={newReport.schedule === 'custom' ||
+                    value={showCustomCronInput ||
+                           newReport.schedule === 'custom' ||
                            !SCHEDULE_OPTIONS.find(opt => opt.value === newReport.schedule)
                            ? 'custom'
                            : newReport.schedule}
@@ -1531,7 +1558,12 @@ export const Reports: React.FC = () => {
           </ModalBody>
 
           <ModalFooter>
-            <Button variant="ghost" mr={3} onClick={() => setIsCreateModalOpen(false)}>
+            <Button variant="ghost" mr={3} onClick={() => {
+              setIsCreateModalOpen(false);
+              setShowCustomCronInput(false);
+              setCustomCronExpression('');
+              setCronValidationError(null);
+            }}>
               Cancel
             </Button>
             <Button
