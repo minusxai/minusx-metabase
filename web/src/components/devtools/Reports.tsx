@@ -1549,7 +1549,7 @@ export const Reports: React.FC = () => {
 
               {/* Emails */}
               <FormControl isRequired>
-                <FormLabel>Recipients</FormLabel>
+                <FormLabel>Recipients (Max 100)</FormLabel>
                 <VStack spacing={2} width="100%" align="stretch">
                   {newReport.emails.map((email, idx) => (
                     <HStack key={idx}>
@@ -1581,10 +1581,22 @@ export const Reports: React.FC = () => {
                   <Button
                     size="sm"
                     leftIcon={<BiPlus />}
-                    onClick={() => setNewReport({ ...newReport, emails: [...newReport.emails, ''] })}
+                    onClick={() => {
+                      if (newReport.emails.length >= 100) {
+                        toast({
+                          title: 'Maximum recipients reached',
+                          description: 'You can add up to 100 email recipients',
+                          status: 'warning',
+                          duration: 3000
+                        });
+                        return;
+                      }
+                      setNewReport({ ...newReport, emails: [...newReport.emails, ''] });
+                    }}
                     variant="outline"
+                    isDisabled={newReport.emails.length >= 100}
                   >
-                    Add Email
+                    Add Email {newReport.emails.length >= 100 ? '(Max reached)' : ''}
                   </Button>
                 </VStack>
               </FormControl>
