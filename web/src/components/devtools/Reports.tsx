@@ -596,6 +596,44 @@ export const Reports: React.FC = () => {
     }
   };
 
+  const handleAddEmail = () => {
+    if (editedReport) {
+      if (editedReport.emails.length >= 100) {
+        toast({
+          title: 'Maximum recipients reached',
+          description: 'You can add up to 100 email recipients',
+          status: 'warning',
+          duration: 3000
+        });
+        return;
+      }
+      setEditedReport({
+        ...editedReport,
+        emails: [...editedReport.emails, '']
+      });
+    }
+  };
+
+  const handleRemoveEmail = (index: number) => {
+    if (editedReport) {
+      setEditedReport({
+        ...editedReport,
+        emails: editedReport.emails.filter((_: any, i: number) => i !== index)
+      });
+    }
+  };
+
+  const handleEmailChange = (index: number, value: string) => {
+    if (editedReport) {
+      const newEmails = [...editedReport.emails];
+      newEmails[index] = value;
+      setEditedReport({
+        ...editedReport,
+        emails: newEmails
+      });
+    }
+  };
+
   if (assetsLoading) {
     return (
       <VStack spacing={3} py={8} textAlign="center">
@@ -913,21 +951,42 @@ export const Reports: React.FC = () => {
                 </Select>
               </Box>
 
-              {/* Emails - Read Only */}
+              {/* Email Recipients */}
               <Box>
-                <Text fontSize="sm" fontWeight="medium" mb={2}>Email Recipients (Read Only)</Text>
-                <Box p={2} bg="gray.100" borderRadius="md" border="1px solid" borderColor="gray.300">
-                  <HStack spacing={2} wrap="wrap">
-                    {editedReport?.emails?.map((email: string, index: number) => (
-                      <Badge key={index} colorScheme="blue" fontSize="xs">
-                        {email}
-                      </Badge>
-                    ))}
-                  </HStack>
-                </Box>
-                <Text fontSize="xs" color="gray.500" mt={1}>
-                  Email recipients cannot be edited from this interface
-                </Text>
+                <Text fontSize="sm" fontWeight="medium" mb={2}>Email Recipients * (Max 100)</Text>
+                <VStack align="stretch" spacing={2}>
+                  {editedReport?.emails?.map((email: string, index: number) => (
+                    <HStack key={index}>
+                      <Input
+                        value={email}
+                        onChange={(e) => handleEmailChange(index, e.target.value)}
+                        placeholder="email@example.com"
+                        size="sm"
+                        type="email"
+                        flex={1}
+                      />
+                      {editedReport.emails.length > 1 && (
+                        <IconButton
+                          aria-label="Remove email"
+                          icon={<BiTrash />}
+                          size="sm"
+                          colorScheme="red"
+                          variant="ghost"
+                          onClick={() => handleRemoveEmail(index)}
+                        />
+                      )}
+                    </HStack>
+                  ))}
+                  <Button
+                    size="sm"
+                    leftIcon={<BiPlus />}
+                    variant="outline"
+                    onClick={handleAddEmail}
+                    isDisabled={editedReport?.emails?.length >= 100}
+                  >
+                    Add Email {editedReport?.emails?.length >= 100 ? '(Max reached)' : ''}
+                  </Button>
+                </VStack>
               </Box>
 
               {/* Special Instructions */}
