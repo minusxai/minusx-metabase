@@ -99,6 +99,7 @@ export interface CreateAssetRequest {
     url: string
     questions: string[]
     schedule: string
+    timezone?: string  // IANA timezone identifier, defaults to 'UTC'
     emails: string[]
     template?: string
     special_instructions?: string

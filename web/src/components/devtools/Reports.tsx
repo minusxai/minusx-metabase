@@ -75,6 +75,8 @@ import {
 import { configs } from '../../constants';
 import { getApp } from '../../helpers/app';
 import { MetabaseContext } from 'apps/types';
+import cronstrue from 'cronstrue';
+import { TIMEZONE_OPTIONS, formatTimestampInTimezone, validateCronExpression } from '../../helpers/timezones';
 
 const useAppStore = getApp().useStore();
 
@@ -83,6 +85,7 @@ interface ScheduledReportContent {
   url?: string;
   questions?: string[];
   schedule?: string;
+  timezone?: string;  // IANA timezone identifier, defaults to 'UTC'
   emails?: string[];
   template?: string;
   isActive?: boolean;
@@ -91,16 +94,24 @@ interface ScheduledReportContent {
 
 // Schedule options
 const SCHEDULE_OPTIONS = [
-  { value: '0 9 * * *', label: 'Daily at 9 AM' },
-  { value: '0 9 * * 1', label: 'Weekly on Monday at 9 AM' },
-  { value: '0 9 1 * *', label: 'Monthly on 1st at 9 AM' }
+  { value: '0 6 * * *', label: 'Daily at 6 AM' },
+  { value: '0 12 * * *', label: 'Daily at 12 PM' },
+  { value: '0 18 * * *', label: 'Daily at 6 PM' },
+  { value: '0 9 * * 1-5', label: 'Weekdays at 9 AM' },
+  { value: '0 9 * * 0,6', label: 'Weekends at 9 AM' },
+  { value: '0 */4 * * *', label: 'Every 4 hours' },
+  { value: 'custom', label: 'Custom...' }
 ];
 
-const formatScheduleDisplay = (schedule: string) => {
-  if (schedule.includes('0 9 * * 1')) return 'Weekly on Monday at 9 AM';
-  if (schedule.includes('0 9 * * *')) return 'Daily at 9 AM';
-  if (schedule.includes('0 9 1 * *')) return 'Monthly on 1st at 9 AM';
-  return schedule || 'Not scheduled';
+const formatScheduleDisplay = (schedule: string, timezone?: string): string => {
+  if (!schedule) return 'Not scheduled';
+  try {
+    const description = cronstrue.toString(schedule, { throwExceptionOnParseError: false });
+    const tz = timezone || 'UTC';
+    return `${description} (${tz})`;
+  } catch {
+    return `${schedule} (${timezone || 'UTC'})`;
+  }
 };
 
 const getStatusColor = (status: JobStatus): string => {
@@ -152,6 +163,11 @@ export const Reports: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedReport, setEditedReport] = useState<any>(null);
 
+  // Custom cron state
+  const [customCronExpression, setCustomCronExpression] = useState('');
+  const [cronValidationError, setCronValidationError] = useState<string | null>(null);
+  const [showCustomCronInput, setShowCustomCronInput] = useState(false);
+
   // Job management state
   const [isForced, setIsForced] = useState(false);
   const [sendEmail, setSendEmail] = useState(false);
@@ -171,6 +187,7 @@ export const Reports: React.FC = () => {
     url: '',
     questions: [''],
     schedule: SCHEDULE_OPTIONS[0].value,
+    timezone: 'UTC',  // Default timezone
     emails: [''],
     asUser: '',  // For godmode: which admin to act as
     special_instructions: ''
@@ -267,6 +284,27 @@ export const Reports: React.FC = () => {
   const handleSave = async () => {
     if (!selectedAsset || !editedReport) return;
 
+    // Validate timezone if changed
+    if (editedReport.timezone && !TIMEZONE_OPTIONS.find(tz => tz.value === editedReport.timezone)) {
+      toast({
+        title: 'Invalid timezone selected',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
+    // Validate custom cron expression if used
+    if (showCustomCronInput && cronValidationError) {
+      toast({
+        title: 'Invalid cron expression',
+        description: cronValidationError,
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
     try {
       // Call the backend API to update the asset
       const headers: Record<string, string> = {
@@ -288,7 +326,8 @@ export const Reports: React.FC = () => {
             name: selectedAsset.name,
             content: {
               ...selectedAsset.content,
-              ...editedReport
+              ...editedReport,
+              timezone: editedReport.timezone || 'UTC'  // Ensure timezone is included
             }
           })
         }
@@ -437,6 +476,27 @@ export const Reports: React.FC = () => {
       return;
     }
 
+    // Validate timezone
+    if (!newReport.timezone) {
+      toast({
+        title: 'Please select a timezone',
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
+    // Validate custom cron expression if used
+    if (showCustomCronInput && cronValidationError) {
+      toast({
+        title: 'Invalid cron expression',
+        description: cronValidationError,
+        status: 'error',
+        duration: 3000
+      });
+      return;
+    }
+
     try {
       const selectedTeam = creatableTeams.find((t) => t.slug === newReport.teamSlug);
       if (!selectedTeam) throw new Error('Team not found');
@@ -451,6 +511,7 @@ export const Reports: React.FC = () => {
             url: newReport.url,
             questions: validQuestions,
             schedule: newReport.schedule,
+            timezone: newReport.timezone,  // Include timezone
             emails: validEmails,
             special_instructions: newReport.special_instructions || undefined
           }
@@ -472,6 +533,7 @@ export const Reports: React.FC = () => {
         url: '',
         questions: [''],
         schedule: SCHEDULE_OPTIONS[0].value,
+        timezone: 'UTC',  // Reset to default timezone
         emails: [''],
         asUser: '',
         special_instructions: ''
@@ -756,14 +818,78 @@ export const Reports: React.FC = () => {
               {/* Schedule */}
               <Box>
                 <Text fontSize="sm" fontWeight="medium" mb={2}>Schedule *</Text>
+                <VStack align="stretch" spacing={2}>
+                  <Select
+                    value={editedReport?.schedule === 'custom' ||
+                           !SCHEDULE_OPTIONS.find(opt => opt.value === editedReport?.schedule)
+                           ? 'custom'
+                           : editedReport?.schedule || SCHEDULE_OPTIONS[0].value}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'custom') {
+                        setShowCustomCronInput(true);
+                        setCustomCronExpression(editedReport?.schedule || '');
+                      } else {
+                        setShowCustomCronInput(false);
+                        setEditedReport({ ...editedReport, schedule: value });
+                        setCronValidationError(null);
+                      }
+                    }}
+                    size="sm"
+                  >
+                    {SCHEDULE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+
+                  {/* Custom Cron Input */}
+                  {showCustomCronInput && (
+                    <VStack align="stretch" spacing={1}>
+                      <Input
+                        value={customCronExpression}
+                        onChange={(e) => {
+                          const expr = e.target.value;
+                          setCustomCronExpression(expr);
+                          const validation = validateCronExpression(expr);
+                          if (validation.valid) {
+                            setCronValidationError(null);
+                            setEditedReport({ ...editedReport, schedule: expr });
+                          } else {
+                            setCronValidationError(validation.error || 'Invalid cron expression');
+                          }
+                        }}
+                        placeholder="e.g., 0 9 * * 1-5"
+                        size="sm"
+                        isInvalid={!!cronValidationError}
+                      />
+                      {cronValidationError ? (
+                        <Text fontSize="xs" color="red.500">{cronValidationError}</Text>
+                      ) : customCronExpression && (
+                        <Text fontSize="xs" color="green.600">
+                          {cronstrue.toString(customCronExpression, { throwExceptionOnParseError: false })}
+                        </Text>
+                      )}
+                      <Text fontSize="xs" color="gray.500">
+                        Format: minute hour day month weekday (e.g., "0 9 * * 1-5" = weekdays at 9 AM)
+                      </Text>
+                    </VStack>
+                  )}
+                </VStack>
+              </Box>
+
+              {/* Timezone */}
+              <Box>
+                <Text fontSize="sm" fontWeight="medium" mb={2}>Timezone *</Text>
                 <Select
-                  value={editedReport?.schedule || SCHEDULE_OPTIONS[0].value}
-                  onChange={(e) => setEditedReport({ ...editedReport, schedule: e.target.value })}
+                  value={editedReport?.timezone || 'UTC'}
+                  onChange={(e) => setEditedReport({ ...editedReport, timezone: e.target.value })}
                   size="sm"
                 >
-                  {SCHEDULE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  {TIMEZONE_OPTIONS.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
                     </option>
                   ))}
                 </Select>
@@ -876,7 +1002,7 @@ export const Reports: React.FC = () => {
                   <Text fontSize="sm" fontWeight="semibold">Schedule</Text>
                 </HStack>
                 <Text fontSize="xs" color="gray.700">
-                  {formatScheduleDisplay(reportData.schedule || '')}
+                  {formatScheduleDisplay(reportData.schedule || '', reportData.timezone)}
                 </Text>
               </Box>
 
@@ -1056,13 +1182,21 @@ export const Reports: React.FC = () => {
                                 </Td>
                                 <Td>
                                   <Text fontSize="xs">
-                                    {new Date(run.created_at).toLocaleString()}
+                                    {formatTimestampInTimezone(
+                                      run.created_at,
+                                      reportData.timezone || 'UTC',
+                                      'MMM dd, yyyy h:mm a'
+                                    )}
                                   </Text>
                                 </Td>
                                 <Td>
                                   <Text fontSize="xs">
                                     {run.completed_at
-                                      ? new Date(run.completed_at).toLocaleString()
+                                      ? formatTimestampInTimezone(
+                                          run.completed_at,
+                                          reportData.timezone || 'UTC',
+                                          'MMM dd, yyyy h:mm a'
+                                        )
                                       : 'Running...'}
                                   </Text>
                                 </Td>
@@ -1253,13 +1387,75 @@ export const Reports: React.FC = () => {
               {/* Schedule */}
               <FormControl isRequired>
                 <FormLabel>Schedule</FormLabel>
+                <VStack align="stretch" spacing={2}>
+                  <Select
+                    value={newReport.schedule === 'custom' ||
+                           !SCHEDULE_OPTIONS.find(opt => opt.value === newReport.schedule)
+                           ? 'custom'
+                           : newReport.schedule}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'custom') {
+                        setShowCustomCronInput(true);
+                        setCustomCronExpression(newReport.schedule);
+                      } else {
+                        setShowCustomCronInput(false);
+                        setNewReport({ ...newReport, schedule: value });
+                        setCronValidationError(null);
+                      }
+                    }}
+                  >
+                    {SCHEDULE_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
+
+                  {/* Custom Cron Input */}
+                  {showCustomCronInput && (
+                    <VStack align="stretch" spacing={1}>
+                      <Input
+                        value={customCronExpression}
+                        onChange={(e) => {
+                          const expr = e.target.value;
+                          setCustomCronExpression(expr);
+                          const validation = validateCronExpression(expr);
+                          if (validation.valid) {
+                            setCronValidationError(null);
+                            setNewReport({ ...newReport, schedule: expr });
+                          } else {
+                            setCronValidationError(validation.error || 'Invalid cron expression');
+                          }
+                        }}
+                        placeholder="e.g., 0 9 * * 1-5"
+                        isInvalid={!!cronValidationError}
+                      />
+                      {cronValidationError ? (
+                        <Text fontSize="xs" color="red.500">{cronValidationError}</Text>
+                      ) : customCronExpression && (
+                        <Text fontSize="xs" color="green.600">
+                          {cronstrue.toString(customCronExpression, { throwExceptionOnParseError: false })}
+                        </Text>
+                      )}
+                      <Text fontSize="xs" color="gray.500">
+                        Format: minute hour day month weekday
+                      </Text>
+                    </VStack>
+                  )}
+                </VStack>
+              </FormControl>
+
+              {/* Timezone */}
+              <FormControl isRequired>
+                <FormLabel>Timezone</FormLabel>
                 <Select
-                  value={newReport.schedule}
-                  onChange={(e) => setNewReport({ ...newReport, schedule: e.target.value })}
+                  value={newReport.timezone || 'UTC'}
+                  onChange={(e) => setNewReport({ ...newReport, timezone: e.target.value })}
                 >
-                  {SCHEDULE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
+                  {TIMEZONE_OPTIONS.map((tz) => (
+                    <option key={tz.value} value={tz.value}>
+                      {tz.label}
                     </option>
                   ))}
                 </Select>
