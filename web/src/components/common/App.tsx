@@ -445,7 +445,7 @@ const AppLoggedIn = forwardRef((_props, ref) => {
             >
               <Box aria-label="mx-logos">
                 <iframe
-                  src="https://ghbtns.com/github-btn.html?user=minusxai&repo=minusx-metabase&type=star&count=true&size=small"
+                  src="https://ghbtns.com/github-btn.html?user=minusxai&repo=minusx&type=star&count=true&size=small"
                   frameBorder="0"
                   scrolling="0"
                   width="90"
