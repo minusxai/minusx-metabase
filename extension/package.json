@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com:minusxai/minusx.git"
+    "url": "https://github.com:minusxai/minusx-metabase.git"
   },
   "exports": {
     "./types": "./src/types.d.ts",

@@ -11,7 +11,7 @@
   <span> · </span>
   <a href="https://minusx.ai/blog">Blog</a>
   <span> · </span>
-  <a href="https://github.com/minusxai/minusx/blob/main/CONTRIBUTING.md">Contribute</a>
+  <a href="https://github.com/minusxai/minusx-metabase/blob/main/CONTRIBUTING.md">Contribute</a>
   <span> · </span>
   <a href="https://minusx.ai/discord">Community</a>
 </h3>
@@ -48,6 +48,6 @@ MinusX also allows you to specify _precisely_ the context that the model sees to
 
 ## Developing MinusX Locally
 
-MinusX is built to be extended. Check out the [setup guide](https://github.com/minusxai/minusx/blob/main/setup.md) and read more about [contributing](https://github.com/minusxai/minusx/blob/main/CONTRIBUTING.md)!
+MinusX is built to be extended. Check out the [setup guide](https://github.com/minusxai/minusx-metabase/blob/main/setup.md) and read more about [contributing](https://github.com/minusxai/minusx-metabase/blob/main/CONTRIBUTING.md)!
 
 We welcome both PRs and GH issues.

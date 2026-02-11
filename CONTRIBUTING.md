@@ -6,6 +6,6 @@ The analogy of retrofitting is apt here as what MinusX does at its core is to re
 
 Development is coordinated through [Discord](https://minusx.ai/discord) and GitHub.
 
-Refer to the [Setup Guide](https://github.com/minusxai/minusx/blob/main/setup.md) to get started.
+Refer to the [Setup Guide](https://github.com/minusxai/minusx-metabase/blob/main/setup.md) to get started.
 
 We'll be adding more detailed examples and posts on how to add more tools and upstream them, soon!
