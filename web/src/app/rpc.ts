@@ -104,6 +104,7 @@ export const fetchData = (
   url: string,
   method: HttpMethod,
   body?: unknown,
+  dataFilter?: any,  // DataFilter from extension
   headers?: Record<string, string>,
   csrfInfo?: { cookieKey: string; headerKey: string }
 ) => {
@@ -114,7 +115,7 @@ export const fetchData = (
       url = fullURL.pathname + '/' + url
     }
   }
-  return sendMessage('fetchData', [url, method, body, headers || {}, csrfInfo], {
+  return sendMessage('fetchData', [url, method, body, headers || {}, csrfInfo, dataFilter], {
     log_rpc: false,
   })
 }

@@ -36,7 +36,17 @@ export const fetchCard = createAPI<{card_id: number}>(
 );
 
 export const fetchCards = createAPI<{}>(
-  '/api/card/'
+  '/api/card/',
+  'GET',
+  {
+    dataFilter: {
+      sortPriority: [
+        { sortBy: 'view_count', max: 5000, desc: true },  // Top 5000 most viewed
+        { sortBy: 'created_at', max: 2000, desc: true }   // Top 2000 most recent from remaining
+      ]
+      // Total: 7000 cards with smart prioritization (same as original getAllCardsAndModels logic)
+    }
+  }
 );
 
 export const fetchDashboards = createAPI<{}>(

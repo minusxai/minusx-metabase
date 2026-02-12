@@ -129,7 +129,8 @@ export function createAPI<T extends Record<string, any>, >(
     cache_rewarm_ttl: config.cache_rewarm_ttl ?? DEFAULT_CACHE_REWARM,
     max_concurrency: config.max_concurrency ?? DEFAULT_MAX_CONCURRENCY,
     concurrency_delay: config.concurrency_delay ?? DEFAULT_CONCURRENCY_DELAY,
-    metadataProcessor: config.metadataProcessor ?? (response => [])
+    metadataProcessor: config.metadataProcessor ?? (response => []),
+    dataFilter: config.dataFilter
   };
   // Template substitution
   function substituteTemplate(params: T): { url: string; usedKeys: Set<string> } {
@@ -177,11 +178,12 @@ export function createAPI<T extends Record<string, any>, >(
         // Only include body if there are unused params and it's a method that supports body
         const hasBodyParams = Object.keys(bodyParams).length > 0;
         const supportsBody = ['POST', 'PUT', 'PATCH'].includes(method);
-        
+
         return await RPCs.fetchData(
-          actualUrl, 
-          method, 
-          hasBodyParams && supportsBody ? bodyParams : undefined
+          actualUrl,
+          method,
+          hasBodyParams && supportsBody ? bodyParams : undefined,
+          finalConfig.dataFilter  // Pass filter to extension for smart sorting/limiting
         );
       });
     },
