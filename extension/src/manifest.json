@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "MinusX",
   "description": "The Best AI Agent for Metabase",
-  "version": "1.0.33",
+  "version": "1.0.34",
   "background": { "service_worker": "background.bundle.js" },
   "permissions": [
     "storage"
