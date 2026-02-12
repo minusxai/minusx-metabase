@@ -232,14 +232,14 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
 
   let finalCards: any[];
 
-  if (cardsSortedByViews.length > 7000) {
-    console.log('[minusx] More than 7000 cards, applying selective filtering');
+  if (cardsSortedByViews.length > 3000) {
+    console.log('[minusx] More than 3000 cards, applying selective filtering');
 
-    // Take top 5000 cards by view count
-    const top5000Cards = cardsSortedByViews.slice(0, 5000);
+    // Take top 2000 cards by view count
+    const top2000Cards = cardsSortedByViews.slice(0, 2000);
 
     // Get remaining cards sorted by creation date (newest first)
-    const remainingCards = cardsSortedByViews.slice(5000);
+    const remainingCards = cardsSortedByViews.slice(2000);
     const recentlyCreatedCards = remainingCards
       .sort((a, b) => {
         const dateA = new Date(get(a, 'created_at') || 0);
@@ -247,15 +247,15 @@ export async function getAllCardsAndModels(forceRefresh = false, currentDBId: nu
         return dateB.getTime() - dateA.getTime(); // Newest first
       });
 
-    // Take up to 2000 most recently created cards
-    const additionalCards = recentlyCreatedCards.slice(0, 2000);
+    // Take up to 1000 most recently created cards
+    const additionalCards = recentlyCreatedCards.slice(0, 1000);
 
-    finalCards = [...top5000Cards, ...additionalCards];
-    console.log('[minusx] Selected cards: top 5000 by views + ' + additionalCards.length + ' recently created cards');
+    finalCards = [...top2000Cards, ...additionalCards];
+    console.log('[minusx] Selected cards: top 2000 by views + ' + additionalCards.length + ' recently created cards');
   } else {
-    // If <= 7000 cards, use all cards sorted by view count
+    // If <= 3000 cards, use all cards sorted by view count
     finalCards = cardsSortedByViews;
-    console.log('[minusx] Using all cards (≤ 7000), sorted by view count');
+    console.log('[minusx] Using all cards (≤ 3000), sorted by view count');
   }
 
   const cardsForProcessing = finalCards;
