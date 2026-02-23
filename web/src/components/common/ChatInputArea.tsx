@@ -77,7 +77,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()
         // Convert mentions to storage format before sending
-        const instructionsWithStorageMentions = convertMentionsToStorage(instructions, mentionItems)
+        const instructionsWithStorageMentions = convertMentionsToStorage(instructions.trimEnd(), mentionItems)
         runTask(instructionsWithStorageMentions)
       }
     }
@@ -133,7 +133,7 @@ const ChatInputArea = forwardRef<HTMLTextAreaElement, ChatInputAreaProps>(
                     <AbortTaskButton abortTask={() => dispatch(abortPlan())} disabled={!taskInProgress}/>
                   ) : (
                     <RunTaskButton runTask={() => {
-                      const instructionsWithStorageMentions = convertMentionsToStorage(instructions, mentionItems)
+                      const instructionsWithStorageMentions = convertMentionsToStorage(instructions.trimEnd(), mentionItems)
                       runTask(instructionsWithStorageMentions)
                     }} disabled={taskInProgress} />
                   )}

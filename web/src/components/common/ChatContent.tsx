@@ -50,12 +50,17 @@ export const ChatContent: React.FC<{content: ChatMessageContent, messageIndex?: 
     if (contentTextWithMentionTags.trim() === '') {
       return null;
     }
+    // For user messages, convert \n to GFM hard line breaks (two trailing spaces + \n)
+    // so single newlines render as <br> in react-markdown instead of being collapsed to spaces
+    const displayText = role === 'user'
+      ? contentTextWithMentionTags.replace(/\n/g, '  \n')
+      : contentTextWithMentionTags;
     return (
       <div>
         {content.images.map(image => (
           <img src={image.url} key={image.url} />
         ))}
-        <Markdown content={processModelToUIText(contentTextWithMentionTags, origin, embedConfigs, cards)} messageIndex={messageIndex} />
+        <Markdown content={processModelToUIText(displayText, origin, embedConfigs, cards)} messageIndex={messageIndex} />
       </div>
     )
   } else {
