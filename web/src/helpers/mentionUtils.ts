@@ -43,7 +43,10 @@ export const createMentionItems = (
     }
   })
 
-  return [...tableItems, ...modelItems].sort((a, b) => a.name.localeCompare(b.name))
+  return [...tableItems, ...modelItems].sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'model' ? -1 : 1
+    return a.name.localeCompare(b.name)
+  })
 }
 
 // Filter mention items by search query
