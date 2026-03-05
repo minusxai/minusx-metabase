@@ -169,7 +169,7 @@ export const Reports: React.FC = () => {
   const [showCustomCronInput, setShowCustomCronInput] = useState(false);
 
   // Job management state
-  const [isForced, setIsForced] = useState(false);
+  const [isForced, setIsForced] = useState(true);
   const [sendEmail, setSendEmail] = useState(false);
   const [outputModalVisible, setOutputModalVisible] = useState(false);
   const [selectedOutput, setSelectedOutput] = useState<any>(null);
