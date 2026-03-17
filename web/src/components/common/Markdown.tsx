@@ -14,7 +14,7 @@ import type { MetabaseModel, MetabaseContext } from 'apps/types'
 import { type EmbedConfigs } from '../../state/configs/reducer'
 import { Badge } from "@chakra-ui/react";
 import { CodeBlock } from './CodeBlock';
-import { BiChevronDown, BiChevronRight, BiExpand } from 'react-icons/bi';
+import { BiChevronDown, BiChevronRight, BiExpand, BiDownload } from 'react-icons/bi';
 import { BsBarChartFill } from "react-icons/bs";
 import { dispatch } from '../../state/dispatch';
 import { updateIsDevToolsOpen  } from '../../state/settings/reducer';
@@ -237,6 +237,56 @@ function ModifiedH4(props: any) {
     )
 }
 
+
+function tableToCsv(table: string[][]): string {
+    return table.map(row =>
+        row.map(cell => {
+            if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+                return `"${cell.replace(/"/g, '""')}"`;
+            }
+            return cell;
+        }).join(',')
+    ).join('\n');
+}
+
+function downloadCsv(csvContent: string, filename = 'data.csv') {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    setTimeout(() => {
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+    }, 0);
+}
+
+function extractTableDataFromChildren(children: any): string[][] {
+    const rows: string[][] = [];
+    const childArray = Array.isArray(children) ? children : [children];
+    childArray.forEach((child: any) => {
+        if (child?.type === ModifiedThead || child?.type === ModifiedTbody) {
+            const innerChildren = Array.isArray(child.props.children) ? child.props.children : [child.props.children];
+            innerChildren.forEach((row: any) => {
+                if (row?.type === ModifiedTr) {
+                    const cells: string[] = [];
+                    const cellChildren = Array.isArray(row.props.children) ? row.props.children : [row.props.children];
+                    cellChildren.forEach((cell: any) => {
+                        if (cell?.type === ModifiedTh || cell?.type === ModifiedTd) {
+                            cells.push(getTextFromChildren(cell.props.children));
+                        }
+                    });
+                    if (cells.length > 0) rows.push(cells);
+                }
+            });
+        }
+    });
+    return rows;
+}
+
 function ModifiedTable(props: any) {
     const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
     
@@ -296,13 +346,27 @@ function ModifiedTable(props: any) {
             children: [
                 ...visibleRows,
                 <tr key="more-rows-indicator" style={{ borderBottom: 'none' }}>
-                    <td colSpan={100} style={{ 
-                        padding: '2px', 
-                        textAlign: 'left', 
-                        fontSize: '0.8em', 
+                    <td colSpan={100} style={{
+                        padding: '2px',
+                        textAlign: 'left',
+                        fontSize: '0.8em',
                         color: '#718096',
                     }}>
-                        +{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>+{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}</span>
+                            <Tooltip label="Download CSV" placement="top" hasArrow>
+                                <Button size="xs" variant="ghost" leftIcon={<BiDownload size={16}/>} onClick={() => {
+                                    const tableData = extractTableDataFromChildren(props.children);
+                                    if (tableData.length > 0) {
+                                        const now = new Date();
+                                        const timestamp = `${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}_${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}_${String(now.getMinutes()).padStart(2,'0')}_${String(now.getSeconds()).padStart(2,'0')}`;
+                                        downloadCsv(tableToCsv(tableData), `result_${timestamp}.csv`);
+                                    }
+                                }}>
+                                    CSV
+                                </Button>
+                            </Tooltip>
+                        </span>
                     </td>
                 </tr>
             ]
@@ -347,14 +411,28 @@ function ModifiedTable(props: any) {
             children: [
                 ...visibleRows,
                 <tr key="more-rows-indicator-modal" style={{ borderBottom: 'none' }}>
-                    <td colSpan={100} style={{ 
-                        padding: '8px 16px', 
-                        textAlign: 'left', 
-                        fontSize: '0.8em', 
+                    <td colSpan={100} style={{
+                        padding: '8px 16px',
+                        textAlign: 'left',
+                        fontSize: '0.8em',
                         color: '#718096',
                         fontStyle: 'italic'
                     }}>
-                        +{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}
+                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span>+{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}</span>
+                            <Tooltip label="Download CSV" placement="top" hasArrow>
+                                <Button size="xs" variant="ghost" leftIcon={<BiDownload size={16}/>} onClick={() => {
+                                    const tableData = extractTableDataFromChildren(props.children);
+                                    if (tableData.length > 0) {
+                                        const now = new Date();
+                                        const timestamp = `${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}_${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}_${String(now.getMinutes()).padStart(2,'0')}_${String(now.getSeconds()).padStart(2,'0')}`;
+                                        downloadCsv(tableToCsv(tableData), `result_${timestamp}.csv`);
+                                    }
+                                }}>
+                                    CSV
+                                </Button>
+                            </Tooltip>
+                        </span>
                     </td>
                 </tr>
             ]
