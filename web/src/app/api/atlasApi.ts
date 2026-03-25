@@ -103,6 +103,7 @@ export interface CreateAssetRequest {
     emails: string[]
     template?: string
     special_instructions?: string
+    isActive?: boolean
   }
 }
 
