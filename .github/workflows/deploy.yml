@@ -13,13 +13,13 @@ jobs:
         echo "${{ secrets.APPS_SERVER_SSH_PUB_KEY }}" > ~/.ssh/id_rsa.pub
         chmod 600 ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa.pub
-        ssh-keyscan -H web.minusxapi.com >> ~/.ssh/known_hosts
+        ssh-keyscan -H ${{ secrets.AWS_SIDECHAT_HOST }} >> ~/.ssh/known_hosts
 
     - name: Run frontend server (v1)
       env:
         REF: ${{ github.sha }} # ref to checkout
       run: |
-        ssh ubuntu@web.minusxapi.com << EOF
+        ssh  ${{ secrets.APPS_SERVER_USER }}@${{ secrets.AWS_SIDECHAT_HOST }} << EOF
           set -e  # Exit on any error
           cd /home/ubuntu/minusx-metabase/web
           git fetch --all --tags
