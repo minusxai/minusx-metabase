@@ -40,7 +40,8 @@ import {
   PopoverTrigger,
   PopoverContent,
   PopoverBody,
-  Textarea
+  Textarea,
+  Switch
 } from '@chakra-ui/react';
 import {
   BiChevronDown,
@@ -190,7 +191,8 @@ export const Reports: React.FC = () => {
     timezone: 'UTC',  // Default timezone
     emails: [''],
     asUser: '',  // For godmode: which admin to act as
-    special_instructions: ''
+    special_instructions: '',
+    isActive: false
   });
 
   // API hooks
@@ -247,6 +249,8 @@ export const Reports: React.FC = () => {
   const reportData = (selectedAsset?.content || {}) as ScheduledReportContent;
   const assetId = (selectedAsset as any)?.id;
 
+  console.log('[Reports] Selected report data:', reportData);
+
   // Don't auto-load job history - let it be lazy loaded when user expands accordion
 
   // Initialize edited report when entering edit mode
@@ -261,7 +265,8 @@ export const Reports: React.FC = () => {
         schedule: currentSchedule,
         timezone: reportData.timezone || 'UTC',
         emails: reportData.emails || [],
-        special_instructions: reportData.special_instructions || ''
+        special_instructions: reportData.special_instructions || '',
+        isActive: reportData.isActive || false
       });
 
       // Set custom cron input state if schedule is custom
@@ -527,7 +532,8 @@ export const Reports: React.FC = () => {
             schedule: newReport.schedule,
             timezone: newReport.timezone,  // Include timezone
             emails: validEmails,
-            special_instructions: newReport.special_instructions || undefined
+            special_instructions: newReport.special_instructions || undefined,
+            isActive: newReport.isActive
           }
         },
         asUser: isGodMode && newReport.asUser ? newReport.asUser : undefined
@@ -550,7 +556,8 @@ export const Reports: React.FC = () => {
         timezone: 'UTC',  // Reset to default timezone
         emails: [''],
         asUser: '',
-        special_instructions: ''
+        special_instructions: '',
+        isActive: false
       });
       setShowCustomCronInput(false);
       setCustomCronExpression('');
@@ -792,18 +799,40 @@ export const Reports: React.FC = () => {
       {/* Report Details */}
       {availableAssets.length > 0 && selectedAsset && (
         <VStack align="stretch" spacing={4}>
-          {/* Edit/View Mode Toggle */}
-          {selectedAsset.permission === 'edit' && !isEditing && (
-            <HStack justify="flex-end">
-              <Button
-                size="sm"
-                leftIcon={<BiEdit />}
-                colorScheme="minusxGreen"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit Report
-              </Button>
-            </HStack>
+          {/* Report Header */}
+          {!isEditing && (
+            <VStack align="stretch" spacing={0}>
+              <HStack justify="space-between" align="center">
+                <Text fontSize="sm" fontWeight="semibold">
+                  {selectedAsset.name}
+                </Text>
+                {selectedAsset.permission === 'edit' && (
+                  <Button
+                    size="sm"
+                    leftIcon={<BiEdit />}
+                    colorScheme="minusxGreen"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    Edit Report
+                  </Button>
+                )}
+              </HStack>
+              <HStack spacing={2} mt={1}>
+                {(() => {
+                  const team = userTeams.find(t => t.slug === selectedAsset.team_slug);
+                  return team ? (
+                    <Text fontSize="xs" color="gray.500">{team.name}</Text>
+                  ) : null;
+                })()}
+                <Badge
+                  colorScheme={reportData.isActive ? 'green' : 'red'}
+                  fontSize="2xs"
+                  variant="subtle"
+                >
+                  {reportData.isActive ? 'Scheduled' : 'Not Scheduled'}
+                </Badge>
+              </HStack>
+            </VStack>
           )}
 
           {isEditing ? (
@@ -1020,6 +1049,29 @@ export const Reports: React.FC = () => {
                     resize="vertical"
                   />
                 </FormControl>
+              </Box>
+
+              {/* Active Toggle */}
+              <Box>
+                <HStack>
+                  <Text fontSize="sm" fontWeight="medium">Scheduling</Text>
+                  <Switch
+                    size="sm"
+                    colorScheme="green"
+                    isChecked={editedReport?.isActive || false}
+                    onChange={(e) => setEditedReport({ ...editedReport, isActive: e.target.checked })}
+                  />
+                  <Badge
+                    colorScheme={editedReport?.isActive ? 'green' : 'orange'}
+                    fontSize="xs"
+                    px={2}
+                    py={0.5}
+                    borderRadius="full"
+                    variant="solid"
+                  >
+                    {editedReport?.isActive ? 'Scheduled' : 'Not Scheduled'}
+                  </Badge>
+                </HStack>
               </Box>
 
               {/* Action Buttons */}
@@ -1624,6 +1676,28 @@ export const Reports: React.FC = () => {
                   rows={3}
                   resize="vertical"
                 />
+              </FormControl>
+
+              {/* Active Toggle */}
+              <FormControl>
+                <HStack>
+                  <FormLabel mb={0}>Scheduling</FormLabel>
+                  <Switch
+                    colorScheme="green"
+                    isChecked={newReport.isActive}
+                    onChange={(e) => setNewReport({ ...newReport, isActive: e.target.checked })}
+                  />
+                  <Badge
+                    colorScheme={newReport.isActive ? 'green' : 'orange'}
+                    fontSize="xs"
+                    px={2}
+                    py={0.5}
+                    borderRadius="full"
+                    variant="solid"
+                  >
+                    {newReport.isActive ? 'Scheduled' : 'Not Scheduled'}
+                  </Badge>
+                </HStack>
               </FormControl>
             </VStack>
           </ModalBody>
