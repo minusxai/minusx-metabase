@@ -19,9 +19,9 @@ jobs:
       env:
         REF: ${{ github.sha }} # ref to checkout
       run: |
-        ssh minusx@web.minusxapi.com << EOF
+        ssh ubuntu@web.minusxapi.com << EOF
           set -e  # Exit on any error
-          cd /home/minusx/minusx/web
+          cd /home/ubuntu/minusx-metabase/web
           git fetch --all --tags
           git checkout $REF
           git reset --hard $REF
