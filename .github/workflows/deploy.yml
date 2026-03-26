@@ -6,6 +6,10 @@ jobs:
   deploy-web-minusxapi-com:
     runs-on: ubuntu-latest
     steps:
+    - name: Debug host
+      run: |
+        echo "HOST='${{ secrets.AWS_SIDECHAT_HOST }}'"
+        
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
