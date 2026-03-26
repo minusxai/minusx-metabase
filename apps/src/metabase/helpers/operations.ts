@@ -33,18 +33,20 @@ export type MetabaseStateTable = {
   }[]
 }
 
-export function metabaseToMarkdownTable(table: MetabaseStateTable, truncateLength: number = 2000): string {
+export function metabaseToMarkdownTable(table: MetabaseStateTable, maxRows: number = 2000): string {
   const { rows, cols } = table;
   const headerRow = `| ${cols.map(col => col.display_name).join(' | ')} |`;
   const separatorRow = `| ${cols.map(() => '---').join(' | ')} |`;
-  const dataRows = rows.map(row => 
+  const limitedRows = rows.slice(0, maxRows);
+  const dataRows = limitedRows.map(row =>
       `| ${row.map(cell => cell !== null ? cell : '').join(' | ')} |`
   );
-  let md =[headerRow, separatorRow, ...dataRows].join('\n');
-  // truncate if more than 2k characters. add an ...[truncated]
-  if (md.length > truncateLength) {
-    md = `${md.slice(0, truncateLength)}...[truncated]`;
+  let md = [headerRow, separatorRow, ...dataRows].join('\n');
+
+  if (rows.length > maxRows) {
+    md += `\n| *... ${rows.length - maxRows} more rows* |`;
   }
+
   if (dataRows.length === 0) {
     md = md + '\n' + '| <Empty results, no data returned> |';
   }
@@ -55,16 +57,17 @@ function areRowsEmpty(rows: (string | number | null | boolean)[][]): boolean {
   return rows.every(row => row.every(cell => cell === null || cell === ''));
 }
 
-export function metabaseToCSV(table: MetabaseStateTable, truncateLength: number = 2000): string {
+export function metabaseToCSV(table: MetabaseStateTable, maxRows: number = 2000): string {
   const { rows, cols } = table;
   const headerRow = cols.map(col => `"${col.display_name}"`).join(',');
-  const dataRows = rows.map(row =>
-    row.map(cell => 
+  const limitedRows = rows.slice(0, maxRows);
+  const dataRows = limitedRows.map(row =>
+    row.map(cell =>
       cell === null ? '' : `"${String(cell).replace(/"/g, '""')}"`
     ).join(',')
   );
-  const allRows = [headerRow, ...dataRows]
-  let csv = allRows.slice(0, truncateLength).join('\n');
+  let csv = [headerRow, ...dataRows].join('\n');
+
   if (dataRows.length === 0 || areRowsEmpty(rows)) {
     csv = csv + '\n' + '<Empty results, no data returned>';
   }
@@ -82,10 +85,6 @@ export async function getAndFormatOutputTable(_type: string = ''): Promise<strin
     outputTableMarkdown = metabaseToCSV(outputTable);
   } else {
     outputTableMarkdown = metabaseToMarkdownTable(outputTable);
-  }
-  // truncate if more than 2k characters. add an ...[truncated]
-  if (outputTableMarkdown.length > 2000) {
-    outputTableMarkdown = outputTableMarkdown.slice(0, 2000) + '...[truncated]';
   }
   return outputTableMarkdown;
 }

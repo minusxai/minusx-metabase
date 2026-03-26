@@ -658,7 +658,7 @@ export const Reports: React.FC = () => {
           <Text fontSize="2xl" fontWeight="bold">Reports</Text>
           {canCreateReport && (
             <Button
-              size="sm"
+              size="xs"
               colorScheme="minusxGreen"
               leftIcon={<BiPlus />}
               onClick={() => setIsCreateModalOpen(true)}
@@ -711,14 +711,7 @@ export const Reports: React.FC = () => {
               textAlign="left"
               justifyContent="space-between"
             >
-              <VStack align="start" spacing={0} width="100%">
-                <Text fontSize="sm">{selectedAsset?.name || availableAssets[0]?.name}</Text>
-                {selectedAsset && (
-                  <Text fontSize="xs" color="gray.500">
-                    {userTeams.find(t => t.slug === selectedAsset.team_slug)?.name || ''}
-                  </Text>
-                )}
-              </VStack>
+              <Text fontSize="sm">{selectedAsset?.name || availableAssets[0]?.name}</Text>
             </Button>
           </PopoverTrigger>
           <PopoverContent
@@ -753,7 +746,6 @@ export const Reports: React.FC = () => {
                     </Box>
                   ) : (
                     filteredAssets.map((asset) => {
-                      const team = userTeams.find(t => t.slug === asset.team_slug);
                       const assetId = getAssetId(asset);
                       const isSelected = (selectedAssetId || (availableAssets[0] && getAssetId(availableAssets[0]))) === assetId;
 
@@ -770,16 +762,9 @@ export const Reports: React.FC = () => {
                           borderColor="gray.100"
                         >
                           <HStack justify="space-between" align="center">
-                            <VStack align="start" spacing={0} flex={1}>
-                              <Text fontSize="sm" color="minusxBW.800" fontWeight={isSelected ? 'medium' : 'normal'}>
-                                {asset.name}
-                              </Text>
-                              {team && (
-                                <Text fontSize="xs" color="gray.500">
-                                  {team.name}
-                                </Text>
-                              )}
-                            </VStack>
+                            <Text fontSize="sm" color="minusxBW.800" fontWeight={isSelected ? 'medium' : 'normal'}>
+                              {asset.name}
+                            </Text>
                             {isSelected && (
                               <Icon as={BiCheck} boxSize={4} color="minusxGreen.500" />
                             )}
@@ -801,38 +786,19 @@ export const Reports: React.FC = () => {
         <VStack align="stretch" spacing={4}>
           {/* Report Header */}
           {!isEditing && (
-            <VStack align="stretch" spacing={0}>
-              <HStack justify="space-between" align="center">
-                <Text fontSize="sm" fontWeight="semibold">
-                  {selectedAsset.name}
-                </Text>
-                {selectedAsset.permission === 'edit' && (
-                  <Button
-                    size="sm"
-                    leftIcon={<BiEdit />}
-                    colorScheme="minusxGreen"
-                    onClick={() => setIsEditing(true)}
-                  >
-                    Edit Report
-                  </Button>
-                )}
-              </HStack>
-              <HStack spacing={2} mt={1}>
-                {(() => {
-                  const team = userTeams.find(t => t.slug === selectedAsset.team_slug);
-                  return team ? (
-                    <Text fontSize="xs" color="gray.500">{team.name}</Text>
-                  ) : null;
-                })()}
-                <Badge
-                  colorScheme={reportData.isActive ? 'green' : 'red'}
-                  fontSize="2xs"
-                  variant="subtle"
+            <HStack justify="space-between" align="center">
+              <Text fontSize="lg" fontWeight="semibold">{selectedAsset.name}</Text>
+              {selectedAsset.permission === 'edit' && (
+                <Button
+                  size="xs"
+                  leftIcon={<BiEdit />}
+                  colorScheme="minusxGreen"
+                  onClick={() => setIsEditing(true)}
                 >
-                  {reportData.isActive ? 'Scheduled' : 'Not Scheduled'}
-                </Badge>
-              </HStack>
-            </VStack>
+                  Edit Report
+                </Button>
+              )}
+            </HStack>
           )}
 
           {isEditing ? (
@@ -961,6 +927,18 @@ export const Reports: React.FC = () => {
                       </Text>
                     </VStack>
                   )}
+                  {/* Scheduling Toggle */}
+                  <HStack spacing={2} mt={1}>
+                    <Switch
+                      size="sm"
+                      colorScheme="green"
+                      isChecked={editedReport?.isActive || false}
+                      onChange={(e) => setEditedReport({ ...editedReport, isActive: e.target.checked })}
+                    />
+                    <Text fontSize="sm" fontWeight="medium">
+                      {editedReport?.isActive ? 'Scheduling is on' : 'Scheduling is off'}
+                    </Text>
+                  </HStack>
                 </VStack>
               </Box>
 
@@ -1051,29 +1029,6 @@ export const Reports: React.FC = () => {
                 </FormControl>
               </Box>
 
-              {/* Active Toggle */}
-              <Box>
-                <HStack>
-                  <Text fontSize="sm" fontWeight="medium">Scheduling</Text>
-                  <Switch
-                    size="sm"
-                    colorScheme="green"
-                    isChecked={editedReport?.isActive || false}
-                    onChange={(e) => setEditedReport({ ...editedReport, isActive: e.target.checked })}
-                  />
-                  <Badge
-                    colorScheme={editedReport?.isActive ? 'green' : 'orange'}
-                    fontSize="xs"
-                    px={2}
-                    py={0.5}
-                    borderRadius="full"
-                    variant="solid"
-                  >
-                    {editedReport?.isActive ? 'Scheduled' : 'Not Scheduled'}
-                  </Badge>
-                </HStack>
-              </Box>
-
               {/* Action Buttons */}
               <HStack justify="flex-end" spacing={2}>
                 <Button
@@ -1101,12 +1056,12 @@ export const Reports: React.FC = () => {
             </VStack>
           ) : (
             /* View Mode */
-            <VStack align="stretch" spacing={3}>
+            <VStack align="stretch" spacing={4}>
               {/* Dashboard */}
-              <Box p={3} bg="gray.50" borderRadius="md">
+              <Box p={4} bg="gray.50" borderRadius="md">
                 <HStack mb={1}>
-                  <Icon as={BiGlobe} color="minusxGreen.600" />
-                  <Text fontSize="sm" fontWeight="semibold">Dashboard</Text>
+                  <Icon as={BiGlobe} color="green.600" />
+                  <Text fontSize="sm" fontWeight="bold">Dashboard</Text>
                 </HStack>
                 {(() => {
                   const dashboardName = getDashboardNameFromUrl(reportData.url || '');
@@ -1128,28 +1083,43 @@ export const Reports: React.FC = () => {
               </Box>
 
               {/* Schedule */}
-              <Box p={3} bg="gray.50" borderRadius="md">
+              <Box p={4} bg="gray.50" borderRadius="md">
                 <HStack mb={1}>
-                  <Icon as={BiCalendar} color="minusxGreen.600" />
-                  <Text fontSize="sm" fontWeight="semibold">Schedule</Text>
+                  <Icon as={BiCalendar} color="green.600" />
+                  <Text fontSize="sm" fontWeight="bold">Schedule</Text>
                 </HStack>
-                <Text fontSize="xs" color="gray.700">
+                <Text fontSize="sm" color="gray.700" mb={2}>
                   {formatScheduleDisplay(reportData.schedule || '', reportData.timezone)}
                 </Text>
+                <HStack spacing={2} align="center">
+                  <Switch
+                    size="sm"
+                    colorScheme="green"
+                    isChecked={reportData.isActive || false}
+                    isReadOnly
+                    sx={{ pointerEvents: 'none' }}
+                  />
+                  <Text fontSize="sm" color="gray.700">
+                    <Text as="span" fontWeight="bold">
+                      {reportData.isActive ? 'Scheduling is on' : 'Scheduling is off'}
+                    </Text>
+                    {reportData.isActive && '. Sends a single email thread to all recipients.'}
+                  </Text>
+                </HStack>
               </Box>
 
               {/* Questions */}
-              <Box p={3} bg="gray.50" borderRadius="md">
-                <Text fontSize="sm" fontWeight="semibold" mb={2}>
+              <Box p={4} bg="gray.50" borderRadius="md">
+                <Text fontSize="sm" fontWeight="bold" mb={2}>
                   Questions ({reportData.questions?.length || 0})
                 </Text>
                 <VStack align="stretch" spacing={1}>
                   {reportData.questions?.map((question: string, index: number) => (
-                    <HStack key={index} align="flex-start" spacing={2}>
-                      <Text fontSize="xs" color="minusxGreen.600" fontWeight="semibold" minW="20px">
+                    <HStack key={index} align="flex-start" spacing={3}>
+                      <Text fontSize="sm" color="green.500" fontWeight="semibold" minW="20px">
                         {index + 1}.
                       </Text>
-                      <Text fontSize="xs" color="gray.700">
+                      <Text fontSize="sm" color="gray.700">
                         {question}
                       </Text>
                     </HStack>
@@ -1159,13 +1129,13 @@ export const Reports: React.FC = () => {
 
               {/* Special Instructions */}
               {reportData.special_instructions && (
-                <Box p={3} bg="gray.50" borderRadius="md">
+                <Box p={4} bg="gray.50" borderRadius="md">
                   <HStack mb={1}>
-                    <Icon as={BsFillQuestionCircleFill} color="minusxGreen.600" />
-                    <Text fontSize="sm" fontWeight="semibold">Special Instructions</Text>
+                    <Icon as={BsFillQuestionCircleFill} color="green.600" />
+                    <Text fontSize="sm" fontWeight="bold">Special Instructions</Text>
                   </HStack>
                   <Text
-                    fontSize="xs"
+                    fontSize="sm"
                     color="gray.700"
                     whiteSpace="pre-wrap"
                     wordBreak="break-word"
@@ -1176,16 +1146,16 @@ export const Reports: React.FC = () => {
               )}
 
               {/* Recipients */}
-              <Box p={3} bg="gray.50" borderRadius="md">
+              <Box p={4} bg="gray.50" borderRadius="md">
                 <HStack mb={2}>
-                  <Icon as={BiEnvelope} color="minusxGreen.600" />
-                  <Text fontSize="sm" fontWeight="semibold">
+                  <Icon as={BiEnvelope} color="green.600" />
+                  <Text fontSize="sm" fontWeight="bold">
                     Recipients ({reportData.emails?.length || 0})
                   </Text>
                 </HStack>
                 <HStack spacing={2} wrap="wrap">
                   {reportData.emails?.map((email: string, index: number) => (
-                    <Badge key={index} colorScheme="blue" fontSize="xs">
+                    <Badge key={index} colorScheme="gray" fontSize="xs" textTransform="uppercase">
                       {email}
                     </Badge>
                   ))}
@@ -1195,7 +1165,7 @@ export const Reports: React.FC = () => {
           )}
 
           {/* Job Runs Section */}
-          <Box mt={4} p={4} border="1px solid" borderColor="gray.200" borderRadius="md">
+          <Box mt={2} p={4} bg="gray.50" borderRadius="md">
             <Accordion
               allowMultiple
               onChange={(expandedIndices) => {
@@ -1237,7 +1207,8 @@ export const Reports: React.FC = () => {
                           <Text fontSize="xs">Send Email</Text>
                         </Checkbox>
                         <Button
-                          size="sm"
+                          size="xs"
+                          px={4}
                           leftIcon={<BiPlay />}
                           colorScheme="minusxGreen"
                           isLoading={isExecuting}

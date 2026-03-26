@@ -352,7 +352,7 @@ function ModifiedTable(props: any) {
                         fontSize: '0.8em',
                         color: '#718096',
                     }}>
-                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span>+{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}</span>
                             <Tooltip label="Download CSV" placement="top" hasArrow>
                                 <Button size="xs" variant="ghost" leftIcon={<BiDownload size={16}/>} onClick={() => {
@@ -375,70 +375,9 @@ function ModifiedTable(props: any) {
         return [thead, modifiedTbody].filter(Boolean);
     };
 
-    // Calculate rows for modal display limiting (10 rows)
+    // Modal shows all rows (already capped at 2k from source)
     const getModalTableChildren = () => {
-        if (!props.children || isEmpty) return props.children;
-        
-        const children = Array.isArray(props.children) ? props.children : [props.children];
-        let thead: any = null;
-        let tbody: any = null;
-        let totalRows = 0;
-        
-        // Find thead and tbody
-        children.forEach((child: any) => {
-            if (child?.type === ModifiedThead) {
-                thead = child;
-            } else if (child?.type === ModifiedTbody) {
-                tbody = child;
-                if (tbody?.props?.children) {
-                    const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
-                    totalRows = tbodyChildren.filter((row: any) => row?.type === ModifiedTr).length;
-                }
-            }
-        });
-
-        if (!tbody || totalRows <= 10) {
-            return props.children;
-        }
-
-        // Limit tbody to first 10 rows
-        const tbodyChildren = Array.isArray(tbody.props.children) ? tbody.props.children : [tbody.props.children];
-        const visibleRows = tbodyChildren.filter((row: any) => row?.type === ModifiedTr).slice(0, 10);
-        const hiddenRowsCount = totalRows - 10;
-        
-        // Create modified tbody with limited rows
-        const modifiedTbody = React.cloneElement(tbody, {
-            children: [
-                ...visibleRows,
-                <tr key="more-rows-indicator-modal" style={{ borderBottom: 'none' }}>
-                    <td colSpan={100} style={{
-                        padding: '8px 16px',
-                        textAlign: 'left',
-                        fontSize: '0.8em',
-                        color: '#718096',
-                        fontStyle: 'italic'
-                    }}>
-                        <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                            <span>+{hiddenRowsCount} more {hiddenRowsCount === 1 ? 'row' : 'rows'}</span>
-                            <Tooltip label="Download CSV" placement="top" hasArrow>
-                                <Button size="xs" variant="ghost" leftIcon={<BiDownload size={16}/>} onClick={() => {
-                                    const tableData = extractTableDataFromChildren(props.children);
-                                    if (tableData.length > 0) {
-                                        const now = new Date();
-                                        const timestamp = `${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}_${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}_${String(now.getMinutes()).padStart(2,'0')}_${String(now.getSeconds()).padStart(2,'0')}`;
-                                        downloadCsv(tableToCsv(tableData), `result_${timestamp}.csv`);
-                                    }
-                                }}>
-                                    CSV
-                                </Button>
-                            </Tooltip>
-                        </span>
-                    </td>
-                </tr>
-            ]
-        });
-        
-        return [thead, modifiedTbody].filter(Boolean);
+        return props.children;
     };
 
     return (
@@ -484,10 +423,20 @@ function ModifiedTable(props: any) {
                 <ModalOverlay bg="blackAlpha.700" />
                 <ModalContent maxW="90vw" h="90vh" bg="minusxBW.200">
                     <ModalHeader pb={2} pt={4} px={4}>
-                        <HStack justifyContent="space-between">
-                            <HStack>
-                                <span style={{fontSize: '1.125rem', fontWeight: 600, color: '#2d3748'}}>Results</span>
-                            </HStack>
+                        <HStack justifyContent="space-between" pr={8}>
+                            <span style={{fontSize: '1.125rem', fontWeight: 600, color: '#2d3748'}}>Results</span>
+                            <Tooltip label="Download CSV" placement="top" hasArrow>
+                                <Button size="xs" variant="ghost" leftIcon={<BiDownload size={16}/>} onClick={() => {
+                                    const tableData = extractTableDataFromChildren(props.children);
+                                    if (tableData.length > 0) {
+                                        const now = new Date();
+                                        const timestamp = `${now.getFullYear()}_${String(now.getMonth()+1).padStart(2,'0')}_${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}_${String(now.getMinutes()).padStart(2,'0')}_${String(now.getSeconds()).padStart(2,'0')}`;
+                                        downloadCsv(tableToCsv(tableData), `result_${timestamp}.csv`);
+                                    }
+                                }}>
+                                    CSV
+                                </Button>
+                            </Tooltip>
                         </HStack>
                     </ModalHeader>
                     <ModalCloseButton top={4} right={4}/>
