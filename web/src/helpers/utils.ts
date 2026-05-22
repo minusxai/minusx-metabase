@@ -122,6 +122,21 @@ export const processModelToUIText = (text: string, origin: string, embedConfigs:
             return `[${cardText}](${questionUrl})`;
         });
     }
+    if (text.includes("dashboard_id:") && (origin != '')) {
+        text = text.replace(/\[dashboard_id:(\d+)\]/g, (match, id) => {
+            const isEmbedded = getParsedIframeInfo().isEmbedded as unknown === 'true';
+            const embedHost = embedConfigs.embed_host;
+
+            let dashboardUrl;
+            if (embedHost && isEmbedded) {
+                dashboardUrl = `${embedHost}/dashboard/${id}`;
+            } else {
+                dashboardUrl = `${origin}/dashboard/${id}`;
+            }
+
+            return `[Open Dashboard](${dashboardUrl})`;
+        });
+    }
     if (text.includes("<OUTPUT>")) {
         const match = text.match(/<OUTPUT>(.*?)<\/OUTPUT>/s);
         if (match) {
