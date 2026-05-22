@@ -51,7 +51,7 @@ import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCur
 import { runSQLQueryFromDashboard, runMBQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
-import { fetchTableMetadata, getSQLFromMBQL } from "./helpers/metabaseAPI";
+import { fetchTableMetadata, getSQLFromMBQL, saveCard, saveDashboard, addCardToDashboard, updateDashboardCards } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
 import { replaceLLMFriendlyIdentifiersInSqlWithModels } from "./helpers/metabaseModels";
 
@@ -444,14 +444,14 @@ export class MetabaseController extends AppController<MetabaseAppState> {
             query: mbql,
         });
         // console.log("Derived SQL query is", sqlQuery);
-    } catch (error) {
+    } catch (error: any) {
         // console.log('Full error is', error)
-        let errorMessage = error?.response?.message || error.message || 'Unknown error';
+        let errorMessage = error?.response?.message || error?.message || 'Unknown error';
         try {
-            let errorDetails = {}
+            let errorDetails: any = {}
             if (errorMessage.includes('DETAILS:')) {
                 errorDetails = JSON.parse(errorMessage.split('DETAILS:')[1]);
-                errorMessage = errorDetails?.message?? 'Error deriving SQL from MBQL';
+                errorMessage = errorDetails?.message ?? 'Error deriving SQL from MBQL';
             }
         } catch (e) {
             console.error('Error while processing error message:', e);
@@ -602,6 +602,137 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       text: `Thinking:\n${thoughts}`,
       images: [],
     };
+    return actionContent;
+  }
+
+  @Action({
+    labelRunning: "Saving question",
+    labelDone: "Question saved",
+    labelTask: "Save question",
+    description: "Saves a query as a new question/card in Metabase. If sql or mbql is provided, saves that query directly. Otherwise saves the current query from the editor.",
+    renderBody: ({ name, sql, mbql }: { name: string, sql?: string, mbql?: any }) => {
+      return { text: `Saving as "${name}"`, code: sql || (mbql ? JSON.stringify(mbql) : null) }
+    }
+  })
+  async SaveQuestion({ name, description, collection_id, sql, mbql, template_tags, display, visualization_settings }: {
+    name: string,
+    description?: string,
+    collection_id?: number,
+    sql?: string,
+    mbql?: any,
+    template_tags?: Record<string, any>,
+    display?: string,
+    visualization_settings?: Record<string, any>,
+  }) {
+    const actionContent: BlankMessageContent = { type: "BLANK" };
+
+    let dataset_query: Record<string, any>;
+    let finalDisplay: string;
+    let finalVizSettings: Record<string, any>;
+
+    if (sql || mbql) {
+      // Need a database ID for building from scratch
+      const state = (await this.app.getState()) as MetabaseAppStateSQLEditor;
+      const dbId = state?.selectedDatabaseInfo?.id as number;
+      if (!dbId) {
+        actionContent.content = "<ERROR>No database selected</ERROR>";
+        return actionContent;
+      }
+
+      if (sql) {
+        // Build a native SQL question
+        const allSnippetsDict = await getSnippets() as MetabaseStateSnippetsDict;
+        const allTemplateTags = getAllTemplateTagsInQuery(sql, allSnippetsDict);
+        const mergedTemplateTags = { ...allTemplateTags, ...(template_tags || {}) };
+
+        dataset_query = {
+          database: dbId,
+          type: "native",
+          native: {
+            query: sql,
+            "template-tags": mergedTemplateTags,
+          },
+        };
+      } else {
+        // Build an MBQL question
+        if (typeof mbql === 'string') {
+          try { mbql = JSON.parse(mbql); } catch (e) { /* use as-is */ }
+        }
+        dataset_query = {
+          database: dbId,
+          type: "query",
+          query: mbql,
+        };
+      }
+
+      finalDisplay = display || "table";
+      finalVizSettings = visualization_settings || {};
+    } else {
+      // Save the current card from the editor
+      const currentCard = await getCurrentCard() as Card | CardV2;
+      if (!currentCard || !currentCard.dataset_query) {
+        actionContent.content = "<ERROR>No query to save. Provide sql, mbql, or run a query first.</ERROR>";
+        return actionContent;
+      }
+      dataset_query = currentCard.dataset_query;
+      finalDisplay = display || currentCard.display || "table";
+      finalVizSettings = visualization_settings || currentCard.visualization_settings || {};
+    }
+
+    try {
+      const result = await saveCard({
+        name,
+        dataset_query,
+        display: finalDisplay,
+        visualization_settings: finalVizSettings,
+        collection_id: collection_id ?? null,
+        description: description ?? null,
+      });
+      actionContent.content = `Question saved successfully with id ${result.id}`;
+    } catch (err: any) {
+      const errorMessage = err?.response?.message || err?.message || 'Unknown error';
+      actionContent.content = `<ERROR>Failed to save question: ${errorMessage}</ERROR>`;
+    }
+    return actionContent;
+  }
+
+  @Action({
+    labelRunning: "Creating dashboard",
+    labelDone: "Dashboard created",
+    labelTask: "Create dashboard",
+    description: "Creates a new dashboard in Metabase, optionally adding saved question cards to it.",
+    renderBody: ({ name, card_ids }: { name: string, card_ids?: number[] }) => {
+      const cardInfo = card_ids && card_ids.length > 0 ? ` with ${card_ids.length} card(s)` : '';
+      return { text: `Creating dashboard "${name}"${cardInfo}`, code: null }
+    }
+  })
+  async SaveDashboard({ name, description, collection_id, card_ids = [] }: { name: string, description?: string, collection_id?: number, card_ids?: number[] }) {
+    const actionContent: BlankMessageContent = { type: "BLANK" };
+    try {
+      const dashboard = await saveDashboard({
+        name,
+        collection_id: collection_id ?? null,
+        description: description ?? null,
+      });
+      const dashboardId = dashboard.id;
+
+      if (card_ids.length > 0) {
+        const cards = card_ids.map((cardId, index) => ({
+          id: -index - 1,
+          card_id: cardId,
+          sizeX: 6,
+          sizeY: 4,
+          col: (index % 2) * 6,
+          row: Math.floor(index / 2) * 4,
+        }));
+        await updateDashboardCards({ dashboard_id: dashboardId, cards });
+      }
+
+      actionContent.content = `Dashboard "${name}" created successfully with id ${dashboardId}`;
+    } catch (err: any) {
+      const errorMessage = err?.response?.message || err?.message || 'Unknown error';
+      actionContent.content = `<ERROR>Failed to create dashboard: ${errorMessage}</ERROR>`;
+    }
     return actionContent;
   }
 
