@@ -286,8 +286,8 @@ export const updateDashboard = createAPI<{
 export const addCardToDashboard = createAPI<{
   dashboard_id: number;
   cardId: number;
-  sizeX?: number;
-  sizeY?: number;
+  size_x?: number;
+  size_y?: number;
   col?: number;
   row?: number;
 }>(
@@ -301,8 +301,8 @@ export const updateDashboardCards = createAPI<{
   cards: Array<{
     id: number;
     card_id: number;
-    sizeX?: number;
-    sizeY?: number;
+    size_x: number;
+    size_y: number;
     col?: number;
     row?: number;
     series?: any[];

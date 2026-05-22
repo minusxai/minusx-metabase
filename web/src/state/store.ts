@@ -622,6 +622,11 @@ const migrations = {
     let newState = {...state}
     newState.settings.useV2API = true
     return newState
+  },
+  71: (state: RootState) => {
+    let newState = {...state}
+    newState.settings.enableMbEditTools = false
+    return newState
   }
 }
 
@@ -629,7 +634,7 @@ const BLACKLIST = ['billing', 'cache', userStateApi.reducerPath, atlasApi.reduce
 
 const persistConfig = {
   key: 'root',
-  version: 69,
+  version: 71,
   storage,
   blacklist: BLACKLIST,
   // @ts-ignore

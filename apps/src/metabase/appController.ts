@@ -720,8 +720,8 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         const cards = card_ids.map((cardId, index) => ({
           id: -index - 1,
           card_id: cardId,
-          sizeX: 6,
-          sizeY: 4,
+          size_x: 6,
+          size_y: 4,
           col: (index % 2) * 6,
           row: Math.floor(index / 2) * 4,
         }));

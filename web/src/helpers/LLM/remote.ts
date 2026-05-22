@@ -75,6 +75,13 @@ export async function planActionsRemote({
       payload.asset_slug = selectedAssetSlug;
       console.log('[minusx] Added asset_slug to request for enhanced context:', selectedAssetSlug);
     }
+
+    // Add edit tools flag
+    if (currentState.settings.enableMbEditTools) {
+      // @ts-ignore
+      payload.enable_mb_edit_tools = true;
+      console.log('[minusx] Added enable_mb_edit_tools to request');
+    }
   }
 
   //@ts-ignore
@@ -322,6 +329,12 @@ export async function planActionsRemoteV2({
   if (selectedAssetSlug && useTeamMemory) {
     payload.asset_slug = selectedAssetSlug
     console.log('[minusx] Added asset_slug to v2 request for enhanced context:', selectedAssetSlug)
+  }
+
+  // Add edit tools flag
+  if (state.settings.enableMbEditTools) {
+    payload.enable_mb_edit_tools = true
+    console.log('[minusx] Added enable_mb_edit_tools to v2 request')
   }
 
   // Make API call

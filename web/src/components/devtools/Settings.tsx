@@ -1,7 +1,7 @@
 import { Checkbox, Button, Input, VStack, Text, Link, HStack, Box, Divider, AbsoluteCenter, Stack, Switch, Textarea, Radio, RadioGroup, IconButton, Icon, Tag, TagLabel, Badge } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react';
 import { dispatch, logoutState, resetState } from '../../state/dispatch';
-import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setAnalystMode, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setUseV2States, setUseV2API } from '../../state/settings/reducer';
+import { updateIsLocal, updateIsDevToolsOpen, updateUploadLogs, updateDevToolsTabName, DevToolsTabName, setConfirmChanges, setDemoMode, setDRMode, setAnalystMode, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setUseV2States, setUseV2API, setEnableMbEditTools } from '../../state/settings/reducer';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
 import { configs } from '../../constants';
@@ -86,6 +86,7 @@ const SettingsPage = () => {
   const enableReviews = useSelector((state: RootState) => state.settings.enableReviews)
   const useV2States = useSelector((state: RootState) => state.settings.useV2States)
   const useV2API = useSelector((state: RootState) => state.settings.useV2API)
+  const enableMbEditTools = useSelector((state: RootState) => state.settings.enableMbEditTools)
   const metadataProcessingCache = useSelector((state: RootState) => state.settings.metadataProcessingCache)
   const isSubscribedOrEnterpriseCustomer = billing.isSubscribed || billing.isEnterpriseCustomer
 
@@ -191,6 +192,9 @@ const SettingsPage = () => {
   const updateUseV2API = (value: boolean) => {
     dispatch(setUseV2API(value))
   }
+  const updateEnableMbEditTools = (value: boolean) => {
+    dispatch(setEnableMbEditTools(value))
+  }
 
   // const CURRENT_ACTION_TESTS = ACTION_TESTS[tool];
   return (
@@ -293,6 +297,10 @@ const SettingsPage = () => {
           <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Use Memory</Text>
             <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={useMemory} onChange={(e) => updateUseMemory(e.target.checked)} />
+          </HStack>
+          <HStack justifyContent={"space-between"}>
+            <Text color={"minusxBW.800"} fontSize="sm">Save Questions & Dashboards</Text>
+            <Switch color={"minusxBW.800"} colorScheme='minusxGreen' size='md' isChecked={enableMbEditTools} onChange={(e) => updateEnableMbEditTools(e.target.checked)} />
           </HStack>
           {configs.IS_DEV && <HStack justifyContent={"space-between"}>
             <Text color={"minusxBW.800"} fontSize="sm">Style Customization</Text>

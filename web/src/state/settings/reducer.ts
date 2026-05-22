@@ -113,6 +113,7 @@ interface Settings {
   selectedAssetId: string | null
   assetsLoading: boolean
   useTeamMemory: boolean
+  enableMbEditTools: boolean
   savedQuestions: string[]
   notifyUserStatus: 'incoming' | 'ongoing' | 'complete'
   userCompanies: CompanyInfo[]
@@ -158,6 +159,7 @@ const initialState: Settings = {
   selectedAssetId: null,
   assetsLoading: false,
   useTeamMemory: true,
+  enableMbEditTools: false,
   savedQuestions: [],
   notifyUserStatus: 'incoming',
   userCompanies: [],
@@ -275,6 +277,9 @@ export const settingsSlice = createSlice({
     setUseTeamMemory: (state, action: PayloadAction<boolean>) => {
         state.useTeamMemory = action.payload
     },
+    setEnableMbEditTools: (state, action: PayloadAction<boolean>) => {
+        state.enableMbEditTools = action.payload
+    },
     setEnableHighlightHelpers: (state, action: PayloadAction<boolean>) => {
       state.enable_highlight_helpers = action.payload
     },
@@ -370,7 +375,7 @@ export const { updateIsLocal, updateUploadLogs,
   setIframeInfo, setConfirmChanges, setDemoMode, setAppRecording, setAiRules,
   applyTableDiff, setSelectedModels, setDRMode, setAnalystMode,
   resetDefaultTablesDB, setModelsMode, setViewAllCatalogs, setEnableHighlightHelpers, setUseMemory, addMemory, setCustomCSS, setEnableStyleCustomization, setEnableUserDebugTools, setEnableReviews, setMetadataHash, setMetadataProcessingCache, clearMetadataProcessingCache,
-  updateManualContextSelection, setUseV2States, setUseV2API, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, addSavedQuestion, removeSavedQuestion, setSavedQuestions,
+  updateManualContextSelection, setUseV2States, setUseV2API, setCurrentEmail, setAvailableAssets, setSelectedAssetId, setAssetsLoading, setUseTeamMemory, setEnableMbEditTools, addSavedQuestion, removeSavedQuestion, setSavedQuestions,
   updateNotifyUserStatus, setUserCompanies, setUserTeams
 } = settingsSlice.actions
 
