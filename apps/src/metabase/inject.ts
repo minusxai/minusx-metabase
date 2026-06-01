@@ -27,13 +27,19 @@ const getSelectedTextOnEditor = () => {
 }
 
 
-const dispatchMetabaseAction = (type: string, payload: any) => {
+const dispatchMetabaseAction = (type: string, payload: any, meta?: any) => {
     const store = get(window, 'Metabase.store')
     if (store && store.dispatch) {
-        store.dispatch({
+        const action: { type: string, payload: any, meta?: any } = {
             type,
             payload
-        })
+        }
+        // RTK createAsyncThunk actions (e.g. FETCH_DASHBOARD/fulfilled) carry a
+        // `meta` field; forward it when provided so those can be replayed.
+        if (meta !== undefined) {
+            action.meta = meta
+        }
+        store.dispatch(action)
     }
 }
 

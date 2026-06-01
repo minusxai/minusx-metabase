@@ -124,8 +124,8 @@ export const queryURL = () => sendMessage('queryURL', [])
 export const getMXToken = () => sendMessage('getMXToken', [])
 export const getMetabaseState = (path: Parameters<typeof get>[1]) =>
   sendMessage('getMetabaseState', [path], { log_rpc: false })
-export const dispatchMetabaseAction = (type: string, payload?: any) =>
-  sendMessage('dispatchMetabaseAction', [type, payload], { log_rpc: true, timeout: 1000 })
+export const dispatchMetabaseAction = (type: string, payload?: any, meta?: any) =>
+  sendMessage('dispatchMetabaseAction', [type, payload, meta], { log_rpc: true, timeout: 1000 })
 export const getSelectedTextOnEditor = () =>
   sendMessage('getSelectedTextOnEditor', [], { log_rpc: false })
 export const subscribeMetabaseState = (path: string) =>

@@ -51,7 +51,7 @@ import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCur
 import { runSQLQueryFromDashboard, runMBQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
-import { fetchTableMetadata, getSQLFromMBQL, saveCard, saveDashboard, updateDashboard, addCardToDashboard, updateDashboardCards, getDashboard } from "./helpers/metabaseAPI";
+import { fetchTableMetadata, getSQLFromMBQL, saveCard, saveDashboard, updateDashboard, addCardToDashboard, updateDashboardCards, getDashboard, runDashcardQuery } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
 import { replaceLLMFriendlyIdentifiersInSqlWithModels } from "./helpers/metabaseModels";
 
@@ -753,6 +753,13 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         await updateDashboardCards({ dashboard_id: dashboardId, cards: [...existingCards, ...newCards] });
       }
 
+      // Only when updating an existing dashboard: the user may be viewing it,
+      // so refresh Metabase's store in-place to show changes without a reload.
+      // (A brand-new dashboard isn't open yet, so there's nothing to refresh.)
+      if (dashboard_id) {
+        await this.refreshDashboardInStore(dashboard_id);
+      }
+
       const action = dashboard_id ? 'updated' : 'created';
       actionContent.content = `Dashboard "${name}" ${action} successfully with id ${dashboardId}`;
     } catch (err: any) {
@@ -760,6 +767,87 @@ export class MetabaseController extends AppController<MetabaseAppState> {
       actionContent.content = `<ERROR>Failed to save dashboard: ${errorMessage}</ERROR>`;
     }
     return actionContent;
+  }
+
+  // Refresh the currently-open dashboard in Metabase's Redux store without a
+  // page reload, by replaying the `FETCH_DASHBOARD/fulfilled` action that
+  // Metabase itself dispatches on load. The payload is rebuilt from the REST
+  // API (GET /api/dashboard/:id) which returns the same denormalized shape.
+  async refreshDashboardInStore(dashboardId: number) {
+    try {
+      // Only refresh if this dashboard is the one currently being viewed,
+      // otherwise we'd clobber whatever the user is actually looking at.
+      const dashboardState = await getDashboardState();
+      if (!dashboardState || dashboardState.dashboardId !== dashboardId) {
+        return;
+      }
+
+      const dashboard = await getDashboard({ dashboard_id: dashboardId });
+      const dashcards: any[] = dashboard.dashcards ?? [];
+
+      // Normalize: dashboards reference dashcards by id; the card stays embedded
+      // inside each dashcard (matching Metabase's FETCH_DASHBOARD payload).
+      const dashcardEntities = dashcards.reduce((acc: Record<number, any>, dc: any) => {
+        acc[dc.id] = dc;
+        return acc;
+      }, {});
+      const entities = {
+        dashboard: {
+          [dashboardId]: { ...dashboard, dashcards: dashcards.map((dc: any) => dc.id) },
+        },
+        dashcard: dashcardEntities,
+      };
+
+      const payload = {
+        entities,
+        dashboard,
+        dashboardId,
+        // Keep the user's current filter selections rather than resetting them.
+        parameterValues: dashboardState.parameterValues ?? {},
+        preserveParameters: true,
+      };
+      const meta = {
+        arg: {
+          dashId: dashboardId,
+          queryParams: {},
+          options: { clearCache: false, preserveParameters: true },
+        },
+        requestStatus: 'fulfilled',
+      };
+
+      await RPCs.dispatchMetabaseAction('metabase/dashboard/FETCH_DASHBOARD/fulfilled', payload, meta);
+
+      // The FETCH_DASHBOARD action only puts the dashcards in the store; it does
+      // not run their queries, so freshly-added cards render blank. Run the query
+      // for any dashcard that has no cached data yet and replay FETCH_CARD_DATA
+      // so Metabase populates dashcardData and the card renders its results.
+      const existingData: Record<number, any> = dashboardState.dashcardData ?? {};
+      const cardsNeedingData = dashcards.filter((dc: any) => dc.card_id != null && !existingData[dc.id]);
+      await Promise.all(cardsNeedingData.map(async (dc: any) => {
+        try {
+          const result = await runDashcardQuery({
+            dashboard_id: dashboardId,
+            dashcard_id: dc.id,
+            card_id: dc.card_id,
+            parameters: [],
+          });
+          await RPCs.dispatchMetabaseAction(
+            'metabase/dashboard/FETCH_CARD_DATA/fulfilled',
+            { dashcard_id: dc.id, card_id: dc.card_id, result },
+            {
+              arg: { card: dc.card, dashcard: dc, options: { reload: false, clearCache: false } },
+              requestStatus: 'fulfilled',
+            },
+          );
+        } catch (cardErr) {
+          console.warn(`Failed to load data for dashcard ${dc.id}`, cardErr);
+        }
+      }));
+    } catch (err) {
+      // Best-effort: if anything goes wrong the dashboard still updates on a
+      // manual refresh, so don't fail the whole SaveDashboard action.
+      console.warn('Failed to refresh dashboard in store', err);
+    }
   }
 
   // 1. Internal actions -------------------------------------------

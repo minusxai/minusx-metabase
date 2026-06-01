@@ -319,3 +319,16 @@ export const updateDashboardCards = createAPI<{
   'PUT',
   { cache_ttl: 0 }
 );
+
+// Runs a single dashboard card's query and returns its dataset result. Used to
+// hydrate dashcardData in Metabase's store after adding cards without a reload.
+export const runDashcardQuery = createAPI<{
+  dashboard_id: number;
+  dashcard_id: number;
+  card_id: number;
+  parameters?: any[];
+}>(
+  '/api/dashboard/{{dashboard_id}}/dashcard/{{dashcard_id}}/card/{{card_id}}/query',
+  'POST',
+  { cache_ttl: 0 }
+);
