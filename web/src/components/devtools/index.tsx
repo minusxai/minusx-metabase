@@ -118,6 +118,9 @@ export const DevToolsBox: React.FC = () => {
         if (isInfoPageEnabled && Monitor.title == 'Context') {
           return true
         }
+        if (isInfoPageEnabled && Monitor.title == 'General Settings') {
+          return true
+        }
         return false    
     }
     
