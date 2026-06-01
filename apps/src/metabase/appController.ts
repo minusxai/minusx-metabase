@@ -51,7 +51,7 @@ import { getSelectedDbId, getCurrentUserInfo as getUserInfo, getSnippets, getCur
 import { runSQLQueryFromDashboard, runMBQLQueryFromDashboard } from "./helpers/dashboard/runSqlQueryFromDashboard";
 import { getAllRelevantModelsForSelectedDb, getTableData } from "./helpers/metabaseAPIHelpers";
 import { processSQLWithCtesOrModels, dispatch, updateIsDevToolsOpen, updateDevToolsTabName, addMemory } from "web";
-import { fetchTableMetadata, getSQLFromMBQL, saveCard, saveDashboard, addCardToDashboard, updateDashboardCards } from "./helpers/metabaseAPI";
+import { fetchTableMetadata, getSQLFromMBQL, saveCard, saveDashboard, updateDashboard, addCardToDashboard, updateDashboardCards, getDashboard } from "./helpers/metabaseAPI";
 import { getSourceTableIds } from "./helpers/mbql/utils";
 import { replaceLLMFriendlyIdentifiersInSqlWithModels } from "./helpers/metabaseModels";
 
@@ -697,41 +697,67 @@ export class MetabaseController extends AppController<MetabaseAppState> {
   }
 
   @Action({
-    labelRunning: "Creating dashboard",
-    labelDone: "Dashboard created",
-    labelTask: "Create dashboard",
-    description: "Creates a new dashboard in Metabase, optionally adding saved question cards to it.",
-    renderBody: ({ name, card_ids }: { name: string, card_ids?: number[] }) => {
+    labelRunning: "Saving dashboard",
+    labelDone: "Dashboard saved",
+    labelTask: "Save dashboard",
+    description: "Creates a new dashboard or updates an existing one in Metabase, optionally adding saved question cards to it. Pass dashboard_id to update an existing dashboard instead of creating a new one.",
+    renderBody: ({ name, dashboard_id, card_ids }: { name: string, dashboard_id?: number, card_ids?: number[] }) => {
       const cardInfo = card_ids && card_ids.length > 0 ? ` with ${card_ids.length} card(s)` : '';
-      return { text: `Creating dashboard "${name}"${cardInfo}`, code: null }
+      const action = dashboard_id ? `Updating dashboard ${dashboard_id}` : `Creating dashboard "${name}"`;
+      return { text: `${action}${cardInfo}`, code: null }
     }
   })
-  async SaveDashboard({ name, description, collection_id, card_ids = [] }: { name: string, description?: string, collection_id?: number, card_ids?: number[] }) {
+  async SaveDashboard({ name, description, collection_id, card_ids = [], dashboard_id }: { name: string, description?: string, collection_id?: number, card_ids?: number[], dashboard_id?: number }) {
     const actionContent: BlankMessageContent = { type: "BLANK" };
     try {
-      const dashboard = await saveDashboard({
-        name,
-        collection_id: collection_id ?? null,
-        description: description ?? null,
-      });
-      const dashboardId = dashboard.id;
+      let dashboardId: number;
+
+      if (dashboard_id) {
+        await updateDashboard({
+          dashboard_id,
+          name,
+          collection_id: collection_id ?? null,
+          description: description ?? null,
+        });
+        dashboardId = dashboard_id;
+      } else {
+        const dashboard = await saveDashboard({
+          name,
+          collection_id: collection_id ?? null,
+          description: description ?? null,
+        });
+        dashboardId = dashboard.id;
+      }
 
       if (card_ids.length > 0) {
-        const cards = card_ids.map((cardId, index) => ({
+        // When updating an existing dashboard, preserve its current cards
+        // (and their positions/sizes) since updateDashboardCards replaces the
+        // entire set of dashcards rather than appending.
+        let existingCards: any[] = [];
+        if (dashboard_id) {
+          const dashboard = await getDashboard({ dashboard_id });
+          existingCards = dashboard.dashcards ?? [];
+        }
+        // Place new cards below the existing layout to avoid overlaps.
+        const startRow = existingCards.length > 0
+          ? Math.max(...existingCards.map((c: any) => (c.row ?? 0) + (c.size_y ?? 0)))
+          : 0;
+        const newCards = card_ids.map((cardId, index) => ({
           id: -index - 1,
           card_id: cardId,
           size_x: 6,
           size_y: 4,
           col: (index % 2) * 6,
-          row: Math.floor(index / 2) * 4,
+          row: startRow + Math.floor(index / 2) * 4,
         }));
-        await updateDashboardCards({ dashboard_id: dashboardId, cards });
+        await updateDashboardCards({ dashboard_id: dashboardId, cards: [...existingCards, ...newCards] });
       }
 
-      actionContent.content = `Dashboard "${name}" created successfully with id ${dashboardId}`;
+      const action = dashboard_id ? 'updated' : 'created';
+      actionContent.content = `Dashboard "${name}" ${action} successfully with id ${dashboardId}`;
     } catch (err: any) {
       const errorMessage = err?.response?.message || err?.message || 'Unknown error';
-      actionContent.content = `<ERROR>Failed to create dashboard: ${errorMessage}</ERROR>`;
+      actionContent.content = `<ERROR>Failed to save dashboard: ${errorMessage}</ERROR>`;
     }
     return actionContent;
   }

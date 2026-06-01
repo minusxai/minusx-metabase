@@ -258,6 +258,13 @@ export const updateCard = createAPI<{
   { cache_ttl: 0 }
 );
 
+// Dashboard Read Operations
+export const getDashboard = createAPI<{ dashboard_id: number }>(
+  '/api/dashboard/{{dashboard_id}}',
+  'GET',
+  { cache_ttl: 0 }
+);
+
 // Dashboard Save Operations
 export const saveDashboard = createAPI<{
   name: string;
