@@ -745,10 +745,10 @@ export class MetabaseController extends AppController<MetabaseAppState> {
         const newCards = card_ids.map((cardId, index) => ({
           id: -index - 1,
           card_id: cardId,
-          size_x: 6,
-          size_y: 4,
-          col: (index % 2) * 6,
-          row: startRow + Math.floor(index / 2) * 4,
+          size_x: 12,
+          size_y: 8,
+          col: (index % 2) * 12,
+          row: startRow + Math.floor(index / 2) * 8,
         }));
         await updateDashboardCards({ dashboard_id: dashboardId, cards: [...existingCards, ...newCards] });
       }
