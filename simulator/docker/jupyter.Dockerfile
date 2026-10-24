@@ -40,7 +40,7 @@ ENV LD_LIBRARY_PATH=/expat-stage/usr/lib
 WORKDIR /python-source
 RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
     && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
-    && CPPFLAGS="-I/expat-stage/usr/include" LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now" \
+    && CPPFLAGS="-I/expat-stage/usr/include" LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now -Wl,--strip-all" \
        ./configure --build="$gnuArch" --prefix=/usr/local \
        --enable-loadable-sqlite-extensions --enable-option-checking=fatal --enable-shared \
        --with-lto --with-ensurepip --with-system-expat \
@@ -48,7 +48,7 @@ RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
     && LD_LIBRARY_PATH=/python-source:/expat-stage/usr/lib ./python -m test -j2 \
        test_pyexpat test_xml_etree test_xml_etree_c test_xml_dom_minidom test_xml_sax \
     && rm python \
-    && make -j2 LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now -Wl,-rpath='\$\$ORIGIN/../lib'" python \
+    && make -j2 LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now -Wl,--strip-all -Wl,-rpath='\$\$ORIGIN/../lib'" python \
     && make DESTDIR=/python-stage install \
     && find /python-stage/usr/local -depth \
        \( \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
