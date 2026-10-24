@@ -71,6 +71,8 @@ jobs:
         run: |
           docker run --detach --name project-notebook-fixture --publish 127.0.0.1:8888:8888 --env JUPYTER_TOKEN=local-notebook-fixture project-notebook-fixture
           node simulator/test/notebook.cjs
+      - name: Verify concrete notebook XML runtime
+        run: docker exec -i project-notebook-fixture python - < simulator/test/expat.py
       - name: Remove notebook fixture
         if: always()
         run: |
