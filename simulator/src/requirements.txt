@@ -1,0 +1,10 @@
+# Editable notebook environment input; install the hash-pinned lock file.
+jupyterlab
+notebook
+pandas
+numpy
+plotly
+
+# Keep pip's bundled HTTP/cache clients on compatible patched releases.
+msgpack==1.2.1
+urllib3>=2.8.0

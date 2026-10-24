@@ -44,3 +44,15 @@ jobs:
       - run: corepack yarn workspace web test --run
       - run: corepack yarn workspace web build
       - run: corepack yarn workspace extension build
+      - name: Build notebook environment
+        run: docker build --file simulator/docker/jupyter.Dockerfile --tag project-notebook-fixture simulator/src
+      - name: Verify notebook execution
+        run: |
+          docker run --detach --name project-notebook-fixture --publish 127.0.0.1:8888:8888 --env JUPYTER_TOKEN=local-notebook-fixture project-notebook-fixture
+          node simulator/test/notebook.cjs
+      - name: Remove notebook fixture
+        if: always()
+        run: |
+          if docker container inspect project-notebook-fixture >/dev/null 2>&1; then
+            docker rm --force project-notebook-fixture
+          fi
