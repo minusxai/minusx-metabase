@@ -1,0 +1,7 @@
+Upstream Expat 2.9.0 bounded security backports; preserve upstream MIT license and patch authorship.
+CVE-2026-115506: https://github.com/libexpat/libexpat/pull/1433
+Merge c30145b28632b31f805d57f9838ba36b8db99367, first three commits041b6cd115cde31a28375abc6e96e83ddab400fe,d89d67e0d7f0917b0a65ec8bb54fc8d66c1049d2,eb525ded2da77214926e20af9ad8b260e073df5c apply unchanged.
+Excluded optional fourth debug-output-only commit711a9b2d9fcae0dc622b3d7edb73b0ad3026c942, whose context differs on2.9.0.
+CVE-2026-113351: https://github.com/libexpat/libexpat/pull/1431
+Merge d8f31e647a4d1eda088e89354f4769b0dad303d3, all six production changes and upstream regression tests retained. One patch5 context line is adjusted for the accounting prototype introduced by PR1433; production additions/deletions unchanged. GNU patch --fuzz=0 enforces exact application.
+CVE-2025-66382 is separate and remains upstream-unfixed; no comprehensive Expat clearance claimed.

@@ -1,4 +1,74 @@
-FROM python:3.13.17-alpine@sha256:fa0bb0d0cd7c7d6cef30a69094d32ac2b71c7304c87c6107fec100e1ee4eda02
+ARG PYTHON_IMAGE=python:3.13.17-alpine@sha256:fa0bb0d0cd7c7d6cef30a69094d32ac2b71c7304c87c6107fec100e1ee4eda02
+FROM ${PYTHON_IMAGE} AS xml-source
+RUN apk add --no-cache build-base autoconf automake libtool openssl bash
+ADD --checksum=sha256:16afbb9cefead2aa278105cf27d9f597bde7fbf3dbb85015857ca7ca6a4e89ba https://github.com/libexpat/libexpat/releases/download/R_2_9_0/expat-2.9.0.tar.gz /tmp/expat.tar.gz
+COPY expat-patches /patches
+RUN cd /patches && sha256sum -c SHA256SUMS
+WORKDIR /expat-source
+RUN tar -xzf /tmp/expat.tar.gz --strip-components=1 -C . \
+    && patch --batch --fuzz=0 -p2 < /patches/00-amplification.patch \
+    && patch --batch --fuzz=0 -p2 < /patches/01-reset.patch \
+    && CFLAGS="-O2 -fstack-protector-strong -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3" \
+       LDFLAGS="-Wl,-z,relro,-z,now" ./configure --prefix=/usr --disable-static --without-docbook \
+    && make -j2 && make check && make DESTDIR=/expat-stage install
+RUN mkdir -p /pkg/usr/lib /pkg/usr/share/doc/libexpat /out \
+    && cp -a /expat-stage/usr/lib/libexpat.so.* /pkg/usr/lib/ \
+    && cp COPYING /pkg/usr/share/doc/libexpat/copyright \
+    && cp tests/test-suite.log /pkg/usr/share/doc/libexpat/upstream-tests.log \
+    && cp -a /patches /pkg/usr/share/doc/libexpat/patches \
+    && openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /tmp/runtime.rsa \
+    && openssl pkey -in /tmp/runtime.rsa -pubout -out /out/runtime-expat.rsa.pub \
+    && apk mkpkg --sign-key /tmp/runtime.rsa --files /pkg --output /out/libexpat.apk \
+       --info name:libexpat --info version:2.9.0_p20261023-r0 --info arch:$(apk --print-arch) \
+       --info origin:expat --info license:MIT --info url:https://libexpat.github.io/ \
+       --info description:'Expat XML parser with upstream backports' \
+       --info depends:so:libc.musl-$(apk --print-arch).so.1 --info provides:so:libexpat.so.1=1.13.0 \
+    && cp /out/runtime-expat.rsa.pub /etc/apk/keys/ && apk verify /out/libexpat.apk \
+    && cc /patches/check-expat.c -I/expat-stage/usr/include -L/expat-stage/usr/lib -lexpat -o /out/check-expat \
+    && LD_LIBRARY_PATH=/expat-stage/usr/lib /out/check-expat \
+    && rm /tmp/runtime.rsa
+
+FROM ${PYTHON_IMAGE} AS python-source
+# Match the official image's same-version interpreter configuration and runtime ABI.
+RUN apk add --no-cache bluez-dev bzip2-dev dpkg-dev dpkg findutils g++ gcc \
+    gdbm-dev libc-dev libffi-dev libnsl-dev libtirpc-dev linux-headers make \
+    ncurses-dev openssl-dev pax-utils readline-dev sqlite-dev tar tcl-dev tk tk-dev \
+    util-linux-dev xz xz-dev zlib-dev
+COPY --from=xml-source /expat-stage/ /expat-stage/
+ADD --checksum=sha256:6020bd10aff3bf4821be16f088ebb1591beb7b811dcd8fab1da8f7c22a7b27e7 https://www.python.org/ftp/python/3.13.17/Python-3.13.17.tar.xz /tmp/python.tar.xz
+ENV LD_LIBRARY_PATH=/expat-stage/usr/lib
+WORKDIR /python-source
+RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
+    && gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)" \
+    && CPPFLAGS="-I/expat-stage/usr/include" LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now" \
+       ./configure --build="$gnuArch" --prefix=/usr/local \
+       --enable-loadable-sqlite-extensions --enable-option-checking=fatal --enable-shared \
+       --with-lto --with-ensurepip --with-system-expat \
+    && make -j2 EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer" \
+    && LD_LIBRARY_PATH=/python-source:/expat-stage/usr/lib ./python -m test -j2 \
+       test_pyexpat test_xml_etree test_xml_etree_c test_xml_dom_minidom test_xml_sax \
+    && rm python \
+    && make -j2 LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now -Wl,-rpath='\$\$ORIGIN/../lib'" python \
+    && make DESTDIR=/python-stage install \
+    && find /python-stage/usr/local -depth \
+       \( \( -type d -a \( -name test -o -name tests -o -name idle_test \) \) \
+       -o \( -type f -a \( -name '*.pyc' -o -name '*.pyo' -o -name 'libpython*.a' \) \) \) -exec rm -rf '{}' + \
+    && module=$(find /python-stage/usr/local/lib/python3.13/lib-dynload -name 'pyexpat.*.so') \
+    && test -n "$module" && scanelf --needed --nobanner "$module" | grep 'libexpat.so.1' \
+    && nm -D "$module" | grep ' U XML_SetHashSalt16Bytes' \
+    && mkdir -p /python-stage/usr/local/share \
+    && printf '%s\n' '{"python":"3.13.17","source":"https://www.python.org/ftp/python/3.13.17/Python-3.13.17.tar.xz","sha256":"6020bd10aff3bf4821be16f088ebb1591beb7b811dcd8fab1da8f7c22a7b27e7","configuration":"Official Alpine shared interpreter configuration plus --with-system-expat","expat":"2.9.0_p20261023-r0"}' > /python-stage/usr/local/share/python-runtime.json
+
+FROM ${PYTHON_IMAGE}
+COPY --from=xml-source /out/runtime-expat.rsa.pub /etc/apk/keys/runtime-expat.rsa.pub
+COPY --from=xml-source /out/libexpat.apk /out/check-expat /tmp/
+RUN apk verify /tmp/libexpat.apk && apk add --no-cache /tmp/libexpat.apk \
+    && /tmp/check-expat && apk list --installed libexpat | grep -q '^libexpat-2.9.0_p20261023-r0 ' \
+    && cd /usr/share/doc/libexpat/patches && sha256sum -c SHA256SUMS \
+    && rm /tmp/libexpat.apk /tmp/check-expat
+COPY --from=python-source /python-stage/usr/local/ /usr/local/
+RUN python -c 'import pyexpat; assert pyexpat.EXPAT_VERSION == "expat_2.9.0"'
+
 
 RUN adduser -D -u 1000 -G users jovyan
 COPY requirements.txt requirements.lock.txt refresh_pip_clients.py /tmp/notebook-environment/
