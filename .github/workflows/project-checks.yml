@@ -16,10 +16,28 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
-        with:
-          node-version: '22.23.4'
+      - name: Check out requested commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          gh repo clone "$GITHUB_REPOSITORY" . -- --depth=1
+          git fetch --depth=1 origin "$CHECKOUT_SHA"
+          git checkout --detach FETCH_HEAD
+      - name: Install pinned Node runtime
+        env:
+          NODE_VERSION: '22.23.4'
+        run: |
+          archive="node-v${NODE_VERSION}-linux-x64.tar.xz"
+          runtime_dir="$RUNNER_TEMP/project-node"
+          mkdir -p "$runtime_dir"
+          cd "$runtime_dir"
+          curl --fail --silent --show-error --location --retry 3 "https://nodejs.org/dist/v${NODE_VERSION}/$archive" -o "$archive"
+          curl --fail --silent --show-error --location --retry 3 "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" -o SHASUMS256.txt
+          awk -v archive="$archive" '$2 == archive { print; found = 1 } END { if (!found) exit 1 }' SHASUMS256.txt > archive.sha256
+          sha256sum --check archive.sha256
+          tar --extract --xz --file "$archive" --strip-components=1
+          echo "$runtime_dir/bin" >> "$GITHUB_PATH"
       - run: corepack enable
       - run: corepack yarn install --immutable
       - run: corepack yarn workspace web test --run
