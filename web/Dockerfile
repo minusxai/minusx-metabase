@@ -1,3 +1,7 @@
+FROM golang:1.27.3-bookworm@sha256:972b4110ba0f47539a975c31e52c64765e1ff19f2d74469ae4a595c6676e80a5 AS esbuild-runtime
+COPY scripts/rebuild-esbuild.sh /tmp/rebuild-esbuild.sh
+RUN bash /tmp/rebuild-esbuild.sh /out
+
 FROM node:22.23.4-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
 
 COPY scripts/patch-npm.mjs /tmp/patch-npm.mjs
@@ -13,7 +17,11 @@ COPY extension/package.json ./extension/package.json
 COPY simulator/package.json ./simulator/package.json
 COPY apps/package.json ./apps/package.json
 # Install the complete workspace graph once, including native build hooks.
+COPY --from=esbuild-runtime /out /opt/esbuild
+ENV ESBUILD_BINARY_PATH=/opt/esbuild/0.28.2/esbuild
 RUN corepack enable && corepack yarn install --immutable
+COPY scripts/patch-esbuild.mjs /tmp/patch-esbuild.mjs
+RUN node /tmp/patch-esbuild.mjs
 COPY . .
 ENV UV_USE_IO_URING=0
 ARG GIT_COMMIT_ID=container
