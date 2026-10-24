@@ -14,6 +14,7 @@ import zipfile
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import pip._vendor
 import pip._vendor.msgpack as cache_codec
 import pip._vendor.urllib3 as http_client
 
@@ -21,6 +22,9 @@ assert os.getuid() == 1000
 assert Path.home() == Path('/home/jovyan')
 assert cache_codec.__version__ == '1.2.1'
 assert http_client.__version__ == '2.8.0'
+# Pip vendors only pkg_resources, not the setuptools installer modules.
+assert importlib.util.find_spec('pip._vendor.setuptools') is None
+assert not list(Path(pip._vendor.__file__).parent.rglob('package_index.py'))
 assert cache_codec.unpackb(cache_codec.packb({'fixture': 7})) == {'fixture': 7}
 
 with tempfile.TemporaryDirectory(dir='/home/jovyan/data') as directory:

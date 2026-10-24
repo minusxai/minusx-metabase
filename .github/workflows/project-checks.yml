@@ -14,7 +14,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Check out requested commit
         env:
@@ -39,6 +39,11 @@ jobs:
           sha256sum --check archive.sha256
           tar --extract --xz --file "$archive" --strip-components=1
           echo "$runtime_dir/bin" >> "$GITHUB_PATH"
+      - name: Refresh npm toolchain
+        run: |
+          npm install --global --no-audit --no-fund npm@12.2.1
+          node scripts/patch-npm.mjs
+          npm cache clean --force
       - run: corepack enable
       - run: corepack yarn install --immutable
       - run: corepack yarn workspace web test --run
@@ -56,3 +61,7 @@ jobs:
           if docker container inspect project-notebook-fixture >/dev/null 2>&1; then
             docker rm --force project-notebook-fixture
           fi
+      - name: Build web image
+        run: docker build --file web/Dockerfile --build-arg GIT_COMMIT_ID="$GITHUB_SHA" --tag project-web-fixture .
+      - name: Verify web image
+        run: node scripts/web-runtime.cjs
