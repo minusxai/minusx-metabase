@@ -41,7 +41,7 @@
     "@types/chrome": "^0.0.269",
     "babel-loader": "^8.3.0",
     "clean-webpack-plugin": "^4.0.0",
-    "copy-webpack-plugin": "^7.0.0",
+    "copy-webpack-plugin": "^14",
     "crx3": "^1.1.3",
     "css-loader": "^6.7.3",
     "eslint": "^8.31.0",
@@ -56,7 +56,7 @@
     "terser-webpack-plugin": "^5.3.6",
     "typescript": "5",
     "webpack": "^5.75.0",
-    "webpack-dev-server": "^4.11.1"
+    "webpack-dev-server": "^5"
   },
   "packageManager": "yarn@4.3.1"
 }
