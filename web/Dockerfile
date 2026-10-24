@@ -21,9 +21,9 @@ RUN sh ./install-pyenv.sh
 ENV PATH="/root/.pyenv/shims:/root/.pyenv/bin:$PATH"
 ENV PYENV_ROOT="/root/.pyenv"
 
-# Install Python 3.11.4 using pyenv
-RUN pyenv install 3.11.4
-RUN pyenv global 3.11.4
+# Install Python 3.11.17 using pyenv
+RUN pyenv install 3.11.17
+RUN pyenv global 3.11.17
 
 RUN mkdir -p web
 
