@@ -21,6 +21,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CHECKOUT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
+          gh auth setup-git
           gh repo clone "$GITHUB_REPOSITORY" . -- --depth=1
           git fetch --depth=1 origin "$CHECKOUT_SHA"
           git checkout --detach FETCH_HEAD
