@@ -9327,6 +9327,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"fake-indexeddb@npm:^6.2.6":
+  version: 6.2.6
+  resolution: "fake-indexeddb@npm:6.2.6"
+  checksum: 10c0/d55b3155548f08da1c9d7552314eed30fd1880c1f7643654c8b0c1fdf80591682d9f88e7a5c481113f48b994cb09820d61eee0dd8b966ca4f4497fce0eb748de
+  languageName: node
+  linkType: hard
+
 "fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
@@ -17108,6 +17115,7 @@ __metadata:
     eslint-plugin-jest: "npm:^29.0.1"
     eslint-plugin-prettier: "npm:^4.2.1"
     eslint-plugin-unused-imports: "npm:^2.0.0"
+    fake-indexeddb: "npm:^6.2.6"
     framer-motion: "npm:^8.4.3"
     idb: "npm:^8.0.0"
     jest: "npm:30.0.0-alpha.5"

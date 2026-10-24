@@ -1,25 +1,6 @@
-import { vi, describe, it, expect } from "vitest";
+import "fake-indexeddb/auto";
+import { describe, it, expect } from "vitest";
 
-// test that the cache is working as expected
-// test/setup.ts or in your test file
-vi.mock('./indexedDB', () => {
-    const inMemoryCache = new Map();
-    
-    return {
-        getCache: vi.fn(async (key) => {
-            return inMemoryCache.get(key) ?? null;
-        }),
-        setCache: vi.fn(async (key, value) => {
-            inMemoryCache.set(key, { data: value, createdAt: Date.now() });
-        }),
-        deleteCache: vi.fn(async (key) => {
-            inMemoryCache.delete(key);
-        }),
-        resetCache: vi.fn(async () => {
-            inMemoryCache.clear();
-        }),
-    };
-});
 import { memoize } from "./cache";
 import { resetCache } from "./indexedDb";
 
