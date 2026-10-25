@@ -41,7 +41,7 @@ ADD --checksum=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c7
 ADD --checksum=sha256:04c721c2c7448767e9e3f2520a475663d8ee0f09c31890f6d2bd70fd636a9647 https://files.pythonhosted.org/packages/31/f9/c0a1c127f9049db9155afc316952ea571720dd01833ff5e4d7e8e6352dbb/msgpack-1.2.1.tar.gz /bootstrap/msgpack-1.2.1.tar.gz
 COPY python-bootstrap /python-bootstrap
 RUN python /python-bootstrap/patch-pip-wheel.py /bootstrap/pip-26.2.2-py3-none-any.whl /bootstrap/urllib3-2.8.0-py3-none-any.whl /bootstrap/msgpack-1.2.1.tar.gz /bootstrap/patched/pip-26.2.2-py3-none-any.whl \
-    && printf '%s  %s\n' 3b0620d6061cdd040e834a681cd3bfc34f8196dfb6e9a743d15c77ed4fda2d90 /bootstrap/patched/pip-26.2.2-py3-none-any.whl | sha256sum --check
+    && printf '%s  %s\n' 3b0620d6061cdd040e834a681cd3bfc34f8196dfb6e9a743d15c77ed4fda2d90 /bootstrap/patched/pip-26.2.2-py3-none-any.whl | sha256sum -c
 ENV LD_LIBRARY_PATH=/expat-stage/usr/lib
 WORKDIR /python-source
 RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
