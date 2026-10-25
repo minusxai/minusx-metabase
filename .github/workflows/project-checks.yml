@@ -14,7 +14,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Check out requested commit
         env:
@@ -83,3 +83,41 @@ jobs:
         run: docker build --file web/Dockerfile --build-arg GIT_COMMIT_ID="$GITHUB_SHA" --tag project-web-fixture .
       - name: Verify web image
         run: node scripts/web-runtime.cjs
+      - name: Release completed image build cache
+        run: docker builder prune --all --force
+      - name: Record complete tested image inventories
+        run: |
+          mkdir -p runtime-raw
+          for component in notebook web; do
+            image="project-${component}-fixture"
+            docker image inspect --format '{{.Id}}' "$image" > "runtime-raw/${component}-image-id.txt"
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v "$PWD/runtime-raw:/reports" \
+              aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c \
+              image --image-src docker --scanners vuln --list-all-pkgs \
+              --severity UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL \
+              --ignore-unfixed=false --ignorefile /dev/null --exit-code 0 \
+              --format json --output "/reports/${component}-scan.json" --timeout 10m \
+              "$image"
+          done
+      - name: Bind inventories to tested images and source
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python3 scripts/report-runtime.py \
+            --image-id runtime-raw/notebook-image-id.txt --scan runtime-raw/notebook-scan.json \
+            --output runtime-reports/notebook-dependencies.json \
+            --sources simulator/docker/jupyter.Dockerfile simulator/src/requirements.lock.txt simulator/src/expat-patches/SHA256SUMS simulator/src/python-bootstrap/patch-pip-wheel.py simulator/src/python-bootstrap/refresh-bootstrap.py simulator/src/python-bootstrap/check-pip-vendors.py simulator/test/expat.py simulator/test/notebook.cjs scripts/report-runtime.py
+          python3 scripts/report-runtime.py \
+            --image-id runtime-raw/web-image-id.txt --scan runtime-raw/web-scan.json \
+            --output runtime-reports/web-dependencies.json \
+            --sources web/Dockerfile yarn.lock scripts/patch-npm.mjs scripts/patch-esbuild.mjs scripts/rebuild-esbuild.sh scripts/web-runtime.cjs scripts/report-runtime.py
+      - name: Upload tested runtime inventories
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tested-images-${{ github.sha }}
+          path: runtime-reports/*.json
+          if-no-files-found: error
+          retention-days: 14
