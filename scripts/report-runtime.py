@@ -14,6 +14,9 @@ parser.add_argument("--sources", nargs="+", required=True)
 args = parser.parse_args()
 raw = json.loads(args.scan.read_text())
 metadata = raw["Metadata"]
+results = raw.get("Results")
+assert isinstance(results, list) and results, "Scanner returned no dependency results"
+assert any(isinstance(result.get("Packages"), list) and result["Packages"] for result in results), "Scanner returned no package inventory"
 image_id = args.image_id.read_text().strip()
 assert image_id.startswith("sha256:") and len(image_id) == 71, "Invalid built image ID"
 assert metadata["ImageID"] == image_id, "Scan does not describe the tested image"
@@ -27,7 +30,7 @@ report = {
     "ArtifactName": raw.get("ArtifactName"),
     "ArtifactType": raw.get("ArtifactType"),
     "Metadata": {key: metadata.get(key) for key in ("ImageID", "DiffIDs", "OS")},
-    "Results": raw.get("Results", []),
+    "Results": results,
     "coverage_limits": "All severity and unfixed scanner records retained; an absent fixed version does not establish no upstream fix. Custom runtime builds require source and test evidence alongside vendor release triage.",
 }
 args.output.parent.mkdir(parents=True, exist_ok=True)
