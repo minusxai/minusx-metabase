@@ -84,7 +84,8 @@ RUN apk verify /tmp/libexpat.apk && apk add --no-cache /tmp/libexpat.apk \
 RUN rm -rf /usr/local/lib/python3.13/ensurepip/_bundled
 COPY --from=python-source /python-stage/usr/local/ /usr/local/
 RUN --mount=from=python-source,source=/python-runtime-deps,target=/tmp/python-runtime-deps \
-    apk add --no-cache $(cat /tmp/python-runtime-deps)
+    apk add --no-cache $(cat /tmp/python-runtime-deps) \
+    && apk list --installed libexpat | grep -q '^libexpat-2.9.0_p20261023-r0 '
 RUN --mount=from=python-source,source=/bootstrap/patched/pip-26.2.2-py3-none-any.whl,target=/tmp/pip-26.2.2-py3-none-any.whl \
     --mount=from=python-source,source=/python-bootstrap/check-pip-vendors.py,target=/tmp/check-pip-vendors.py \
     python -m pip install --no-index --no-deps --force-reinstall /tmp/pip-26.2.2-py3-none-any.whl \
