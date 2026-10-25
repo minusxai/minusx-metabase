@@ -46,7 +46,7 @@ RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
        --with-lto --with-ensurepip --with-system-expat \
     && make -j2 EXTRA_CFLAGS="-DTHREAD_STACK_SIZE=0x100000 -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer" \
     && LD_LIBRARY_PATH=/python-source:/expat-stage/usr/lib ./python -m test -j2 \
-       test_pyexpat test_xml_etree test_xml_etree_c test_xml_dom_minidom test_xml_sax \
+       test_pyexpat test_xml_etree test_xml_etree_c test_minidom test_sax \
     && rm python \
     && make -j2 LDFLAGS="-L/expat-stage/usr/lib -Wl,-z,relro,-z,now -Wl,--strip-all -Wl,-rpath='\$\$ORIGIN/../lib'" python \
     && make DESTDIR=/python-stage install \
