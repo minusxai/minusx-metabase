@@ -1,10 +1,15 @@
 """Report the concrete notebook XML runtime and check its Python reader boundary."""
 import json
+import importlib
 import platform
 import struct
 from pathlib import Path
 import sys
 import pyexpat
+
+runtime_modules = ["ssl", "sqlite3", "bz2", "lzma", "ctypes", "readline", "tkinter", "uuid", "dbm.gnu", "dbm.ndbm"]
+for module in runtime_modules:
+    importlib.import_module(module)
 
 parser = pyexpat.ParserCreate()
 elements = []
@@ -41,6 +46,7 @@ print(json.dumps({
     "module": getattr(pyexpat, "__file__", "built into interpreter"),
     "loaded_libraries": loaded_libraries,
     "normal_parse": "pass",
+    "standard_library_imports": runtime_modules,
     "overlong_reader_rejection": rejection,
     "scope": "Concrete image architecture and reviewed Python interface only; no blanket Expat or native caller clearance.",
 }, sort_keys=True))
