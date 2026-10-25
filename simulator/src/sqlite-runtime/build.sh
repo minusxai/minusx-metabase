@@ -2,7 +2,7 @@
 set -eu
 recipe=/sqlite-runtime
 mkdir -p /sqlite-original /out /sqlite-stage
-apk info -v sqlite-libs | grep -Fx 'sqlite-libs-3.53.4-r0'
+apk info --exists 'sqlite-libs=3.53.4-r0'
 apk info -L sqlite-libs > /out/original-package-files.txt
 python - <<'CHECK'
 from pathlib import Path

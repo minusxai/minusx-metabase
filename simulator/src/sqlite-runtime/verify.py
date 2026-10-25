@@ -9,7 +9,7 @@ from pathlib import Path
 receipt = Path('/usr/share/doc/sqlite-libs/runtime')
 library = Path('/usr/lib/libsqlite3.so.0').resolve()
 assert hashlib.sha256(library.read_bytes()).hexdigest() == (receipt / 'library.sha256').read_text().strip()
-assert 'sqlite-libs-3.53.4_p20261025-r0' in subprocess.check_output(['apk', 'info', '-v', 'sqlite-libs'], text=True).splitlines()
+subprocess.run(['apk', 'info', '--exists', 'sqlite-libs=3.53.4_p20261025-r0'], check=True)
 assert sqlite3.sqlite_version == '3.53.4'
 with sqlite3.connect(':memory:') as db:
     options = sorted(row[0] for row in db.execute('pragma compile_options'))
