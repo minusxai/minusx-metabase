@@ -66,6 +66,13 @@ RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
     && mkdir -p /python-stage/usr/local/share \
     && printf '%s\n' '{"python":"3.13.17","source":"https://www.python.org/ftp/python/3.13.17/Python-3.13.17.tar.xz","sha256":"6020bd10aff3bf4821be16f088ebb1591beb7b811dcd8fab1da8f7c22a7b27e7","configuration":"Official Alpine shared interpreter configuration plus --with-system-expat","expat":"2.9.0_p20261023-r0"}' > /python-stage/usr/local/share/python-runtime.json
 
+
+# Resolve shared-library providers for every rebuilt extension, excluding the prefix's own libraries.
+RUN find /python-stage/usr/local -type f -exec scanelf --needed --nobanner --format '%n#p' '{}' ';' \
+    | tr ',' '\n' | sort -u \
+    | awk 'NF == 0 { next } system("[ -e /python-stage/usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+    > /python-runtime-deps
+
 FROM ${PYTHON_IMAGE}
 COPY --from=xml-source /out/runtime-expat.rsa.pub /etc/apk/keys/runtime-expat.rsa.pub
 COPY --from=xml-source /out/libexpat.apk /out/check-expat /tmp/
@@ -76,6 +83,8 @@ RUN apk verify /tmp/libexpat.apk && apk add --no-cache /tmp/libexpat.apk \
 # Remove obsolete bootstrap wheel filenames before overlaying the same-version stdlib.
 RUN rm -rf /usr/local/lib/python3.13/ensurepip/_bundled
 COPY --from=python-source /python-stage/usr/local/ /usr/local/
+RUN --mount=from=python-source,source=/python-runtime-deps,target=/tmp/python-runtime-deps \
+    apk add --no-cache $(cat /tmp/python-runtime-deps)
 RUN --mount=from=python-source,source=/bootstrap/patched/pip-26.2.2-py3-none-any.whl,target=/tmp/pip-26.2.2-py3-none-any.whl \
     --mount=from=python-source,source=/python-bootstrap/check-pip-vendors.py,target=/tmp/check-pip-vendors.py \
     python -m pip install --no-index --no-deps --force-reinstall /tmp/pip-26.2.2-py3-none-any.whl \
