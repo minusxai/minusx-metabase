@@ -1,0 +1,117 @@
+# Contributor: Carlo Landmeter <clandmeter@alpinelinux.org>
+# Contributor: Łukasz Jendrysik <scadu@yandex.com>
+# Maintainer: Jingyun Hua <huajingyun@loongson.cn>
+maintainer="Jingyun Hua <huajingyun@loongson.cn>"
+pkgname=sqlite
+# NOTE: pkgver needs to correspond with sqlite-tools
+pkgver=3.53.4
+pkgrel=0
+pkgdesc="C library that implements an SQL database engine"
+url="https://www.sqlite.org/"
+arch="all"
+license="blessing"
+depends_dev="$pkgname=$pkgver-r$pkgrel"
+makedepends_host="readline-dev"
+subpackages="$pkgname-static $pkgname-doc $pkgname-dev $pkgname-libs"
+
+# compute _ver
+_a=${pkgver%%.*}
+_b=${pkgver#"$_a".}
+_b=${_b%%.*}
+_c=${pkgver#"$_a"."$_b".}
+_c=${_c%%.*}
+case $pkgver in
+	*.*.*.*)_d=${pkgver##*.};;
+	*.*.*)	_d=0;;
+esac
+[ $_b -lt 10 ] && _b=0$_b
+[ $_c -lt 10 ] && _c=0$_c
+[ $_d -lt 10 ] && _d=0$_d
+_ver=${_a}${_b}${_c}$_d
+
+# these variables depend on _ver being set
+source="https://www.sqlite.org/2026/sqlite-autoconf-$_ver.tar.gz
+	https://www.sqlite.org/2026/sqlite-src-$_ver.zip
+	"
+builddir="$srcdir/$pkgname-autoconf-$_ver"
+options="!check" # no tests included
+
+# secfixes:
+#   3.34.1-r0:
+#     - CVE-2021-20227
+#   3.32.1-r0:
+#     - CVE-2020-13434
+#     - CVE-2020-13435
+#   3.30.1-r3:
+#     - CVE-2020-11655
+#   3.30.1-r1:
+#     - CVE-2019-19242
+#     - CVE-2019-19244
+#   3.28.0-r0:
+#     - CVE-2019-5018
+#     - CVE-2019-8457
+#   0:
+#     - CVE-2022-35737
+
+# additional CFLAGS to set, keep in sync with main/sqlite-tools
+_amalgamation="-DSQLITE_ENABLE_FTS3_PARENTHESIS \
+	-DSQLITE_ENABLE_COLUMN_METADATA \
+	-DSQLITE_SECURE_DELETE \
+	-DSQLITE_ENABLE_UNLOCK_NOTIFY \
+	-DSQLITE_ENABLE_RTREE \
+	-DSQLITE_ENABLE_GEOPOLY \
+	-DSQLITE_USE_URI \
+	-DSQLITE_ENABLE_DBSTAT_VTAB \
+	-DSQLITE_SOUNDEX \
+	-DSQLITE_MAX_VARIABLE_NUMBER=250000"
+
+prepare() {
+	if [ -f "$startdir"/../sqlite-tools/APKBUILD ]; then
+		(
+		_sqlitever=$pkgver
+		# shellcheck disable=SC1093
+		. "$startdir"/../sqlite-tools/APKBUILD
+		if [ "$_sqlitever" != "$pkgver" ]; then
+			warning "sqlite-tools version mismatch ($_sqlitever != $pkgver)"
+		fi
+		)
+	fi
+
+	default_prepare
+}
+
+build() {
+	export CFLAGS="${CFLAGS//-Os/-O2} $_amalgamation"
+
+	CC_FOR_BUILD="$BUILDCC" \
+	./configure \
+		--build="$CBUILD" \
+		--host="$CHOST" \
+		--prefix=/usr \
+		--enable-threadsafe \
+		--enable-readline \
+		--with-readline-header="$CBUILDROOT"/usr/include/readline/readline.h \
+		--enable-session \
+		--enable-static \
+		--enable-fts3 \
+		--enable-fts4 \
+		--enable-fts5 \
+		--soname=legacy
+	make
+}
+
+check() {
+	make check
+}
+
+package() {
+	make DESTDIR="$pkgdir" install
+
+	install -Dvm644 "$srcdir"/$pkgname-src-$_ver/LICENSE.md \
+		"$pkgdir"/usr/share/licenses/$pkgname/LICENSE.md
+}
+
+sha512sums="
+c24374e9393a943157f533f96e89e6c5743e5f5aad169d8393cff3088ca5ccbe5cc0561681ace49c349d0fe402298ee2624d319f422967247ce0792e3b3aa01e  sqlite-autoconf-3530400.tar.gz
+4530f39a68e4e32460fc2656bc3ad9d8d73394390cb5c6668ff0755cb50d39219035677994d65078ad45ad126256c8c4e6a91afc5fcbc321883c805b11e7754e  sqlite-src-3530400.zip
+"

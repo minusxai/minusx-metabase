@@ -28,6 +28,12 @@ RUN mkdir -p /pkg/usr/lib /pkg/usr/share/doc/libexpat /out \
     && LD_LIBRARY_PATH=/expat-stage/usr/lib /out/check-expat \
     && rm /tmp/runtime.rsa
 
+FROM ${PYTHON_IMAGE} AS sqlite-source
+ADD --checksum=sha256:0e9483900e92cd5de8fd48d16bf9200145a61f7fd5be542a5ac81d8a9516eb9c https://www.sqlite.org/2026/sqlite-autoconf-3530400.tar.gz /tmp/sqlite-autoconf.tar.gz
+ADD --checksum=sha256:d18fa15aec74d8c17e1463f861095adc01b5ad190256acb4f91d22f0368d232b https://www.sqlite.org/2026/sqlite-src-3530400.zip /tmp/sqlite-src.zip
+COPY sqlite-runtime /sqlite-runtime
+RUN sh /sqlite-runtime/build.sh
+
 FROM ${PYTHON_IMAGE} AS python-source
 # Match the official image's same-version interpreter configuration and runtime ABI.
 RUN apk add --no-cache bluez-dev bzip2-dev dpkg-dev dpkg findutils g++ gcc \
@@ -86,6 +92,11 @@ COPY --from=python-source /python-stage/usr/local/ /usr/local/
 RUN --mount=from=python-source,source=/python-runtime-deps,target=/tmp/python-runtime-deps \
     apk add --no-cache $(cat /tmp/python-runtime-deps) \
     && apk list --installed libexpat | grep -q '^libexpat-2.9.0_p20261023-r0 '
+COPY --from=sqlite-source /out/runtime-sqlite.rsa.pub /etc/apk/keys/runtime-sqlite.rsa.pub
+RUN --mount=from=sqlite-source,source=/out,target=/tmp/sqlite-check,readonly \
+    apk verify /tmp/sqlite-check/sqlite-libs.apk \
+    && apk add --no-cache /tmp/sqlite-check/sqlite-libs.apk \
+    && python /tmp/sqlite-check/verify-sqlite.py
 RUN --mount=from=python-source,source=/bootstrap/patched/pip-26.2.2-py3-none-any.whl,target=/tmp/pip-26.2.2-py3-none-any.whl \
     --mount=from=python-source,source=/python-bootstrap/check-pip-vendors.py,target=/tmp/check-pip-vendors.py \
     python -m pip install --no-index --no-deps --force-reinstall /tmp/pip-26.2.2-py3-none-any.whl \
@@ -99,6 +110,9 @@ RUN python -c 'import pyexpat; assert pyexpat.EXPAT_VERSION == "expat_2.9.0"'
 RUN adduser -D -u 1000 -G users jovyan
 COPY requirements.txt requirements.lock.txt /tmp/notebook-environment/
 RUN pip install --no-cache-dir --require-hashes -r /tmp/notebook-environment/requirements.lock.txt
+
+RUN --mount=from=sqlite-source,source=/out,target=/tmp/sqlite-check,readonly \
+    python /tmp/sqlite-check/verify-sqlite.py
 
 WORKDIR /home/jovyan
 RUN mkdir -p /home/jovyan/data && chown jovyan:users /home/jovyan/data
