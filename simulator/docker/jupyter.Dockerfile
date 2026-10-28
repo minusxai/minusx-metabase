@@ -1,4 +1,4 @@
-ARG PYTHON_IMAGE=python:3.13.17-alpine@sha256:fa0bb0d0cd7c7d6cef30a69094d32ac2b71c7304c87c6107fec100e1ee4eda02
+ARG PYTHON_IMAGE=python:3.13.18-alpine@sha256:bbc0290146ebe0a8b9a8ed07d3f2c7bdeb4d917fc93300a4e47490c8b5a11b48
 FROM ${PYTHON_IMAGE} AS xml-source
 RUN apk add --no-cache build-base autoconf automake libtool openssl bash
 ADD --checksum=sha256:16afbb9cefead2aa278105cf27d9f597bde7fbf3dbb85015857ca7ca6a4e89ba https://github.com/libexpat/libexpat/releases/download/R_2_9_0/expat-2.9.0.tar.gz /tmp/expat.tar.gz
@@ -41,7 +41,7 @@ RUN apk add --no-cache bluez-dev bzip2-dev dpkg-dev dpkg findutils g++ gcc \
     ncurses-dev openssl-dev pax-utils readline-dev sqlite-dev tar tcl-dev tk tk-dev \
     util-linux-dev xz xz-dev zlib-dev
 COPY --from=xml-source /expat-stage/ /expat-stage/
-ADD --checksum=sha256:6020bd10aff3bf4821be16f088ebb1591beb7b811dcd8fab1da8f7c22a7b27e7 https://www.python.org/ftp/python/3.13.17/Python-3.13.17.tar.xz /tmp/python.tar.xz
+ADD --checksum=sha256:abb0102e6d4ae027509bcb82327d9dd85515b44a3ba8ad538cfc5e9847029f68 https://www.python.org/ftp/python/3.13.18/Python-3.13.18.tar.xz /tmp/python.tar.xz
 ADD --checksum=sha256:fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70 https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl /bootstrap/pip-26.2.2-py3-none-any.whl
 ADD --checksum=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3 https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl /bootstrap/urllib3-2.8.0-py3-none-any.whl
 ADD --checksum=sha256:04c721c2c7448767e9e3f2520a475663d8ee0f09c31890f6d2bd70fd636a9647 https://files.pythonhosted.org/packages/31/f9/c0a1c127f9049db9155afc316952ea571720dd01833ff5e4d7e8e6352dbb/msgpack-1.2.1.tar.gz /bootstrap/msgpack-1.2.1.tar.gz
@@ -70,7 +70,7 @@ RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \
     && test -n "$module" && scanelf --needed --nobanner "$module" | grep 'libexpat.so.1' \
     && nm -D "$module" | grep ' U XML_SetHashSalt16Bytes' \
     && mkdir -p /python-stage/usr/local/share \
-    && printf '%s\n' '{"python":"3.13.17","source":"https://www.python.org/ftp/python/3.13.17/Python-3.13.17.tar.xz","sha256":"6020bd10aff3bf4821be16f088ebb1591beb7b811dcd8fab1da8f7c22a7b27e7","configuration":"Official Alpine shared interpreter configuration plus --with-system-expat","expat":"2.9.0_p20261023-r0"}' > /python-stage/usr/local/share/python-runtime.json
+    && printf '%s\n' '{"python":"3.13.18","source":"https://www.python.org/ftp/python/3.13.18/Python-3.13.18.tar.xz","sha256":"abb0102e6d4ae027509bcb82327d9dd85515b44a3ba8ad538cfc5e9847029f68","configuration":"Official Alpine shared interpreter configuration plus --with-system-expat","expat":"2.9.0_p20261023-r0"}' > /python-stage/usr/local/share/python-runtime.json
 
 
 # Resolve shared-library providers for every rebuilt extension, excluding the prefix's own libraries.

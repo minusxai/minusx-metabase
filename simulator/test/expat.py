@@ -35,7 +35,7 @@ pointer_bits = struct.calcsize("P") * 8
 assert pointer_bits == 64, "This runtime proof is scoped to a 64-bit notebook image"
 loaded_libraries = sorted({line.split()[-1] for line in Path("/proc/self/maps").read_text().splitlines()
                            if any(name in line for name in ("pyexpat", "libexpat", "libpython"))})
-assert sys.version_info[:3] == (3, 13, 17), sys.version
+assert sys.version_info[:3] == (3, 13, 18), sys.version
 assert pyexpat.EXPAT_VERSION == "expat_2.9.0", pyexpat.EXPAT_VERSION
 assert any(path.startswith("/usr/lib/libexpat.so.1") for path in loaded_libraries), loaded_libraries
 print(json.dumps({
