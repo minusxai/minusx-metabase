@@ -6,5 +6,5 @@ numpy
 plotly
 
 # Keep pip's bundled HTTP/cache clients on compatible patched releases.
-msgpack==1.2.1
+msgpack==1.2.3
 urllib3>=2.8.0

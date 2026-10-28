@@ -44,10 +44,10 @@ COPY --from=xml-source /expat-stage/ /expat-stage/
 ADD --checksum=sha256:abb0102e6d4ae027509bcb82327d9dd85515b44a3ba8ad538cfc5e9847029f68 https://www.python.org/ftp/python/3.13.18/Python-3.13.18.tar.xz /tmp/python.tar.xz
 ADD --checksum=sha256:fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70 https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/pip-26.2.2-py3-none-any.whl /bootstrap/pip-26.2.2-py3-none-any.whl
 ADD --checksum=sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3 https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl /bootstrap/urllib3-2.8.0-py3-none-any.whl
-ADD --checksum=sha256:04c721c2c7448767e9e3f2520a475663d8ee0f09c31890f6d2bd70fd636a9647 https://files.pythonhosted.org/packages/31/f9/c0a1c127f9049db9155afc316952ea571720dd01833ff5e4d7e8e6352dbb/msgpack-1.2.1.tar.gz /bootstrap/msgpack-1.2.1.tar.gz
+ADD --checksum=sha256:32edb81a2b5eb7cd7c9d941b2bfbbb082fd2cd09e0e725930316af6b708db186 https://files.pythonhosted.org/packages/0a/e7/bb605a7bab2d8425a64b3fa762b39dc1bf1c7e3f11ba6fb5413d6db0ff8c/msgpack-1.2.3.tar.gz /bootstrap/msgpack-1.2.3.tar.gz
 COPY python-bootstrap /python-bootstrap
-RUN python /python-bootstrap/patch-pip-wheel.py /bootstrap/pip-26.2.2-py3-none-any.whl /bootstrap/urllib3-2.8.0-py3-none-any.whl /bootstrap/msgpack-1.2.1.tar.gz /bootstrap/patched/pip-26.2.2-py3-none-any.whl \
-    && printf '%s  %s\n' 3b0620d6061cdd040e834a681cd3bfc34f8196dfb6e9a743d15c77ed4fda2d90 /bootstrap/patched/pip-26.2.2-py3-none-any.whl | sha256sum -c
+RUN python /python-bootstrap/patch-pip-wheel.py /bootstrap/pip-26.2.2-py3-none-any.whl /bootstrap/urllib3-2.8.0-py3-none-any.whl /bootstrap/msgpack-1.2.3.tar.gz /bootstrap/patched/pip-26.2.2-py3-none-any.whl \
+    && printf '%s  %s\n' 4321e6598e7dc4614b91449c7f264efb581cfcc676cf313991c25e142769061b /bootstrap/patched/pip-26.2.2-py3-none-any.whl | sha256sum -c
 ENV LD_LIBRARY_PATH=/expat-stage/usr/lib
 WORKDIR /python-source
 RUN tar -xJf /tmp/python.tar.xz --strip-components=1 -C . \

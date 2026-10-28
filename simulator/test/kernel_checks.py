@@ -17,10 +17,39 @@ import plotly.graph_objects as go
 import pip._vendor
 import pip._vendor.msgpack as cache_codec
 import pip._vendor.urllib3 as http_client
+import gc
+import weakref
+import msgpack
+
+# Exercise the native decoder ownership failure addressed by GHSA-j586-36cw-2gc2.
+assert msgpack.__version__ == '1.2.3'
+assert msgpack.Unpacker.__module__ == 'msgpack._cmsgpack'
+class DecodedMarker:
+    pass
+for streaming in (False, True):
+    decoded_refs = []
+    def decoded_extension(code, data):
+        marker = DecodedMarker()
+        decoded_refs.append(weakref.ref(marker))
+        return marker
+    invalid_map = msgpack.packb({42: msgpack.ExtType(1, b'fixture')})
+    try:
+        if streaming:
+            decoder = msgpack.Unpacker(ext_hook=decoded_extension)
+            decoder.feed(invalid_map)
+            decoder.unpack()
+        else:
+            msgpack.unpackb(invalid_map, ext_hook=decoded_extension)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError('Integer map key must be rejected')
+    gc.collect()
+    assert len(decoded_refs) == 1 and decoded_refs[0]() is None, 'Rejected map leaked decoded value'
 
 assert os.getuid() == 1000
 assert Path.home() == Path('/home/jovyan')
-assert cache_codec.__version__ == '1.2.1'
+assert cache_codec.__version__ == '1.2.3'
 assert http_client.__version__ == '2.8.0'
 # Pip vendors only pkg_resources, not the setuptools installer modules.
 assert importlib.util.find_spec('pip._vendor.setuptools') is None

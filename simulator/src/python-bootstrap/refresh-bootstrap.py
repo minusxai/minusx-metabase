@@ -9,7 +9,7 @@ root = Path(sys.argv[1])
 bootstrap = Path(sys.argv[2]) if len(sys.argv) > 2 else Path('/bootstrap')
 module = root / 'Lib/ensurepip/__init__.py'
 text = module.read_text()
-versions = {'pip': ('26.2.2', '3b0620d6061cdd040e834a681cd3bfc34f8196dfb6e9a743d15c77ed4fda2d90'), 'setuptools': ('84.2.1', 'ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2')}
+versions = {'pip': ('26.2.2', '4321e6598e7dc4614b91449c7f264efb581cfcc676cf313991c25e142769061b'), 'setuptools': ('84.2.1', 'ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2')}
 bundled = root / 'Lib/ensurepip/_bundled'
 projects = ['pip'] + (['setuptools'] if '_SETUPTOOLS_VERSION' in text else [])
 for old in bundled.glob('*.whl'):

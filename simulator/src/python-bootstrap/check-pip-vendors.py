@@ -11,7 +11,7 @@ from pip._vendor.requests import Request, Session
 from pip._vendor.cachecontrol.serialize import Serializer
 
 assert urllib3.__version__ == '2.8.0'
-assert msgpack.__version__ == '1.2.1'
+assert msgpack.__version__ == '1.2.3'
 assert msgpack.Packer.__module__ == 'pip._vendor.msgpack.fallback'
 value = {'text': 'round trip', 'value': [1, 2, 3]}
 assert msgpack.loads(msgpack.dumps(value, use_bin_type=True), raw=False) == value
@@ -41,7 +41,7 @@ serializer = Serializer()
 cached = serializer.dumps(request, response, body=b'cached fixture')
 assert serializer.loads(request, cached).read() == b'cached fixture'
 bom = json.loads((Path(pip._vendor.__file__).parent / 'bom.cdx.json').read_text())
-for name, version in [('urllib3', '2.8.0'), ('msgpack', '1.2.1')]:
+for name, version in [('urllib3', '2.8.0'), ('msgpack', '1.2.3')]:
     components = [c for c in bom['components'] if c['name'] == name]
     assert len(components) == 1 and components[0]['version'] == version
 print('Patched pip pure-Python vendors, actual HTTP clients and CacheControl serialization passed')

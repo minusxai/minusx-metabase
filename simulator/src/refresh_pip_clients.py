@@ -12,7 +12,7 @@ import shutil
 import pip._vendor
 
 vendor = Path(pip._vendor.__file__).parent
-versions = {'urllib3': '2.8.0', 'msgpack': '1.2.1'}
+versions = {'urllib3': '2.8.0', 'msgpack': '1.2.3'}
 metadata_file = vendor / 'vendor.txt'
 metadata = metadata_file.read_text()
 for name, version in versions.items():

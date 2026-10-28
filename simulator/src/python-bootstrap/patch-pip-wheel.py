@@ -17,7 +17,7 @@ pip_path, urllib_path, msgpack_path, output = map(Path, sys.argv[1:5])
 inputs = {
     'pip': {'version': '26.2.2', 'path': pip_path, 'sha256': 'fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70'},
     'urllib3': {'version': '2.8.0', 'path': urllib_path, 'sha256': '0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3'},
-    'msgpack': {'version': '1.2.1', 'path': msgpack_path, 'sha256': '04c721c2c7448767e9e3f2520a475663d8ee0f09c31890f6d2bd70fd636a9647'},
+    'msgpack': {'version': '1.2.3', 'path': msgpack_path, 'sha256': '32edb81a2b5eb7cd7c9d941b2bfbbb082fd2cd09e0e725930316af6b708db186'},
 }
 for name, item in inputs.items():
     assert hashlib.sha256(item['path'].read_bytes()).hexdigest() == item['sha256'], name
@@ -31,13 +31,13 @@ with ZipFile(urllib_path) as archive:
     data['pip-26.2.2.dist-info/licenses/src/pip/_vendor/urllib3/LICENSE.txt'] = archive.read('urllib3-2.8.0.dist-info/licenses/LICENSE.txt')
 with tarfile.open(msgpack_path, mode='r:gz') as archive:
     for member in archive.getmembers():
-        relative = Path(member.name).relative_to('msgpack-1.2.1') if member.name != 'msgpack-1.2.1' else Path('.')
+        relative = Path(member.name).relative_to('msgpack-1.2.3') if member.name != 'msgpack-1.2.3' else Path('.')
         if member.isfile() and relative.parts and relative.parts[0] == 'msgpack' and (relative.suffix in ('.py', '.pyi') or relative.name == 'py.typed'):
             data['pip/_vendor/' + relative.as_posix()] = archive.extractfile(member).read()
-    data['pip-26.2.2.dist-info/licenses/src/pip/_vendor/msgpack/COPYING'] = archive.extractfile('msgpack-1.2.1/COPYING').read()
+    data['pip-26.2.2.dist-info/licenses/src/pip/_vendor/msgpack/COPYING'] = archive.extractfile('msgpack-1.2.3/COPYING').read()
 assert any(name.startswith('pip/_vendor/msgpack/') for name in data)
 assert not any(name.startswith('pip/_vendor/msgpack/') and name.endswith(('.so', '.pyd', '.dll', '.c', '.cpp')) for name in data)
-versions = {'urllib3': '2.8.0', 'msgpack': '1.2.1'}
+versions = {'urllib3': '2.8.0', 'msgpack': '1.2.3'}
 lines = data['pip/_vendor/vendor.txt'].decode().splitlines()
 for name, version in versions.items():
     matching = [i for i, line in enumerate(lines) if line.strip().startswith(name + '==')]
