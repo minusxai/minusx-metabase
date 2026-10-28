@@ -1,4 +1,4 @@
-import { it, expect, describe } from '@jest/globals';
+import { it, expect, describe } from 'vitest';
 import { parseResponse } from './parseResponse';
 
 describe('parseResponse', () => {

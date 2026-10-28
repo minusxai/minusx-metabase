@@ -5,13 +5,16 @@ import child_process from 'child_process'
 import { visualizer } from 'rollup-plugin-visualizer'
 
 export default ({ mode }) => {
-  let env = loadEnv(
+  const loadedEnv = loadEnv(
     mode,
     path.resolve(__dirname),
     ['']
   );
+  // Only explicitly public application configuration belongs in the bundle.
+  const publicKeys = ["ASSETS_PATH", "ATLAS_PATH", "AUTH_PATH", "BASE_SERVER_URL", "DEEPRESEARCH_PATH", "IS_PROD", "LOGGING_PATH", "PLANNER_PATH", "POSTHOG_API_KEY", "POSTHOG_CONFIGS", "SEMANTIC_PATH", "SERVER_PATH", "SOCKET_ENDPOINT", "WEB_CSS_CONFIG_PATH", "WEB_JSON_CONFIG_PATH", "WEB_URL"];
+  const env = Object.fromEntries(publicKeys.filter(key => key in loadedEnv).map(key => [key, loadedEnv[key]]));
   env.NODE_ENV = mode
-  env.GIT_COMMIT_ID = child_process.execSync('git rev-parse --short HEAD').toString().trim()
+  env.GIT_COMMIT_ID = process.env.GIT_COMMIT_ID || child_process.execSync('git rev-parse --short HEAD').toString().trim()
   env.npm_package_version = process.env.npm_package_version || ''
   return defineConfig({
     plugins: [

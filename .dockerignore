@@ -1,0 +1,8 @@
+.git
+**/node_modules
+**/.env
+**/.env.*
+**/web-build
+**/build
+**/.yarn/install-state.gz
+**/extension-build

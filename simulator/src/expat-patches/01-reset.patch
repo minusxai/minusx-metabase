@@ -1,0 +1,327 @@
+From ba431e267e751bfd0ed8bb608d21b0b1b52bd604 Mon Sep 17 00:00:00 2001
+From: Sebastian Pipping <sebastian@pipping.org>
+Date: Sat, 17 Oct 2026 20:59:13 +0200
+Subject: [PATCH 1/6] lib: Document the idea behind the
+ `parser->m_protocolEncodingName` check
+
+---
+ expat/lib/xmlparse.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/expat/lib/xmlparse.c b/expat/lib/xmlparse.c
+index ab2d4f1ed2..aee6b58133 100644
+--- a/expat/lib/xmlparse.c
++++ b/expat/lib/xmlparse.c
+@@ -1630,6 +1630,9 @@ XML_ParserReset(XML_Parser parser, const XML_Char *encodingName) {
+   parser->m_protocolEncodingName = NULL;
+   parserInit(parser, encodingName);
+   dtdReset(parser->m_dtd, parser);
++
++  // NOTE: This effectively checks for `copyString` having failed during the
++  //       call to `parserInit` above
+   if (encodingName && ! parser->m_protocolEncodingName) {
+     parser->m_errorCode = XML_ERROR_NO_MEMORY;
+     return XML_FALSE;
+
+From 16b6b2d583f8de3fe204f5ce3c2a6b9f1e2b4cd7 Mon Sep 17 00:00:00 2001
+From: Sebastian Pipping <sebastian@pipping.org>
+Date: Sat, 17 Oct 2026 20:43:01 +0200
+Subject: [PATCH 2/6] lib: Extract variable `bytesAllocated`
+
+---
+ expat/lib/xmlparse.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/expat/lib/xmlparse.c b/expat/lib/xmlparse.c
+index aee6b58133..e0a8e60077 100644
+--- a/expat/lib/xmlparse.c
++++ b/expat/lib/xmlparse.c
+@@ -865,11 +865,13 @@ expat_heap_increase_tolerable(XML_Parser rootParser, size_t increase,
+   size_t newTotal = 0;
+   bool tolerable = true;
+ 
++  const size_t bytesAllocated = rootParser->m_alloc_tracker.bytesAllocated;
++
+   // Detect integer overflow
+-  if (SIZE_MAX - rootParser->m_alloc_tracker.bytesAllocated < increase) {
++  if (SIZE_MAX - bytesAllocated < increase) {
+     tolerable = false;
+   } else {
+-    newTotal = rootParser->m_alloc_tracker.bytesAllocated + increase;
++    newTotal = bytesAllocated + increase;
+ 
+     if (newTotal >= rootParser->m_alloc_tracker.activationThresholdBytes) {
+       assert(newTotal > 0);
+
+From a6cf8a6944b6c6d81e74c4cd95faa29132e67aa3 Mon Sep 17 00:00:00 2001
+From: Sebastian Pipping <sebastian@pipping.org>
+Date: Sat, 17 Oct 2026 20:51:49 +0200
+Subject: [PATCH 3/6] lib: Offset allocation tracking at `XML_ParserReset` time
+
+.. to enforce the same rules to later parses as to the first
+---
+ expat/lib/xmlparse.c | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/expat/lib/xmlparse.c b/expat/lib/xmlparse.c
+index e0a8e60077..83e1dafeda 100644
+--- a/expat/lib/xmlparse.c
++++ b/expat/lib/xmlparse.c
+@@ -467,6 +467,7 @@ typedef struct accounting {
+ typedef struct MALLOC_TRACKER {
+   size_t bytesAllocated;
+   size_t peakBytesAllocated; // updated live only for debug level >=2
++  size_t bytesAllocatedWhenLastReset;
+   unsigned long debugLevel;
+   float maximumAmplificationFactor; // >=1.0
+   XmlBigCount activationThresholdBytes;
+@@ -865,7 +866,16 @@ expat_heap_increase_tolerable(XML_Parser rootParser, size_t increase,
+   size_t newTotal = 0;
+   bool tolerable = true;
+ 
+-  const size_t bytesAllocated = rootParser->m_alloc_tracker.bytesAllocated;
++  // The idea is to subtract the amount of memory that was already
++  // allocated the last time that `XML_ParserReset` was called for
++  // this parser, the memory use of one document could skew the
++  // memory statso of the next document.
++  const size_t bytesAllocated
++      = (rootParser->m_alloc_tracker.bytesAllocatedWhenLastReset
++         > rootParser->m_alloc_tracker.bytesAllocated)
++            ? 0
++            : (rootParser->m_alloc_tracker.bytesAllocated
++               - rootParser->m_alloc_tracker.bytesAllocatedWhenLastReset);
+ 
+   // Detect integer overflow
+   if (SIZE_MAX - bytesAllocated < increase) {
+@@ -1633,6 +1643,11 @@ XML_ParserReset(XML_Parser parser, const XML_Char *encodingName) {
+   parserInit(parser, encodingName);
+   dtdReset(parser->m_dtd, parser);
+ 
++#if XML_GE == 1
++  parser->m_alloc_tracker.bytesAllocatedWhenLastReset
++      = parser->m_alloc_tracker.bytesAllocated;
++#endif
++
+   // NOTE: This effectively checks for `copyString` having failed during the
+   //       call to `parserInit` above
+   if (encodingName && ! parser->m_protocolEncodingName) {
+
+From c400537c2df393161946d60bedbdc2c3a7e971ef Mon Sep 17 00:00:00 2001
+From: Sebastian Pipping <sebastian@pipping.org>
+Date: Mon, 19 Oct 2026 17:55:36 +0200
+Subject: [PATCH 4/6] tests/alloc_tests.c: Cover `XML_ParserReset` alloc
+ tracker neutrality
+
+---
+ expat/tests/alloc_tests.c | 42 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
+
+diff --git a/expat/tests/alloc_tests.c b/expat/tests/alloc_tests.c
+index 690039bc9e..9bda6b5928 100644
+--- a/expat/tests/alloc_tests.c
++++ b/expat/tests/alloc_tests.c
+@@ -2330,6 +2330,47 @@ START_TEST(test_alloc_tracker_api_float_round_trip) {
+ }
+ END_TEST
+ 
++START_TEST(test_alloc_tracker_reset_neutrality) {
++  // Speed up the test, chunk size expected to not matter in this test
++  if (g_chunkSize != 0)
++    return;
++
++  XML_Parser parser = XML_ParserCreate(NULL);
++
++  const char *const small = "<hello/>";
++
++  // Create a document that drives `parser->m_alloc_tracker.bytesAllocated`
++  // towards the activation threshold
++#if XML_GE == 1
++  const size_t bigSizeBytes
++      = (size_t)(1.1f * EXPAT_ALLOC_TRACKER_ACTIVATION_THRESHOLD_DEFAULT);
++  const char *const before = "<doc a='";
++  const char *const after = "'/>";
++  char *const big = malloc(bigSizeBytes);
++  assert_true(big != NULL);
++  memset(big, 'X', bigSizeBytes);
++  memcpy(big, before, strlen(before)); // without zero terminator
++  strcpy(big + (bigSizeBytes - strlen(after) - 1),
++         after);                                // with zero terminator
++  assert_true(strlen(big) == bigSizeBytes - 1); // self-test
++
++  assert_true(
++      _XML_Parse_SINGLE_BYTES(parser, big, strlen(big), /*isFinal=*/XML_TRUE)
++      == XML_STATUS_OK);
++
++  free(big);
++#endif // XML_GE == 1
++
++  XML_ParserReset(parser, NULL);
++
++  assert_true(_XML_Parse_SINGLE_BYTES(parser, small, strlen(small),
++                                      /*isFinal=*/XML_TRUE)
++              == XML_STATUS_OK);
++
++  XML_ParserFree(parser);
++}
++END_TEST
++
+ START_TEST(test_mem_api_cycle) {
+   XML_Parser parser = XML_ParserCreate(NULL);
+ 
+@@ -2445,6 +2486,7 @@ make_alloc_test_case(Suite *s) {
+   tcase_add_test__if_xml_ge(tc_alloc, test_alloc_tracker_getbuffer_unlimited);
+   tcase_add_test__if_xml_ge(tc_alloc, test_alloc_tracker_api);
+   tcase_add_test__if_xml_ge(tc_alloc, test_alloc_tracker_api_float_round_trip);
++  tcase_add_test__if_xml_ge(tc_alloc, test_alloc_tracker_reset_neutrality);
+ 
+   tcase_add_test(tc_alloc, test_mem_api_cycle);
+   tcase_add_test__if_xml_ge(tc_alloc, test_mem_api_unlimited);
+
+From 8b722a1453b8179dbda9876df2af4ce62e34b00c Mon Sep 17 00:00:00 2001
+From: Sebastian Pipping <sebastian@pipping.org>
+Date: Mon, 19 Oct 2026 19:17:06 +0200
+Subject: [PATCH 5/6] lib: Stop `XML_ParserReset` from resetting accounting
+ settings
+
+.. and debugging levels
+---
+ expat/lib/xmlparse.c | 36 +++++++++++++++++++++++-------------
+ 1 file changed, 23 insertions(+), 13 deletions(-)
+
+diff --git a/expat/lib/xmlparse.c b/expat/lib/xmlparse.c
+index 83e1dafeda..f12b7d31ad 100644
+--- a/expat/lib/xmlparse.c
++++ b/expat/lib/xmlparse.c
+@@ -616,8 +616,9 @@ static XML_Parser parserCreate(const XML_Char *encodingName,
+                                const XML_Char *nameSep, DTD *dtd,
+                                XML_Parser parentParser);
+ 
+-static void parserInit(XML_Parser parser, const XML_Char *encodingName);
++static void parserInit(XML_Parser parser, const XML_Char *encodingName,
++                       bool isReset);
+ 
+ #if XML_GE == 1
+ static float accountingGetCurrentAmplification(XML_Parser rootParser,
+                                                XmlBigCount extraIndirectBytes);
+@@ -1461,7 +1462,7 @@ parserCreate(const XML_Char *encodingName,
+ 
+   poolInit(&parser->m_tempPool, parser);
+   poolInit(&parser->m_temp2Pool, parser);
+-  parserInit(parser, encodingName);
++  parserInit(parser, encodingName, /*isReset=*/false);
+ 
+   if (encodingName && ! parser->m_protocolEncodingName) {
+     if (dtd) {
+@@ -1488,7 +1489,7 @@ parserCreate(const XML_Char *encodingName,
+ }
+ 
+ static void
+-parserInit(XML_Parser parser, const XML_Char *encodingName) {
++parserInit(XML_Parser parser, const XML_Char *encodingName, bool isReset) {
+   parser->m_processor = prologInitProcessor;
+   XmlPrologStateInit(&parser->m_prologState);
+   if (encodingName != NULL) {
+@@ -1569,15 +1570,24 @@ parserInit(XML_Parser parser, const XML_Char *encodingName) {
+   parser->m_hash_secret_salt_set = XML_FALSE;
+ 
+ #if XML_GE == 1
+-  memset(&parser->m_accounting, 0, sizeof(ACCOUNTING));
+-  parser->m_accounting.debugLevel = getDebugLevel("EXPAT_ACCOUNTING_DEBUG", 0u);
+-  parser->m_accounting.maximumAmplificationFactor
+-      = EXPAT_BILLION_LAUGHS_ATTACK_PROTECTION_MAXIMUM_AMPLIFICATION_DEFAULT;
+-  parser->m_accounting.activationThresholdBytes
+-      = EXPAT_BILLION_LAUGHS_ATTACK_PROTECTION_ACTIVATION_THRESHOLD_DEFAULT;
+-
+-  memset(&parser->m_entity_stats, 0, sizeof(ENTITY_STATS));
+-  parser->m_entity_stats.debugLevel = getDebugLevel("EXPAT_ENTITY_DEBUG", 0u);
++  parser->m_accounting.countBytesDirect = 0;
++  parser->m_accounting.countBytesIndirect = 0;
++  if (! isReset) {
++    parser->m_accounting.debugLevel
++        = getDebugLevel("EXPAT_ACCOUNTING_DEBUG", 0u);
++    parser->m_accounting.maximumAmplificationFactor
++        = EXPAT_BILLION_LAUGHS_ATTACK_PROTECTION_MAXIMUM_AMPLIFICATION_DEFAULT;
++    parser->m_accounting.activationThresholdBytes
++        = EXPAT_BILLION_LAUGHS_ATTACK_PROTECTION_ACTIVATION_THRESHOLD_DEFAULT;
++  }
++
++  parser->m_entity_stats.countEverOpened = 0;
++  parser->m_entity_stats.currentDepth = 0;
++  parser->m_entity_stats.maximumDepthSeen = 0;
++  if (! isReset)
++    parser->m_entity_stats.debugLevel = getDebugLevel("EXPAT_ENTITY_DEBUG", 0u);
++#else
++  UNUSED_P(isReset);
+ #endif
+ }
+ 
+@@ -1640,7 +1650,7 @@ XML_ParserReset(XML_Parser parser, const XML_Char *encodingName) {
+   poolClear(&parser->m_temp2Pool);
+   FREE(parser, (void *)parser->m_protocolEncodingName);
+   parser->m_protocolEncodingName = NULL;
+-  parserInit(parser, encodingName);
++  parserInit(parser, encodingName, /*isReset=*/true);
+   dtdReset(parser->m_dtd, parser);
+ 
+ #if XML_GE == 1
+
+From f74501d61e09341a8a2899c65a03a5bbb1fa4535 Mon Sep 17 00:00:00 2001
+From: Sebastian Pipping <sebastian@pipping.org>
+Date: Mon, 19 Oct 2026 18:35:15 +0200
+Subject: [PATCH 6/6] tests/acc_tests.c: Cover `XML_ParserReset` accounting
+ neutrality
+
+---
+ expat/tests/acc_tests.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/expat/tests/acc_tests.c b/expat/tests/acc_tests.c
+index 5e2f0f0731..17de2c5fc8 100644
+--- a/expat/tests/acc_tests.c
++++ b/expat/tests/acc_tests.c
+@@ -475,6 +475,37 @@ START_TEST(test_amplification_isolated_external_parser) {
+ }
+ END_TEST
+ 
++START_TEST(test_amplification_reset_neutrality) {
++  // Speed up the test, chunk size expected to not matter in this test
++  if (g_chunkSize != 0)
++    return;
++
++  const char *const doc
++      = "<!DOCTYPE r [<!ENTITY e 'general entity'>]><r>&e;</r>";
++  XML_Parser parser = XML_ParserCreate(NULL);
++  assert_true(XML_SetPropertyDouble(
++                  parser, XML_PROP_BILLION_LAUGHS_MAXIMUM_AMPLIFICATION, 1.0)
++              == XML_PROP_ERROR_NONE);
++  assert_true(XML_SetPropertyUInt64(
++                  parser, XML_PROP_BILLION_LAUGHS_ACTIVATION_THRESHOLD, 0)
++              == XML_PROP_ERROR_NONE);
++
++  assert_true(_XML_Parse_SINGLE_BYTES(parser, doc, (int)strlen(doc),
++                                      /*isFinal=*/XML_TRUE)
++              == XML_STATUS_ERROR);
++  assert_true(XML_GetErrorCode(parser) == XML_ERROR_AMPLIFICATION_LIMIT_BREACH);
++
++  assert_true(XML_ParserReset(parser, NULL) == XML_STATUS_OK);
++
++  assert_true(_XML_Parse_SINGLE_BYTES(parser, doc, (int)strlen(doc),
++                                      /*isFinal=*/XML_TRUE)
++              == XML_STATUS_ERROR);
++  assert_true(XML_GetErrorCode(parser) == XML_ERROR_AMPLIFICATION_LIMIT_BREACH);
++
++  XML_ParserFree(parser);
++}
++END_TEST
++
+ #endif // XML_GE == 1
+ 
+ void
+@@ -491,6 +522,7 @@ make_accounting_test_case(Suite *s) {
+   tcase_add_test(tc_accounting, test_helper_unsigned_char_to_printable);
+   tcase_add_test__ifdef_xml_dtd(tc_accounting,
+                                 test_amplification_isolated_external_parser);
++  tcase_add_test(tc_accounting, test_amplification_reset_neutrality);
+ #else
+   UNUSED_P(s);
+ #endif /* XML_GE == 1 */
