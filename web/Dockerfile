@@ -1,6 +1,9 @@
 FROM node:22.23.4-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914
 
+RUN npm install --global --no-audit --no-fund npm@12.2.1 \
+    && npm cache clean --force
 
+RUN apk upgrade --no-cache
 
 WORKDIR /app
 

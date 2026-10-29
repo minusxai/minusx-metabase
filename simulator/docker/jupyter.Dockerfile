@@ -1,4 +1,5 @@
 FROM python:3.13.18-alpine@sha256:bbc0290146ebe0a8b9a8ed07d3f2c7bdeb4d917fc93300a4e47490c8b5a11b48
+RUN apk upgrade --no-cache
 
 RUN adduser -D -u 1000 -G users jovyan
 COPY requirements.txt requirements.lock.txt /tmp/notebook-environment/
