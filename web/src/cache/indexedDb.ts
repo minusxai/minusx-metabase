@@ -13,7 +13,7 @@ interface DB extends DBSchema {
 
 let dbPromise: Promise<IDBPDatabase<DB>> | null = null;
 
-export const getDB = async (): Promise<IDBPDatabase<DB>> => {
+const getDB = async (): Promise<IDBPDatabase<DB>> => {
   if (!dbPromise) {
     dbPromise = openDB<DB>('minusx-cache-db', 1, {
       upgrade(db) {

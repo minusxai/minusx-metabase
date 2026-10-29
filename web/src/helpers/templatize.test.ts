@@ -7,9 +7,9 @@ test('renders template with context variables', () => {
     expect(result).toBe("Hello John! Welcome to Stack Overflow.");
 });
 
-test('preserves placeholders for missing context variables', () => {
+test('handles missing context variables gracefully', () => {
     const template = "Hello {{ name }}! Welcome to {{ place }}.";
     const context = { name: 'John' };
     const result = renderString(template, context);
-    expect(result).toBe("Hello John! Welcome to {{ place }}.");
+    expect(result).toBe("Hello John! Welcome to .");
 })

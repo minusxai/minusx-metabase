@@ -19,10 +19,5 @@
     "react-diff-viewer-continued": "^3.4.0",
     "react-syntax-highlighter": "^15.5.0",
     "react-window": "^1.8.11"
-  },
-  "resolutions": {
-    "serve/compression": "^1.8.2",
-    "refractor/prismjs": "^1.30.0",
-    "sockjs/uuid": "^11.1.1"
   }
 }

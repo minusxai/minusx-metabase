@@ -12,9 +12,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `yarn extension-build` - Build extension for production
 
 ### Workspace-Specific Commands
-- **Web workspace**: `yarn lint`, `yarn test` (Vitest), `yarn prettier`, `yarn build`
+- **Web workspace**: `yarn lint`, `yarn test` (Jest), `yarn prettier`, `yarn build`
 - **Extension workspace**: `yarn lint`, `yarn prettier`, `yarn zip` (build and package)
-- **Apps workspace**: tests run through `yarn workspace web test --run` (Vitest)
+- **Apps workspace**: Jest tests available
 
 ## Architecture Overview
 

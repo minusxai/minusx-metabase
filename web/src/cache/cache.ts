@@ -1,4 +1,4 @@
-import { getCache, setCache, deleteCache, getDB } from "./indexedDb"
+import { getCache, setCache, deleteCache } from "./indexedDb"
 
 // Default TTL set to 7 days (7 days * 24 hours * 60 minutes * 60 seconds)
 export const DEFAULT_TTL = 7 * 24 * 60 * 60;
@@ -98,7 +98,8 @@ export function memoize<T extends AsyncFunction>(
 
 // Debug function to list all cache entries and clean up old ones
 async function clearStaleEntries() {
-  const db = await getDB();
+  const { openDB } = await import('idb');
+  const db = await openDB('minusx-cache-db', 1);
   
   // First, get all entries
   const tx = db.transaction('cache', 'readonly');

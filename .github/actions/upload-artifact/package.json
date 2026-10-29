@@ -1,8 +1,0 @@
-{
-  "name": "runtime-report-upload",
-  "version": "1.0.0",
-  "private": true,
-  "dependencies": {
-    "@actions/artifact": "6.3.1"
-  }
-}

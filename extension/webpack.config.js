@@ -33,7 +33,7 @@ if (fileSystem.existsSync(secretsPath)) {
   alias['secrets'] = secretsPath;
 }
 
-process.env.GIT_COMMIT_ID = process.env.GIT_COMMIT_ID || child_process.execSync('git rev-parse --short HEAD').toString().trim()
+process.env.GIT_COMMIT_ID = child_process.execSync('git rev-parse --short HEAD').toString().trim()
 
 var options = {
   mode: process.env.NODE_ENV || 'development',
