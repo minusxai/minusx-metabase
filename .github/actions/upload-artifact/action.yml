@@ -1,5 +1,0 @@
-name: Upload runtime inventories
-description: Upload the validated runtime report files through the GitHub artifact service.
-runs:
-  using: node24
-  main: index.mjs
